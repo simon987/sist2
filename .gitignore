@@ -1,0 +1,15 @@
+.idea
+thumbs
+test
+*.cbp
+CMakeCache.txt
+CMakeFiles
+cmake-build-debug
+cmake_install.cmake
+Makefile
+*.out
+LOG
+sist2*
+index.sist2/
+bundle.css
+bundle.js

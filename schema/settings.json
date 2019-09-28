@@ -1,0 +1,38 @@
+{
+  "index": {
+    "refresh_interval": "-1",
+    "codec": "best_compression"
+  },
+  "analysis": {
+    "tokenizer": {
+      "path_tokenizer": {
+        "type": "path_hierarchy"
+      },
+      "my_nGram_tokenizer": {
+        "type": "nGram",
+        "min_gram": 3,
+        "max_gram": 3
+      }
+    },
+    "analyzer": {
+      "path_analyzer": {
+        "tokenizer": "path_tokenizer",
+        "filter": [
+          "lowercase"
+        ]
+      },
+      "my_nGram": {
+        "tokenizer": "my_nGram_tokenizer",
+        "filter": [
+          "lowercase"
+        ]
+      },
+      "content_analyzer": {
+        "tokenizer": "standard",
+        "filter": [
+          "lowercase"
+        ]
+      }
+    }
+  }
+}

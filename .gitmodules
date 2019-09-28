@@ -1,0 +1,18 @@
+[submodule "argparse"]
+	path = argparse
+	url = https://github.com/cofyc/argparse
+[submodule "cJSON"]
+	path = cJSON
+	url = https://github.com/DaveGamble/cJSON
+[submodule "lib/mupdf"]
+	path = lib/mupdf
+	url = git://git.ghostscript.com/mupdf.git
+[submodule "lib/onion"]
+	path = lib/onion
+	url = https://github.com/davidmoreno/onion
+[submodule "lib/ffmpeg"]
+	path = lib/ffmpeg
+	url = https://git.ffmpeg.org/ffmpeg.git
+[submodule "lmdb"]
+	path = lmdb
+	url = https://github.com/LMDB/lmdb

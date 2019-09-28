@@ -1,0 +1,85 @@
+{
+  "properties": {
+    "path": {
+      "type": "text",
+      "analyzer": "path_analyzer",
+      "copy_to": "suggest-path"
+    },
+    "suggest-path": {
+      "type": "completion",
+      "analyzer": "keyword"
+    },
+    "mime": {
+      "type": "keyword"
+    },
+    "videoc": {
+      "type": "keyword"
+    },
+    "audioc": {
+      "type": "keyword"
+    },
+    "duration": {
+      "type": "float"
+    },
+    "width": {
+      "type": "integer"
+    },
+    "height": {
+      "type": "integer"
+    },
+    "mtime": {
+      "type": "integer"
+    },
+    "size": {
+      "type": "long"
+    },
+    "index": {
+      "type": "keyword"
+    },
+    "name": {
+      "analyzer": "content_analyzer",
+      "type": "text",
+      "fields": {
+        "nGram": {
+          "type": "text",
+          "analyzer": "my_nGram"
+        }
+      }
+    },
+    "font_name": {
+      "analyzer": "my_nGram",
+      "type": "text"
+    },
+    "album": {
+      "analyzer": "my_nGram",
+      "type": "text"
+    },
+    "artist": {
+      "analyzer": "my_nGram",
+      "type": "text"
+    },
+    "title": {
+      "analyzer": "my_nGram",
+      "type": "text"
+    },
+    "genre": {
+      "analyzer": "my_nGram",
+      "type": "text"
+    },
+    "album_artist": {
+      "analyzer": "my_nGram",
+      "type": "text"
+    },
+    "content": {
+      "analyzer": "content_analyzer",
+      "type": "text",
+      "index_options": "offsets",
+      "fields": {
+        "nGram": {
+          "type": "text",
+          "analyzer": "my_nGram"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,206 @@
+#include "tpool.h"
+#include "ctx.h"
+
+typedef void (*thread_func_t)(void *arg);
+
+typedef struct tpool_work {
+    void *arg;
+    thread_func_t func;
+    struct tpool_work *next;
+} tpool_work_t;
+
+typedef struct tpool {
+    tpool_work_t *work_head;
+    tpool_work_t *work_tail;
+
+    pthread_mutex_t work_mutex;
+
+    pthread_cond_t has_work_cond;
+    pthread_cond_t working_cond;
+
+    int working_cnt;
+    int thread_cnt;
+    int work_cnt;
+    int done_cnt;
+
+    int stop;
+    void (*cleanup_func)();
+} tpool_t;
+
+
+/**
+ * Create a work object
+ */
+static tpool_work_t *tpool_work_create(thread_func_t func, void *arg) {
+
+    if (func == NULL) {
+        return NULL;
+    }
+
+    tpool_work_t *work = malloc(sizeof(tpool_work_t));
+    work->func = func;
+    work->arg = arg;
+    work->next = NULL;
+
+    return work;
+}
+
+/**
+ * Pop work object from thread pool
+ */
+static tpool_work_t *tpool_work_get(tpool_t *pool) {
+
+    tpool_work_t *work = pool->work_head;
+    if (work == NULL) {
+        return NULL;
+    }
+
+    if (work->next == NULL) {
+        pool->work_head = NULL;
+        pool->work_tail = NULL;
+    } else {
+        pool->work_head = work->next;
+    }
+
+    return work;
+}
+
+/**
+ * Push work object to thread pool
+ */
+int tpool_add_work(tpool_t *pool, thread_func_t func, void *arg) {
+
+    tpool_work_t *work = tpool_work_create(func, arg);
+    if (work == NULL) {
+        return 0;
+    }
+
+    pthread_mutex_lock(&(pool->work_mutex));
+    if (pool->work_head == NULL) {
+        pool->work_head = work;
+        pool->work_tail = pool->work_head;
+    } else {
+        pool->work_tail->next = work;
+        pool->work_tail = work;
+    }
+
+    pool->work_cnt++;
+
+    pthread_cond_broadcast(&(pool->has_work_cond));
+    pthread_mutex_unlock(&(pool->work_mutex));
+
+    return 1;
+}
+
+/**
+ * Thread worker function
+ */
+static void *tpool_worker(void *arg) {
+    tpool_t *pool = arg;
+
+    while (1) {
+        pthread_mutex_lock(&(pool->work_mutex));
+        if (pool->stop) {
+            break;
+        }
+
+        if (pool->work_head == NULL) {
+            pthread_cond_wait(&(pool->has_work_cond), &(pool->work_mutex));
+        }
+
+        tpool_work_t *work = tpool_work_get(pool);
+        pool->working_cnt++;
+        pthread_mutex_unlock(&(pool->work_mutex));
+
+        if (work != NULL) {
+            work->func(work->arg);
+            free(work);
+        }
+
+        pthread_mutex_lock(&(pool->work_mutex));
+        pool->working_cnt--;
+        pool->done_cnt++;
+
+        progress_bar_print((double)pool->done_cnt / pool->work_cnt, ScanCtx.stat_tn_size, ScanCtx.stat_index_size);
+
+        if (pool->working_cnt == 0 && pool->work_head == NULL) {
+            pthread_cond_signal(&(pool->working_cond));
+        }
+        pthread_mutex_unlock(&(pool->work_mutex));
+    }
+
+    pool->cleanup_func();
+
+    pool->thread_cnt--;
+    pthread_cond_signal(&(pool->working_cond));
+    pthread_mutex_unlock(&(pool->work_mutex));
+    return NULL;
+}
+
+void tpool_wait(tpool_t *pool) {
+    pthread_mutex_lock(&(pool->work_mutex));
+    while (1) {
+        usleep(1000000);
+        if (pool->working_cnt != 0) {
+            pthread_cond_wait(&(pool->working_cond), &(pool->work_mutex));
+        } else {
+            pool->stop = 1;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&(pool->work_mutex));
+}
+
+void tpool_destroy(tpool_t *pool) {
+    if (pool == NULL) {
+        return;
+    }
+
+    pthread_mutex_lock(&(pool->work_mutex));
+    tpool_work_t *work = pool->work_head;
+    while (work != NULL) {
+        tpool_work_t *tmp = work->next;
+        free(work);
+        work = tmp;
+    }
+    pool->stop = 1;
+    pthread_cond_broadcast(&(pool->has_work_cond));
+    pthread_mutex_unlock(&(pool->work_mutex));
+
+    tpool_wait(pool);
+
+    pthread_mutex_destroy(&(pool->work_mutex));
+    pthread_cond_destroy(&(pool->has_work_cond));
+    pthread_cond_destroy(&(pool->working_cond));
+
+    free(pool);
+}
+
+/**
+ * Create a thread pool
+ * @param thread_cnt Worker threads count
+ */
+tpool_t *tpool_create(size_t thread_cnt, void cleanup_func()) {
+
+    tpool_t *pool = malloc(sizeof(tpool_t));
+    pool->thread_cnt = thread_cnt;
+    pool->working_cnt = 0;
+    pool->stop = 0;
+    pool->cleanup_func = cleanup_func;
+
+    pthread_mutex_init(&(pool->work_mutex), NULL);
+
+    pthread_cond_init(&(pool->has_work_cond), NULL);
+    pthread_cond_init(&(pool->working_cond), NULL);
+
+    pool->work_head = NULL;
+    pool->work_tail = NULL;
+
+    for (size_t i = 0; i < thread_cnt; i++) {
+        pthread_t thread;
+        pthread_create(&thread, NULL, tpool_worker, pool);
+        pthread_detach(thread);
+    }
+
+    return pool;
+}

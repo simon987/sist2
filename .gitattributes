@@ -1,0 +1,3 @@
+CMakeModules/* linguist-vendored
+web/js/*.min.js linguist-vendored
+web/css/*.min.css linguist-vendored

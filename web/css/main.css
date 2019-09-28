@@ -1,0 +1,163 @@
+body {overflow-y:scroll;}
+.card {
+    margin-top: 1em;
+}
+.navbar-brand {
+    font-size: 1.75rem;
+    padding: 0;
+}
+.navbar {
+    background: #F7F7F7; border-bottom: solid 1px #dfdfdf;
+}
+.document {
+    padding: 0.5rem;
+}
+
+.document p {
+    margin-bottom: 0;
+}
+
+.document:hover p {
+    text-decoration: underline;
+}
+
+.badge-video {
+    color: #FFFFFF;
+    background-color: #F27761;
+}
+
+.badge-image {
+    color: #FFFFFF;
+    background-color: #AA99C9;
+}
+
+.badge-audio {
+    color: #FFFFFF;
+    background-color: #00ADEF;
+}
+
+.badge-resolution {
+    color: #212529;
+    background-color: #FFC107;
+}
+
+.badge-text {
+    color: #FFFFFF;
+    background-color: #FAAB3C;
+}
+
+.card-img-overlay {
+    pointer-events: none;
+    padding: 0.75rem;
+
+    bottom: unset;
+    top: 0;
+    left: unset;
+    right: unset;
+}
+
+.file-title {
+    font-size: 10pt;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.badge {
+    margin-right: 3px;
+}
+
+.fit {
+    display: block;
+    min-width: 64px;
+    max-width: 100%;
+    max-height: 175px;
+    margin: 0 auto 0;
+    padding: 3px 3px 0 3px;
+    width: auto;
+    height: auto;
+}
+
+.audio-fit {
+    height: 39px;
+    vertical-align: bottom;
+    display: inline;
+}
+
+@media (min-width: 1200px) {
+    .card-columns {
+        column-count: 4;
+    }
+}
+
+@media (min-width: 1500px) {
+    .container  {
+        max-width: 1440px;
+    }
+    .card-columns {
+        column-count: 5;
+    }
+}
+
+@media (min-width: 1800px) {
+    .container  {
+        max-width: 1550px;
+    }
+}
+
+mark {
+    background: #fff217;
+    border-radius: 0;
+    padding: 1px 0;
+}
+
+.content-div {
+    font-family: SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    font-size: 13px;
+    padding: 1em;
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin: 3px;
+}
+
+.irs-single, .irs-from, .irs-to {
+    font-size: 13px;
+}
+
+.irs-slider {
+    cursor: col-resize;
+}
+
+.custom-select {
+    overflow: auto;
+}
+
+.irs {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.inspire-tree .selected > .wholerow, .inspire-tree .selected > .title-wrap:hover + .wholerow
+{
+    background: none;
+}
+
+.inspire-tree {
+    font-weight: 400;
+    font-size: 14px;
+    font-family: Helvetica, Nueue, Verdana, sans-serif;
+    max-height: 350px;
+    overflow: auto;
+}
+
+.page-indicator {
+    line-height: 1rem;
+    padding: 0.5rem;
+}
+
+.btn-xs {
+    padding: .1rem .3rem;
+    font-size: .875rem;
+    border-radius: .2rem;
+}
