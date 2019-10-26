@@ -71,7 +71,7 @@ with open("mime.csv") as f:
     print("#include <stdlib.h>\n")
     # Enum
     print("enum mime {")
-    for mime, ext in mimes.items():
+    for mime, ext in sorted(mimes.items()):
         print("    " + clean(mime) + "=" + mime_id(mime) + ",")
     print("};")
 
