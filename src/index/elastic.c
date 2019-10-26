@@ -70,7 +70,8 @@ void elastic_flush() {
 
     while (line != NULL) {
         char action_str[512];
-        snprintf(action_str, 512, "{\"index\":{\"_id\": \"%s\", \"_type\":\"_doc\"}}", line->uuid_str);
+        snprintf(action_str, 512,
+                "{\"index\":{\"_id\":\"%s\", \"_type\":\"_doc\", \"_index\":\"sist2\"}}\n", line->uuid_str);
         size_t action_str_len = strlen(action_str);
 
         size_t line_len = strlen(line->line);
@@ -98,6 +99,14 @@ void elastic_flush() {
     snprintf(bulk_url, 4096, "%s/sist2/_bulk", Indexer->es_url);
     response_t *r = web_post(bulk_url, buf, "Content-Type: application/x-ndjson");
     printf("Indexed %3d documents (%zukB) <%d>\n", count, buf_cur / 1024, r->status_code);
+
+    cJSON *ret_json = cJSON_Parse(r->body);
+    if (cJSON_GetObjectItem(ret_json, "errors")->valueint != 0) {
+        fprintf(stderr, "%s\n", r->body);
+    }
+
+    cJSON_Delete(ret_json);
+
     free_response(r);
 }
 
@@ -187,7 +196,7 @@ void elastic_init(int force_reset) {
         printf("Update settings <%d>\n", r->status_code);
         free_response(r);
 
-        snprintf(url, 4096, "%s/sist2/_mappings/_doc", IndexCtx.es_url);
+        snprintf(url, 4096, "%s/sist2/_mappings/_doc?include_type_name=true", IndexCtx.es_url);
         r = web_put(url, mappings_json, "Content-Type: application/json");
         printf("Update mappings <%d>\n", r->status_code);
         free_response(r);

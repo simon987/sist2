@@ -232,7 +232,9 @@ void read_index(const char *path, const char index_id[UUID_STR_LEN], index_func 
                 case MetaTitle: {
                     buf.cur = 0;
                     while ((c = getc(file)) != 0) {
-                        dyn_buffer_write_char(&buf, (char) c);
+                        if (!(SHOULD_IGNORE_CHAR(c) || c == ' ')) {
+                            dyn_buffer_write_char(&buf, (char) c);
+                        }
                     }
                     dyn_buffer_write_char(&buf, '\0');
                     cJSON_AddStringToObject(document, get_meta_key_text(key), buf.buf);

@@ -1,6 +1,6 @@
 {
   "index": {
-    "refresh_interval": "-1",
+    "refresh_interval": "30s",
     "codec": "best_compression"
   },
   "analysis": {
@@ -24,13 +24,15 @@
       "my_nGram": {
         "tokenizer": "my_nGram_tokenizer",
         "filter": [
-          "lowercase"
+          "lowercase",
+          "asciifolding"
         ]
       },
       "content_analyzer": {
         "tokenizer": "standard",
         "filter": [
-          "lowercase"
+          "lowercase",
+          "asciifolding"
         ]
       }
     }
