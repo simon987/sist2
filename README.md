@@ -5,11 +5,32 @@
 
 sist2 (Simple incremental search tool)
 
+*Warning: sist2 is in early development*
+
 ## Features
 
+* Fast, low memory usage
+* Portable (all its features are packaged in a single executable)
+* Extracts text from common file types\*
+* Generates thumbnails\*
+* Incremental scanning
+
+
+\* See [format support](#format-support)
+
+## Getting Started
+
+1. Have an [Elasticsearch](https://www.elastic.co/downloads/elasticsearch) instance running
+1. Download the [latest sist2 release](https://github.com/simon987/sist2/releases)
+
+*Windows users*: `sist2` runs under [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux)
+
+*Mac users*: See [#1](https://github.com/simon987/sist2/issues/1)
 
 
 ## Example usage
+
+![demo](demo.gif)
 
 See help page `sist2 --help` for more details.
 
@@ -17,7 +38,7 @@ See help page `sist2 --help` for more details.
 ```bash
 sist2 scan ~/Documents -o ./orig_idx/
 sist2 scan --threads 4 --content-size 16384 /mnt/Pictures
-sist2 scan -i ./orig_idx/ -o ./updated_idx/ ~/Documents
+sist2 scan --incremental ./orig_idx/ -o ./updated_idx/ ~/Documents
 ```
 
 **Push index to Elasticsearch or file**
@@ -46,21 +67,10 @@ docx, xlsx, pptx |  | *planned* | no | *planned* |
 
 
 
-## Installation
-
-1. Download runtime dependencies
-
-    `apt install curl bzip2`
-    
-1. Download binary
-    
-    Get [the latest release](https://github.com/simon987/sist2/releases) from GitHub
-
-1. (Optional) Add to search path
-    
-   `mv sist2 /usr/bin/`
-
 ## Build from source
+
+You can compile **sist2** by yourself if you don't want to use the pre-compiled
+binaries.
 
 1. Install compile-time dependencies
 
@@ -70,12 +80,7 @@ docx, xlsx, pptx |  | *planned* | no | *planned* |
         libssl-dev uuid-dev libavformat-dev libswscale-dev \
         python3 libmagic-dev libfreetype6-dev libcurl-dev \
         libbz2-dev yasm
-    ```
-    *(Archlinux)*
-    ```bash
-    pacman -S git ffmpeg pkg-config cmake openssl curl \
-        bzip2 yasm libutil-linux
-    ```
+   
 2. Build
     ```bash
     git clone --recurse-submodules https://github.com/simon987/sist2
