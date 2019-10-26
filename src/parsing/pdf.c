@@ -1,7 +1,7 @@
+#include <src/ctx.h>
 #include "pdf.h"
 #include "src/ctx.h"
 
-__always_inline
 fz_page *render_cover(fz_context *ctx, document_t *doc, fz_document *fzdoc) {
 
     fz_page *cover = fz_load_page(ctx, fzdoc, 0);
@@ -25,8 +25,12 @@ fz_page *render_cover(fz_context *ctx, document_t *doc, fz_document *fzdoc) {
     fz_device *dev = fz_new_draw_device(ctx, m, pixmap);
 
     pthread_mutex_lock(&ScanCtx.mupdf_mu);
-    fz_run_page(ctx, cover, dev, fz_identity, NULL);
-    pthread_mutex_unlock(&ScanCtx.mupdf_mu);
+    fz_try(ctx)
+        fz_run_page(ctx, cover, dev, fz_identity, NULL);
+    fz_always(ctx)
+        pthread_mutex_unlock(&ScanCtx.mupdf_mu);
+    fz_catch(ctx)
+        fz_rethrow(ctx);
 
     fz_drop_device(ctx, dev);
 
@@ -72,6 +76,7 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
         fzdoc = fz_open_document_with_stream(ctx, mime_get_mime_text(doc->mime), stream);
 
         int page_count = fz_count_pages(ctx, fzdoc);
+
         fz_page *cover = render_cover(ctx, doc, fzdoc);
 
         fz_stext_options opts;
@@ -90,8 +95,12 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
             fz_device *dev = fz_new_stext_device(ctx, stext, &opts);
 
             pthread_mutex_lock(&ScanCtx.mupdf_mu);
-            fz_run_page_contents(ctx, page, dev, fz_identity, NULL);
-            pthread_mutex_unlock(&ScanCtx.mupdf_mu);
+            fz_try(ctx)
+                fz_run_page_contents(ctx, page, dev, fz_identity, NULL);
+            fz_always(ctx)
+                pthread_mutex_unlock(&ScanCtx.mupdf_mu);
+            fz_catch(ctx)
+                fz_rethrow(ctx);
 
             fz_drop_device(ctx, dev);
 

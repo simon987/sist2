@@ -94,7 +94,7 @@ void parse(void *arg) {
     if (!(SHOULD_PARSE(doc.mime))) {
 
     } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) || mmime == MimeAudio || mmime == MimeImage) {
-//        parse_media(job->filepath, &doc);
+        parse_media(job->filepath, &doc);
 
     } else if (IS_PDF(doc.mime)) {
         void *pdf_buf = read_all(job, (char *) buf, bytes_read, &fd);
@@ -105,15 +105,15 @@ void parse(void *arg) {
         }
 
     } else if (mmime == MimeText && ScanCtx.content_size > 0) {
-//        parse_text(bytes_read, &fd, (char *) buf, &doc);
+        parse_text(bytes_read, &fd, (char *) buf, &doc);
 
     } else if (IS_FONT(doc.mime)) {
-//        void *font_buf = read_all(job, (char *) buf, bytes_read, &fd);
-//        parse_font(font_buf, doc.size, &doc);
-//
-//        if (font_buf != buf) {
-//            free(font_buf);
-//        }
+        void *font_buf = read_all(job, (char *) buf, bytes_read, &fd);
+        parse_font(font_buf, doc.size, &doc);
+
+        if (font_buf != buf) {
+            free(font_buf);
+        }
     }
 
     write_document(&doc);

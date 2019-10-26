@@ -98,13 +98,13 @@ TARGET_LINK_LIBRARIES(
         ${UUID_LIBRARIES}
 
         # ffmpeg
-#        ${PROJECT_SOURCE_DIR}/lib/libavcodec.a
-#        ${PROJECT_SOURCE_DIR}/lib/libavformat.a
-#        ${PROJECT_SOURCE_DIR}/lib/libavutil.a
-#        ${PROJECT_SOURCE_DIR}/lib/libswscale.a
-#        ${PROJECT_SOURCE_DIR}/lib/libswresample.a
-        ${FFMPEG_LIBRARIES}
-        swscale
+        ${PROJECT_SOURCE_DIR}/lib/libavcodec.a
+        ${PROJECT_SOURCE_DIR}/lib/libavformat.a
+        ${PROJECT_SOURCE_DIR}/lib/libavutil.a
+        ${PROJECT_SOURCE_DIR}/lib/libswscale.a
+        ${PROJECT_SOURCE_DIR}/lib/libswresample.a
+#        ${FFMPEG_LIBRARIES}
+#        swscale
 
         # mupdf
         ${PROJECT_SOURCE_DIR}/lib/libmupdf.a

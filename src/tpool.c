@@ -167,7 +167,9 @@ void tpool_destroy(tpool_t *pool) {
 
     for (size_t i = 0; i < pool->thread_cnt; i++) {
         pthread_t thread = pool->threads[i];
-        pthread_cancel(thread);
+        if (thread != 0) {
+            pthread_cancel(thread);
+        }
     }
 
     pthread_mutex_destroy(&(pool->work_mutex));
