@@ -5,7 +5,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.0.0";
+static const char *const Version = "1.0.1";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -196,7 +196,7 @@ int main(int argc, const char *argv[]) {
     index_args_t *index_args = index_args_create();
     web_args_t *web_args = web_args_create();
 
-    char * common_es_url;
+    char * common_es_url = NULL;
 
     struct argparse_option options[] = {
             OPT_HELP(),
