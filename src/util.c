@@ -34,7 +34,7 @@ char *expandpath(const char *path) {
 
 void progress_bar_print(double percentage, size_t tn_size, size_t index_size) {
 
-    static int last_val = 0;
+    static int last_val = -1;
     int val = (int) (percentage * 100);
     if (last_val == val || val > 100 || index_size < 1024) {
         return;

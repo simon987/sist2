@@ -66,7 +66,7 @@ index_descriptor_t read_index_descriptor(char *path) {
     strcpy(descriptor.root, cJSON_GetObjectItem(json, "root")->valuestring);
     strcpy(descriptor.name, cJSON_GetObjectItem(json, "name")->valuestring);
     strcpy(descriptor.rewrite_url, cJSON_GetObjectItem(json, "rewrite_url")->valuestring);
-    descriptor.root_len = (int)strlen(descriptor.root);
+    descriptor.root_len = (short)strlen(descriptor.root);
     strcpy(descriptor.version, cJSON_GetObjectItem(json, "version")->valuestring);
     strcpy(descriptor.uuid, cJSON_GetObjectItem(json, "uuid")->valuestring);
 
@@ -127,8 +127,8 @@ void write_document(document_t *doc) {
     dyn_buffer_t buf = dyn_buffer_create();
 
     // Ignore root directory in the file path
-    doc->ext = (short)(doc->ext - ScanCtx.index.desc.root_len);
-    doc->base = (short)(doc->base - ScanCtx.index.desc.root_len);
+    doc->ext = doc->ext - ScanCtx.index.desc.root_len;
+    doc->base = doc->base - ScanCtx.index.desc.root_len;
     doc->filepath += ScanCtx.index.desc.root_len;
 
     dyn_buffer_write(&buf, doc, sizeof(line_t));

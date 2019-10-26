@@ -85,7 +85,7 @@ include_directories(
 target_compile_options(sist2
         PRIVATE
         -O3
-        -march=native
+#        -march=native
         -fno-stack-protector
         -fomit-frame-pointer
         )

@@ -16,8 +16,8 @@ struct {
     int content_size;
     float tn_qscale;
 
-    int stat_tn_size;
-    int stat_index_size;
+    size_t stat_tn_size;
+    size_t stat_index_size;
 
     GHashTable *original_table;
     GHashTable *copy_table;

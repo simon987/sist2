@@ -42,7 +42,8 @@ fz_page *render_cover(fz_context *ctx, document_t *doc, fz_document *fzdoc) {
     return cover;
 }
 
-void fz_noop_callback(void *user, const char *message) {}
+void fz_noop_callback(__attribute__((unused)) void *user, __attribute__((unused)) const char *message) {}
+
 
 void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
 
@@ -85,27 +86,14 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
                 page = fz_load_page(ctx, fzdoc, current_page);
             }
 
-            fz_stext_page *stext;
-            fz_device *dev = NULL;
+            fz_stext_page *stext = fz_new_stext_page(ctx, fz_bound_page(ctx, page));
+            fz_device *dev = fz_new_stext_device(ctx, stext, &opts);
 
-            fz_var(dev);
+            pthread_mutex_lock(&ScanCtx.mupdf_mu);
+            fz_run_page_contents(ctx, page, dev, fz_identity, NULL);
+            pthread_mutex_unlock(&ScanCtx.mupdf_mu);
 
-            stext = fz_new_stext_page(ctx, fz_bound_page(ctx, page));
-            fz_try(ctx)
-            {
-                dev = fz_new_stext_device(ctx, stext, &opts);
-                pthread_mutex_lock(&ScanCtx.mupdf_mu);
-                fz_run_page_contents(ctx, page, dev, fz_identity, NULL);
-                pthread_mutex_unlock(&ScanCtx.mupdf_mu);
-                fz_close_device(ctx, dev);
-            }
-            fz_always(ctx)
-                fz_drop_device(ctx, dev);
-            fz_catch(ctx)
-            {
-                fz_drop_stext_page(ctx, stext);
-                fz_rethrow(ctx);
-            }
+            fz_drop_device(ctx, dev);
 
             fz_stext_block *block = stext->first_block;
             while (block != NULL) {
@@ -147,6 +135,8 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
         fz_drop_stream(ctx, stream);
         fz_drop_document(ctx, fzdoc);
         fz_drop_context(ctx);
-    } fz_catch(ctx) {}
+    } fz_catch(ctx) {
+        fprintf(stderr, "Error %s %s\n", doc->filepath, ctx->error.message);
+    }
 }
 
