@@ -153,7 +153,7 @@ int chunked_response_file(const char *filename, const char *mime,
                 // %d-
                 ends = MIN(starts + CHUNK_SIZE, length);
             }
-            if (ends >= length || starts >= length || starts < 0) {
+            if (ends > length || starts >= length || starts < 0) {
                 close(fd);
                 return OCS_INTERNAL_ERROR;
             }

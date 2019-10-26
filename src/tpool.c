@@ -18,7 +18,8 @@ typedef struct tpool {
     pthread_cond_t has_work_cond;
     pthread_cond_t working_cond;
 
-    int working_cnt;
+    pthread_t *threads;
+
     int thread_cnt;
     int work_cnt;
     int done_cnt;
@@ -109,7 +110,6 @@ static void *tpool_worker(void *arg) {
         }
 
         tpool_work_t *work = tpool_work_get(pool);
-        pool->working_cnt++;
         pthread_mutex_unlock(&(pool->work_mutex));
 
         if (work != NULL) {
@@ -118,12 +118,11 @@ static void *tpool_worker(void *arg) {
         }
 
         pthread_mutex_lock(&(pool->work_mutex));
-        pool->working_cnt--;
         pool->done_cnt++;
 
         progress_bar_print((double)pool->done_cnt / pool->work_cnt, ScanCtx.stat_tn_size, ScanCtx.stat_index_size);
 
-        if (pool->working_cnt == 0 && pool->work_head == NULL) {
+        if (pool->work_head == NULL) {
             pthread_cond_signal(&(pool->working_cond));
         }
         pthread_mutex_unlock(&(pool->work_mutex));
@@ -131,7 +130,6 @@ static void *tpool_worker(void *arg) {
 
     pool->cleanup_func();
 
-    pool->thread_cnt--;
     pthread_cond_signal(&(pool->working_cond));
     pthread_mutex_unlock(&(pool->work_mutex));
     return NULL;
@@ -140,13 +138,13 @@ static void *tpool_worker(void *arg) {
 void tpool_wait(tpool_t *pool) {
     pthread_mutex_lock(&(pool->work_mutex));
     while (1) {
-        usleep(1000000);
-        if (pool->working_cnt != 0) {
+        if (pool->done_cnt < pool->work_cnt) {
             pthread_cond_wait(&(pool->working_cond), &(pool->work_mutex));
         } else {
             pool->stop = 1;
             break;
         }
+        progress_bar_print(100.0, ScanCtx.stat_tn_size, ScanCtx.stat_index_size);
     }
     pthread_mutex_unlock(&(pool->work_mutex));
 }
@@ -163,16 +161,20 @@ void tpool_destroy(tpool_t *pool) {
         free(work);
         work = tmp;
     }
-    pool->stop = 1;
+
     pthread_cond_broadcast(&(pool->has_work_cond));
     pthread_mutex_unlock(&(pool->work_mutex));
 
-    tpool_wait(pool);
+    for (size_t i = 0; i < pool->thread_cnt; i++) {
+        pthread_t thread = pool->threads[i];
+        pthread_cancel(thread);
+    }
 
     pthread_mutex_destroy(&(pool->work_mutex));
     pthread_cond_destroy(&(pool->has_work_cond));
     pthread_cond_destroy(&(pool->working_cond));
 
+    free(pool->threads);
     free(pool);
 }
 
@@ -184,9 +186,11 @@ tpool_t *tpool_create(size_t thread_cnt, void cleanup_func()) {
 
     tpool_t *pool = malloc(sizeof(tpool_t));
     pool->thread_cnt = thread_cnt;
-    pool->working_cnt = 0;
+    pool->work_cnt =0;
+    pool->done_cnt =0;
     pool->stop = 0;
     pool->cleanup_func = cleanup_func;
+    pool->threads = malloc(sizeof(pthread_t) * thread_cnt);
 
     pthread_mutex_init(&(pool->work_mutex), NULL);
 
@@ -197,7 +201,7 @@ tpool_t *tpool_create(size_t thread_cnt, void cleanup_func()) {
     pool->work_tail = NULL;
 
     for (size_t i = 0; i < thread_cnt; i++) {
-        pthread_t thread;
+        pthread_t thread = pool->threads[i];
         pthread_create(&thread, NULL, tpool_worker, pool);
         pthread_detach(thread);
     }

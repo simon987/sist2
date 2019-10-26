@@ -148,6 +148,7 @@ int text_buffer_append_char(text_buffer_t *buf, int c) {
 }
 
 char *abspath(const char * path);
+char *expandpath(const char *path);
 
 void progress_bar_print(double percentage, size_t tn_size, size_t index_size);
 

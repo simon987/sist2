@@ -20,13 +20,13 @@ store_t *store_create(char *path) {
     }
 
     store->size = (size_t) 1024 * 1024 * 5;
-    ScanCtx.stat_tn_size = store->size;
+    ScanCtx.stat_tn_size = 0;
     mdb_env_set_mapsize(store->env, store->size);
 
     // Open dbi
     MDB_txn *txn;
-    int r3 = mdb_txn_begin(store->env, NULL, 0, &txn);
-    int r4 = mdb_dbi_open(txn, NULL, 0, &store->dbi);
+    mdb_txn_begin(store->env, NULL, 0, &txn);
+    mdb_dbi_open(txn, NULL, 0, &store->dbi);
     mdb_txn_commit(txn);
 
     return store;
@@ -55,6 +55,7 @@ void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t bu
     mdb_txn_begin(store->env, NULL, 0, &txn);
 
     int put_ret = mdb_put(txn, store->dbi, &mdb_key, &mdb_value, 0);
+    ScanCtx.stat_tn_size += buf_len;
 
     if (put_ret == MDB_MAP_FULL) {
         mdb_txn_abort(txn);
@@ -67,7 +68,6 @@ void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t bu
         mdb_env_set_mapsize(store->env, store->size);
         mdb_txn_begin(store->env, NULL, 0, &txn);
         put_ret = mdb_put(txn, store->dbi, &mdb_key, &mdb_value, 0);
-        ScanCtx.stat_tn_size = store->size;
     }
 
     mdb_txn_commit(txn);

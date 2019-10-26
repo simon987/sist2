@@ -1,5 +1,7 @@
 #!/bin/bash
 
+rm -rf index.sist2/
+
 rm web/js/bundle.js 2> /dev/null
 cat `ls -v web/js/*.min.js` > web/js/bundle.js
 cat web/js/{util,dom,search}.js >> web/js/bundle.js

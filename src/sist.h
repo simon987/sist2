@@ -49,6 +49,7 @@
 #include "parsing/font.h"
 #include "index/web.h"
 #include "web/serve.h"
+#include "cli.h"
 
 ;
 

@@ -8,15 +8,6 @@ cd ..
 mv mupdf/build/release/libmupdf.a .
 mv mupdf/build/release/libmupdf-third.a .
 
-# libpcre
-cd libpcre
-./autogen.sh
-./configure --disable-shared
-make -j 4
-cd ..
-
-mv libpcre/.libs/libpcre.a .
-
 # ffmpeg
 cd ffmpeg
 ./configure --disable-shared --enable-static --disable-ffmpeg --disable-ffplay \

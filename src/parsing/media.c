@@ -153,6 +153,10 @@ void parse_media(const char *filepath, document_t *doc) {
     int video_stream = -1;
 
     AVFormatContext *pFormatCtx = avformat_alloc_context();
+    if (pFormatCtx == NULL) {
+        fprintf(stderr, "Could not allocate AVFormatContext! %s \n", filepath);
+        return;
+    }
     int res = avformat_open_input(&pFormatCtx, filepath, NULL, NULL);
     if (res < 0) {
         printf("ERR%s %s\n", filepath, av_err2str(res));

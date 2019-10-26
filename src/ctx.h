@@ -21,6 +21,8 @@ struct {
 
     GHashTable *original_table;
     GHashTable *copy_table;
+
+    pthread_mutex_t mupdf_mu;
 } ScanCtx;
 
 

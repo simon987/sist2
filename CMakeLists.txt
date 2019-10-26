@@ -32,7 +32,7 @@ add_executable(
         # LMDB
         lmdb/libraries/liblmdb/lmdb.h lmdb/libraries/liblmdb/mdb.c
         lmdb/libraries/liblmdb/midl.h lmdb/libraries/liblmdb/midl.c
-)
+        src/cli.c src/cli.h)
 
 find_package(PkgConfig REQUIRED)
 set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig/")
@@ -84,8 +84,8 @@ include_directories(
 
 target_compile_options(sist2
         PRIVATE
-        -Ofast
-#        -march=native
+        -O3
+        -march=native
         -fno-stack-protector
         -fomit-frame-pointer
         )
@@ -93,16 +93,18 @@ target_compile_options(sist2
 TARGET_LINK_LIBRARIES(
         sist2
 
+        ${GLIB_LIBRARIES}
         ${GOBJECT_LIBRARIES}
         ${UUID_LIBRARIES}
-        ${GLIB_LIBRARIES}
 
         # ffmpeg
-        ${PROJECT_SOURCE_DIR}/lib/libavcodec.a
-        ${PROJECT_SOURCE_DIR}/lib/libavformat.a
-        ${PROJECT_SOURCE_DIR}/lib/libavutil.a
-        ${PROJECT_SOURCE_DIR}/lib/libswscale.a
-        ${PROJECT_SOURCE_DIR}/lib/libswresample.a
+#        ${PROJECT_SOURCE_DIR}/lib/libavcodec.a
+#        ${PROJECT_SOURCE_DIR}/lib/libavformat.a
+#        ${PROJECT_SOURCE_DIR}/lib/libavutil.a
+#        ${PROJECT_SOURCE_DIR}/lib/libswscale.a
+#        ${PROJECT_SOURCE_DIR}/lib/libswresample.a
+        ${FFMPEG_LIBRARIES}
+        swscale
 
         # mupdf
         ${PROJECT_SOURCE_DIR}/lib/libmupdf.a

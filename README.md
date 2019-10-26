@@ -11,27 +11,23 @@ sist2 (Simple incremental search tool)
 
 ## Example usage
 
-```bash
-sist2 scan [OPTION]... PATH
+See help page `sist2 --help` for more details.
 
-# Examples
+**Scan a directory**
+```bash
 sist2 scan ~/Documents -o ./orig_idx/
 sist2 scan --threads 4 --content-size 16384 /mnt/Pictures
 sist2 scan -i ./orig_idx/ -o ./updated_idx/ ~/Documents
 ```
 
+**Push index to Elasticsearch or file**
 ```bash
-sist2 index [OPTION]... INDEX
-
-# Examples
 sist2 index --force-reset ./my_idx
 sist2 index --print ./my_idx > raw_documents.ndjson
 ```
 
+**Start web interface**
 ```bash
-sist2 web [OPTION]... INDEX...
-
-# Examples
 sist2 web --bind 0.0.0.0 --port 4321 ./my_idx1 ./my_idx2 ./my_idx3
 ```
 

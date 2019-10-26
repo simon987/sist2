@@ -6,18 +6,37 @@
 #define PBWIDTH 40
 
 char *abspath(const char *path) {
-    char *abs = canonicalize_file_name(path);
-    abs = realloc(abs, strlen(abs) + 1);
+    wordexp_t w;
+    wordexp(path, &w, 0);
+
+    char *abs = canonicalize_file_name(w.we_wordv[0]);
+    if (abs == NULL) {
+        return NULL;
+    }
+    abs = realloc(abs, strlen(abs) + 2);
     strcat(abs, "/");
 
+    wordfree(&w);
     return abs;
+}
+
+char *expandpath(const char *path) {
+    wordexp_t w;
+    wordexp(path, &w, 0);
+
+    char * expanded = malloc(strlen(w.we_wordv[0]) + 2);
+    strcpy(expanded, w.we_wordv[0]);
+    strcat(expanded, "/");
+
+    wordfree(&w);
+    return expanded;
 }
 
 void progress_bar_print(double percentage, size_t tn_size, size_t index_size) {
 
     static int last_val = 0;
     int val = (int) (percentage * 100);
-    if (last_val == val || val >= 100) {
+    if (last_val == val || val > 100 || index_size < 1024) {
         return;
     }
     last_val = val;
@@ -44,7 +63,7 @@ void progress_bar_print(double percentage, size_t tn_size, size_t index_size) {
     }
 
     printf(
-            "\r%2d%%[%.*s>%*s] TN:%3d%c IDX:%3d%c",
+            "\r%3d%%[%.*s>%*s] TN:%3d%c IDX:%3d%c",
             val, lpad, PBSTR, rpad, "",
             (int) tn_size, tn_unit,
             (int) index_size, index_unit

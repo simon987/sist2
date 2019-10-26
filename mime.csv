@@ -353,3 +353,7 @@ audio/mp4, m4b
 application/x-ms-reader, lit
 application/CDFV2-corrupt,
 text/x-vcard, vcf
+application/x-innosetup,
+application/winhelp, hlp
+image/x-tga,
+application/x-wine-extension-ini,

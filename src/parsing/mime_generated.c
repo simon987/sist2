@@ -360,6 +360,10 @@ enum mime {
     application_x_ms_reader=655712,
     application_CDFV2_corrupt=655713,
     text_x_vcard=590178,
+    application_x_innosetup=655715,
+    application_winhelp=655716,
+    image_x_tga=524645,
+    application_x_wine_extension_ini=655718,
 };
 char *mime_get_mime_text(unsigned int mime_id) {switch (mime_id) {
 case application_arj: return "application/arj";
@@ -716,6 +720,10 @@ case image_vnd_djvu: return "image/vnd.djvu";
 case application_x_ms_reader: return "application/x-ms-reader";
 case application_CDFV2_corrupt: return "application/CDFV2-corrupt";
 case text_x_vcard: return "text/x-vcard";
+case application_x_innosetup: return "application/x-innosetup";
+case application_winhelp: return "application/winhelp";
+case image_x_tga: return "image/x-tga";
+case application_x_wine_extension_ini: return "application/x-wine-extension-ini";
 default: return NULL;}}
 GHashTable *mime_get_ext_table() {GHashTable *ext_table = g_hash_table_new(g_str_hash, g_str_equal);
 g_hash_table_insert(ext_table, "arj", (gpointer)application_arj);
@@ -1192,6 +1200,7 @@ g_hash_table_insert(ext_table, "m4b", (gpointer)audio_mp4);
 g_hash_table_insert(ext_table, "djvu", (gpointer)image_vnd_djvu);
 g_hash_table_insert(ext_table, "lit", (gpointer)application_x_ms_reader);
 g_hash_table_insert(ext_table, "vcf", (gpointer)text_x_vcard);
+g_hash_table_insert(ext_table, "hlp", (gpointer)application_winhelp);
 return ext_table;}
 GHashTable *mime_get_mime_table() {GHashTable *mime_table = g_hash_table_new(g_str_hash, g_str_equal);
 g_hash_table_insert(mime_table, "application/arj", (gpointer)application_arj);
@@ -1548,5 +1557,9 @@ g_hash_table_insert(mime_table, "image/vnd.djvu", (gpointer)image_vnd_djvu);
 g_hash_table_insert(mime_table, "application/x-ms-reader", (gpointer)application_x_ms_reader);
 g_hash_table_insert(mime_table, "application/CDFV2-corrupt", (gpointer)application_CDFV2_corrupt);
 g_hash_table_insert(mime_table, "text/x-vcard", (gpointer)text_x_vcard);
+g_hash_table_insert(mime_table, "application/x-innosetup", (gpointer)application_x_innosetup);
+g_hash_table_insert(mime_table, "application/winhelp", (gpointer)application_winhelp);
+g_hash_table_insert(mime_table, "image/x-tga", (gpointer)image_x_tga);
+g_hash_table_insert(mime_table, "application/x-wine-extension-ini", (gpointer)application_x_wine_extension_ini);
 return mime_table;}
 #endif
