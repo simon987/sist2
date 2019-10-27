@@ -82,6 +82,11 @@ pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(GOBJECT REQUIRED gobject-2.0)
 pkg_check_modules(UUID REQUIRED uuid)
 
+add_definitions(${LIBMAGIC_CFLAGS_OTHER})
+add_definitions(${UUID_CFLAGS_OTHER})
+add_definitions(${GLIB_CFLAGS_OTHER})
+add_definitions(${GOBJECT_CFLAGS_OTHER})
+add_definitions(${FREETYPE_CFLAGS_OTHER})
 
 list(REMOVE_ITEM GLIB_LIBRARIES pcre)
 list(REMOVE_ITEM GOBJECT_LIBRARIES pcre)
@@ -95,7 +100,6 @@ if (WITH_SIST2)
             ${OPENSSL_INCLUDE_DIR}
             ${FFMPEG_INCLUDE_DIRS}
             ${GLIB_INCLUDE_DIRS}
-            ${OPENSSL_CRYPTO_LIBRARY}
             ${FREETYPE_INCLUDE_DIRS}
             ${UUID_INCLUDE_DIRS}
             ${PROJECT_SOURCE_DIR}/
@@ -109,11 +113,6 @@ if (WITH_SIST2)
             ${FFMPEG_LIBRARY_DIRS}
     )
 
-    add_definitions(${LIBMAGIC_CFLAGS_OTHER})
-    add_definitions(${UUID_CFLAGS_OTHER})
-    add_definitions(${GLIB_CFLAGS_OTHER})
-    add_definitions(${GOBJECT_CFLAGS_OTHER})
-    add_definitions(${FREETYPE_CFLAGS_OTHER})
 
     target_compile_options(sist2
             PRIVATE
@@ -185,7 +184,6 @@ if (WITH_SIST2_SCAN)
             sist2_scan PUBLIC
             ${UUID_LIBRARY_DIRS}
             ${FFMPEG_LIBRARY_DIRS}
-            ${OPENSSL_CRYPTO_LIBRARY}
     )
     target_compile_options(sist2_scan
             PRIVATE

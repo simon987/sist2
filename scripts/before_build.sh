@@ -3,7 +3,7 @@
 rm -rf index.sist2/
 
 rm web/js/bundle.js 2> /dev/null
-cat `ls -v web/js/*.min.js` > web/js/bundle.js
+cat `ls web/js/*.min.js` > web/js/bundle.js
 cat web/js/{util,dom,search}.js >> web/js/bundle.js
 
 rm web/css/bundle.css 2> /dev/null

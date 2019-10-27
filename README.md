@@ -80,7 +80,12 @@ binaries.
         libssl-dev uuid-dev libavformat-dev libswscale-dev \
         python3 libmagic-dev libfreetype6-dev libcurl-dev \
         libbz2-dev yasm
-   
+   ```
+    *(FreeBSD)*
+    ```bash
+   pkg install cmake gcc yasm gmake bash ffmpeg e2fsprogs-uuid
+   ```
+  __ 
 2. Build
     ```bash
     git clone --recurse-submodules https://github.com/simon987/sist2

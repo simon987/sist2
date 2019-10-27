@@ -357,3 +357,5 @@ application/x-innosetup,
 application/winhelp, hlp
 image/x-tga,
 application/x-wine-extension-ini,
+application/x-cbz, cbz
+application/x-cbr, cbr
