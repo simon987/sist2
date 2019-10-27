@@ -204,7 +204,8 @@ function search() {
     searchResults.appendChild(preload);
 
     let query = searchBar.value;
-    let condition = $("#barToggle").prop("checked") ? "must" : "should";
+    let empty = query === "";
+    let condition = $("#barToggle").prop("checked") && !empty ? "must" : "should";
     let filters = [
         {range: {size: {gte: size_min, lte: size_max}}},
         {terms: {index: selectedIndices}}
