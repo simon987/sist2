@@ -232,7 +232,7 @@ void read_index(const char *path, const char index_id[UUID_STR_LEN], index_func 
                 case MetaTitle: {
                     buf.cur = 0;
                     while ((c = getc(file)) != 0) {
-                        if (!(SHOULD_IGNORE_CHAR(c) || c == ' ')) {
+                        if (!(SHOULD_IGNORE_CHAR(c)) || c == ' ') {
                             dyn_buffer_write_char(&buf, (char) c);
                         }
                     }
