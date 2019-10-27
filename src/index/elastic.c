@@ -210,8 +210,11 @@ void elastic_init(int force_reset) {
 
 cJSON *elastic_get_document(const char *uuid_str) {
     char url[4096];
-    snprintf(url, 4096, "%s/sist2/_source/%s", WebCtx.es_url, uuid_str);
+    snprintf(url, 4096, "%s/sist2/_doc/%s", WebCtx.es_url, uuid_str);
 
     response_t *r = web_get(url);
-    return cJSON_Parse(r->body);
+    if (r->status_code == 200) {
+        return cJSON_Parse(r->body);
+    }
+    return NULL;
 }

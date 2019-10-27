@@ -337,11 +337,14 @@ int file(void *p, onion_request *req, onion_response *res) {
         return OCS_PROCESSED;
     }
 
-    cJSON *source = elastic_get_document(arg_uuid);
+    cJSON *doc = elastic_get_document(arg_uuid);
+    cJSON *source = cJSON_GetObjectItem(doc, "_source");
+    cJSON *index_id = cJSON_GetObjectItem(source, "index");
+    if (index_id == NULL) {
+        return OCS_NOT_PROCESSED;
+    }
 
-    const char *index_id = cJSON_GetObjectItem(source, "index")->valuestring;
-
-    index_t *idx = get_index_by_id(index_id);
+    index_t *idx = get_index_by_id(index_id->valuestring);
 
     if (idx == NULL) {
         return OCS_NOT_PROCESSED;
