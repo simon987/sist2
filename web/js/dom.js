@@ -170,11 +170,10 @@ function createDocCard(hit) {
         }
 
         //Tags
-        //todo: handle new tags
         switch (mimeCategory) {
             case "video":
             case "image":
-                if (hit.hasOwnProperty("videoc")) {
+                if (hit["_source"].hasOwnProperty("videoc")) {
                     let formatTag = document.createElement("span");
                     formatTag.setAttribute("class", "badge badge-pill badge-video");
                     formatTag.appendChild(document.createTextNode(hit["_source"]["videoc"].replace(" ", "")));
@@ -182,7 +181,7 @@ function createDocCard(hit) {
                 }
                 break;
             case "audio": {
-                if (hit.hasOwnProperty("audioc")) {
+                if (hit["_source"].hasOwnProperty("audioc")) {
                     let formatTag = document.createElement("span");
                     formatTag.setAttribute("class", "badge badge-pill badge-audio");
                     formatTag.appendChild(document.createTextNode(hit["_source"]["audioc"]));

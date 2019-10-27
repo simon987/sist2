@@ -1,4 +1,4 @@
-const SIZE = 20;
+const SIZE = 40;
 let mimeMap = [];
 let tree;
 
