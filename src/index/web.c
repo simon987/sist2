@@ -49,18 +49,19 @@ response_t *web_post(const char *url, const char *data, const char *header) {
     curl_easy_setopt(curl, CURLOPT_POST, 1);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
 
+    struct curl_slist *headers = NULL;
     if (header != NULL) {
-        struct curl_slist *headers = NULL;
         headers = curl_slist_append(headers, header);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     }
 
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
 
-    int r1 = curl_easy_perform(curl);
+    curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &resp->status_code);
 
     curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
 
     resp->body = buffer.buf;
     resp->size = buffer.cur;

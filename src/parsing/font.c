@@ -156,7 +156,11 @@ void parse_font(const char *buf, size_t buf_len, document_t *doc) {
     char font_name[1024];
 
     if (face->style_name == NULL || *(face->style_name) == '?') {
-        strcpy(font_name, face->family_name);
+        if (face->family_name == NULL) {
+            strcpy(font_name, "(null)");
+        } else {
+            strcpy(font_name, face->family_name);
+        }
     } else {
         snprintf(font_name, sizeof(font_name), "%s %s", face->family_name, face->style_name);
     }

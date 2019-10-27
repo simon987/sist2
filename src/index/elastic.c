@@ -213,8 +213,10 @@ cJSON *elastic_get_document(const char *uuid_str) {
     snprintf(url, 4096, "%s/sist2/_doc/%s", WebCtx.es_url, uuid_str);
 
     response_t *r = web_get(url);
+    cJSON *json = NULL;
     if (r->status_code == 200) {
-        return cJSON_Parse(r->body);
+        json = cJSON_Parse(r->body);
     }
-    return NULL;
+    free_response(r);
+    return json;
 }

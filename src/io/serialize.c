@@ -291,6 +291,7 @@ void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
             size_t buf_len;
             char *buf = store_read(store, (char *) line.uuid, 16, &buf_len);
             store_write(dst_store, (char *) line.uuid, 16, buf, buf_len);
+            free(buf);
 
             char c;
             while ((c = (char) getc(file))) {

@@ -349,20 +349,26 @@ int file(void *p, onion_request *req, onion_response *res) {
     cJSON *source = cJSON_GetObjectItem(doc, "_source");
     cJSON *index_id = cJSON_GetObjectItem(source, "index");
     if (index_id == NULL) {
+        cJSON_Delete(doc);
         return OCS_NOT_PROCESSED;
     }
 
     index_t *idx = get_index_by_id(index_id->valuestring);
 
     if (idx == NULL) {
+        cJSON_Delete(doc);
         return OCS_NOT_PROCESSED;
     }
 
+    int ret;
     if (strlen(idx->desc.rewrite_url) == 0) {
-        return serve_file_from_disk(source, idx, req, res);
+        ret =serve_file_from_disk(source, idx, req, res);
     } else {
-        return serve_file_from_url(source, idx, req, res);
+        ret = serve_file_from_url(source, idx, req, res);
     }
+    cJSON_Delete(doc);
+
+    return ret;
 }
 
 void serve(const char *hostname, const char *port) {

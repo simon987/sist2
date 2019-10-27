@@ -64,7 +64,7 @@ void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t bu
         // Cannot resize when there is a opened transaction.
         //  Resize take effect on the next commit.
         pthread_rwlock_wrlock(&store->lock);
-        store->size += 1024 * 1024 * 5;
+        store->size += 1024 * 1024 * 50;
         mdb_env_set_mapsize(store->env, store->size);
         mdb_txn_begin(store->env, NULL, 0, &txn);
         put_ret = mdb_put(txn, store->dbi, &mdb_key, &mdb_value, 0);

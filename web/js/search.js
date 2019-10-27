@@ -31,7 +31,7 @@ $.jsonPost("i").then(resp => {
             .attr("value", idx.id)
             .append(idx.name);
         if (!idx.name.includes("(nsfw)")) {
-            opt.attr("selected", !idx.name.includes("(nsfw)"))
+            opt.attr("selected", !idx.name.includes("(nsfw)"));
             selectedIndices.push(idx.id);
         }
         $("#indices").append(opt);
