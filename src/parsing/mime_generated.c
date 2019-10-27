@@ -16,7 +16,7 @@ enum mime {
     application_commonground=655368,
     application_dicom=655369,
     application_drafting=655370,
-    application_epub_zip=655371,
+    application_epub_zip=655371 | 0x40000000,
     application_freeloader=655372,
     application_futuresplash=655373,
     application_groupwise=655374,

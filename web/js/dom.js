@@ -129,6 +129,7 @@ function createDocCard(hit) {
             });
         } else if ((hit["_source"].hasOwnProperty("width") && hit["_source"]["width"] > 20 && hit["_source"]["height"] > 20)
             || hit["_source"]["mime"] === "application/pdf"
+            || hit["_source"]["mime"] === "application/epub+zip"
             || hit["_source"]["mime"] === "application/x-cbz"
             || hit["_source"].hasOwnProperty("font_name")
         ) {
