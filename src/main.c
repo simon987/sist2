@@ -1,7 +1,12 @@
 #include "sist.h"
 #include "ctx.h"
 
+#ifndef SIST_SCAN_ONLY
 #define DESCRIPTION "Lightning-fast file system indexer and search tool."
+#else
+#define DESCRIPTION "Lightning-fast file system indexer and search tool. (SCAN ONLY)"
+#endif
+
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
@@ -14,7 +19,9 @@ static const char *const usage[] = {
 };
 
 void global_init() {
+    #ifndef SIST_SCAN_ONLY
     curl_global_init(CURL_GLOBAL_NOTHING);
+    #endif
     av_log_set_level(AV_LOG_QUIET);
 }
 
@@ -23,7 +30,7 @@ void init_dir(const char *dirpath) {
     snprintf(path, PATH_MAX, "%sdescriptor.json", dirpath);
 
     uuid_t uuid;
-    uuid_generate_time_safe(uuid);
+    uuid_generate(uuid);
     uuid_unparse(uuid, ScanCtx.index.desc.uuid);
     time(&ScanCtx.index.desc.timestamp);
     strcpy(ScanCtx.index.desc.version, Version);
@@ -116,6 +123,7 @@ void sist2_scan(scan_args_t *args) {
     store_destroy(ScanCtx.index.store);
 }
 
+#ifndef SIST_SCAN_ONLY
 void sist2_index(index_args_t *args) {
 
     IndexCtx.es_url = args->es_url;
@@ -186,6 +194,7 @@ void sist2_web(web_args_t *args) {
 
     serve(args->bind, args->port);
 }
+#endif
 
 
 int main(int argc, const char *argv[]) {
@@ -193,8 +202,10 @@ int main(int argc, const char *argv[]) {
     global_init();
 
     scan_args_t *scan_args = scan_args_create();
+    #ifndef SIST_SCAN_ONLY
     index_args_t *index_args = index_args_create();
     web_args_t *web_args = web_args_create();
+    #endif
 
     char * common_es_url = NULL;
 
@@ -214,6 +225,7 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "rewrite-url", &scan_args->rewrite_url, "Serve files from this url instead of from disk."),
             OPT_STRING(0, "name", &scan_args->name, "Index display name. DEFAULT: (name of the directory)"),
 
+            #ifndef SIST_SCAN_ONLY
             OPT_GROUP("Index options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
@@ -224,6 +236,7 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
             OPT_STRING(0, "bind", &web_args->bind, "Listen on this address. DEFAULT=localhost"),
             OPT_STRING(0, "port", &web_args->port, "Listen on this port. DEFAULT=4090"),
+            #endif
 
             OPT_END(),
     };
@@ -233,8 +246,10 @@ int main(int argc, const char *argv[]) {
     argparse_describe(&argparse, DESCRIPTION, EPILOG);
     argc = argparse_parse(&argparse, argc, argv);
 
+    #ifndef SIST_SCAN_ONLY
     web_args->es_url = common_es_url;
     index_args->es_url = common_es_url;
+    #endif
 
     if (argc == 0) {
         argparse_usage(&argparse);
@@ -247,7 +262,10 @@ int main(int argc, const char *argv[]) {
         }
         sist2_scan(scan_args);
 
-    } else if (strcmp(argv[0], "index") == 0) {
+    }
+
+    #ifndef SIST_SCAN_ONLY
+    else if (strcmp(argv[0], "index") == 0) {
 
         int err = index_args_validate(index_args, argc, argv);
         if (err != 0) {
@@ -263,7 +281,9 @@ int main(int argc, const char *argv[]) {
         }
         sist2_web(web_args);
 
-    } else {
+    }
+    #endif
+    else {
         fprintf(stderr, "Invalid command: '%s'\n", argv[0]);
         argparse_usage(&argparse);
         return 1;

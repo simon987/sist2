@@ -17,16 +17,6 @@ scan_args_t *scan_args_create() {
     return args;
 }
 
-index_args_t *index_args_create() {
-    index_args_t *args = calloc(sizeof(index_args_t), 1);
-    return args;
-}
-
-web_args_t *web_args_create() {
-    web_args_t *args = calloc(sizeof(web_args_t), 1);
-    return args;
-}
-
 int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (argc < 2) {
         fprintf(stderr, "Required positional argument: PATH.\n");
@@ -100,6 +90,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     return 0;
 }
 
+#ifndef SIST_SCAN_ONLY
 int index_args_validate(index_args_t *args, int argc, const char **argv) {
 
     if (argc < 2) {
@@ -152,4 +143,15 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     }
     return 0;
 }
+
+index_args_t *index_args_create() {
+    index_args_t *args = calloc(sizeof(index_args_t), 1);
+    return args;
+}
+
+web_args_t *web_args_create() {
+    web_args_t *args = calloc(sizeof(web_args_t), 1);
+    return args;
+}
+#endif
 

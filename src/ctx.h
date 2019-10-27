@@ -26,6 +26,7 @@ struct {
 } ScanCtx;
 
 
+#ifndef SIST_SCAN_ONLY
 struct {
     char *es_url;
 } IndexCtx;
@@ -35,6 +36,7 @@ struct {
     int index_count;
     struct index_t indices[16];
 } WebCtx;
+#endif
 
 
 #endif

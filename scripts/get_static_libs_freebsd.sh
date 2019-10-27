@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 cd lib
 
+# mupdf
 cd mupdf
-HAVE_X11=no HAVE_GLUT=no make -j 4
+HAVE_X11=no HAVE_GLUT=no gmake -j 4
 cd ..
 
 mv mupdf/build/release/libmupdf.a .
@@ -15,7 +16,7 @@ cd ffmpeg
  --disable-manpages --disable-postproc --disable-avfilter \
  --disable-alsa --disable-lzma --disable-xlib --disable-debug\
  --disable-vdpau --disable-vaapi --disable-sdl2 --disable-network
-make -j 4
+gmake -j 4
 cd ..
 
 mv ffmpeg/libavcodec/libavcodec.a .
@@ -23,19 +24,6 @@ mv ffmpeg/libavformat/libavformat.a .
 mv ffmpeg/libavutil/libavutil.a .
 mv ffmpeg/libswresample/libswresample.a .
 mv ffmpeg/libswscale/libswscale.a .
-
-# onion
-cd onion
-mkdir build 2> /dev/null
-cd build
-cmake -DONION_USE_SSL=false -DONION_USE_PAM=false -DONION_USE_PNG=false -DONION_USE_JPEG=false \
--DONION_USE_JPEG=false -DONION_USE_XML2=false -DONION_USE_SYSTEMD=false -DONION_USE_SQLITE3=false \
--DONION_USE_REDIS=false -DONION_USE_GC=false -DONION_USE_TESTS=false -DONION_EXAMPLES=false \
--DONION_USE_BINDINGS_CPP=false ..
-make -j 4
-cd ../..
-
-mv onion/build/src/onion/libonion_static.a .
 
 #bzip2
 git clone https://github.com/enthought/bzip2-1.0.6
@@ -52,6 +40,5 @@ cd libmagic
 make -j 4
 cd ..
 mv libmagic/src/.libs/libmagic.a .
-
 
 cd ..

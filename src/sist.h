@@ -25,19 +25,20 @@
 #include <pthread.h>
 #include <sys/stat.h>
 #include <wordexp.h>
+
+#ifndef SIST_SCAN_ONLY
 #include <onion/onion.h>
 #include <onion/handler.h>
 #include <onion/block.h>
 #include <onion/shortcuts.h>
 #include <curl/curl.h>
-
+#endif
 
 #include "cJSON/cJSON.h"
 
 #include "types.h"
 #include "tpool.h"
 #include "util.h"
-#include "src/index/elastic.h"
 #include "io/store.h"
 #include "io/serialize.h"
 #include "io/walk.h"
@@ -47,9 +48,13 @@
 #include "parsing/pdf.h"
 #include "parsing/media.h"
 #include "parsing/font.h"
+#include "cli.h"
+
+#ifndef SIST_SCAN_ONLY
+#include "src/index/elastic.h"
 #include "index/web.h"
 #include "web/serve.h"
-#include "cli.h"
+#endif
 
 ;
 

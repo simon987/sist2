@@ -29,7 +29,7 @@ $.jsonPost("i").then(resp => {
     resp["indices"].forEach(idx => {
         $("#indices").append($("<option>")
             .attr("value", idx.id)
-            .attr("selected", true)
+            .attr("selected", !idx.name.includes("(nsfw)"))
             .append(idx.name)
         );
         selectedIndices.push(idx.id);

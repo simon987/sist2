@@ -57,7 +57,7 @@ void parse(void *arg) {
     doc.ino = job->info.st_ino;
     doc.mtime = job->info.st_mtim.tv_sec;
 
-    uuid_generate_time_safe(doc.uuid);
+    uuid_generate(doc.uuid);
     char *buf[PARSE_BUF_SIZE];
 
     if (job->info.st_size == 0) {

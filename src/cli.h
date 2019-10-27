@@ -15,6 +15,10 @@ typedef struct scan_args {
     char *path;
 } scan_args_t;
 
+scan_args_t *scan_args_create();
+int scan_args_validate(scan_args_t *args, int argc, const char **argv);
+
+#ifndef SIST_SCAN_ONLY
 typedef struct index_args {
     char *es_url;
     const char *index_path;
@@ -30,12 +34,11 @@ typedef struct web_args {
     const char **indices;
 } web_args_t;
 
-scan_args_t *scan_args_create();
 index_args_t *index_args_create();
 web_args_t *web_args_create();
 
-int scan_args_validate(scan_args_t *args, int argc, const char **argv);
 int index_args_validate(index_args_t *args, int argc, const char **argv);
 int web_args_validate(web_args_t *args, int argc, const char **argv);
+#endif
 
 #endif

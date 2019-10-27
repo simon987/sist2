@@ -115,8 +115,8 @@ void write_document(document_t *doc) {
 
     if (IndexFd == -1) {
         char dstfile[PATH_MAX];
-        pid_t tid = syscall(SYS_gettid);
-        snprintf(dstfile, PATH_MAX, "%s_index_%d", ScanCtx.index.path, tid);
+        pthread_t self = pthread_self();
+        snprintf(dstfile, PATH_MAX, "%s_index_%lu", ScanCtx.index.path, self);
         IndexFd = open(dstfile, O_CREAT | O_WRONLY | O_APPEND, S_IRUSR | S_IWUSR);
 
         if (IndexFd == -1) {
