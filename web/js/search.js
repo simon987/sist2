@@ -27,12 +27,14 @@ function toggleSearchBar() {
 
 $.jsonPost("i").then(resp => {
     resp["indices"].forEach(idx => {
-        $("#indices").append($("<option>")
+        const opt = $("<option>")
             .attr("value", idx.id)
-            .attr("selected", !idx.name.includes("(nsfw)"))
-            .append(idx.name)
-        );
-        selectedIndices.push(idx.id);
+            .append(idx.name);
+        if (!idx.name.includes("(nsfw)")) {
+            opt.attr("selected", !idx.name.includes("(nsfw)"))
+            selectedIndices.push(idx.id);
+        }
+        $("#indices").append(opt);
     });
 });
 
