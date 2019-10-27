@@ -193,11 +193,15 @@ function search() {
         return;
     }
     searchBusy = true;
+
     //Clear old search results
     let searchResults = document.getElementById("searchResults");
     while (searchResults.firstChild) {
         searchResults.removeChild(searchResults.firstChild);
     }
+
+    const preload = makePreloader();
+    searchResults.appendChild(preload);
 
     let query = searchBar.value;
     let condition = $("#barToggle").prop("checked") ? "must" : "should";
@@ -257,6 +261,7 @@ function search() {
     }).then(searchResult => {
         scroll_id = searchResult["_scroll_id"];
 
+        preload.remove();
         //Search stats
         searchResults.appendChild(makeStatsCard(searchResult));
 

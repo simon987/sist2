@@ -1,4 +1,9 @@
 body {overflow-y:scroll;}
+
+.progress {
+    margin-top: 1em;
+}
+
 .card {
     margin-top: 1em;
 }

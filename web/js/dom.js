@@ -242,6 +242,17 @@ function createDocCard(hit) {
     return docCard;
 }
 
+function makePreloader() {
+    const elem = document.createElement("div");
+    elem.setAttribute("class", "progress");
+    const bar = document.createElement("div");
+    bar.setAttribute("class", "progress-bar progress-bar-striped progress-bar-animated");
+    bar.setAttribute("style", "width: 100%");
+    elem.appendChild(bar);
+
+    return elem;
+}
+
 function makePageIndicator(searchResult) {
     let pageIndicator = document.createElement("div");
     pageIndicator.setAttribute("class", "page-indicator shadow-sm bg-light font-weight-light");
