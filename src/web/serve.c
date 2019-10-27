@@ -287,7 +287,10 @@ int serve_file_from_url(cJSON *json, index_t *idx, onion_request *req, onion_res
              "%s%s/%s%s%s",
              idx->desc.rewrite_url, path, name, strlen(ext) == 0 ? "" : ".", ext);
 
-    return onion_shortcut_redirect(url, req, res);
+    dyn_buffer_t encoded = url_escape(url);
+    int ret = onion_shortcut_redirect(encoded.buf, req, res);
+    dyn_buffer_destroy(&encoded);
+    return ret;
 }
 
 int serve_file_from_disk(cJSON *json, index_t *idx, onion_request *req, onion_response *res) {
@@ -300,6 +303,11 @@ int serve_file_from_disk(cJSON *json, index_t *idx, onion_request *req, onion_re
     char full_path[PATH_MAX];
     snprintf(full_path, PATH_MAX, "%s%s/%s%s%s",
              idx->desc.root, path, name, strlen(ext) == 0 ? "" : ".", ext);
+
+    char disposition[8196];
+    snprintf(disposition, sizeof(disposition), "inline; filename=\"%s%s%s\"",
+             name, strlen(ext) == 0 ? "" : ".", ext);
+    onion_response_set_header(res, "Content-Disposition", disposition);
 
     return chunked_response_file(full_path, mime, 1, req, res);
 }
@@ -349,13 +357,6 @@ int file(void *p, onion_request *req, onion_response *res) {
     if (idx == NULL) {
         return OCS_NOT_PROCESSED;
     }
-
-    const char *name = cJSON_GetObjectItem(source, "name")->valuestring;
-    const char *ext = cJSON_GetObjectItem(source, "extension")->valuestring;
-    char disposition[8196];
-    snprintf(disposition, sizeof(disposition), "inline; filename=\"%s%s%s\"",
-             name, strlen(ext) == 0 ? "" : ".", ext);
-    onion_response_set_header(res, "Content-Disposition", disposition);
 
     if (strlen(idx->desc.rewrite_url) == 0) {
         return serve_file_from_disk(source, idx, req, res);

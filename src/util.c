@@ -5,6 +5,24 @@
 #define PBSTR "========================================"
 #define PBWIDTH 40
 
+dyn_buffer_t url_escape(char *str) {
+
+    dyn_buffer_t text = dyn_buffer_create();
+
+    char * ptr = str;
+    while (*ptr) {
+        if (*ptr == '#') {
+            dyn_buffer_write(&text, "%23", 3);
+            ptr++;
+        }
+
+        dyn_buffer_write_char(&text, *ptr++);
+    }
+    dyn_buffer_write_char(&text, '\0');
+
+    return text;
+}
+
 char *abspath(const char *path) {
     wordexp_t w;
     wordexp(path, &w, 0);
