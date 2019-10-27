@@ -151,6 +151,7 @@ void append_audio_meta(AVFormatContext *pFormatCtx, document_t *doc) {
 void parse_media(const char *filepath, document_t *doc) {
 
     int video_stream = -1;
+    int audio_stream = -1;
 
     AVFormatContext *pFormatCtx = avformat_alloc_context();
     if (pFormatCtx == NULL) {
@@ -169,31 +170,35 @@ void parse_media(const char *filepath, document_t *doc) {
         AVStream *stream = pFormatCtx->streams[i];
 
         if (stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-            meta_line_t *meta_audio = malloc(sizeof(meta_line_t));
-            meta_audio->key = MetaMediaAudioCodec;
-            meta_audio->intval = stream->codecpar->codec_id;
-            APPEND_META(doc, meta_audio)
+            if (audio_stream == -1) {
+                meta_line_t *meta_audio = malloc(sizeof(meta_line_t));
+                meta_audio->key = MetaMediaAudioCodec;
+                meta_audio->intval = stream->codecpar->codec_id;
+                APPEND_META(doc, meta_audio)
 
-            append_audio_meta(pFormatCtx, doc);
-
+                append_audio_meta(pFormatCtx, doc);
+                audio_stream = i;
+            }
         } else if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
 
-            meta_line_t *meta_vid = malloc(sizeof(meta_line_t));
-            meta_vid->key = MetaMediaVideoCodec;
-            meta_vid->intval = stream->codecpar->codec_id;
-            APPEND_META(doc, meta_vid)
+            if (video_stream == -1) {
+                meta_line_t *meta_vid = malloc(sizeof(meta_line_t));
+                meta_vid->key = MetaMediaVideoCodec;
+                meta_vid->intval = stream->codecpar->codec_id;
+                APPEND_META(doc, meta_vid)
 
-            meta_line_t *meta_w = malloc(sizeof(meta_line_t));
-            meta_w->key = MetaWidth;
-            meta_w->intval = stream->codecpar->width;
-            APPEND_META(doc, meta_w)
+                meta_line_t *meta_w = malloc(sizeof(meta_line_t));
+                meta_w->key = MetaWidth;
+                meta_w->intval = stream->codecpar->width;
+                APPEND_META(doc, meta_w)
 
-            meta_line_t *meta_h = malloc(sizeof(meta_line_t));
-            meta_h->key = MetaHeight;
-            meta_h->intval = stream->codecpar->height;
-            APPEND_META(doc, meta_h)
+                meta_line_t *meta_h = malloc(sizeof(meta_line_t));
+                meta_h->key = MetaHeight;
+                meta_h->intval = stream->codecpar->height;
+                APPEND_META(doc, meta_h)
 
-            video_stream = i;
+                video_stream = i;
+            }
         }
     }
 
