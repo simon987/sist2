@@ -82,7 +82,7 @@ function shouldPlayVideo(hit) {
  */
 function createDocCard(hit) {
     let docCard = document.createElement("div");
-    docCard.setAttribute("class", "card shadow-sm");
+    docCard.setAttribute("class", "card");
 
     let docCardBody = document.createElement("div");
     docCardBody.setAttribute("class", "card-body document");
@@ -257,7 +257,7 @@ function makePreloader() {
 
 function makePageIndicator(searchResult) {
     let pageIndicator = document.createElement("div");
-    pageIndicator.setAttribute("class", "page-indicator shadow-sm font-weight-light");
+    pageIndicator.setAttribute("class", "page-indicator font-weight-light");
     const totalHits = searchResult["hits"]["total"].hasOwnProperty("value")
         ? searchResult["hits"]["total"]["value"] : searchResult["hits"]["total"];
     pageIndicator.appendChild(document.createTextNode(docCount + " / " + totalHits));

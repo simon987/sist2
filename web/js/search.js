@@ -116,7 +116,7 @@ $.jsonPost("es", {
 new autoComplete({
     selector: '#pathBar',
     minChars: 1,
-    delay: 75,
+    delay: 400,
     renderItem: function (item) {
         return '<div class="autocomplete-suggestion" data-val="' + item + '">' + item + '</div>';
     },
@@ -279,14 +279,6 @@ function search() {
         //Search stats
         searchResults.appendChild(makeStatsCard(searchResult));
 
-        //Autocomplete
-        if (searchResult.hasOwnProperty("suggest") && searchResult["suggest"].hasOwnProperty("path")) {
-            pathAutoComplete = [];
-            for (let i = 0; i < searchResult["suggest"]["path"][0]["options"].length; i++) {
-                pathAutoComplete.push(searchResult["suggest"]["path"][0]["options"][i].text)
-            }
-        }
-
         //Setup page
         let resultContainer = makeResultContainer();
         searchResults.appendChild(resultContainer);
@@ -298,7 +290,6 @@ function search() {
     });
 }
 
-let pathAutoComplete = [];
 let size_min = 0;
 let size_max = 10000000000000;
 
@@ -306,8 +297,8 @@ let searchDebounced = _.debounce(function () {
     coolingDown = false;
     search()
 }, 500);
+
 searchBar.addEventListener("keyup", searchDebounced);
-document.getElementById("pathBar").addEventListener("keyup", searchDebounced);
 
 //Size slider
 $("#sizeSlider").ionRangeSlider({
@@ -358,15 +349,18 @@ updateIndices();
 //Suggest
 function getPathChoices() {
     return new Promise(getPaths => {
-
-        let xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 200) {
-                getPaths(JSON.parse(xhttp.responseText))
+        $.jsonPost("es", {
+            suggest: {
+                path: {
+                    prefix: pathBar.value,
+                    completion: {
+                        field: "suggest-path",
+                        skip_duplicates: true,
+                        size: 10000
+                    }
+                }
             }
-        };
-        xhttp.open("GET", "suggest?prefix=" + pathBar.value, true);
-        xhttp.send();
-    });
+        }).then(resp => getPaths(resp["suggest"]["path"][0]["options"].map(opt => opt["_source"]["path"])));
+    })
 }
 
