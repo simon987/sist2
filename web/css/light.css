@@ -87,6 +87,7 @@ body {overflow-y:scroll;}
     height: 39px;
     vertical-align: bottom;
     display: inline;
+    width: 100%;
 }
 
 @media (min-width: 1200px) {
@@ -159,6 +160,7 @@ mark {
 .page-indicator {
     line-height: 1rem;
     padding: 0.5rem;
+    background: #212121;
 }
 
 .btn-xs {

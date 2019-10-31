@@ -24,6 +24,7 @@ pdf = (
 
 font = (
     "application/vnd.ms-opentype",
+    "application/x-ms-compress-szdd"
     "application/x-font-sfn",
     "application/x-font-ttf",
     "font/otf",

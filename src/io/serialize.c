@@ -197,8 +197,12 @@ void read_index(const char *path, const char index_id[UUID_STR_LEN], index_func 
             *(buf.buf + line.ext) = '\0';
         }
         cJSON_AddStringToObject(document, "name", buf.buf + line.base);
-        *(buf.buf + line.base - 1) = '\0';
-        cJSON_AddStringToObject(document, "path", buf.buf);
+        if (line.base > 0) {
+            *(buf.buf + line.base - 1) = '\0';
+            cJSON_AddStringToObject(document, "path", buf.buf);
+        } else {
+            cJSON_AddStringToObject(document, "path", "");
+        }
 
         enum metakey key = getc(file);
         while (key != '\n') {

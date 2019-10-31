@@ -91,7 +91,7 @@ application/x-esrehber, es
 application/x-excel, xla|xld|xlk|xlt|xlv
 application/x-executable, exe
 application/x-font-sfn,
-application/x-font-ttf, ttf
+application/x-font-ttf, ttf|ttc
 application/x-freelance, pre
 application/x-git,
 application/x-gsp, gsp
@@ -359,3 +359,4 @@ image/x-tga,
 application/x-wine-extension-ini,
 application/x-cbz, cbz
 application/x-cbr, cbr
+application/x-ms-compress-szdd, fon

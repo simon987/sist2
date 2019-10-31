@@ -1,0 +1,240 @@
+a {
+    color: #00BCD4;
+}
+
+body {
+    overflow-y: scroll;
+    background: black;
+}
+
+.progress {
+    margin-top: 1em;
+}
+
+.card {
+    margin-top: 1em;
+    background: #212121;
+    color: #e0e0e0;
+}
+
+.navbar-brand {
+    font-size: 1.75rem;
+    padding: 0;
+    color: #f5f5f5;
+}
+
+.navbar {
+    background: #546b7a;
+}
+
+.navbar a:hover {
+    color: #fff;
+}
+
+.navbar span {
+    color: #eee;
+}
+
+.document {
+    padding: 0.5rem;
+}
+
+.document p {
+    margin-bottom: 0;
+}
+
+.document:hover p {
+    text-decoration: underline;
+}
+
+.badge-video {
+    color: #FFFFFF;
+    background-color: #F27761;
+}
+
+.badge-image {
+    color: #FFFFFF;
+    background-color: #AA99C9;
+}
+
+.badge-audio {
+    color: #FFFFFF;
+    background-color: #00ADEF;
+}
+
+.badge-resolution {
+    color: #212529;
+    background-color: #B0BEC5;
+}
+
+.badge-text {
+    color: #FFFFFF;
+    background-color: #FAAB3C;
+}
+
+.card-img-overlay {
+    pointer-events: none;
+    padding: 0.75rem;
+
+    bottom: unset;
+    top: 0;
+    left: unset;
+    right: unset;
+}
+
+.file-title {
+    font-size: 10pt;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.badge {
+    margin-right: 3px;
+}
+
+.fit {
+    display: block;
+    min-width: 64px;
+    max-width: 100%;
+    max-height: 175px;
+    margin: 0 auto 0;
+    padding: 3px 3px 0 3px;
+    width: auto;
+    height: auto;
+}
+
+.audio-fit {
+    height: 39px;
+    vertical-align: bottom;
+    display: inline;
+    width: 100%;
+}
+
+@media (min-width: 1200px) {
+    .card-columns {
+        column-count: 4;
+    }
+}
+
+@media (min-width: 1500px) {
+    .container {
+        max-width: 1440px;
+    }
+
+    .card-columns {
+        column-count: 5;
+    }
+}
+
+@media (min-width: 1800px) {
+    .container {
+        max-width: 1550px;
+    }
+}
+
+mark {
+    background: #fff217;
+    border-radius: 0;
+    padding: 1px 0;
+}
+
+.content-div {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 13px;
+    padding: 1em;
+    background-color: #37474F;
+    border: 1px solid #616161;
+    border-radius: 4px;
+    margin: 3px;
+}
+
+.irs-single, .irs-from, .irs-to {
+    font-size: 13px;
+    background-color: #00BCD4;
+}
+
+.irs-slider {
+    cursor: col-resize;
+}
+
+.irs {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+.custom-select {
+    overflow: auto;
+    background-color: #37474F;
+    border: 1px solid #616161;
+    color: #bdbdbd;
+}
+
+.custom-select:focus {
+    border-color: #757575;
+    outline: 0;
+    box-shadow: 0 0 0 .2rem rgba(0, 123, 255, .25);
+}
+
+option {
+    outline: none;
+}
+
+.form-control {
+    background-color: #37474F;
+    border: 1px solid #616161;
+    color: #fff;
+}
+
+.form-control:focus {
+    background-color: #546E7A;
+    color: #fff;
+}
+
+.input-group-text {
+    background: #263238;
+    border: 1px solid #616161;
+    color: #dbdbdb;
+}
+
+::placeholder {
+    color: #BDBDBD !important;
+    opacity: 1;
+}
+
+
+.inspire-tree .selected > .wholerow, .inspire-tree .selected > .title-wrap:hover + .wholerow {
+    background: none;
+}
+
+.inspire-tree .icon-expand::before, .inspire-tree .icon-collapse::before {
+    background-color: black;
+}
+
+.inspire-tree .title {
+    color: #eee;
+}
+
+.inspire-tree {
+    font-weight: 400;
+    font-size: 14px;
+    font-family: Helvetica, Nueue, Verdana, sans-serif;
+    max-height: 350px;
+    overflow: auto;
+}
+
+.page-indicator {
+    line-height: 1rem;
+    padding: 0.5rem;
+    background: #212121;
+    color: #eee;
+}
+
+.btn-xs {
+    padding: .1rem .3rem;
+    font-size: .875rem;
+    border-radius: .2rem;
+}
+
+.btn {
+    color: #eee;
+}

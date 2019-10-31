@@ -1,8 +1,9 @@
 files = [
     "web/css/bundle.css",
+    "web/css/bundle_dark.css",
     "web/js/bundle.js",
-    "web/img/bg-bars.png",
     "web/img/sprite-skin-flat.png",
+    "web/img/sprite-skin-flat-dark.png",
     "web/search.html",
 ]
 
