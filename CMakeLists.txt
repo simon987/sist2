@@ -116,10 +116,10 @@ if (WITH_SIST2)
 
     target_compile_options(sist2
             PRIVATE
-            -O3
+#            -O3
             #        -march=native
-            -fno-stack-protector
-            -fomit-frame-pointer
+#            -fno-stack-protector
+#            -fomit-frame-pointer
             )
 
     TARGET_LINK_LIBRARIES(

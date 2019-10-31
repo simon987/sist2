@@ -56,6 +56,7 @@ text_buffer_t text_buffer_create(int max_size);
 
 void text_buffer_terminate_string(text_buffer_t *buf);
 
+int text_buffer_append_string(text_buffer_t *buf, char * str);
 int text_buffer_append_char(text_buffer_t *buf, int c);
 
 void incremental_put(GHashTable *table, unsigned long inode_no, int mtime);

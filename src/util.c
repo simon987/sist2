@@ -89,6 +89,14 @@ void text_buffer_terminate_string(text_buffer_t *buf) {
     dyn_buffer_write_char(&buf->dyn_buffer, '\0');
 }
 
+int text_buffer_append_string(text_buffer_t *buf, char * str) {
+    char * ptr = str;
+    while (*ptr) {
+        text_buffer_append_char(buf, *ptr++);
+    }
+    text_buffer_terminate_string(buf);
+}
+
 int text_buffer_append_char(text_buffer_t *buf, int c) {
 
     if (SHOULD_IGNORE_CHAR(c)) {

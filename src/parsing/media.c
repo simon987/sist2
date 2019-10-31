@@ -107,6 +107,15 @@ AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder, int st
     return frame;
 }
 
+#define APPEND_TAG_META(doc, tag, keyname) \
+    text_buffer_t tex = text_buffer_create(4096); \
+    text_buffer_append_string(&tex, tag->value); \
+    meta_line_t *meta_tag = malloc(sizeof(meta_line_t) + tex.dyn_buffer.cur); \
+    meta_tag->key = keyname; \
+    strcpy(meta_tag->strval, tex.dyn_buffer.buf); \
+    APPEND_META(doc, meta_tag) \
+    text_buffer_destroy(&tex);
+
 void append_audio_meta(AVFormatContext *pFormatCtx, document_t *doc) {
 
     AVDictionaryEntry *tag = NULL;
@@ -115,35 +124,40 @@ void append_audio_meta(AVFormatContext *pFormatCtx, document_t *doc) {
         for (; *key; ++key) *key = (char) tolower(*key);
 
         if (strcmp(tag->key, "artist") == 0) {
-            size_t len = strlen(tag->value);
-            meta_line_t *meta_tag = malloc(sizeof(meta_line_t) + len);
-            meta_tag->key = MetaArtist;
-            memcpy(meta_tag->strval, tag->value, len);
-            APPEND_META(doc, meta_tag)
+            APPEND_TAG_META(doc, tag, MetaArtist)
         } else if (strcmp(tag->key, "genre") == 0) {
-            size_t len = strlen(tag->value);
-            meta_line_t *meta_tag = malloc(sizeof(meta_line_t) + len);
-            meta_tag->key = MetaGenre;
-            memcpy(meta_tag->strval, tag->value, len);
-            APPEND_META(doc, meta_tag)
+            APPEND_TAG_META(doc, tag, MetaGenre)
         } else if (strcmp(tag->key, "title") == 0) {
-            size_t len = strlen(tag->value);
-            meta_line_t *meta_tag = malloc(sizeof(meta_line_t) + len);
-            meta_tag->key = MetaTitle;
-            memcpy(meta_tag->strval, tag->value, len);
-            APPEND_META(doc, meta_tag)
+            APPEND_TAG_META(doc, tag, MetaTitle)
         } else if (strcmp(tag->key, "album_artist") == 0) {
-            size_t len = strlen(tag->value);
-            meta_line_t *meta_tag = malloc(sizeof(meta_line_t) + len);
-            meta_tag->key = MetaAlbumArtist;
-            memcpy(meta_tag->strval, tag->value, len);
-            APPEND_META(doc, meta_tag)
+            APPEND_TAG_META(doc, tag, MetaAlbumArtist)
         } else if (strcmp(tag->key, "album") == 0) {
-            size_t len = strlen(tag->value);
-            meta_line_t *meta_tag = malloc(sizeof(meta_line_t) + len);
-            meta_tag->key = MetaAlbum;
-            memcpy(meta_tag->strval, tag->value, len);
-            APPEND_META(doc, meta_tag)
+            APPEND_TAG_META(doc, tag, MetaAlbum)
+        }
+    }
+}
+
+void append_video_meta(AVFormatContext *pFormatCtx, document_t *doc, int include_audio_tags) {
+
+    meta_line_t *meta_duration = malloc(sizeof(meta_line_t));
+    meta_duration->key = MetaMediaDuration;
+    meta_duration->longval = pFormatCtx->duration / AV_TIME_BASE;
+    APPEND_META(doc, meta_duration)
+
+    meta_line_t *meta_bitrate = malloc(sizeof(meta_line_t));
+    meta_bitrate->key = MetaMediaBitrate;
+    meta_bitrate->intval = pFormatCtx->bit_rate;
+    APPEND_META(doc, meta_bitrate)
+
+    AVDictionaryEntry *tag = NULL;
+    while ((tag = av_dict_get(pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
+        char *key = tag->key;
+        for (; *key; ++key) *key = (char) tolower(*key);
+
+        if (strcmp(tag->key, "title") == 0 && include_audio_tags) {
+            APPEND_TAG_META(doc, tag, MetaTitle)
+        } else if (strcmp(tag->key, "comment") == 0) {
+            APPEND_TAG_META(doc, tag, MetaContent)
         }
     }
 }
@@ -207,15 +221,7 @@ void parse_media(const char *filepath, document_t *doc) {
 
         if (stream->nb_frames > 1) {
             //This is a video (not a still image)
-            meta_line_t *meta_duration = malloc(sizeof(meta_line_t));
-            meta_duration->key = MetaMediaDuration;
-            meta_duration->longval = pFormatCtx->duration / AV_TIME_BASE;
-            APPEND_META(doc, meta_duration)
-
-            meta_line_t *meta_bitrate = malloc(sizeof(meta_line_t));
-            meta_bitrate->key = MetaMediaBitrate;
-            meta_bitrate->intval = pFormatCtx->bit_rate;
-            APPEND_META(doc, meta_bitrate)
+            append_video_meta(pFormatCtx, doc, audio_stream == -1);
         }
 
         if (stream->codecpar->width <= 20 || stream->codecpar->height <= 20) {
