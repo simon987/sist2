@@ -75,6 +75,17 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
         stream = fz_open_memory(ctx, buf, buf_len);
         fzdoc = fz_open_document_with_stream(ctx, mime_get_mime_text(doc->mime), stream);
 
+        char title[4096] = {'\0',};
+        fz_lookup_metadata(ctx, fzdoc, FZ_META_INFO_TITLE, title, sizeof(title));
+        printf("Title: %s\n", title); //todo rmv
+
+        if (strlen(title) > 0) {
+            meta_line_t *meta_content = malloc(sizeof(meta_line_t) + strlen(title) + 1);
+            meta_content->key = MetaTitle;
+            strcpy(meta_content->strval, title);
+            APPEND_META(doc, meta_content)
+        }
+
         int page_count = fz_count_pages(ctx, fzdoc);
 
         fz_page *cover = render_cover(ctx, doc, fzdoc);
@@ -84,8 +95,7 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
         text_buffer_t text_buf = text_buffer_create(ScanCtx.content_size);
 
         for (int current_page = 0; current_page < page_count; current_page++) {
-            fz_page *page;
-            if (current_page == 0) {
+            fz_page *page; if (current_page == 0) {
                 page = cover;
             } else {
                 page = fz_load_page(ctx, fzdoc, current_page);

@@ -21,6 +21,17 @@ jQuery["jsonPost"] = function (url, data) {
     });
 };
 
+window.onload = () => {
+    $("#theme").on("click", () => {
+        if (!document.cookie.includes("sist")) {
+            document.cookie = "sist=dark";
+        } else {
+            document.cookie = "sist=; Max-Age=-99999999;";
+        }
+        window.location.reload();
+    })
+};
+
 function toggleSearchBar() {
     searchDebounced();
 }

@@ -197,7 +197,7 @@ function createDocCard(hit) {
         let contentHl = getContentHighlight(hit);
         if (contentHl !== undefined) {
             let contentDiv = document.createElement("div");
-            contentDiv.setAttribute("class", "content-div bg-light");
+            contentDiv.setAttribute("class", "content-div");
             contentDiv.insertAdjacentHTML('afterbegin', contentHl);
             docCard.appendChild(contentDiv);
         }
@@ -257,7 +257,7 @@ function makePreloader() {
 
 function makePageIndicator(searchResult) {
     let pageIndicator = document.createElement("div");
-    pageIndicator.setAttribute("class", "page-indicator shadow-sm bg-light font-weight-light");
+    pageIndicator.setAttribute("class", "page-indicator shadow-sm font-weight-light");
     const totalHits = searchResult["hits"]["total"].hasOwnProperty("value")
         ? searchResult["hits"]["total"]["value"] : searchResult["hits"]["total"];
     pageIndicator.appendChild(document.createTextNode(docCount + " / " + totalHits));

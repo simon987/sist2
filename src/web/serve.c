@@ -43,27 +43,40 @@ int javascript(void *p, onion_request *req, onion_response *res) {
     return OCS_PROCESSED;
 }
 
-int style(void *p, onion_request *req, onion_response *res) {
-    set_default_headers(res);
-    onion_response_set_header(res, "Content-Type", "text/css");
-    onion_response_set_length(res, sizeof(bundle_css));
-    onion_response_write(res, bundle_css, sizeof(bundle_css));
-    return OCS_PROCESSED;
+int client_requested_dark_theme(onion_request *req) {
+    const char *cookie = onion_request_get_cookie(req, "sist");
+    if (cookie == NULL) {
+        return FALSE;
+    }
+
+    return strcmp(cookie, "dark") == 0;
 }
 
-int bg_bars(void *p, onion_request *req, onion_response *res) {
+int style(void *p, onion_request *req, onion_response *res) {
     set_default_headers(res);
-    onion_response_set_header(res, "Content-Type", "image/png");
-    onion_response_set_length(res, sizeof(bg_bars_png));
-    onion_response_write(res, bg_bars_png, sizeof(bg_bars_png));
+
+    onion_response_set_header(res, "Content-Type", "text/css");
+
+    if (client_requested_dark_theme(req)) {
+        onion_response_set_length(res, sizeof(bundle_dark_css));
+        onion_response_write(res, bundle_dark_css, sizeof(bundle_dark_css));
+    } else {
+        onion_response_set_length(res, sizeof(bundle_css));
+        onion_response_write(res, bundle_css, sizeof(bundle_css));
+    }
     return OCS_PROCESSED;
 }
 
 int img_sprite_skin_flag(void *p, onion_request *req, onion_response *res) {
     set_default_headers(res);
     onion_response_set_header(res, "Content-Type", "image/png");
-    onion_response_set_length(res, sizeof(sprite_skin_flat_png));
-    onion_response_write(res, sprite_skin_flat_png, sizeof(sprite_skin_flat_png));
+    if (client_requested_dark_theme(req)) {
+        onion_response_set_length(res, sizeof(sprite_skin_flat_dark_png));
+        onion_response_write(res, sprite_skin_flat_dark_png, sizeof(sprite_skin_flat_dark_png));
+    } else {
+        onion_response_set_length(res, sizeof(sprite_skin_flat_png));
+        onion_response_write(res, sprite_skin_flat_png, sizeof(sprite_skin_flat_png));
+    }
     return OCS_PROCESSED;
 }
 
@@ -326,7 +339,7 @@ int index_info(void *p, onion_request *req, onion_response *res) {
         cJSON_AddStringToObject(idx_json, "name", idx->desc.name);
         cJSON_AddStringToObject(idx_json, "version", idx->desc.version);
         cJSON_AddStringToObject(idx_json, "id", idx->desc.uuid);
-        cJSON_AddNumberToObject(idx_json, "timestamp", (double)idx->desc.timestamp);
+        cJSON_AddNumberToObject(idx_json, "timestamp", (double) idx->desc.timestamp);
         cJSON_AddItemToArray(arr, idx_json);
     }
 
@@ -362,7 +375,7 @@ int file(void *p, onion_request *req, onion_response *res) {
 
     int ret;
     if (strlen(idx->desc.rewrite_url) == 0) {
-        ret =serve_file_from_disk(source, idx, req, res);
+        ret = serve_file_from_disk(source, idx, req, res);
     } else {
         ret = serve_file_from_url(source, idx, req, res);
     }
@@ -384,7 +397,6 @@ void serve(const char *hostname, const char *port) {
     onion_url_add(urls, "", search_index);
     onion_url_add(urls, "css", style);
     onion_url_add(urls, "js", javascript);
-    onion_url_add(urls, "img/bg-bars.png", bg_bars);
     onion_url_add(urls, "img/sprite-skin-flat.png", img_sprite_skin_flag);
 
     onion_url_add(urls, "es", search);

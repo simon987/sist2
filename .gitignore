@@ -11,7 +11,7 @@ Makefile
 LOG
 sist2*
 index.sist2/
-bundle.css
+bundle*.css
 bundle.js
 *.a
 vgcore.*
