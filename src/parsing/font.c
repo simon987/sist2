@@ -15,12 +15,12 @@ typedef struct text_dimensions {
 } text_dimensions_t;
 
 typedef struct glyph {
-    unsigned int top;
-    unsigned int height;
-    unsigned int width;
-    unsigned int descent;
-    unsigned int ascent;
-    unsigned int advance_width;
+    int top;
+    int height;
+    int width;
+    int descent;
+    int ascent;
+    int advance_width;
     unsigned char *pixmap;
 } glyph_t;
 
@@ -39,19 +39,15 @@ glyph_t ft_glyph_to_glyph(FT_GlyphSlot slot) {
 
     glyph.pixmap = slot->bitmap.buffer;
 
-    glyph.width = slot->bitmap.width;
-    glyph.height = slot->bitmap.rows;
+    glyph.width = (int) slot->bitmap.width;
+    glyph.height = (int) slot->bitmap.rows;
     glyph.top = slot->bitmap_top;
-    glyph.advance_width = slot->advance.x / 64;
+    glyph.advance_width = (int) slot->advance.x / 64;
 
     glyph.descent = MAX(0, glyph.height - glyph.top);
     glyph.ascent = MAX(0, MAX(glyph.top, glyph.height) - glyph.descent);
 
     return glyph;
-}
-
-__always_inline
-glyph_t get_glyph(char character, FT_Face face) {
 }
 
 text_dimensions_t text_dimension(char *text, FT_Face face) {
@@ -62,7 +58,7 @@ text_dimensions_t text_dimension(char *text, FT_Face face) {
     int num_chars = (int) strlen(text);
 
     unsigned int max_ascent = 0;
-    unsigned int max_descent = 0;
+    int max_descent = 0;
 
     char pc = 0;
     for (int i = 0; i < num_chars; i++) {
@@ -72,7 +68,7 @@ text_dimensions_t text_dimension(char *text, FT_Face face) {
         glyph_t glyph = ft_glyph_to_glyph(face->glyph);
 
         max_descent = MAX(max_descent, glyph.descent);
-        max_ascent = MAX(max_ascent, glyph.ascent);
+        max_ascent = MAX(max_ascent, MAX(glyph.height, glyph.ascent));
 
         int kerning_x = kerning_offset(c, pc, face);
         dimensions.width += MAX(glyph.advance_width, glyph.width) + kerning_x;
@@ -195,6 +191,9 @@ void parse_font(const char *buf, size_t buf_len, document_t *doc) {
         glyph_t glyph = ft_glyph_to_glyph(face->glyph);
 
         pen.x += kerning_offset(c, pc, face);
+        if (pen.x <= 0) {
+            pen.x = ABS(glyph.advance_width - glyph.width);
+        }
         pen.y = dimensions.height - glyph.ascent - dimensions.baseline;
 
         draw_glyph(&glyph, pen.x, pen.y, dimensions, bitmap);

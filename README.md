@@ -56,7 +56,7 @@ sist2 web --bind 0.0.0.0 --port 4321 ./my_idx1 ./my_idx2 ./my_idx3
 
 File type | Library | Content | Thumbnail | Metadata
 :---|:---|:---|:---|:---
-pdf,xps,cbz,cbr,fb2,epub | MuPDF | yes | yes, `png` | *planned* |
+pdf,xps,cbz,cbr,fb2,epub | MuPDF | yes | yes, `png` | title |
 `audio/*` | libav | - | yes, `jpeg` | ID3 tags |
 `video/*` | libav | - | yes, `jpeg` | *planned* |
 `image/*` | libav | - | yes, `jpeg` | *planned* |
@@ -85,7 +85,7 @@ binaries.
     ```bash
    pkg install cmake gcc yasm gmake bash ffmpeg e2fsprogs-uuid
    ```
-  __ 
+
 2. Build
     ```bash
     git clone --recurse-submodules https://github.com/simon987/sist2
