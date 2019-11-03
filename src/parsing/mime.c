@@ -1,10 +1,12 @@
 #include "mime.h"
 
 unsigned int mime_get_mime_by_ext(GHashTable *ext_table, const char * ext) {
-    char lower[64];
+    char lower[8];
     char *p = lower;
-    while ((*ext)) {
+    int cnt = 0;
+    while ((*ext) != '\0' && cnt + 1 < sizeof(lower)) {
         *p++ = (char)tolower(*ext++);
+        cnt++;
     }
     *p = '\0';
     return (size_t) g_hash_table_lookup(ext_table, lower);

@@ -16,6 +16,7 @@
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
 #include <libavcodec/avcodec.h>
+#include <libavutil/imgutils.h>
 #include <ctype.h>
 #include <mupdf/fitz.h>
 #include <mupdf/pdf.h>
@@ -49,6 +50,7 @@
 #include "parsing/media.h"
 #include "parsing/font.h"
 #include "cli.h"
+#include "utf8.h/utf8.h"
 
 #ifndef SIST_SCAN_ONLY
 #include "src/index/elastic.h"

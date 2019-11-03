@@ -89,10 +89,71 @@ void text_buffer_terminate_string(text_buffer_t *buf) {
     dyn_buffer_write_char(&buf->dyn_buffer, '\0');
 }
 
-int text_buffer_append_string(text_buffer_t *buf, char * str) {
-    char * ptr = str;
-    while (*ptr) {
-        text_buffer_append_char(buf, *ptr++);
+__always_inline
+int utf8_validchr(const char* s) {
+    if (0x00 == (0x80 & *s)) {
+        return TRUE;
+    } else if (0xf0 == (0xf8 & *s)) {
+        if ((0x80 != (0xc0 & s[1])) || (0x80 != (0xc0 & s[2])) ||
+            (0x80 != (0xc0 & s[3]))) {
+            return FALSE;
+        }
+
+        if (0x80 == (0xc0 & s[4])) {
+            return FALSE;
+        }
+
+        if ((0 == (0x07 & s[0])) && (0 == (0x30 & s[1]))) {
+            return FALSE;
+        }
+    } else if (0xe0 == (0xf0 & *s)) {
+        if ((0x80 != (0xc0 & s[1])) || (0x80 != (0xc0 & s[2]))) {
+            return FALSE;
+        }
+
+        if (0x80 == (0xc0 & s[3])) {
+            return FALSE;
+        }
+
+        if ((0 == (0x0f & s[0])) && (0 == (0x20 & s[1]))) {
+            return FALSE;
+        }
+    } else if (0xc0 == (0xe0 & *s)) {
+        if (0x80 != (0xc0 & s[1])) {
+            return FALSE;
+        }
+
+        if (0x80 == (0xc0 & s[2])) {
+            return FALSE;
+        }
+
+        if (0 == (0x1e & s[0])) {
+            return FALSE;
+        }
+    } else  {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+int text_buffer_append_string(text_buffer_t *buf, char *str, size_t len) {
+
+    utf8_int32_t c;
+    for (void *v = utf8codepoint(str, &c); c != '\0' && ((char*)v - str + 4) < len; v = utf8codepoint(v, &c)) {
+        if (utf8_validchr(v)) {
+            text_buffer_append_char(buf, c);
+        }
+    }
+    text_buffer_terminate_string(buf);
+}
+
+int text_buffer_append_string0(text_buffer_t *buf, char *str) {
+    utf8_int32_t c;
+    for (void *v = utf8codepoint(str, &c); c != '\0'; v = utf8codepoint(v, &c)) {
+        if (utf8_validchr(v)) {
+            text_buffer_append_char(buf, c);
+        }
     }
     text_buffer_terminate_string(buf);
 }
@@ -104,15 +165,31 @@ int text_buffer_append_char(text_buffer_t *buf, int c) {
             dyn_buffer_write_char(&buf->dyn_buffer, ' ');
             buf->last_char_was_whitespace = TRUE;
 
-            if (buf->dyn_buffer.cur >= buf->max_size) {
+            if (buf->max_size > 0 && buf->dyn_buffer.cur >= buf->max_size) {
                 return TEXT_BUF_FULL;
             }
         }
     } else {
         buf->last_char_was_whitespace = FALSE;
-        dyn_buffer_write_char(&buf->dyn_buffer, (char) c);
+        grow_buffer_small(&buf->dyn_buffer);
 
-        if (buf->dyn_buffer.cur >= buf->max_size) {
+        if (0 == ((utf8_int32_t) 0xffffff80 & c)) {
+            *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = (char) c;
+        } else if (0 == ((utf8_int32_t) 0xfffff800 & c)) {
+            *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0xc0 | (char) (c >> 6);
+            *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0x80 | (char) (c & 0x3f);
+        } else if (0 == ((utf8_int32_t) 0xffff0000 & c)) {
+            *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0xe0 | (char) (c >> 12);
+            *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0x80 | (char) ((c >> 6) & 0x3f);
+            *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0x80 | (char) (c & 0x3f);
+        } else {
+            *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0xf0 | (char) (c >> 18);
+            *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0x80 | (char) ((c >> 12) & 0x3f);
+            *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0x80 | (char) ((c >> 6) & 0x3f);
+            *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0x80 | (char) (c & 0x3f);
+        }
+
+        if (buf->max_size > 0 && buf->dyn_buffer.cur >= buf->max_size) {
             return TEXT_BUF_FULL;
         }
     }
@@ -144,7 +221,7 @@ dyn_buffer_t url_escape(char *str) {
 
     dyn_buffer_t text = dyn_buffer_create();
 
-    char * ptr = str;
+    char *ptr = str;
     while (*ptr) {
         if (*ptr == '#') {
             dyn_buffer_write(&text, "%23", 3);
@@ -177,7 +254,7 @@ char *expandpath(const char *path) {
     wordexp_t w;
     wordexp(path, &w, 0);
 
-    char * expanded = malloc(strlen(w.we_wordv[0]) + 2);
+    char *expanded = malloc(strlen(w.we_wordv[0]) + 2);
     strcpy(expanded, w.we_wordv[0]);
     strcat(expanded, "/");
 

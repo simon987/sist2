@@ -186,7 +186,11 @@ void parse_font(const char *buf, size_t buf_len, document_t *doc) {
 
         err = FT_Load_Char(face, c, FT_LOAD_NO_HINTING | FT_LOAD_RENDER);
         if (err != 0) {
-            continue;
+            c = c >= 'a' && c <= 'z' ? c - 32 : c + 32;
+            err = FT_Load_Char(face, c, FT_LOAD_NO_HINTING | FT_LOAD_RENDER);
+            if (err != 0) {
+                continue;
+            }
         }
         glyph_t glyph = ft_glyph_to_glyph(face->glyph);
 

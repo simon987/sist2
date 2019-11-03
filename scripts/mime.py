@@ -12,7 +12,8 @@ major_mime = {
     "audio": 7,
     "image": 8,
     "text": 9,
-    "application": 10
+    "application": 10,
+    "x-epoc": 11,
 }
 
 pdf = (

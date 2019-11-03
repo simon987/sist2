@@ -102,7 +102,14 @@ void elastic_flush() {
 
     cJSON *ret_json = cJSON_Parse(r->body);
     if (cJSON_GetObjectItem(ret_json, "errors")->valueint != 0) {
-        fprintf(stderr, "%s\n", r->body);
+        cJSON *err;
+        cJSON_ArrayForEach(err, cJSON_GetObjectItem(ret_json, "items")) {
+            if (cJSON_GetObjectItem(cJSON_GetObjectItem(err, "index"), "status")->valueint != 201) {
+                char* str = cJSON_Print(err);
+                fprintf(stderr, "%s\n", str);
+                cJSON_free(str);
+            }
+        }
     }
 
     cJSON_Delete(ret_json);

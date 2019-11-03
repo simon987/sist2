@@ -10,7 +10,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.0.14";
+static const char *const Version = "1.1.0";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -52,11 +52,10 @@ void sist2_scan(scan_args_t *args) {
     ScanCtx.tn_qscale = args->quality;
     ScanCtx.tn_size = args->size;
     ScanCtx.content_size = args->content_size;
-    ScanCtx.pool = tpool_create(args->threads, serializer_cleanup);
     ScanCtx.threads = args->threads;
     strncpy(ScanCtx.index.path, args->output, sizeof(ScanCtx.index.path));
     strncpy(ScanCtx.index.desc.name, args->name, sizeof(ScanCtx.index.desc.name));
-    strcpy(ScanCtx.index.desc.root, args->path);
+    strncpy(ScanCtx.index.desc.root, args->path, sizeof(ScanCtx.index.desc.root));
     ScanCtx.index.desc.root_len = (short) strlen(ScanCtx.index.desc.root);
 
     init_dir(ScanCtx.index.path);
@@ -93,6 +92,8 @@ void sist2_scan(scan_args_t *args) {
         printf("Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table));
     }
 
+    ScanCtx.pool = tpool_create(args->threads, serializer_cleanup);
+    tpool_start(ScanCtx.pool);
     walk_directory_tree(ScanCtx.index.desc.root);
     tpool_wait(ScanCtx.pool);
     tpool_destroy(ScanCtx.pool);

@@ -254,6 +254,7 @@ text/mcf, mcf
 text/pascal, pas
 text/plain, com|cmd|conf|def|g|idc|list|lst|mar|sdml|text|txt|md|groovy|license|properties|desktop|ini|rst|cmake|ipynb|readme|less|lo|go|yml|d|cs|hpp|srt
 text/richtext, rt|rtf|rtx
+text/rtf,
 text/scriplet, wsc
 text/x-awk, awk
 !video/x-jng, jng
@@ -263,7 +264,7 @@ image/x-xwindowdump, xwd
 !image/vnd.adobe.photoshop, psd
 text/tab-separated-values, tsv
 text/troff, man|me|ms|roff|t|tr
-text/uri-list, uni|unis|uri|uris
+text/uri-list, uji|unis|uri|uris
 text/vnd.abc, abc
 text/vnd.fmi.flexstor, flx
 text/vnd.wap.wmlscript, wmls
@@ -360,3 +361,53 @@ application/x-wine-extension-ini,
 application/x-cbz, cbz
 application/x-cbr, cbr
 application/x-ms-compress-szdd, fon
+application/x-atari-7800-rom, a78
+application/x-nes-rom, nes
+application/x-font-pfm, pfm
+application/x-gettext-translation,
+image/wmf,
+application/pgp-keys,
+image/x-3ds, 3ds
+application/x-lz4, lz4
+application/vnd.openxmlformats-officedocument.presentationml.presentation, pptx
+application/vnd.oasis.opendocument.presentation, odp
+application/x-msaccess, accdb
+application/vnd.oasis.opendocument.spreadsheet, ods
+audio/x-aiff, aiff|aif
+text/x-ms-regedit, reg
+application/x-gamecube-rom,
+application/x-nintendo-ds-rom,
+text/x-objective-c,
+application/x-font-gdos,
+application/x-apple-diskimage,
+application/x-zstd, zst
+video/x-m4v, m4v
+message/news,
+application/vnd.symbian.install,
+application/x-lzh-compressed,
+application/x-dosdriver,
+application/vnd.tcpdump.pcap, pcap
+x-epoc/x-sisx-app,
+application/x-avira-qua,
+video/MP2T,
+application/x-snappy-framed,
+application/x-lz4+json, jsonlz4
+application/x-dmp, dmp
+application/zlib, z
+application/x-pgp-keyring,
+application/x-gdbm,
+application/x-font-pf2, pf2
+application/x-zip,
+application/x-coredump,
+application/x-java-jmod, jmod
+application/x-terminfo,
+application/x-terminfo2,
+application/x-arc,
+application/vnd.lotus-1-2-3,
+image/x-win-bitmap,
+application/x-maxis-dbpf,
+text/PGP,
+audio/x-hx-aac-adts,
+application/x-chrome-extension,
+image/heic, heic
+image/x-gem,

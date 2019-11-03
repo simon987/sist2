@@ -16,3 +16,12 @@
 [submodule "lmdb"]
 	path = lmdb
 	url = https://github.com/LMDB/lmdb
+[submodule "utf8.h"]
+	path = utf8.h
+	url = https://github.com/sheredom/utf8.h
+[submodule "lib/openjpeg"]
+	path = lib/openjpeg
+	url = https://github.com/uclouvain/openjpeg
+[submodule "lib/harfbuzz"]
+	path = lib/harfbuzz
+	url = https://github.com/harfbuzz/harfbuzz

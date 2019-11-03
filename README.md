@@ -58,7 +58,7 @@ File type | Library | Content | Thumbnail | Metadata
 :---|:---|:---|:---|:---
 pdf,xps,cbz,cbr,fb2,epub | MuPDF | yes | yes, `png` | title |
 `audio/*` | libav | - | yes, `jpeg` | ID3 tags |
-`video/*` | libav | - | yes, `jpeg` | *planned* |
+`video/*` | libav | - | yes, `jpeg` | title, comment |
 `image/*` | libav | - | yes, `jpeg` | *planned* |
 ttf,ttc,cff,woff,fnt,otf | Freetype2 | - | yes, `bmp` | Name & style |
 `text/plain` | *(none)* | yes | no | - |

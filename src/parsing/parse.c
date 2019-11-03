@@ -1,7 +1,7 @@
 #include "src/sist.h"
 #include "src/ctx.h"
 
-__thread magic_t Magic;
+__thread magic_t Magic = NULL;
 
 void *read_all(parse_job_t *job, const char *buf, int bytes_read, int *fd) {
 
@@ -62,7 +62,7 @@ void parse(void *arg) {
 
     if (job->info.st_size == 0) {
         doc.mime = MIME_EMPTY;
-    } else if (*(job->filepath + job->ext) != '\0') {
+    } else if (*(job->filepath + job->ext) != '\0' && (job->ext - job->base != 1)) {
         doc.mime = mime_get_mime_by_ext(ScanCtx.ext_table, job->filepath + job->ext);
     }
 
@@ -80,11 +80,18 @@ void parse(void *arg) {
 
         bytes_read = read(fd, buf, PARSE_BUF_SIZE);
 
+        if (bytes_read == -1) {
+            perror("read");
+            close(fd);
+            free(job);
+            return;
+        }
+
         const char *magic_mime_str = magic_buffer(Magic, buf, bytes_read);
         if (magic_mime_str != NULL) {
             doc.mime = mime_get_mime_by_string(ScanCtx.mime_table, magic_mime_str);
             if (doc.mime == 0) {
-                fprintf(stderr, "Couldn't find mime %s, %s!\n", magic_mime_str, job->filepath + job->base);
+                fprintf(stderr, "Couldn't find mime %s, %s\n", magic_mime_str, job->filepath + job->base);
             }
         }
     }
@@ -93,7 +100,8 @@ void parse(void *arg) {
 
     if (!(SHOULD_PARSE(doc.mime))) {
 
-    } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) || mmime == MimeAudio || mmime == MimeImage) {
+    } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) ||
+    (mmime == MimeImage && doc.size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
         parse_media(job->filepath, &doc);
 
     } else if (IS_PDF(doc.mime)) {

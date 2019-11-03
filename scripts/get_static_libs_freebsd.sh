@@ -9,6 +9,22 @@ cd ..
 mv mupdf/build/release/libmupdf.a .
 mv mupdf/build/release/libmupdf-third.a .
 
+# openjp2
+cd openjpeg
+#cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3 -march=native -DNDEBUG"
+cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3"
+gmake -j 4
+cd ..
+mv openjpeg/bin/libopenjp2.a .
+
+# harfbuzz
+cd harfbuzz
+./autogen.sh
+./configure --disable-shared --enable-static
+gmake -j 4
+cd ..
+mv harfbuzz/src/.libs/libharfbuzz.a .
+
 # ffmpeg
 cd ffmpeg
 ./configure --disable-shared --enable-static --disable-ffmpeg --disable-ffplay \

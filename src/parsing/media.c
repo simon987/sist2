@@ -1,6 +1,9 @@
 #include "src/sist.h"
 #include "src/ctx.h"
 
+#define MIN_SIZE 32
+
+__always_inline
 AVCodecContext *alloc_jpeg_encoder(int dstW, int dstH, float qscale) {
 
     AVCodec *jpeg_codec = avcodec_find_encoder(AV_CODEC_ID_MJPEG);
@@ -22,8 +25,8 @@ AVCodecContext *alloc_jpeg_encoder(int dstW, int dstH, float qscale) {
     return jpeg;
 }
 
+__always_inline
 AVFrame *scale_frame(const AVCodecContext *decoder, const AVFrame *frame, int size) {
-    AVFrame *scaled_frame = av_frame_alloc();
 
     int dstW;
     int dstH;
@@ -41,16 +44,22 @@ AVFrame *scale_frame(const AVCodecContext *decoder, const AVFrame *frame, int si
         }
     }
 
+    if (dstW <= MIN_SIZE || dstH <= MIN_SIZE) {
+        return NULL;
+    }
+
+    AVFrame *scaled_frame = av_frame_alloc();
+
     struct SwsContext *ctx = sws_getContext(
             decoder->width, decoder->height, decoder->pix_fmt,
             dstW, dstH, AV_PIX_FMT_YUVJ420P,
             SWS_FAST_BILINEAR, 0, 0, 0
     );
 
-    int dst_buf_len = avpicture_get_size(AV_PIX_FMT_YUVJ420P, dstW, dstH);
+    int dst_buf_len = av_image_get_buffer_size(AV_PIX_FMT_YUV420P, dstW, dstH, 1);
     uint8_t *dst_buf = (uint8_t *) av_malloc(dst_buf_len);
 
-    avpicture_fill((AVPicture *) scaled_frame, dst_buf, AV_PIX_FMT_YUVJ420P, dstW, dstH);
+    av_image_fill_arrays(scaled_frame->data, scaled_frame->linesize, dst_buf, AV_PIX_FMT_YUV420P, dstW, dstH, 1);
 
     sws_scale(ctx,
               (const uint8_t *const *) frame->data, frame->linesize,
@@ -81,7 +90,7 @@ AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder, int st
 
             if (read_frame_ret != 0) {
                 if (read_frame_ret != AVERROR_EOF) {
-                    fprintf(stderr, "Error reading frame: %s\n", av_err2str(read_frame_ret));
+                    fprintf(stderr, "Error reading frame: %d\n", read_frame_ret);
                 }
                 av_frame_free(&frame);
                 av_packet_unref(&avPacket);
@@ -108,35 +117,40 @@ AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder, int st
 }
 
 #define APPEND_TAG_META(doc, tag, keyname) \
-    text_buffer_t tex = text_buffer_create(4096); \
-    text_buffer_append_string(&tex, tag->value); \
+    text_buffer_t tex = text_buffer_create(-1); \
+    text_buffer_append_string0(&tex, tag->value); \
     meta_line_t *meta_tag = malloc(sizeof(meta_line_t) + tex.dyn_buffer.cur); \
     meta_tag->key = keyname; \
     strcpy(meta_tag->strval, tex.dyn_buffer.buf); \
     APPEND_META(doc, meta_tag) \
     text_buffer_destroy(&tex);
 
+__always_inline
 void append_audio_meta(AVFormatContext *pFormatCtx, document_t *doc) {
 
     AVDictionaryEntry *tag = NULL;
     while ((tag = av_dict_get(pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
-        char *key = tag->key;
-        for (; *key; ++key) *key = (char) tolower(*key);
+        char key[32];
+        strncpy(key, tag->key, sizeof(key));
 
-        if (strcmp(tag->key, "artist") == 0) {
+        char *ptr = key;
+        for (; *ptr; ++ptr) *ptr = (char) tolower(*ptr);
+
+        if (strcmp(key, "artist") == 0) {
             APPEND_TAG_META(doc, tag, MetaArtist)
-        } else if (strcmp(tag->key, "genre") == 0) {
+        } else if (strcmp(key, "genre") == 0) {
             APPEND_TAG_META(doc, tag, MetaGenre)
-        } else if (strcmp(tag->key, "title") == 0) {
+        } else if (strcmp(key, "title") == 0) {
             APPEND_TAG_META(doc, tag, MetaTitle)
-        } else if (strcmp(tag->key, "album_artist") == 0) {
+        } else if (strcmp(key, "album_artist") == 0) {
             APPEND_TAG_META(doc, tag, MetaAlbumArtist)
-        } else if (strcmp(tag->key, "album") == 0) {
+        } else if (strcmp(key, "album") == 0) {
             APPEND_TAG_META(doc, tag, MetaAlbum)
         }
     }
 }
 
+__always_inline
 void append_video_meta(AVFormatContext *pFormatCtx, document_t *doc, int include_audio_tags) {
 
     meta_line_t *meta_duration = malloc(sizeof(meta_line_t));
@@ -146,17 +160,20 @@ void append_video_meta(AVFormatContext *pFormatCtx, document_t *doc, int include
 
     meta_line_t *meta_bitrate = malloc(sizeof(meta_line_t));
     meta_bitrate->key = MetaMediaBitrate;
-    meta_bitrate->intval = pFormatCtx->bit_rate;
+    meta_bitrate->longval = pFormatCtx->bit_rate;
     APPEND_META(doc, meta_bitrate)
 
     AVDictionaryEntry *tag = NULL;
     while ((tag = av_dict_get(pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
-        char *key = tag->key;
-        for (; *key; ++key) *key = (char) tolower(*key);
+        char key[32];
+        strncpy(key, tag->key, sizeof(key));
 
-        if (strcmp(tag->key, "title") == 0 && include_audio_tags) {
+        char *ptr = key;
+        for (; *ptr; ++ptr) *ptr = (char) tolower(*ptr);
+
+        if (strcmp(key, "title") == 0 && include_audio_tags) {
             APPEND_TAG_META(doc, tag, MetaTitle)
-        } else if (strcmp(tag->key, "comment") == 0) {
+        } else if (strcmp(key, "comment") == 0) {
             APPEND_TAG_META(doc, tag, MetaContent)
         }
     }
@@ -174,7 +191,7 @@ void parse_media(const char *filepath, document_t *doc) {
     }
     int res = avformat_open_input(&pFormatCtx, filepath, NULL, NULL);
     if (res < 0) {
-        printf("ERR%s %s\n", filepath, av_err2str(res));
+        fprintf(stderr, "media error: %s %s\n", filepath, av_err2str(res));
         return;
     }
 
@@ -224,7 +241,7 @@ void parse_media(const char *filepath, document_t *doc) {
             append_video_meta(pFormatCtx, doc, audio_stream == -1);
         }
 
-        if (stream->codecpar->width <= 20 || stream->codecpar->height <= 20) {
+        if (stream->codecpar->width <= MIN_SIZE || stream->codecpar->height <= MIN_SIZE) {
             avformat_close_input(&pFormatCtx);
             avformat_free_context(pFormatCtx);
             return;
@@ -259,6 +276,14 @@ void parse_media(const char *filepath, document_t *doc) {
         // Scale frame
         AVFrame *scaled_frame = scale_frame(decoder, frame, ScanCtx.tn_size);
 
+        if (scaled_frame == NULL) {
+            av_frame_free(&frame);
+            avcodec_free_context(&decoder);
+            avformat_close_input(&pFormatCtx);
+            avformat_free_context(pFormatCtx);
+            return;
+        }
+
         // Encode frame to jpeg
         AVCodecContext *jpeg_encoder = alloc_jpeg_encoder(scaled_frame->width, scaled_frame->height, ScanCtx.tn_qscale);
         avcodec_send_frame(jpeg_encoder, scaled_frame);
@@ -268,7 +293,8 @@ void parse_media(const char *filepath, document_t *doc) {
         avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
 
         // Save thumbnail
-        store_write(ScanCtx.index.store, (char *) doc->uuid, sizeof(doc->uuid), (char *) jpeg_packet.data, jpeg_packet.size);
+        store_write(ScanCtx.index.store, (char *) doc->uuid, sizeof(doc->uuid), (char *) jpeg_packet.data,
+                    jpeg_packet.size);
 
         av_packet_unref(&jpeg_packet);
         av_frame_free(&frame);

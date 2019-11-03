@@ -3,14 +3,13 @@
 
 parse_job_t *create_parse_job(const char *filepath, const struct stat *info, int base) {
     int len = (int) strlen(filepath);
-
     parse_job_t *job = malloc(sizeof(parse_job_t) + len);
 
-    memcpy(&(job->filepath), filepath, len + 1);
+    strcpy(job->filepath, filepath);
     job->base = base;
     char *p = strrchr(filepath + base, '.');
     if (p != NULL) {
-        job->ext = (int)(p - filepath + 1);
+        job->ext = (int) (p - filepath + 1);
     } else {
         job->ext = len;
     }

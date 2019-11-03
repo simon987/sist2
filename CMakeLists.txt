@@ -37,6 +37,9 @@ if (WITH_SIST2)
             lmdb/libraries/liblmdb/lmdb.h lmdb/libraries/liblmdb/mdb.c
             lmdb/libraries/liblmdb/midl.h lmdb/libraries/liblmdb/midl.c
             src/cli.c src/cli.h
+
+            # utf8.h
+            utf8.h/utf8.h
     )
 endif ()
 
@@ -67,6 +70,9 @@ if (WITH_SIST2_SCAN)
             lmdb/libraries/liblmdb/lmdb.h lmdb/libraries/liblmdb/mdb.c
             lmdb/libraries/liblmdb/midl.h lmdb/libraries/liblmdb/midl.c
             src/cli.c src/cli.h
+
+            # utf8.h
+            utf8.h/utf8.h
     )
 endif ()
 
@@ -116,10 +122,10 @@ if (WITH_SIST2)
 
     target_compile_options(sist2
             PRIVATE
-#            -O3
-            #        -march=native
-#            -fno-stack-protector
-#            -fomit-frame-pointer
+            -Ofast
+#                    -march=native
+            -fno-stack-protector
+            -fomit-frame-pointer
             )
 
     TARGET_LINK_LIBRARIES(
@@ -150,6 +156,9 @@ if (WITH_SIST2)
             m
             bz2
             magic
+            harfbuzz
+            openjp2
+            freetype
     )
 
 endif ()
@@ -187,7 +196,7 @@ if (WITH_SIST2_SCAN)
     )
     target_compile_options(sist2_scan
             PRIVATE
-            -O3
+            -Ofast
             #        -march=native
             -fno-stack-protector
             -fomit-frame-pointer
@@ -215,6 +224,9 @@ if (WITH_SIST2_SCAN)
 
             pthread
             m
+            ${PROJECT_SOURCE_DIR}/lib/libharfbuzz.a
+            ${PROJECT_SOURCE_DIR}/lib/libopenjp2.a
+            freetype
     )
 endif ()
 

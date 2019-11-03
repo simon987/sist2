@@ -27,17 +27,14 @@ void parse_text(int bytes_read, int *fd, char *buf, document_t *doc) {
 
         read(*fd, intermediate_buf + bytes_read, to_read);
     }
+    text_buffer_t tex = text_buffer_create(ScanCtx.content_size);
+    text_buffer_append_string(&tex, intermediate_buf, intermediate_buf_len);
 
-    text_buffer_t text_buf = text_buffer_create(ScanCtx.content_size);
-    for (int i = 0; i < intermediate_buf_len; i++) {
-        text_buffer_append_char(&text_buf, *(intermediate_buf + i));
-    }
-    text_buffer_terminate_string(&text_buf);
-
-    meta_line_t *meta = malloc(sizeof(meta_line_t) + text_buf.dyn_buffer.cur);
+    meta_line_t *meta = malloc(sizeof(meta_line_t) + tex.dyn_buffer.cur);
     meta->key = MetaContent;
-    strcpy(meta->strval, text_buf.dyn_buffer.buf);
-    text_buffer_destroy(&text_buf);
-    free(intermediate_buf);
+    strcpy(meta->strval, tex.dyn_buffer.buf);
     APPEND_META(doc, meta)
+
+    free(intermediate_buf);
+    text_buffer_destroy(&tex);
 }
