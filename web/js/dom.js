@@ -136,6 +136,9 @@ function createDocCard(hit) {
             thumbnail = document.createElement("img");
             thumbnail.setAttribute("class", "card-img-top fit");
             thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
+            thumbnail.addEventListener("error", () => {
+                imgWrapper.remove();
+            });
         }
 
         //Thumbnail overlay

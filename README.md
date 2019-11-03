@@ -79,11 +79,12 @@ binaries.
     apt install git cmake pkg-config libglib2.0-dev\
         libssl-dev uuid-dev libavformat-dev libswscale-dev \
         python3 libmagic-dev libfreetype6-dev libcurl-dev \
-        libbz2-dev yasm
+        libbz2-dev yasm libharfbuzz-dev
    ```
     *(FreeBSD)*
     ```bash
-   pkg install cmake gcc yasm gmake bash ffmpeg e2fsprogs-uuid
+   pkg install cmake gcc yasm gmake bash ffmpeg e2fsprogs-uuid\
+        autotools ragel
    ```
 
 2. Build
