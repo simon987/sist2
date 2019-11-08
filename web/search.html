@@ -27,6 +27,9 @@
                         <span onclick="document.getElementById('barToggle').click()">Must match&nbsp</span>
                         <input title="Toggle between 'Should' and 'Must' match mode" type="checkbox" id="barToggle"
                                onclick="toggleSearchBar()" checked>
+                        <span onclick="document.getElementById('fuzzyToggle').click()">&nbsp&nbspFuzzy&nbsp</span>
+                        <input title="Toggle fuzzy searching" type="checkbox" id="fuzzyToggle"
+                               onclick="toggleFuzzy()" checked>
                     </div>
                 </div>
                 <input id="searchBar" type="search" class="form-control" placeholder="Search">

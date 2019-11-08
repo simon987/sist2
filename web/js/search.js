@@ -36,6 +36,10 @@ function toggleSearchBar() {
     searchDebounced();
 }
 
+function toggleFuzzy() {
+    searchDebounced();
+}
+
 $.jsonPost("i").then(resp => {
     resp["indices"].forEach(idx => {
         const opt = $("<option>")
@@ -223,6 +227,17 @@ function search() {
         {range: {size: {gte: size_min, lte: size_max}}},
         {terms: {index: selectedIndices}}
     ];
+    let fields = [
+        "name^8",
+        "content^3",
+        "album^8", "artist^8", "title^8", "genre^2", "album_artist^8",
+        "font_name^6"
+    ];
+
+    if ($("#fuzzyToggle").prop("checked")) {
+        fields.push("content.nGram");
+        fields.push("name.nGram^3");
+    }
 
     let path = pathBar.value.replace(/\/$/, "").toLowerCase(); //remove trailing slashes
     if (path !== "") {
@@ -243,12 +258,7 @@ function search() {
                     multi_match: {
                         query: query,
                         type: "most_fields",
-                        fields: [
-                            "name^8", "name.nGram^3", "content^3",
-                            "content.nGram",
-                            "album^8", "artist^8", "title^8", "genre^2", "album_artist^8",
-                            "font_name^6"
-                        ],
+                        fields: fields,
                         operator: "and"
                     }
                 },
