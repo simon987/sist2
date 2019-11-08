@@ -66,7 +66,7 @@ index_descriptor_t read_index_descriptor(char *path) {
     strcpy(descriptor.root, cJSON_GetObjectItem(json, "root")->valuestring);
     strcpy(descriptor.name, cJSON_GetObjectItem(json, "name")->valuestring);
     strcpy(descriptor.rewrite_url, cJSON_GetObjectItem(json, "rewrite_url")->valuestring);
-    descriptor.root_len = (short)strlen(descriptor.root);
+    descriptor.root_len = (short) strlen(descriptor.root);
     strcpy(descriptor.version, cJSON_GetObjectItem(json, "version")->valuestring);
     strcpy(descriptor.uuid, cJSON_GetObjectItem(json, "uuid")->valuestring);
 
@@ -181,7 +181,7 @@ void read_index(const char *path, const char index_id[UUID_STR_LEN], index_func 
         uuid_unparse(line.uuid, uuid_str);
 
         cJSON_AddStringToObject(document, "mime", mime_get_mime_text(line.mime));
-        cJSON_AddNumberToObject(document, "size", (double)line.size);
+        cJSON_AddNumberToObject(document, "size", (double) line.size);
         cJSON_AddNumberToObject(document, "mtime", line.mtime);
 
         int c;
@@ -208,11 +208,16 @@ void read_index(const char *path, const char index_id[UUID_STR_LEN], index_func 
         while (key != '\n') {
             switch (key) {
                 case MetaWidth:
-                case MetaHeight:
-                case MetaMediaDuration:
-                case MetaMediaBitrate: {
+                case MetaHeight: {
                     int value;
                     fread(&value, sizeof(int), 1, file);
+                    cJSON_AddNumberToObject(document, get_meta_key_text(key), value);
+                    break;
+                }
+                case MetaMediaDuration:
+                case MetaMediaBitrate: {
+                    long value;
+                    fread(&value, sizeof(long), 1, file);
                     cJSON_AddNumberToObject(document, get_meta_key_text(key), value);
                     break;
                 }
@@ -245,7 +250,7 @@ void read_index(const char *path, const char index_id[UUID_STR_LEN], index_func 
                     break;
                 }
                 default:
-                    fprintf(stderr, "Invalid meta key (corrupt index): %x", key);
+                    fprintf(stderr, "Invalid meta key (corrupt index): %x\n", key);
                     break;
             }
 
