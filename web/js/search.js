@@ -32,10 +32,6 @@ window.onload = () => {
     })
 };
 
-function toggleSearchBar() {
-    searchDebounced();
-}
-
 function toggleFuzzy() {
     searchDebounced();
 }
@@ -222,7 +218,7 @@ function search() {
 
     let query = searchBar.value;
     let empty = query === "";
-    let condition = $("#barToggle").prop("checked") && !empty ? "must" : "should";
+    let condition = empty ? "should" : "must";
     let filters = [
         {range: {size: {gte: size_min, lte: size_max}}},
         {terms: {index: selectedIndices}}
@@ -275,7 +271,7 @@ function search() {
                 content: {},
                 name: {},
                 "name.nGram": {},
-                // font_name: {},
+                font_name: {},
             }
         },
         aggs: {
