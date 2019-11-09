@@ -42,14 +42,12 @@ mv ffmpeg/libswresample/libswresample.a .
 mv ffmpeg/libswscale/libswscale.a .
 
 #bzip2
-git clone https://github.com/enthought/bzip2-1.0.6
 cd bzip2-1.0.6
 make -j 4
 cd ..
 mv bzip2-1.0.6/libbz2.a .
 
 # magic
-git clone https://github.com/threatstack/libmagic
 cd libmagic
 ./autogen.sh
 ./configure --enable-static --disable-shared

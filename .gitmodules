@@ -25,3 +25,9 @@
 [submodule "lib/harfbuzz"]
 	path = lib/harfbuzz
 	url = https://github.com/harfbuzz/harfbuzz
+[submodule "lib/libmagic"]
+	path = lib/libmagic
+	url = https://github.com/threatstack/libmagic
+[submodule "lib/bzip2-1.0.6"]
+	path = lib/bzip2-1.0.6
+	url = https://github.com/enthought/bzip2-1.0.6
