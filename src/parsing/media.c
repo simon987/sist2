@@ -116,9 +116,9 @@ AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder, int st
     return frame;
 }
 
-#define APPEND_TAG_META(doc, tag, keyname) \
+#define APPEND_TAG_META(doc, tag_, keyname) \
     text_buffer_t tex = text_buffer_create(-1); \
-    text_buffer_append_string0(&tex, tag->value); \
+    text_buffer_append_string0(&tex, tag_->value); \
     meta_line_t *meta_tag = malloc(sizeof(meta_line_t) + tex.dyn_buffer.cur); \
     meta_tag->key = keyname; \
     strcpy(meta_tag->strval, tex.dyn_buffer.buf); \
@@ -151,30 +151,39 @@ void append_audio_meta(AVFormatContext *pFormatCtx, document_t *doc) {
 }
 
 __always_inline
-void append_video_meta(AVFormatContext *pFormatCtx, document_t *doc, int include_audio_tags) {
+void append_video_meta(AVFormatContext *pFormatCtx, AVFrame *frame, document_t *doc, int include_audio_tags, int is_video) {
 
-    meta_line_t *meta_duration = malloc(sizeof(meta_line_t));
-    meta_duration->key = MetaMediaDuration;
-    meta_duration->longval = pFormatCtx->duration / AV_TIME_BASE;
-    APPEND_META(doc, meta_duration)
+    if (is_video) {
+        meta_line_t *meta_duration = malloc(sizeof(meta_line_t));
+        meta_duration->key = MetaMediaDuration;
+        meta_duration->longval = pFormatCtx->duration / AV_TIME_BASE;
+        APPEND_META(doc, meta_duration)
 
-    meta_line_t *meta_bitrate = malloc(sizeof(meta_line_t));
-    meta_bitrate->key = MetaMediaBitrate;
-    meta_bitrate->longval = pFormatCtx->bit_rate;
-    APPEND_META(doc, meta_bitrate)
+        meta_line_t *meta_bitrate = malloc(sizeof(meta_line_t));
+        meta_bitrate->key = MetaMediaBitrate;
+        meta_bitrate->longval = pFormatCtx->bit_rate;
+        APPEND_META(doc, meta_bitrate)
+    }
 
     AVDictionaryEntry *tag = NULL;
-    while ((tag = av_dict_get(pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
-        char key[32];
-        strncpy(key, tag->key, sizeof(key));
-
-        char *ptr = key;
-        for (; *ptr; ++ptr) *ptr = (char) tolower(*ptr);
-
-        if (strcmp(key, "title") == 0 && include_audio_tags) {
-            APPEND_TAG_META(doc, tag, MetaTitle)
-        } else if (strcmp(key, "comment") == 0) {
-            APPEND_TAG_META(doc, tag, MetaContent)
+    if (is_video) {
+        while ((tag = av_dict_get(pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
+            if (include_audio_tags && strcmp(tag->key, "title") == 0) {
+                APPEND_TAG_META(doc, tag, MetaTitle)
+            } else if (strcmp(tag->key, "comment") == 0) {
+                APPEND_TAG_META(doc, tag, MetaContent)
+            } else if (include_audio_tags && strcmp(tag->key, "artist") == 0) {
+                APPEND_TAG_META(doc, tag, MetaArtist)
+            }
+        }
+    } else {
+        // EXIF metadata
+        while ((tag = av_dict_get(frame->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
+            if (include_audio_tags && strcmp(tag->key, "Artist") == 0) {
+                APPEND_TAG_META(doc, tag, MetaArtist)
+            } else if (strcmp(tag->key, "ImageDescription") == 0) {
+                APPEND_TAG_META(doc, tag, MetaContent)
+            }
         }
     }
 }
@@ -236,11 +245,6 @@ void parse_media(const char *filepath, document_t *doc) {
     if (video_stream != -1) {
         AVStream *stream = pFormatCtx->streams[video_stream];
 
-        if (stream->nb_frames > 1) {
-            //This is a video (not a still image)
-            append_video_meta(pFormatCtx, doc, audio_stream == -1);
-        }
-
         if (stream->codecpar->width <= MIN_SIZE || stream->codecpar->height <= MIN_SIZE) {
             avformat_close_input(&pFormatCtx);
             avformat_free_context(pFormatCtx);
@@ -272,6 +276,8 @@ void parse_media(const char *filepath, document_t *doc) {
             avformat_free_context(pFormatCtx);
             return;
         }
+
+        append_video_meta(pFormatCtx, frame, doc, audio_stream == -1, stream->nb_frames > 1);
 
         // Scale frame
         AVFrame *scaled_frame = scale_frame(decoder, frame, ScanCtx.tn_size);

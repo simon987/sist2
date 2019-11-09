@@ -56,10 +56,10 @@ sist2 web --bind 0.0.0.0 --port 4321 ./my_idx1 ./my_idx2 ./my_idx3
 
 File type | Library | Content | Thumbnail | Metadata
 :---|:---|:---|:---|:---
-pdf,xps,cbz,cbr,fb2,epub | MuPDF | yes | yes, `png` | title |
+pdf,xps,cbz,fb2,epub | MuPDF | yes | yes, `png` | title |
 `audio/*` | ffmpeg | - | yes, `jpeg` | ID3 tags |
-`video/*` | ffmpeg | - | yes, `jpeg` | title, comment |
-`image/*` | ffmpeg | - | yes, `jpeg` | *planned* |
+`video/*` | ffmpeg | - | yes, `jpeg` | title, comment, artist |
+`image/*` | ffmpeg | - | yes, `jpeg` | `EXIF:Artist`, `EXIF:ImageDescription` |
 ttf,ttc,cff,woff,fnt,otf | Freetype2 | - | yes, `bmp` | Name & style |
 `text/plain` | *(none)* | yes | no | - |
 docx, xlsx, pptx |  | *planned* | no | *planned* |
