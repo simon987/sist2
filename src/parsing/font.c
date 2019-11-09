@@ -142,6 +142,9 @@ void parse_font(const char *buf, size_t buf_len, document_t *doc) {
     if (library == NULL) {
         FT_Init_FreeType(&library);
     }
+    if (buf == NULL) {
+        return;
+    }
 
     FT_Face face;
     FT_Error err = FT_New_Memory_Face(library, (unsigned char *) buf, buf_len, 0, &face);

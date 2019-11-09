@@ -90,7 +90,7 @@ void text_buffer_terminate_string(text_buffer_t *buf) {
 }
 
 __always_inline
-int utf8_validchr(const char* s) {
+int utf8_validchr(const char *s) {
     if (0x00 == (0x80 & *s)) {
         return TRUE;
     } else if (0xf0 == (0xf8 & *s)) {
@@ -130,7 +130,7 @@ int utf8_validchr(const char* s) {
         if (0 == (0x1e & s[0])) {
             return FALSE;
         }
-    } else  {
+    } else {
         return FALSE;
     }
 
@@ -140,12 +140,22 @@ int utf8_validchr(const char* s) {
 int text_buffer_append_string(text_buffer_t *buf, char *str, size_t len) {
 
     utf8_int32_t c;
-    for (void *v = utf8codepoint(str, &c); c != '\0' && ((char*)v - str + 4) < len; v = utf8codepoint(v, &c)) {
+    if (str == NULL || len < 1 ||
+        (0xf0 == (0xf8 & str[0]) && len < 4) ||
+        (0xe0 == (0xf0 & str[0]) && len < 3) ||
+        (0xc0 == (0xe0 & str[0]) && len == 1) ||
+        *(str) == 0) {
+        text_buffer_terminate_string(buf);
+        return 0;
+    }
+
+    for (void *v = utf8codepoint(str, &c); c != '\0' && ((char *) v - str + 4) < len; v = utf8codepoint(v, &c)) {
         if (utf8_validchr(v)) {
             text_buffer_append_char(buf, c);
         }
     }
     text_buffer_terminate_string(buf);
+    return 0;
 }
 
 int text_buffer_append_string0(text_buffer_t *buf, char *str) {

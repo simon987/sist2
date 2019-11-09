@@ -16,7 +16,6 @@ void *read_all(parse_job_t *job, const char *buf, int bytes_read, int *fd) {
             if (*fd == -1) {
                 perror("open");
                 printf("%s\n", job->filepath);
-                free(job);
                 return NULL;
             }
         }
@@ -25,6 +24,7 @@ void *read_all(parse_job_t *job, const char *buf, int bytes_read, int *fd) {
         int ret = read(*fd, full_buf + bytes_read, job->info.st_size - bytes_read);
         if (ret == -1) {
             perror("read");
+            return NULL;
         }
     }
 
@@ -108,7 +108,7 @@ void parse(void *arg) {
         void *pdf_buf = read_all(job, (char *) buf, bytes_read, &fd);
         parse_pdf(pdf_buf, doc.size, &doc);
 
-        if (pdf_buf != buf) {
+        if (pdf_buf != buf && pdf_buf != NULL) {
             free(pdf_buf);
         }
 
@@ -119,7 +119,7 @@ void parse(void *arg) {
         void *font_buf = read_all(job, (char *) buf, bytes_read, &fd);
         parse_font(font_buf, doc.size, &doc);
 
-        if (font_buf != buf) {
+        if (font_buf != buf && font_buf != NULL) {
             free(font_buf);
         }
     }

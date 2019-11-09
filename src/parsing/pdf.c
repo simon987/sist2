@@ -114,6 +114,10 @@ int read_stext_block(fz_stext_block *block, text_buffer_t *tex) {
 
 void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
 
+    if (buf == NULL) {
+        return;
+    }
+
     static int mu_is_initialized = 0;
     if (!mu_is_initialized) {
         pthread_mutex_init(&ScanCtx.mupdf_mu, NULL);
