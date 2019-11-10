@@ -15,7 +15,7 @@ store_t *store_create(char *path) {
     );
 
     if (open_ret != 0) {
-        fprintf(stderr, "Error while opening store: %s", mdb_strerror(open_ret));
+        fprintf(stderr, "Error while opening store: %s (%s)\n", mdb_strerror(open_ret), path);
         exit(1);
     }
 

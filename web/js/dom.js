@@ -75,6 +75,18 @@ function shouldPlayVideo(hit) {
     return videoc !== "hevc" && videoc !== "mpeg2video" && videoc !== "wmv3";
 }
 
+function makePlaceholder(w, h) {
+    const calc = w > h
+        ? (175 / w / h) >= 272
+            ? (175 * w / h)
+            : 175
+        : 175;
+
+    const el = document.createElement("div");
+    el.setAttribute("style", `height: ${calc}px`);
+    return el;
+}
+
 /**
  *
  * @param hit
@@ -119,13 +131,21 @@ function createDocCard(hit) {
             thumbnail = document.createElement("video");
             addVidSrc("f/" + hit["_id"], hit["_source"]["mime"], thumbnail);
 
+            const placeholder = makePlaceholder(hit["_source"]["width"], hit["_source"]["height"]);
+            imgWrapper.appendChild(placeholder);
+
             thumbnail.setAttribute("class", "fit");
-            thumbnail.setAttribute("loop", "");
             thumbnail.setAttribute("controls", "");
             thumbnail.setAttribute("preload", "none");
             thumbnail.setAttribute("poster", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
             thumbnail.addEventListener("dblclick", function () {
                 thumbnail.webkitRequestFullScreen();
+            });
+            const poster = new Image();
+            poster.src = thumbnail.getAttribute('poster');
+            poster.addEventListener("load", function () {
+                placeholder.remove();
+                imgWrapper.appendChild(thumbnail);
             });
         } else if ((hit["_source"].hasOwnProperty("width") && hit["_source"]["width"] > 20 && hit["_source"]["height"] > 20)
             || hit["_source"]["mime"] === "application/pdf"
@@ -136,8 +156,16 @@ function createDocCard(hit) {
             thumbnail = document.createElement("img");
             thumbnail.setAttribute("class", "card-img-top fit");
             thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
+
+            const placeholder = makePlaceholder(hit["_source"]["width"], hit["_source"]["height"]);
+            imgWrapper.appendChild(placeholder);
+
             thumbnail.addEventListener("error", () => {
                 imgWrapper.remove();
+            });
+            thumbnail.addEventListener("load", () => {
+                placeholder.remove();
+                imgWrapper.appendChild(thumbnail);
             });
         }
 
@@ -206,7 +234,6 @@ function createDocCard(hit) {
         }
 
         if (thumbnail !== null) {
-            imgWrapper.appendChild(thumbnail);
             docCard.appendChild(imgWrapper);
         }
 
