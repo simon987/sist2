@@ -54,6 +54,12 @@ index_descriptor_t read_index_descriptor(char *path) {
     struct stat info;
     stat(path, &info);
     int fd = open(path, O_RDONLY);
+
+    if (fd == -1) {
+        fprintf(stderr, "Invalid/corrupt index (Could not find descriptor)");
+        exit(1);
+    }
+
     char *buf = malloc(info.st_size + 1);
     read(fd, buf, info.st_size);
     *(buf + info.st_size) = '\0';
