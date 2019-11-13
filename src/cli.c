@@ -126,7 +126,12 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
         }
 
         args->script = malloc(info.st_size + 1);
-        read(fd, args->script, info.st_size);
+        res = read(fd, args->script, info.st_size);
+        if (res == -1) {
+            fprintf(stderr, "Error reading script file '%s': %s\n", args->script_path, strerror(errno));
+            return 1;
+        }
+
         *(args->script + info.st_size) = '\0';
         close(fd);
     }
