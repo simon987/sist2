@@ -2,8 +2,8 @@
 
 #define DEFAULT_OUTPUT "index.sist2/"
 #define DEFAULT_CONTENT_SIZE 4096
-#define DEFAULT_QUALITY 15
-#define DEFAULT_SIZE 200
+#define DEFAULT_QUALITY 5
+#define DEFAULT_SIZE 500
 #define DEFAULT_REWRITE_URL ""
 
 #define DEFAULT_ES_URL "http://localhost:9200"
@@ -25,7 +25,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
     char *abs_path = abspath(argv[1]);
     if (abs_path == NULL) {
-        fprintf(stderr, "File not found: %s", argv[1]);
+        fprintf(stderr, "File not found: %s\n", argv[1]);
         return 1;
     } else {
         args->path = abs_path;
@@ -34,7 +34,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (args->incremental != NULL) {
         abs_path = abspath(args->incremental);
         if (abs_path == NULL) {
-            fprintf(stderr, "File not found: %s", args->incremental);
+            fprintf(stderr, "File not found: %s\n", args->incremental);
             return 1;
         }
     }
@@ -100,7 +100,7 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
 
     char *index_path = abspath(argv[1]);
     if (index_path == NULL) {
-        fprintf(stderr, "File not found: %s", argv[1]);
+        fprintf(stderr, "File not found: %s\n", argv[1]);
         return 1;
     } else {
         args->index_path = argv[1];
@@ -108,6 +108,27 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
 
     if (args->es_url == NULL) {
         args->es_url = DEFAULT_ES_URL;
+    }
+
+    if (args->script_path != NULL) {
+        struct stat info;
+        int res = stat(args->script_path, &info);
+
+        if (res == -1) {
+            fprintf(stderr, "Error opening script file '%s': %s\n", args->script_path, strerror(errno));
+            return 1;
+        }
+
+        int fd = open(args->script_path, O_RDONLY);
+        if (fd == -1) {
+            fprintf(stderr, "Error opening script file '%s': %s\n", args->script_path, strerror(errno));
+            return 1;
+        }
+
+        args->script = malloc(info.st_size + 1);
+        read(fd, args->script, info.st_size);
+        *(args->script + info.st_size) = '\0';
+        close(fd);
     }
     return 0;
 }
@@ -137,7 +158,7 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     for (int i = 0; i < args->index_count; i++) {
         char *abs_path = abspath(args->indices[i]);
         if (abs_path == NULL) {
-            fprintf(stderr, "File not found: %s", abs_path);
+            fprintf(stderr, "File not found: %s\n", abs_path);
             return 1;
         }
     }

@@ -10,7 +10,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.1.4";
+static const char *const Version = "1.1.5";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -163,10 +163,11 @@ void sist2_index(index_args_t *args) {
             read_index(file_path, desc.uuid, f);
         }
     }
+    closedir(dir);
 
     if (!args->print) {
         elastic_flush();
-        destroy_indexer();
+        destroy_indexer(args->script, desc.uuid);
     }
 }
 
@@ -208,16 +209,20 @@ int main(int argc, const char *argv[]) {
     web_args_t *web_args = web_args_create();
     #endif
 
+    int arg_version = 0;
+
     char * common_es_url = NULL;
 
     struct argparse_option options[] = {
             OPT_HELP(),
 
+            OPT_BOOLEAN('v', "version", &arg_version, "Show version and exit"),
+
             OPT_GROUP("Scan options"),
             OPT_INTEGER('t', "threads", &scan_args->threads, "Number of threads. DEFAULT=1"),
             OPT_FLOAT('q', "quality", &scan_args->quality,
-                      "Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=15"),
-            OPT_INTEGER(0, "size", &scan_args->size, "Thumbnail size, in pixels. DEFAULT=200"),
+                      "Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=5"),
+            OPT_INTEGER(0, "size", &scan_args->size, "Thumbnail size, in pixels. DEFAULT=500"),
             OPT_INTEGER(0, "content-size", &scan_args->content_size,
                         "Number of bytes to be extracted from text documents. DEFAULT=4096"),
             OPT_STRING(0, "incremental", &scan_args->incremental,
@@ -230,6 +235,7 @@ int main(int argc, const char *argv[]) {
             OPT_GROUP("Index options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
+            OPT_STRING(0, "script-file", &index_args->script_path, "Path to user script."),
             OPT_BOOLEAN('f', "force-reset", &index_args->force_reset, "Reset Elasticsearch mappings and settings. "
                                                               "(You must use this option the first time you use the index command)"),
 
@@ -246,6 +252,11 @@ int main(int argc, const char *argv[]) {
     argparse_init(&argparse, options, usage, 0);
     argparse_describe(&argparse, DESCRIPTION, EPILOG);
     argc = argparse_parse(&argparse, argc, argv);
+
+    if (arg_version) {
+        printf(Version);
+        exit(0);
+    }
 
     #ifndef SIST_SCAN_ONLY
     web_args->es_url = common_es_url;

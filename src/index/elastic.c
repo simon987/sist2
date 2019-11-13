@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <cJSON/cJSON.h>
-#include <src/ctx.h>
 
 #include "static_generated.c"
 
@@ -52,6 +51,40 @@ void index_json(cJSON *document, const char uuid_str[UUID_STR_LEN]) {
 
     cJSON_free(json);
     elastic_index_line(bulk_line);
+}
+
+void execute_update_script(const char *script, const char index_id[UUID_STR_LEN]) {
+
+    cJSON *body = cJSON_CreateObject();
+    cJSON *script_obj = cJSON_AddObjectToObject(body, "script");
+    cJSON_AddStringToObject(script_obj, "lang", "painless");
+    cJSON_AddStringToObject(script_obj, "source", script);
+
+    cJSON *query = cJSON_AddObjectToObject(body, "query");
+    cJSON *term_obj = cJSON_AddObjectToObject(query, "term");
+    cJSON_AddStringToObject(term_obj, "index", index_id);
+
+    char * str = cJSON_Print(body);
+
+    char bulk_url[4096];
+    snprintf(bulk_url, 4096, "%s/sist2/_update_by_query?pretty", Indexer->es_url);
+    response_t *r = web_post(bulk_url, str, "Content-Type: application/json");
+    printf("Executed user script <%d>\n", r->status_code);
+    cJSON *resp = cJSON_Parse(r->body);
+
+    cJSON_free(str);
+    cJSON_Delete(body);
+    free_response(r);
+
+    cJSON *error = cJSON_GetObjectItem(resp, "error");
+    if (error != NULL) {
+        char *error_str = cJSON_Print(error);
+
+        fprintf(stderr, "User script error: \n%s\n", error_str);
+        cJSON_free(error_str);
+    }
+
+    cJSON_Delete(resp);
 }
 
 void elastic_flush() {
@@ -115,6 +148,7 @@ void elastic_flush() {
     cJSON_Delete(ret_json);
 
     free_response(r);
+    free(buf);
 }
 
 void elastic_index_line(es_bulk_line_t *line) {
@@ -140,8 +174,7 @@ void elastic_index_line(es_bulk_line_t *line) {
 
 es_indexer_t *create_indexer(const char *url) {
 
-    size_t url_len = strlen(url);
-    char *es_url = malloc(url_len);
+    char *es_url = malloc(strlen(url) + 1);
     strcpy(es_url, url);
 
     es_indexer_t *indexer = malloc(sizeof(es_indexer_t));
@@ -154,12 +187,21 @@ es_indexer_t *create_indexer(const char *url) {
     return indexer;
 }
 
-void destroy_indexer() {
+void destroy_indexer(char * script, char index_id[UUID_STR_LEN]) {
 
     char url[4096];
 
     snprintf(url, sizeof(url), "%s/sist2/_refresh", IndexCtx.es_url);
     response_t *r = web_post(url, "", NULL);
+    printf("Refresh index <%d>\n", r->status_code);
+    free_response(r);
+
+    if (script != NULL) {
+        execute_update_script(script, index_id);
+    }
+
+    snprintf(url, sizeof(url), "%s/sist2/_refresh", IndexCtx.es_url);
+    r = web_post(url, "", NULL);
     printf("Refresh index <%d>\n", r->status_code);
     free_response(r);
 

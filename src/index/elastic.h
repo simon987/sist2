@@ -24,7 +24,7 @@ void index_json(cJSON *document, const char uuid_str[UUID_STR_LEN]);
 
 es_indexer_t *create_indexer(const char* es_url);
 
-void destroy_indexer();
+void destroy_indexer(char *script, char index_id[UUID_STR_LEN]);
 
 void elastic_init(int force_reset);
 

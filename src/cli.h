@@ -22,6 +22,8 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv);
 typedef struct index_args {
     char *es_url;
     const char *index_path;
+    const char *script_path;
+    char *script;
     int print;
     int force_reset;
 } index_args_t;

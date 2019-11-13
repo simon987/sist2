@@ -14,6 +14,7 @@ sist2 (Simple incremental search tool)
 * Extracts text from common file types\*
 * Generates thumbnails\*
 * Incremental scanning
+* Automatic tagging from file attributes via [user scripts](scripting/README.md)
 
 
 \* See [format support](#format-support)
@@ -21,11 +22,13 @@ sist2 (Simple incremental search tool)
 ## Getting Started
 
 1. Have an [Elasticsearch](https://www.elastic.co/downloads/elasticsearch) instance running
-1. Download the [latest sist2 release](https://github.com/simon987/sist2/releases)
+1. 
+    1. Download the [latest sist2 release](https://github.com/simon987/sist2/releases) *
+    1. *(or)* `docker pull simon987/sist2:latest`
+   
 
-*Windows users*: `sist2` runs under [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux)
-
-*Mac users*: See [#1](https://github.com/simon987/sist2/issues/1)
+\* *Windows users*: **sist2** runs under [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux)    
+\* *Mac users*: See [#1](https://github.com/simon987/sist2/issues/1)
 
 
 ## Example usage
@@ -51,6 +54,32 @@ sist2 index --print ./my_idx > raw_documents.ndjson
 ```bash
 sist2 web --bind 0.0.0.0 --port 4321 ./my_idx1 ./my_idx2 ./my_idx3
 ```
+
+### Use sist2 with docker
+
+**scan**
+```bash
+docker run -it \
+    -v /path/to/files/:/files \
+    -v $PWD/out/:/out \
+    simon987/sist2 scan -t 4 /files -o /out/my_idx1
+```
+**index**
+```bash
+docker run -it --network host\
+    -v $PWD/out/:/out \
+    simon987/sist2 index /out/my_idx1
+```
+
+**web**
+```bash
+docker run --rm --network host -d --name sist2\
+    -v $PWD/out/my_idx:/idx \
+    -v $PWD/my/files:/files
+    simon987/sist2 web --bind 0.0.0.0 /idx
+docker stop sist2
+```
+
 
 ## Format support
 

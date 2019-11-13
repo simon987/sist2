@@ -1,6 +1,8 @@
 const SIZE = 40;
 let mimeMap = [];
-let tree;
+let tagMap = [];
+let mimeTree;
+let tagTree;
 
 let searchBar = document.getElementById("searchBar");
 let pathBar = document.getElementById("pathBar");
@@ -49,6 +51,23 @@ $.jsonPost("i").then(resp => {
     });
 });
 
+function handleTreeClick (tree) {
+    return (event, node, handler) => {
+        event.preventTreeDefault();
+
+        if (node.id === "any") {
+            if (!node.itree.state.checked) {
+                tree.deselect();
+            }
+        } else {
+            tree.node("any").deselect();
+        }
+
+        handler();
+        searchDebounced();
+    }
+}
+
 $.jsonPost("es", {
     aggs: {
         mimeTypes: {
@@ -85,33 +104,85 @@ $.jsonPost("es", {
     });
     mimeMap.push({"text": "All", "id": "any"});
 
-    tree = new InspireTree({
+    mimeTree = new InspireTree({
         selection: {
             mode: 'checkbox'
         },
         data: mimeMap
     });
-    new InspireTreeDOM(tree, {
-        target: '.tree'
+    new InspireTreeDOM(mimeTree, {
+        target: '#mimeTree'
     });
-    tree.on("node.click", function (event, node, handler) {
-        event.preventTreeDefault();
+    mimeTree.on("node.click", handleTreeClick(mimeTree));
+    mimeTree.select();
+    mimeTree.node("any").deselect();
+});
 
-        if (node.id === "any") {
-            if (!node.itree.state.checked) {
-                tree.deselect();
+function leafTag(tag) {
+    const tokens = tag.split(".");
+    return tokens[tokens.length-1]
+}
+
+// Tags tree
+$.jsonPost("es", {
+    aggs: {
+        tags: {
+            terms: {
+                field: "tag",
+                size: 10000
             }
-        } else {
-            tree.node("any").deselect();
         }
-
-        handler();
-        searchDebounced();
+    },
+    size: 0,
+}).then(resp => {
+    resp["aggregations"]["tags"]["buckets"]
+        .sort((a, b) => a["key"].localeCompare(b["key"]))
+        .forEach(bucket => {
+        addTag(tagMap, bucket["key"], bucket["key"], bucket["doc_count"])
     });
-    tree.select();
-    tree.node("any").deselect();
+
+    tagMap.push({"text": "All", "id": "any"});
+    tagTree = new InspireTree({
+        selection: {
+            mode: 'checkbox'
+        },
+        data: tagMap
+    });
+    new InspireTreeDOM(tagTree, {
+        target: '#tagTree'
+    });
+    tagTree.on("node.click", handleTreeClick(tagTree));
+    tagTree.node("any").select();
     searchBusy = false;
 });
+
+function addTag(map, tag, id, count) {
+    let tags = tag.split("#")[0].split(".");
+
+    let child = {
+        id: id,
+        text: tags.length !== 1 ? tags[0] : `${tags[0]} (${count})`,
+        children: []
+    };
+
+    let found = false;
+    map.forEach(node => {
+        if (node.text === child.text) {
+            found = true;
+            if (tags.length !== 1) {
+                addTag(node.children, tags.slice(1).join("."), id, count);
+            }
+        }
+    });
+    if (!found) {
+        if (tags.length !== 1) {
+            addTag(child.children, tags.slice(1).join("."), id, count);
+            map.push(child);
+        } else {
+            map.push(child);
+        }
+    }
+}
 
 new autoComplete({
     selector: '#pathBar',
@@ -181,8 +252,8 @@ function doScroll() {
         })
 }
 
-function getSelectedMimeTypes() {
-    let mimeTypes = [];
+function getSelectedNodes(tree) {
+    let selectedNodes = [];
 
     let selected = tree.selected();
 
@@ -194,11 +265,11 @@ function getSelectedMimeTypes() {
 
         //Only get children
         if (selected[i].text.indexOf("(") !== -1) {
-            mimeTypes.push(selected[i].id);
+            selectedNodes.push(selected[i].id);
         }
     }
 
-    return mimeTypes
+    return selectedNodes
 }
 
 function search() {
@@ -239,9 +310,14 @@ function search() {
     if (path !== "") {
         filters.push([{term: {path: path}}])
     }
-    let mimeTypes = getSelectedMimeTypes();
+    let mimeTypes = getSelectedNodes(mimeTree);
     if (!mimeTypes.includes("any")) {
         filters.push([{terms: {"mime": mimeTypes}}]);
+    }
+
+    let tags = getSelectedNodes(tagTree);
+    if (!tags.includes("any")) {
+        filters.push([{terms: {"tag": tags}}]);
     }
 
     $.jsonPost("es?scroll=1", {

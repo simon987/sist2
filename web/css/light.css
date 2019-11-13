@@ -1,3 +1,7 @@
+*:focus {
+    outline: 0;
+}
+
 body {overflow-y:scroll;}
 
 .progress {
@@ -45,6 +49,11 @@ body {overflow-y:scroll;}
 .badge-resolution {
     color: #212529;
     background-color: #FFC107;
+}
+
+.badge-user {
+    color: #212529;
+    background-color: #e0e0e0;
 }
 
 .badge-text {
@@ -168,4 +177,14 @@ mark {
     padding: .1rem .3rem;
     font-size: .875rem;
     border-radius: .2rem;
+}
+
+.nav {
+    margin-top: 0.5rem;
+}
+
+@media (min-width: 800px) {
+    .nav {
+        min-width: 800px;
+    }
 }

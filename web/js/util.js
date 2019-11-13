@@ -43,9 +43,9 @@ function humanTime(sec_num) {
 
 function debounce(func, wait) {
     let timeout;
-    return function() {
+    return function () {
         let context = this, args = arguments;
-        let later = function() {
+        let later = function () {
             timeout = null;
             func.apply(context, args);
         };
@@ -53,4 +53,14 @@ function debounce(func, wait) {
         timeout = setTimeout(later, wait);
         func.apply(context, args);
     };
+}
+
+function lum(c) {
+    c = c.substring(1);
+    let rgb = parseInt(c, 16);
+    let r = (rgb >> 16) & 0xff;
+    let g = (rgb >> 8) & 0xff;
+    let b = (rgb >> 0) & 0xff;
+
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }

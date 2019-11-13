@@ -76,8 +76,8 @@ function shouldPlayVideo(hit) {
 }
 
 function makePlaceholder(w, h) {
-    const calc = w > h
-        ? (175 / w / h) >= 272
+    const calc = w > h
+        ? (175 / w / h) >= 272
             ? (175 * w / h)
             : 175
         : 175;
@@ -195,7 +195,7 @@ function createDocCard(hit) {
                 if (hit["_source"].hasOwnProperty("duration")) {
                     thumbnailOverlay = document.createElement("div");
                     thumbnailOverlay.setAttribute("class", "card-img-overlay");
-                    let durationBadge = document.createElement("span");
+                    const durationBadge = document.createElement("span");
                     durationBadge.setAttribute("class", "badge badge-resolution");
                     durationBadge.appendChild(document.createTextNode(humanTime(hit["_source"]["duration"])));
                     thumbnailOverlay.appendChild(durationBadge);
@@ -207,7 +207,7 @@ function createDocCard(hit) {
             case "video":
             case "image":
                 if (hit["_source"].hasOwnProperty("videoc")) {
-                    let formatTag = document.createElement("span");
+                    const formatTag = document.createElement("span");
                     formatTag.setAttribute("class", "badge badge-pill badge-video");
                     formatTag.appendChild(document.createTextNode(hit["_source"]["videoc"].replace(" ", "")));
                     tags.push(formatTag);
@@ -227,7 +227,7 @@ function createDocCard(hit) {
         //Content
         let contentHl = getContentHighlight(hit);
         if (contentHl !== undefined) {
-            let contentDiv = document.createElement("div");
+            const contentDiv = document.createElement("div");
             contentDiv.setAttribute("class", "content-div");
             contentDiv.insertAdjacentHTML('afterbegin', contentHl);
             docCard.appendChild(contentDiv);
@@ -252,6 +252,26 @@ function createDocCard(hit) {
 
         if (thumbnailOverlay !== null) {
             imgWrapper.appendChild(thumbnailOverlay);
+        }
+
+        // User tags
+        if (hit["_source"].hasOwnProperty("tag")) {
+            hit["_source"]["tag"].forEach(tag => {
+                const userTag = document.createElement("span");
+                userTag.setAttribute("class", "badge badge-pill badge-user");
+
+                const tokens = tag.split("#");
+
+                if (tokens.length > 1) {
+                    const bg = "#" + tokens[1];
+                    const fg = lum(tokens[1]) > 40 ? "#000" : "#fff";
+                    userTag.setAttribute("style", `background-color: ${bg}; color: ${fg}`);
+                }
+
+                const name = tokens[0].split(".")[tokens[0].split(".").length - 1];
+                userTag.appendChild(document.createTextNode(name));
+                tags.push(userTag);
+            })
         }
 
         for (let i = 0; i < tags.length; i++) {

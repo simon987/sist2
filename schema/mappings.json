@@ -80,6 +80,9 @@
           "analyzer": "my_nGram"
         }
       }
+    },
+    "tag": {
+      "type": "keyword"
     }
   }
 }
