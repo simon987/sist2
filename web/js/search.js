@@ -12,6 +12,13 @@ let coolingDown = false;
 let searchBusy = true;
 let selectedIndices = [];
 
+let mode;
+if (localStorage.getItem("mode") === null) {
+    mode = "grid";
+} else {
+    mode = localStorage.getItem("mode")
+}
+
 jQuery["jsonPost"] = function (url, data) {
     return jQuery.ajax({
         url: url,
@@ -211,7 +218,12 @@ new autoComplete({
 
 function insertHits(resultContainer, hits) {
     for (let i = 0; i < hits.length; i++) {
-        resultContainer.appendChild(createDocCard(hits[i]));
+
+        if (mode === "grid") {
+            resultContainer.appendChild(createDocCard(hits[i]));
+        } else {
+            resultContainer.appendChild(createDocLine(hits[i]));
+        }
         docCount++;
     }
 }
