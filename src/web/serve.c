@@ -245,6 +245,8 @@ int search(void *p, onion_request *req, onion_response *res) {
 
     if (r->status_code == 200) {
         onion_response_write(res, r->body, r->size);
+    } else {
+        onion_response_set_code(res, HTTP_INTERNAL_ERROR);
     }
 
     free_response(r);
@@ -391,9 +393,11 @@ void serve(const char *hostname, const char *port) {
     onion_set_hostname(o, hostname);
     onion_set_port(o, port);
 
-    onion_url *urls = onion_root_url(o);
+    onion_url *urls = onion_url_new();
 
     // Static paths
+    onion_set_root_handler(o, auth_basic(WebCtx.b64credentials, onion_url_to_handler(urls)));
+
     onion_url_add(urls, "", search_index);
     onion_url_add(urls, "css", style);
     onion_url_add(urls, "js", javascript);
@@ -409,6 +413,7 @@ void serve(const char *hostname, const char *port) {
     );
     onion_url_add(urls, "^f/([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})$", file);
     onion_url_add(urls, "i", index_info);
+
 
     printf("Starting web server @ http://%s:%s\n", hostname, port);
 

@@ -157,6 +157,12 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
         args->port = DEFAULT_PORT;
     }
 
+    if (args->credentials != NULL) {
+        args->b64credentials = onion_base64_encode(args->credentials, (int)strlen(args->credentials));
+        //Remove trailing newline
+        *(args->b64credentials + strlen(args->b64credentials) - 1) = '\0';
+    }
+
     args->index_count = argc - 1;
     args->indices = argv + 1;
 

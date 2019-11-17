@@ -32,6 +32,7 @@
 #include <onion/handler.h>
 #include <onion/block.h>
 #include <onion/shortcuts.h>
+#include <onion/codecs.h>
 #include <curl/curl.h>
 #endif
 
@@ -56,6 +57,7 @@
 #include "src/index/elastic.h"
 #include "index/web.h"
 #include "web/serve.h"
+#include "web/auth_basic.h"
 #endif
 
 ;

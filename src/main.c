@@ -10,7 +10,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.1.5";
+static const char *const Version = "1.1.6";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -175,6 +175,7 @@ void sist2_web(web_args_t *args) {
 
     WebCtx.es_url = args->es_url;
     WebCtx.index_count = args->index_count;
+    WebCtx.b64credentials = args->b64credentials;
 
     for (int i = 0; i < args->index_count; i++) {
         char *abs_path = abspath(args->indices[i]);
@@ -243,6 +244,7 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
             OPT_STRING(0, "bind", &web_args->bind, "Listen on this address. DEFAULT=localhost"),
             OPT_STRING(0, "port", &web_args->port, "Listen on this port. DEFAULT=4090"),
+            OPT_STRING(0, "auth", &web_args->credentials, "Basic auth in user:password format"),
             #endif
 
             OPT_END(),

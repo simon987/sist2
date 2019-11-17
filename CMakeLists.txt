@@ -23,6 +23,7 @@ if (WITH_SIST2)
             src/parsing/text.h src/parsing/text.c
             src/index/web.c src/index/web.h
             src/web/serve.c src/web/serve.h
+            src/web/auth_basic.h src/web/auth_basic.c
             src/index/elastic.c src/index/elastic.h
             src/util.c src/util.h
             src/ctx.h src/types.h src/parsing/font.c src/parsing/font.h

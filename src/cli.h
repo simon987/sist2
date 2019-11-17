@@ -32,6 +32,8 @@ typedef struct web_args {
     char *es_url;
     char *bind;
     char *port;
+    char *credentials;
+    char *b64credentials;
     int index_count;
     const char **indices;
 } web_args_t;
