@@ -23,6 +23,20 @@ body {
     border: none;
 }
 
+.list-group-item {
+    background: #212121;
+    color: #e0e0e0;
+
+    border-top: 1px solid #424242;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+}
+
+.list-group-item:first-child {
+    border-top: none;
+}
+
 .navbar-brand {
     font-size: 1.75rem;
     padding: 0;
@@ -93,6 +107,7 @@ body {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    color: #00BCD4;
 }
 
 .badge {
@@ -111,6 +126,15 @@ body {
     max-height: 175px;
     margin: 0 auto 0;
     padding: 3px 3px 0 3px;
+    width: auto;
+    height: auto;
+}
+
+.fit-sm {
+    display: block;
+    max-width: 64px;
+    max-height: 64px;
+    margin: 0 auto 0;
     width: auto;
     height: auto;
 }
@@ -239,6 +263,7 @@ option {
     padding: 0.5rem;
     background: #212121;
     color: #eee;
+    margin-top: 1em;
 }
 
 .btn-xs {
@@ -279,8 +304,45 @@ option {
     margin-top: 0.5rem;
 }
 
-@media (min-width: 800px) {
-    .nav {
-        min-width: 800px;
+@media (max-width: 800px) {
+    #treeTabs {
+        flex-basis: inherit;
+        flex-grow: inherit;
     }
+}
+
+.list-group {
+    margin-top: 1em;
+}
+
+.list-group-item {
+    padding: .25rem 0.5rem;
+}
+
+.wrapper-sm {
+    min-width: 64px;
+}
+
+.media-expanded {
+    display: inherit;
+}
+
+.media-expanded .fit {
+    max-height: 250px;
+}
+
+@media (max-width: 600px) {
+    .media-expanded .fit {
+        max-height: none;
+    }
+    .tagline {
+        display: none;
+    }
+}
+
+.version {
+    color: #00BCD4;
+    margin-left: -18px;
+    margin-top: -14px;
+    font-size: 11px;
 }

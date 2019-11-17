@@ -75,16 +75,82 @@ function shouldPlayVideo(hit) {
     return videoc !== "hevc" && videoc !== "mpeg2video" && videoc !== "wmv3";
 }
 
-function makePlaceholder(w, h) {
-    const calc = w > h
-        ? (175 / w / h) >= 272
-            ? (175 * w / h)
-            : 175
-        : 175;
+function makePlaceholder(w, h, small) {
+    let calc;
+    if (small) {
+        calc = w > h
+            ? (64 / w / h) >= 100
+                ? (64 * w / h)
+                : 64
+            : 64;
+    } else {
+        calc = w > h
+            ? (175 / w / h) >= 272
+                ? (175 * w / h)
+                : 175
+            : 175;
+    }
 
     const el = document.createElement("div");
     el.setAttribute("style", `height: ${calc}px`);
     return el;
+}
+
+function makeTitle(hit) {
+    let title = document.createElement("div");
+    title.setAttribute("class", "file-title");
+    let extension = hit["_source"].hasOwnProperty("extension") && hit["_source"]["extension"] !== "" ? "." + hit["_source"]["extension"] : "";
+
+    applyNameToTitle(hit, title, extension);
+
+    title.setAttribute("title", hit["_source"]["path"] + "/" + hit["_source"]["name"] + extension);
+    return title;
+}
+
+function getTags(hit, mimeCategory) {
+
+    let tags = [];
+    switch (mimeCategory) {
+        case "video":
+        case "image":
+            if (hit["_source"].hasOwnProperty("videoc")) {
+                const formatTag = document.createElement("span");
+                formatTag.setAttribute("class", "badge badge-pill badge-video");
+                formatTag.appendChild(document.createTextNode(hit["_source"]["videoc"].replace(" ", "")));
+                tags.push(formatTag);
+            }
+            break;
+        case "audio": {
+            if (hit["_source"].hasOwnProperty("audioc")) {
+                let formatTag = document.createElement("span");
+                formatTag.setAttribute("class", "badge badge-pill badge-audio");
+                formatTag.appendChild(document.createTextNode(hit["_source"]["audioc"]));
+                tags.push(formatTag);
+            }
+        }
+            break;
+    }
+    // User tags
+    if (hit["_source"].hasOwnProperty("tag")) {
+        hit["_source"]["tag"].forEach(tag => {
+            const userTag = document.createElement("span");
+            userTag.setAttribute("class", "badge badge-pill badge-user");
+
+            const tokens = tag.split("#");
+
+            if (tokens.length > 1) {
+                const bg = "#" + tokens[1];
+                const fg = lum(tokens[1]) > 40 ? "#000" : "#fff";
+                userTag.setAttribute("style", `background-color: ${bg}; color: ${fg}`);
+            }
+
+            const name = tokens[0].split(".")[tokens[0].split(".").length - 1];
+            userTag.appendChild(document.createTextNode(name));
+            tags.push(userTag);
+        })
+    }
+
+    return tags
 }
 
 /**
@@ -104,22 +170,13 @@ function createDocCard(hit) {
     link.setAttribute("target", "_blank");
 
     //Title
-    let title = document.createElement("p");
-    title.setAttribute("class", "file-title");
-    let extension = hit["_source"].hasOwnProperty("extension") && hit["_source"]["extension"] !== "" ? "." + hit["_source"]["extension"] : "";
-
-    applyNameToTitle(hit, title, extension);
-
-    title.setAttribute("title", hit["_source"]["path"] + "/" + hit["_source"]["name"] + extension);
-    docCard.appendChild(title);
+    let title = makeTitle(hit);
 
     let tagContainer = document.createElement("div");
     tagContainer.setAttribute("class", "card-text");
 
     if (hit["_source"].hasOwnProperty("mime") && hit["_source"]["mime"] !== null) {
 
-        let tags = [];
-        let thumbnail = null;
         let thumbnailOverlay = null;
         let imgWrapper = document.createElement("div");
         imgWrapper.setAttribute("style", "position: relative");
@@ -127,47 +184,7 @@ function createDocCard(hit) {
         let mimeCategory = hit["_source"]["mime"].split("/")[0];
 
         //Thumbnail
-        if (mimeCategory === "video" && shouldPlayVideo(hit)) {
-            thumbnail = document.createElement("video");
-            addVidSrc("f/" + hit["_id"], hit["_source"]["mime"], thumbnail);
-
-            const placeholder = makePlaceholder(hit["_source"]["width"], hit["_source"]["height"]);
-            imgWrapper.appendChild(placeholder);
-
-            thumbnail.setAttribute("class", "fit");
-            thumbnail.setAttribute("controls", "");
-            thumbnail.setAttribute("preload", "none");
-            thumbnail.setAttribute("poster", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
-            thumbnail.addEventListener("dblclick", function () {
-                thumbnail.webkitRequestFullScreen();
-            });
-            const poster = new Image();
-            poster.src = thumbnail.getAttribute('poster');
-            poster.addEventListener("load", function () {
-                placeholder.remove();
-                imgWrapper.appendChild(thumbnail);
-            });
-        } else if ((hit["_source"].hasOwnProperty("width") && hit["_source"]["width"] > 20 && hit["_source"]["height"] > 20)
-            || hit["_source"]["mime"] === "application/pdf"
-            || hit["_source"]["mime"] === "application/epub+zip"
-            || hit["_source"]["mime"] === "application/x-cbz"
-            || hit["_source"].hasOwnProperty("font_name")
-        ) {
-            thumbnail = document.createElement("img");
-            thumbnail.setAttribute("class", "card-img-top fit");
-            thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
-
-            const placeholder = makePlaceholder(hit["_source"]["width"], hit["_source"]["height"]);
-            imgWrapper.appendChild(placeholder);
-
-            thumbnail.addEventListener("error", () => {
-                imgWrapper.remove();
-            });
-            thumbnail.addEventListener("load", () => {
-                placeholder.remove();
-                imgWrapper.appendChild(thumbnail);
-            });
-        }
+        let thumbnail = makeThumbnail(mimeCategory, hit, imgWrapper, false);
 
         //Thumbnail overlay
         switch (mimeCategory) {
@@ -202,26 +219,10 @@ function createDocCard(hit) {
                 }
         }
 
-        //Tags
-        switch (mimeCategory) {
-            case "video":
-            case "image":
-                if (hit["_source"].hasOwnProperty("videoc")) {
-                    const formatTag = document.createElement("span");
-                    formatTag.setAttribute("class", "badge badge-pill badge-video");
-                    formatTag.appendChild(document.createTextNode(hit["_source"]["videoc"].replace(" ", "")));
-                    tags.push(formatTag);
-                }
-                break;
-            case "audio": {
-                if (hit["_source"].hasOwnProperty("audioc")) {
-                    let formatTag = document.createElement("span");
-                    formatTag.setAttribute("class", "badge badge-pill badge-audio");
-                    formatTag.appendChild(document.createTextNode(hit["_source"]["audioc"]));
-                    tags.push(formatTag);
-                }
-            }
-                break;
+        // Tags
+        let tags = getTags(hit, mimeCategory);
+        for (let i = 0; i < tags.length; i++) {
+            tagContainer.appendChild(tags[i]);
         }
 
         //Content
@@ -253,30 +254,6 @@ function createDocCard(hit) {
         if (thumbnailOverlay !== null) {
             imgWrapper.appendChild(thumbnailOverlay);
         }
-
-        // User tags
-        if (hit["_source"].hasOwnProperty("tag")) {
-            hit["_source"]["tag"].forEach(tag => {
-                const userTag = document.createElement("span");
-                userTag.setAttribute("class", "badge badge-pill badge-user");
-
-                const tokens = tag.split("#");
-
-                if (tokens.length > 1) {
-                    const bg = "#" + tokens[1];
-                    const fg = lum(tokens[1]) > 40 ? "#000" : "#fff";
-                    userTag.setAttribute("style", `background-color: ${bg}; color: ${fg}`);
-                }
-
-                const name = tokens[0].split(".")[tokens[0].split(".").length - 1];
-                userTag.appendChild(document.createTextNode(name));
-                tags.push(userTag);
-            })
-        }
-
-        for (let i = 0; i < tags.length; i++) {
-            tagContainer.appendChild(tags[i]);
-        }
     }
 
     //Size tag
@@ -292,6 +269,138 @@ function createDocCard(hit) {
     docCardBody.appendChild(tagContainer);
 
     return docCard;
+}
+
+function makeThumbnail(mimeCategory, hit, imgWrapper, small) {
+    let thumbnail;
+
+    if (mimeCategory === "video" && shouldPlayVideo(hit)) {
+        thumbnail = document.createElement("video");
+        addVidSrc("f/" + hit["_id"], hit["_source"]["mime"], thumbnail);
+
+        const placeholder = makePlaceholder(hit["_source"]["width"], hit["_source"]["height"], small);
+        imgWrapper.appendChild(placeholder);
+
+        if (small) {
+            thumbnail.setAttribute("class", "fit-sm");
+        } else {
+            thumbnail.setAttribute("class", "fit");
+        }
+        if (small) {
+            thumbnail.style.cursor = "pointer";
+            thumbnail.title = "Enlarge";
+            thumbnail.addEventListener("click", function () {
+                imgWrapper.classList.remove("wrapper-sm", "mr-1");
+                imgWrapper.parentElement.classList.add("media-expanded");
+                thumbnail.setAttribute("class", "fit");
+                thumbnail.setAttribute("controls", "");
+            });
+        } else {
+            thumbnail.setAttribute("controls", "");
+        }
+        thumbnail.setAttribute("preload", "none");
+        thumbnail.setAttribute("poster", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
+        thumbnail.addEventListener("dblclick", function () {
+            thumbnail.setAttribute("controls", "");
+            if (thumbnail.webkitRequestFullScreen) {
+                thumbnail.webkitRequestFullScreen();
+            } else {
+                thumbnail.requestFullscreen();
+            }
+        });
+        const poster = new Image();
+        poster.src = thumbnail.getAttribute('poster');
+        poster.addEventListener("load", function () {
+            placeholder.remove();
+            imgWrapper.appendChild(thumbnail);
+        });
+    } else if ((hit["_source"].hasOwnProperty("width") && hit["_source"]["width"] > 32 && hit["_source"]["height"] > 32)
+        || hit["_source"]["mime"] === "application/pdf"
+        || hit["_source"]["mime"] === "application/epub+zip"
+        || hit["_source"]["mime"] === "application/x-cbz"
+        || hit["_source"].hasOwnProperty("font_name")
+    ) {
+        thumbnail = document.createElement("img");
+        if (small) {
+            thumbnail.setAttribute("class", "fit-sm");
+        } else {
+            thumbnail.setAttribute("class", "card-img-top fit");
+        }
+        thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
+
+        const placeholder = makePlaceholder(hit["_source"]["width"], hit["_source"]["height"], small);
+        imgWrapper.appendChild(placeholder);
+
+        thumbnail.addEventListener("error", () => {
+            imgWrapper.remove();
+        });
+        thumbnail.addEventListener("load", () => {
+            placeholder.remove();
+            imgWrapper.appendChild(thumbnail);
+        });
+    }
+
+    return thumbnail;
+}
+
+function createDocLine(hit) {
+
+    let mimeCategory = hit["_source"]["mime"].split("/")[0];
+    let tags = getTags(hit, mimeCategory);
+
+    let imgWrapper = document.createElement("div");
+    imgWrapper.setAttribute("class", "align-self-start mr-1 wrapper-sm");
+
+    let media = document.createElement("div");
+    media.setAttribute("class", "media");
+
+    const line = document.createElement("div");
+    line.setAttribute("class", "list-group-item flex-column align-items-start");
+
+    // Content
+    let contentHl = getContentHighlight(hit);
+    if (contentHl !== undefined) {
+        const contentDiv = document.createElement("div");
+        contentDiv.setAttribute("class", "content-div");
+        contentDiv.insertAdjacentHTML('afterbegin', contentHl);
+        line.appendChild(contentDiv);
+    }
+
+    const title = makeTitle(hit);
+
+    let link = document.createElement("a");
+    link.setAttribute("href", "f/" + hit["_id"]);
+    link.setAttribute("target", "_blank");
+    link.appendChild(title);
+
+    const titleDiv = document.createElement("div");
+    titleDiv.setAttribute("class", "file-title");
+    titleDiv.appendChild(link);
+
+    line.appendChild(media);
+
+    let thumbnail = makeThumbnail(mimeCategory, hit, imgWrapper, true);
+    if (thumbnail) {
+        media.appendChild(imgWrapper);
+    }
+    media.appendChild(titleDiv);
+
+    let tagContainer = document.createElement("div");
+    tagContainer.setAttribute("class", "");
+
+    for (let i = 0; i < tags.length; i++) {
+        tagContainer.appendChild(tags[i]);
+    }
+
+    //Size tag
+    let sizeTag = document.createElement("small");
+    sizeTag.appendChild(document.createTextNode(humanFileSize(hit["_source"]["size"])));
+    sizeTag.setAttribute("class", "text-muted");
+    tagContainer.appendChild(sizeTag);
+
+    titleDiv.appendChild(tagContainer);
+
+    return line;
 }
 
 function makePreloader() {
@@ -318,18 +427,53 @@ function makePageIndicator(searchResult) {
 function makeStatsCard(searchResult) {
 
     let statsCard = document.createElement("div");
-    statsCard.setAttribute("class", "card");
+    statsCard.setAttribute("class", "card stat");
     let statsCardBody = document.createElement("div");
     statsCardBody.setAttribute("class", "card-body");
 
-    let stat = document.createElement("p");
+    const resultMode = document.createElement("div");
+    resultMode.setAttribute("class", "btn-group btn-group-toggle");
+    resultMode.setAttribute("data-toggle", "buttons");
+    resultMode.style.cssFloat = "right";
+
+    const listMode = document.createElement("label");
+    listMode.setAttribute("class", "btn btn-primary");
+    listMode.appendChild(document.createTextNode("List"));
+
+    const gridMode = document.createElement("label");
+    gridMode.setAttribute("class", "btn btn-primary");
+    gridMode.appendChild(document.createTextNode("Grid"));
+
+    resultMode.appendChild(gridMode);
+    resultMode.appendChild(listMode);
+
+    if (mode === "grid") {
+        gridMode.classList.add("active")
+    } else {
+        listMode.classList.add("active")
+    }
+
+    gridMode.addEventListener("click", () => {
+        mode = "grid";
+        localStorage.setItem("mode", mode);
+        searchDebounced();
+    });
+    listMode.addEventListener("click", () => {
+        mode = "list";
+        localStorage.setItem("mode", mode);
+        searchDebounced();
+    });
+
+    let stat = document.createElement("span");
     const totalHits = searchResult["hits"]["total"].hasOwnProperty("value")
         ? searchResult["hits"]["total"]["value"] : searchResult["hits"]["total"];
     stat.appendChild(document.createTextNode(totalHits + " results in " + searchResult["took"] + "ms"));
+
     statsCardBody.appendChild(stat);
+    statsCardBody.appendChild(resultMode);
 
     if (totalHits !== 0) {
-        let sizeStat = document.createElement("span");
+        let sizeStat = document.createElement("div");
         sizeStat.appendChild(document.createTextNode(humanFileSize(searchResult["aggregations"]["total_size"]["value"])));
         statsCardBody.appendChild(sizeStat);
     }
@@ -341,7 +485,11 @@ function makeStatsCard(searchResult) {
 
 function makeResultContainer() {
     let resultContainer = document.createElement("div");
-    resultContainer.setAttribute("class", "card-columns");
 
+    if (mode === "grid") {
+        resultContainer.setAttribute("class", "card-columns");
+    } else {
+        resultContainer.setAttribute("class", "list-group");
+    }
     return resultContainer;
 }
