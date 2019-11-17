@@ -131,6 +131,12 @@ void elastic_flush() {
     char bulk_url[4096];
     snprintf(bulk_url, 4096, "%s/sist2/_bulk", Indexer->es_url);
     response_t *r = web_post(bulk_url, buf, "Content-Type: application/x-ndjson");
+
+    if (r->status_code == 0) {
+        fprintf(stderr, "Could not connect to %s, make sure that elasticsearch is running!\n", IndexCtx.es_url);
+        exit(1);
+    }
+
     printf("Indexed %3d documents (%zukB) <%d>\n", count, buf_cur / 1024, r->status_code);
 
     cJSON *ret_json = cJSON_Parse(r->body);
