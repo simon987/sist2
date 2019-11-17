@@ -182,6 +182,8 @@ mark {
     border: 1px solid #616161;
     border-radius: 4px;
     margin: 3px;
+    white-space: normal;
+    color: rgb(224, 224, 224);
 }
 
 .irs-single, .irs-from, .irs-to {
@@ -335,6 +337,7 @@ option {
     .media-expanded .fit {
         max-height: none;
     }
+
     .tagline {
         display: none;
     }

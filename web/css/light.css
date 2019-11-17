@@ -151,6 +151,8 @@ mark {
     border: 1px solid #ccc;
     border-radius: 4px;
     margin: 3px;
+    white-space: normal;
+    color: #000;
 }
 
 .irs-single, .irs-from, .irs-to {

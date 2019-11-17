@@ -357,14 +357,6 @@ function createDocLine(hit) {
     const line = document.createElement("div");
     line.setAttribute("class", "list-group-item flex-column align-items-start");
 
-    // Content
-    let contentHl = getContentHighlight(hit);
-    if (contentHl !== undefined) {
-        const contentDiv = document.createElement("div");
-        contentDiv.setAttribute("class", "content-div");
-        contentDiv.insertAdjacentHTML('afterbegin', contentHl);
-        line.appendChild(contentDiv);
-    }
 
     const title = makeTitle(hit);
 
@@ -384,6 +376,15 @@ function createDocLine(hit) {
         media.appendChild(imgWrapper);
     }
     media.appendChild(titleDiv);
+
+    // Content
+    let contentHl = getContentHighlight(hit);
+    if (contentHl !== undefined) {
+        const contentDiv = document.createElement("div");
+        contentDiv.setAttribute("class", "content-div");
+        contentDiv.insertAdjacentHTML('afterbegin', contentHl);
+        titleDiv.appendChild(contentDiv);
+    }
 
     let tagContainer = document.createElement("div");
     tagContainer.setAttribute("class", "");
