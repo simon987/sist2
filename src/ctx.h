@@ -15,6 +15,7 @@ struct {
     int threads;
     int content_size;
     float tn_qscale;
+    int depth;
 
     size_t stat_tn_size;
     size_t stat_index_size;

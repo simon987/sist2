@@ -114,12 +114,18 @@ static void *tpool_worker(void *arg) {
         pthread_mutex_unlock(&(pool->work_mutex));
 
         if (work != NULL) {
+            if (pool->stop) {
+                break;
+            }
+
             work->func(work->arg);
             free(work);
         }
 
         pthread_mutex_lock(&(pool->work_mutex));
-        pool->done_cnt++;
+        if (work != NULL) {
+            pool->done_cnt++;
+        }
 
         progress_bar_print((double) pool->done_cnt / pool->work_cnt, ScanCtx.stat_tn_size, ScanCtx.stat_index_size);
 
@@ -142,11 +148,14 @@ void tpool_wait(tpool_t *pool) {
         if (pool->done_cnt < pool->work_cnt) {
             pthread_cond_wait(&(pool->working_cond), &(pool->work_mutex));
         } else {
-            pool->stop = 1;
-            break;
+            usleep(500000);
+            if (pool->done_cnt == pool->work_cnt) {
+                pool->stop = 1;
+                break;
+            }
         }
-        progress_bar_print(100.0, ScanCtx.stat_tn_size, ScanCtx.stat_index_size);
     }
+    progress_bar_print(1.0, ScanCtx.stat_tn_size, ScanCtx.stat_index_size);
     pthread_mutex_unlock(&(pool->work_mutex));
 }
 

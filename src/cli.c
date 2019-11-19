@@ -14,6 +14,9 @@
 
 scan_args_t *scan_args_create() {
     scan_args_t *args = calloc(sizeof(scan_args_t), 1);
+
+    args->depth = -1;
+
     return args;
 }
 
@@ -78,6 +81,12 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (ret != 0) {
         fprintf(stderr, "Invalid output: '%s' (%s).\n", args->output, strerror(errno));
         return 1;
+    }
+
+    if (args->depth < 0) {
+        args->depth = G_MAXINT32;
+    } else {
+        args->depth += 1;
     }
 
     if (args->name == NULL) {

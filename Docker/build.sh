@@ -1,3 +1,4 @@
+rm ./sist2
 cp ../sist2 .
 
 version=$(./sist2 --version)

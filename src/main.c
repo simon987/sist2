@@ -10,7 +10,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.1.7";
+static const char *const Version = "1.1.8";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -53,6 +53,7 @@ void sist2_scan(scan_args_t *args) {
     ScanCtx.tn_size = args->size;
     ScanCtx.content_size = args->content_size;
     ScanCtx.threads = args->threads;
+    ScanCtx.depth = args->depth;
     strncpy(ScanCtx.index.path, args->output, sizeof(ScanCtx.index.path));
     strncpy(ScanCtx.index.desc.name, args->name, sizeof(ScanCtx.index.desc.name));
     strncpy(ScanCtx.index.desc.root, args->path, sizeof(ScanCtx.index.desc.root));
@@ -231,6 +232,8 @@ int main(int argc, const char *argv[]) {
             OPT_STRING('o', "output", &scan_args->output, "Output directory. DEFAULT=index.sist2/"),
             OPT_STRING(0, "rewrite-url", &scan_args->rewrite_url, "Serve files from this url instead of from disk."),
             OPT_STRING(0, "name", &scan_args->name, "Index display name. DEFAULT: (name of the directory)"),
+            OPT_INTEGER(0, "depth", &scan_args->depth, "Scan up to DEPTH subdirectories deep. "
+                                                     "Use 0 to only scan files in PATH. DEFAULT: -1"),
 
             #ifndef SIST_SCAN_ONLY
             OPT_GROUP("Index options"),

@@ -12,6 +12,7 @@ typedef struct scan_args {
     char *output;
     char *rewrite_url;
     char *name;
+    int depth;
     char *path;
 } scan_args_t;
 
