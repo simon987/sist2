@@ -1183,6 +1183,8 @@ g_hash_table_insert(ext_table, "cs", (gpointer)text_plain);
 g_hash_table_insert(ext_table, "hpp", (gpointer)text_plain);
 g_hash_table_insert(ext_table, "srt", (gpointer)text_plain);
 g_hash_table_insert(ext_table, "nfo", (gpointer)text_plain);
+g_hash_table_insert(ext_table, "sfv", (gpointer)text_plain);
+g_hash_table_insert(ext_table, "m3u", (gpointer)text_plain);
 g_hash_table_insert(ext_table, "rt", (gpointer)text_richtext);
 g_hash_table_insert(ext_table, "rtf", (gpointer)text_richtext);
 g_hash_table_insert(ext_table, "rtx", (gpointer)text_richtext);

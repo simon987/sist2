@@ -357,6 +357,7 @@ function search() {
             post_tags: ["</mark>"],
             fields: {
                 content: {},
+                // "content.nGram": {},
                 name: {},
                 "name.nGram": {},
                 font_name: {},
