@@ -1,3 +1,4 @@
+#include <src/ctx.h>
 #include "pdf.h"
 #include "src/ctx.h"
 
@@ -185,79 +186,81 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
         return;
     }
 
-    fz_stext_options opts = {0};
-    text_buffer_t text_buf = text_buffer_create(ScanCtx.content_size);
+    if (ScanCtx.content_size > 0) {
+        fz_stext_options opts = {0};
+        text_buffer_t text_buf = text_buffer_create(ScanCtx.content_size);
 
-    for (int current_page = 0; current_page < page_count; current_page++) {
-        fz_page *page = NULL;
-        if (current_page == 0) {
-            page = cover;
-        } else {
+        for (int current_page = 0; current_page < page_count; current_page++) {
+            fz_page *page = NULL;
+            if (current_page == 0) {
+                page = cover;
+            } else {
+                fz_var(err);
+                fz_try(ctx)
+                            page = fz_load_page(ctx, fzdoc, current_page);
+                fz_catch(ctx)
+                    err = ctx->error.errcode;
+                if (err != 0) {
+                    text_buffer_destroy(&text_buf);
+                    fz_drop_page(ctx, page);
+                    fz_drop_stream(ctx, stream);
+                    fz_drop_document(ctx, fzdoc);
+                    fz_drop_context(ctx);
+                    return;
+                }
+            }
+
+            fz_stext_page *stext = fz_new_stext_page(ctx, fz_bound_page(ctx, page));
+            fz_device *dev = fz_new_stext_device(ctx, stext, &opts);
+
             fz_var(err);
             fz_try(ctx)
-                page = fz_load_page(ctx, fzdoc, current_page);
+                        fz_run_page(ctx, page, dev, fz_identity, NULL);
+            fz_always(ctx)
+                {
+                    fz_close_device(ctx, dev);
+                    fz_drop_device(ctx, dev);
+                }
             fz_catch(ctx)
                 err = ctx->error.errcode;
+
             if (err != 0) {
                 text_buffer_destroy(&text_buf);
                 fz_drop_page(ctx, page);
+                fz_drop_stext_page(ctx, stext);
                 fz_drop_stream(ctx, stream);
                 fz_drop_document(ctx, fzdoc);
                 fz_drop_context(ctx);
                 return;
             }
-        }
 
-        fz_stext_page *stext = fz_new_stext_page(ctx, fz_bound_page(ctx, page));
-        fz_device *dev = fz_new_stext_device(ctx, stext, &opts);
-
-        fz_var(err);
-        fz_try(ctx)
-            fz_run_page(ctx, page, dev, fz_identity, NULL);
-        fz_always(ctx)
-        {
-            fz_close_device(ctx, dev);
-            fz_drop_device(ctx, dev);
-        }
-        fz_catch(ctx)
-            err = ctx->error.errcode;
-
-        if (err != 0) {
-            text_buffer_destroy(&text_buf);
-            fz_drop_page(ctx, page);
+            fz_stext_block *block = stext->first_block;
+            while (block != NULL) {
+                int ret = read_stext_block(block, &text_buf);
+                if (ret == TEXT_BUF_FULL) {
+                    break;
+                }
+                block = block->next;
+            }
             fz_drop_stext_page(ctx, stext);
-            fz_drop_stream(ctx, stream);
-            fz_drop_document(ctx, fzdoc);
-            fz_drop_context(ctx);
-            return;
-        }
+            fz_drop_page(ctx, page);
 
-        fz_stext_block *block = stext->first_block;
-        while (block != NULL) {
-            int ret = read_stext_block(block, &text_buf);
-            if (ret == TEXT_BUF_FULL) {
+            if (text_buf.dyn_buffer.cur >= text_buf.dyn_buffer.size) {
                 break;
             }
-            block = block->next;
         }
-        fz_drop_stext_page(ctx, stext);
-        fz_drop_page(ctx, page);
+        text_buffer_terminate_string(&text_buf);
 
-        if (text_buf.dyn_buffer.cur >= text_buf.dyn_buffer.size) {
-            break;
-        }
+        meta_line_t *meta_content = malloc(sizeof(meta_line_t) + text_buf.dyn_buffer.cur);
+        meta_content->key = MetaContent;
+        memcpy(meta_content->strval, text_buf.dyn_buffer.buf, text_buf.dyn_buffer.cur);
+        APPEND_META(doc, meta_content)
+
+        text_buffer_destroy(&text_buf);
     }
-    text_buffer_terminate_string(&text_buf);
-
-    meta_line_t *meta_content = malloc(sizeof(meta_line_t) + text_buf.dyn_buffer.cur);
-    meta_content->key = MetaContent;
-    memcpy(meta_content->strval, text_buf.dyn_buffer.buf, text_buf.dyn_buffer.cur);
-    APPEND_META(doc, meta_content)
 
     fz_drop_stream(ctx, stream);
     fz_drop_document(ctx, fzdoc);
     fz_drop_context(ctx);
-
-    text_buffer_destroy(&text_buf);
 }
 
