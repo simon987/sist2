@@ -1,4 +1,3 @@
-#include <src/ctx.h>
 #include "pdf.h"
 #include "src/ctx.h"
 
@@ -178,7 +177,17 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
         return;
     }
 
-    fz_page *cover = render_cover(ctx, doc, fzdoc);
+    fz_page *cover = NULL;
+    if (ScanCtx.tn_size > 0) {
+        cover = render_cover(ctx, doc, fzdoc);
+    } else {
+        fz_var(cover);
+        fz_try(ctx)
+            cover = fz_load_page(ctx, fzdoc, 0);
+        fz_catch(ctx)
+            cover = NULL;
+    }
+
     if (cover == NULL) {
         fz_drop_stream(ctx, stream);
         fz_drop_document(ctx, fzdoc);

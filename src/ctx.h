@@ -30,6 +30,7 @@ struct {
 #ifndef SIST_SCAN_ONLY
 struct {
     char *es_url;
+    int batch_size;
 } IndexCtx;
 
 struct {

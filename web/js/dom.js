@@ -345,7 +345,8 @@ function makeThumbnail(mimeCategory, hit, imgWrapper, small) {
 
 function createDocLine(hit) {
 
-    let mimeCategory = hit["_source"]["mime"].split("/")[0];
+    const mime = hit["_source"]["mime"];
+    let mimeCategory = mime ? mime.split("/")[0] : null;
     let tags = getTags(hit, mimeCategory);
 
     let imgWrapper = document.createElement("div");

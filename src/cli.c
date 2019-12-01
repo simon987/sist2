@@ -7,6 +7,7 @@
 #define DEFAULT_REWRITE_URL ""
 
 #define DEFAULT_ES_URL "http://localhost:9200"
+#define DEFAULT_BATCH_SIZE 100
 
 #define DEFAULT_BIND_ADDR "localhost"
 #define DEFAULT_PORT "4090"
@@ -33,6 +34,7 @@ void scan_args_destroy(scan_args_t *args) {
     free(args);
 }
 
+#ifndef SIST_SCAN_ONLY
 void index_args_destroy(index_args_t *args) {
     //todo
     free(args);
@@ -42,6 +44,7 @@ void web_args_destroy(web_args_t *args) {
     //todo
     free(args);
 }
+#endif
 
 int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (argc < 2) {
@@ -74,16 +77,13 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
     if (args->size == 0) {
         args->size = DEFAULT_SIZE;
-    } else if (args->size <= 0) {
-        fprintf(stderr, "Invalid size: %d\n", args->size);
+    } else if (args->size > 0 && args->size < 32) {
+        printf("Invalid size: %d\n", args->content_size);
         return 1;
     }
 
     if (args->content_size == 0) {
         args->content_size = DEFAULT_CONTENT_SIZE;
-    } else if (args->content_size <= 0) {
-        fprintf(stderr, "Invalid content-size: %d\n", args->content_size);
-        return 1;
     }
 
     if (args->threads == 0) {
@@ -168,6 +168,11 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
         *(args->script + info.st_size) = '\0';
         close(fd);
     }
+
+    if (args->batch_size == 0) {
+        args->batch_size = DEFAULT_BATCH_SIZE;
+    }
+
     return 0;
 }
 

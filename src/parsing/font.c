@@ -167,6 +167,10 @@ void parse_font(const char *buf, size_t buf_len, document_t *doc) {
     strcpy(meta_name->strval, font_name);
     APPEND_META(doc, meta_name)
 
+    if (ScanCtx.tn_size <= 0) {
+        return;
+    }
+
     int pixel = 64;
     int num_chars = (int) strlen(font_name);
 

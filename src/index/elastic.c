@@ -9,7 +9,6 @@
 
 #include "static_generated.c"
 
-#define BULK_INDEX_SIZE 100
 
 typedef struct es_indexer {
     int queued;
@@ -173,7 +172,7 @@ void elastic_index_line(es_bulk_line_t *line) {
 
     Indexer->queued += 1;
 
-    if (Indexer->queued >= BULK_INDEX_SIZE) {
+    if (Indexer->queued >= IndexCtx.batch_size) {
         elastic_flush();
     }
 }

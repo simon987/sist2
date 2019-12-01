@@ -10,7 +10,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.1.8";
+static const char *const Version = "1.1.9";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -41,10 +41,22 @@ void init_dir(const char *dirpath) {
 void scan_print_header() {
     printf("sist2 V%s\n", Version);
     printf("---------------------\n");
-    printf("threads\t\t%d\n", ScanCtx.threads);
-    printf("tn_qscale\t%.1f/31.0\n", ScanCtx.tn_qscale);
-    printf("tn_size\t\t%dpx\n", ScanCtx.tn_size);
-    printf("output\t\t%s\n", ScanCtx.index.path);
+    printf("threads\t\t\t%d\n", ScanCtx.threads);
+    printf("tn_qscale\t\t%.1f/31.0\n", ScanCtx.tn_qscale);
+
+    if (ScanCtx.tn_size > 0) {
+        printf("tn_size\t\t\t%dpx\n", ScanCtx.tn_size);
+    } else {
+        printf("tn_size\t\t\tdisabled\n");
+    }
+
+    if (ScanCtx.content_size > 0) {
+        printf("content_size\t%d B\n", ScanCtx.content_size);
+    } else {
+        printf("content_size\t\t\tdisabled\n");
+    }
+
+    printf("output\t\t\t%s\n", ScanCtx.index.path);
 }
 
 void sist2_scan(scan_args_t *args) {
@@ -130,6 +142,7 @@ void sist2_scan(scan_args_t *args) {
 void sist2_index(index_args_t *args) {
 
     IndexCtx.es_url = args->es_url;
+    IndexCtx.batch_size = args->batch_size;
 
     if (!args->print) {
         elastic_init(args->force_reset);
@@ -226,9 +239,10 @@ int main(int argc, const char *argv[]) {
             OPT_INTEGER('t', "threads", &scan_args->threads, "Number of threads. DEFAULT=1"),
             OPT_FLOAT('q', "quality", &scan_args->quality,
                       "Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=5"),
-            OPT_INTEGER(0, "size", &scan_args->size, "Thumbnail size, in pixels. DEFAULT=500"),
+            OPT_INTEGER(0, "size", &scan_args->size,
+                        "Thumbnail size, in pixels. Use negative value to disable. DEFAULT=500"),
             OPT_INTEGER(0, "content-size", &scan_args->content_size,
-                        "Number of bytes to be extracted from text documents. DEFAULT=4096"),
+                        "Number of bytes to be extracted from text documents. Use negative value to disable. DEFAULT=4096"),
             OPT_STRING(0, "incremental", &scan_args->incremental,
                        "Reuse an existing index and only scan modified files."),
             OPT_STRING('o', "output", &scan_args->output, "Output directory. DEFAULT=index.sist2/"),
@@ -242,6 +256,7 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
             OPT_STRING(0, "script-file", &index_args->script_path, "Path to user script."),
+            OPT_INTEGER(0, "batch-size", &index_args->batch_size, "Index batch size. DEFAULT: 100"),
             OPT_BOOLEAN('f', "force-reset", &index_args->force_reset, "Reset Elasticsearch mappings and settings. "
                                                                       "(You must use this option the first time you use the index command)"),
 

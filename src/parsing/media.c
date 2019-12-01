@@ -242,7 +242,7 @@ void parse_media(const char *filepath, document_t *doc) {
         }
     }
 
-    if (video_stream != -1) {
+    if (video_stream != -1 && ScanCtx.tn_size > 0) {
         AVStream *stream = pFormatCtx->streams[video_stream];
 
         if (stream->codecpar->width <= MIN_SIZE || stream->codecpar->height <= MIN_SIZE) {

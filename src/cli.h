@@ -27,6 +27,7 @@ typedef struct index_args {
     const char *script_path;
     char *script;
     int print;
+    int batch_size;
     int force_reset;
 } index_args_t;
 
