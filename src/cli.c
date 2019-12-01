@@ -20,6 +20,29 @@ scan_args_t *scan_args_create() {
     return args;
 }
 
+void scan_args_destroy(scan_args_t *args) {
+    if (args->name != NULL) {
+        free(args->name);
+    }
+    if (args->path != NULL) {
+        free(args->path);
+    }
+    if (args->output != NULL) {
+        free(args->output);
+    }
+    free(args);
+}
+
+void index_args_destroy(index_args_t *args) {
+    //todo
+    free(args);
+}
+
+void web_args_destroy(web_args_t *args) {
+    //todo
+    free(args);
+}
+
 int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (argc < 2) {
         fprintf(stderr, "Required positional argument: PATH.\n");
@@ -113,6 +136,7 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
         return 1;
     } else {
         args->index_path = argv[1];
+        free(index_path);
     }
 
     if (args->es_url == NULL) {

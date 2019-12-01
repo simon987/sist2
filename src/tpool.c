@@ -151,6 +151,7 @@ void tpool_wait(tpool_t *pool) {
             usleep(500000);
             if (pool->done_cnt == pool->work_cnt) {
                 pool->stop = 1;
+                usleep(1000000);
                 break;
             }
         }
@@ -178,7 +179,8 @@ void tpool_destroy(tpool_t *pool) {
     for (size_t i = 0; i < pool->thread_cnt; i++) {
         pthread_t thread = pool->threads[i];
         if (thread != 0) {
-            pthread_cancel(thread);
+            void *_;
+            pthread_join(thread, &_);
         }
     }
 
@@ -218,8 +220,6 @@ tpool_t *tpool_create(size_t thread_cnt, void cleanup_func()) {
 void tpool_start(tpool_t *pool) {
 
     for (size_t i = 0; i < pool->thread_cnt; i++) {
-        pthread_t thread = pool->threads[i];
-        pthread_create(&thread, NULL, tpool_worker, pool);
-        pthread_detach(thread);
+        pthread_create(&pool->threads[i], NULL, tpool_worker, pool);
     }
 }

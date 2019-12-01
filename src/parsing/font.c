@@ -1,11 +1,9 @@
 #include "font.h"
 
-#include "ft2build.h"
-#include "freetype/freetype.h"
 
 #include "src/ctx.h"
 
-__thread FT_Library library = NULL;
+__thread FT_Library ft_lib = NULL;
 
 
 typedef struct text_dimensions {
@@ -139,15 +137,15 @@ void bmp_format(dyn_buffer_t *buf, text_dimensions_t dimensions, const unsigned 
 }
 
 void parse_font(const char *buf, size_t buf_len, document_t *doc) {
-    if (library == NULL) {
-        FT_Init_FreeType(&library);
+    if (ft_lib == NULL) {
+        FT_Init_FreeType(&ft_lib);
     }
     if (buf == NULL) {
         return;
     }
 
     FT_Face face;
-    FT_Error err = FT_New_Memory_Face(library, (unsigned char *) buf, buf_len, 0, &face);
+    FT_Error err = FT_New_Memory_Face(ft_lib, (unsigned char *) buf, buf_len, 0, &face);
     if (err != 0) {
         return;
     }

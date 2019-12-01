@@ -44,7 +44,6 @@ void parse(void *arg) {
 
     if (Magic == NULL) {
         Magic = magic_open(MAGIC_MIME_TYPE);
-        magic_load(Magic, NULL);
     }
 
     doc.filepath = job->filepath;
@@ -98,31 +97,33 @@ void parse(void *arg) {
 
     int mmime = MAJOR_MIME(doc.mime);
 
-    if (!(SHOULD_PARSE(doc.mime))) {
+    parse_text(bytes_read, &fd, (char *) buf, &doc);
 
-    } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) ||
-    (mmime == MimeImage && doc.size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
-        parse_media(job->filepath, &doc);
-
-    } else if (IS_PDF(doc.mime)) {
-        void *pdf_buf = read_all(job, (char *) buf, bytes_read, &fd);
-        parse_pdf(pdf_buf, doc.size, &doc);
-
-        if (pdf_buf != buf && pdf_buf != NULL) {
-            free(pdf_buf);
-        }
-
-    } else if (mmime == MimeText && ScanCtx.content_size > 0) {
-        parse_text(bytes_read, &fd, (char *) buf, &doc);
-
-    } else if (IS_FONT(doc.mime)) {
-        void *font_buf = read_all(job, (char *) buf, bytes_read, &fd);
-        parse_font(font_buf, doc.size, &doc);
-
-        if (font_buf != buf && font_buf != NULL) {
-            free(font_buf);
-        }
-    }
+//    if (!(SHOULD_PARSE(doc.mime))) {
+//
+//    } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) ||
+//    (mmime == MimeImage && doc.size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
+//        parse_media(job->filepath, &doc);
+//
+//    } else if (IS_PDF(doc.mime)) {
+//        void *pdf_buf = read_all(job, (char *) buf, bytes_read, &fd);
+//        parse_pdf(pdf_buf, doc.size, &doc);
+//
+//        if (pdf_buf != buf && pdf_buf != NULL) {
+//            free(pdf_buf);
+//        }
+//
+//    } else if (mmime == MimeText && ScanCtx.content_size > 0) {
+//        parse_text(bytes_read, &fd, (char *) buf, &doc);
+//
+//    } else if (IS_FONT(doc.mime)) {
+//        void *font_buf = read_all(job, (char *) buf, bytes_read, &fd);
+//        parse_font(font_buf, doc.size, &doc);
+//
+//        if (font_buf != buf && font_buf != NULL) {
+//            free(font_buf);
+//        }
+//    }
 
     write_document(&doc);
 

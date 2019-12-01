@@ -19,9 +19,9 @@ static const char *const usage[] = {
 };
 
 void global_init() {
-    #ifndef SIST_SCAN_ONLY
+#ifndef SIST_SCAN_ONLY
     curl_global_init(CURL_GLOBAL_NOTHING);
-    #endif
+#endif
     av_log_set_level(AV_LOG_QUIET);
 }
 
@@ -93,7 +93,7 @@ void sist2_scan(scan_args_t *args) {
         printf("Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table));
     }
 
-    ScanCtx.pool = tpool_create(args->threads, serializer_cleanup);
+    ScanCtx.pool = tpool_create(args->threads, thread_cleanup);
     tpool_start(ScanCtx.pool);
     walk_directory_tree(ScanCtx.index.desc.root);
     tpool_wait(ScanCtx.pool);
@@ -126,6 +126,7 @@ void sist2_scan(scan_args_t *args) {
 }
 
 #ifndef SIST_SCAN_ONLY
+
 void sist2_index(index_args_t *args) {
 
     IndexCtx.es_url = args->es_url;
@@ -198,6 +199,7 @@ void sist2_web(web_args_t *args) {
 
     serve(args->bind, args->port);
 }
+
 #endif
 
 
@@ -206,14 +208,14 @@ int main(int argc, const char *argv[]) {
     global_init();
 
     scan_args_t *scan_args = scan_args_create();
-    #ifndef SIST_SCAN_ONLY
+#ifndef SIST_SCAN_ONLY
     index_args_t *index_args = index_args_create();
     web_args_t *web_args = web_args_create();
-    #endif
+#endif
 
     int arg_version = 0;
 
-    char * common_es_url = NULL;
+    char *common_es_url = NULL;
 
     struct argparse_option options[] = {
             OPT_HELP(),
@@ -233,22 +235,22 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "rewrite-url", &scan_args->rewrite_url, "Serve files from this url instead of from disk."),
             OPT_STRING(0, "name", &scan_args->name, "Index display name. DEFAULT: (name of the directory)"),
             OPT_INTEGER(0, "depth", &scan_args->depth, "Scan up to DEPTH subdirectories deep. "
-                                                     "Use 0 to only scan files in PATH. DEFAULT: -1"),
+                                                       "Use 0 to only scan files in PATH. DEFAULT: -1"),
 
-            #ifndef SIST_SCAN_ONLY
+#ifndef SIST_SCAN_ONLY
             OPT_GROUP("Index options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
             OPT_STRING(0, "script-file", &index_args->script_path, "Path to user script."),
             OPT_BOOLEAN('f', "force-reset", &index_args->force_reset, "Reset Elasticsearch mappings and settings. "
-                                                              "(You must use this option the first time you use the index command)"),
+                                                                      "(You must use this option the first time you use the index command)"),
 
             OPT_GROUP("Web options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
             OPT_STRING(0, "bind", &web_args->bind, "Listen on this address. DEFAULT=localhost"),
             OPT_STRING(0, "port", &web_args->port, "Listen on this port. DEFAULT=4090"),
             OPT_STRING(0, "auth", &web_args->credentials, "Basic auth in user:password format"),
-            #endif
+#endif
 
             OPT_END(),
     };
@@ -263,10 +265,10 @@ int main(int argc, const char *argv[]) {
         exit(0);
     }
 
-    #ifndef SIST_SCAN_ONLY
+#ifndef SIST_SCAN_ONLY
     web_args->es_url = common_es_url;
     index_args->es_url = common_es_url;
-    #endif
+#endif
 
     if (argc == 0) {
         argparse_usage(&argparse);
@@ -281,7 +283,7 @@ int main(int argc, const char *argv[]) {
 
     }
 
-    #ifndef SIST_SCAN_ONLY
+#ifndef SIST_SCAN_ONLY
     else if (strcmp(argv[0], "index") == 0) {
 
         int err = index_args_validate(index_args, argc, argv);
@@ -299,12 +301,20 @@ int main(int argc, const char *argv[]) {
         sist2_web(web_args);
 
     }
-    #endif
+#endif
     else {
         fprintf(stderr, "Invalid command: '%s'\n", argv[0]);
         argparse_usage(&argparse);
         return 1;
     }
     printf("\n");
+
+    scan_args_destroy(scan_args);
+
+#ifndef SIST_SCAN_ONLY
+    index_args_destroy(index_args);
+    web_args_destroy(web_args);
+#endif
+
     return 0;
 }

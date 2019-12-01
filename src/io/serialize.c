@@ -1,7 +1,7 @@
 #include "src/ctx.h"
 #include "serialize.h"
 
-static __thread int IndexFd = -1;
+static __thread int index_fd = -1;
 
 typedef struct {
     unsigned char uuid[16];
@@ -119,13 +119,13 @@ char *get_meta_key_text(enum metakey meta_key) {
 
 void write_document(document_t *doc) {
 
-    if (IndexFd == -1) {
+    if (index_fd == -1) {
         char dstfile[PATH_MAX];
         pthread_t self = pthread_self();
         snprintf(dstfile, PATH_MAX, "%s_index_%lu", ScanCtx.index.path, self);
-        IndexFd = open(dstfile, O_CREAT | O_WRONLY | O_APPEND, S_IRUSR | S_IWUSR);
+        index_fd = open(dstfile, O_CREAT | O_WRONLY | O_APPEND, S_IRUSR | S_IWUSR);
 
-        if (IndexFd == -1) {
+        if (index_fd == -1) {
             perror("open");
         }
     }
@@ -158,13 +158,16 @@ void write_document(document_t *doc) {
     }
     dyn_buffer_write_char(&buf, '\n');
 
-    write(IndexFd, buf.buf, buf.cur);
+    int res = write(index_fd, buf.buf, buf.cur);
+    if (res == -1) {
+        perror("write");
+    }
     ScanCtx.stat_index_size += buf.cur;
     dyn_buffer_destroy(&buf);
 }
 
-void serializer_cleanup() {
-    close(IndexFd);
+void thread_cleanup() {
+    close(index_fd);
 }
 
 void read_index(const char *path, const char index_id[UUID_STR_LEN], index_func func) {

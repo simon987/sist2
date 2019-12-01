@@ -26,6 +26,8 @@
 #include <pthread.h>
 #include <sys/stat.h>
 #include <wordexp.h>
+#include "ft2build.h"
+#include "freetype/freetype.h"
 
 #ifndef SIST_SCAN_ONLY
 #include <onion/onion.h>

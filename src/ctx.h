@@ -35,7 +35,7 @@ struct {
 struct {
     char *es_url;
     int index_count;
-    char* b64credentials;
+    char *b64credentials;
     struct index_t indices[16];
 } WebCtx;
 #endif

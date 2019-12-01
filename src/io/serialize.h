@@ -18,7 +18,7 @@ void incremental_read(GHashTable *table, const char *filepath);
 /**
  * Must be called after write_document
  */
-void serializer_cleanup();
+void thread_cleanup();
 
 void write_index_descriptor(char *path, index_descriptor_t *desc);
 

@@ -17,6 +17,7 @@ typedef struct scan_args {
 } scan_args_t;
 
 scan_args_t *scan_args_create();
+void scan_args_destroy(scan_args_t *args);
 int scan_args_validate(scan_args_t *args, int argc, const char **argv);
 
 #ifndef SIST_SCAN_ONLY
@@ -40,7 +41,10 @@ typedef struct web_args {
 } web_args_t;
 
 index_args_t *index_args_create();
+void index_args_destroy(index_args_t *args);
+
 web_args_t *web_args_create();
+void web_args_destroy(web_args_t *args);
 
 int index_args_validate(index_args_t *args, int argc, const char **argv);
 int web_args_validate(web_args_t *args, int argc, const char **argv);
