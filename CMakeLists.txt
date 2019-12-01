@@ -157,8 +157,8 @@ if (WITH_SIST2)
             m
             bz2
             magic
-            harfbuzz
-            openjp2
+            ${PROJECT_SOURCE_DIR}/lib/libharfbuzz.a
+            ${PROJECT_SOURCE_DIR}/lib/libopenjp2.a
             freetype
     )
 
