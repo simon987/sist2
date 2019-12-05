@@ -91,6 +91,7 @@ pdf,xps,cbz,fb2,epub | MuPDF | yes | yes, `png` | title |
 `image/*` | ffmpeg | - | yes, `jpeg` | `EXIF:Artist`, `EXIF:ImageDescription` |
 ttf,ttc,cff,woff,fnt,otf | Freetype2 | - | yes, `bmp` | Name & style |
 `text/plain` | *(none)* | yes | no | - |
+tar, zip, rar, 7z, ar ...  | Libarchive | *planned* | - | no |
 docx, xlsx, pptx |  | *planned* | no | *planned* |
 
 
