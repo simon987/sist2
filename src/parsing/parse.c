@@ -36,9 +36,9 @@ void parse(void *arg) {
     parse_job_t *job = arg;
     document_t doc;
 
-    if (incremental_get(ScanCtx.original_table, job->info.st_ino) == job->info.st_mtim.tv_sec) {
+    int inc_ts = incremental_get(ScanCtx.original_table, job->info.st_ino);
+    if (inc_ts != 0 && inc_ts == job->info.st_mtim.tv_sec) {
         incremental_mark_file_for_copy(ScanCtx.copy_table, job->info.st_ino);
-        free(job);
         return;
     }
 
