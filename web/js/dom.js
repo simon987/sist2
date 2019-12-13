@@ -194,12 +194,14 @@ function createDocCard(hit) {
                 thumbnailOverlay.setAttribute("class", "card-img-overlay");
 
                 //Resolution
-                let resolutionBadge = document.createElement("span");
-                resolutionBadge.setAttribute("class", "badge badge-resolution");
-                if (hit["_source"].hasOwnProperty("width")) {
-                    resolutionBadge.appendChild(document.createTextNode(hit["_source"]["width"] + "x" + hit["_source"]["height"]));
+                if (hit["_source"].hasOwnProperty("width") && hit["_source"]["width"] > 32 && hit["_source"]["height"] > 32) {
+                    let resolutionBadge = document.createElement("span");
+                    resolutionBadge.setAttribute("class", "badge badge-resolution");
+                    if (hit["_source"].hasOwnProperty("width")) {
+                        resolutionBadge.appendChild(document.createTextNode(hit["_source"]["width"] + "x" + hit["_source"]["height"]));
+                    }
+                    thumbnailOverlay.appendChild(resolutionBadge);
                 }
-                thumbnailOverlay.appendChild(resolutionBadge);
 
                 // Hover
                 if (thumbnail && hit["_source"]["videoc"] === "gif") {
