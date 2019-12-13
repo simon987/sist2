@@ -46,6 +46,10 @@ void dyn_buffer_write_str(dyn_buffer_t *buf, char *str) {
     dyn_buffer_write_char(buf, '\0');
 }
 
+void dyn_buffer_append_string(dyn_buffer_t *buf, char *str) {
+    dyn_buffer_write(buf, str, strlen(str));
+}
+
 void dyn_buffer_write_int(dyn_buffer_t *buf, int d) {
     grow_buffer_small(buf);
 

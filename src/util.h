@@ -47,6 +47,8 @@ void dyn_buffer_write_char(dyn_buffer_t *buf, char c);
 
 void dyn_buffer_write_str(dyn_buffer_t *buf, char *str);
 
+void dyn_buffer_append_string(dyn_buffer_t *buf, char *str);
+
 void dyn_buffer_write_int(dyn_buffer_t *buf, int d);
 
 void dyn_buffer_write_short(dyn_buffer_t *buf, short s);

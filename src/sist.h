@@ -28,6 +28,8 @@
 #include <wordexp.h>
 #include "ft2build.h"
 #include "freetype/freetype.h"
+#include <archive.h>
+#include <archive_entry.h>
 
 #ifndef SIST_SCAN_ONLY
 #include <onion/onion.h>
@@ -52,6 +54,7 @@
 #include "parsing/pdf.h"
 #include "parsing/media.h"
 #include "parsing/font.h"
+#include "parsing/arc.h"
 #include "cli.h"
 #include "utf8.h/utf8.h"
 

@@ -9,6 +9,12 @@
 #define IS_META_LONG(key) (key & META_LONG_MASK) == META_LONG_MASK
 #define IS_META_STR(meta) (meta->key & META_STR_MASK) == META_STR_MASK
 
+#define ARC_MODE_SKIP 0
+#define ARC_MODE_LIST 1
+#define ARC_MODE_SHALLOW 2
+#define ARC_MODE_RECURSE 3
+typedef int archive_mode_t;
+
 // This is written to file as a 8bit char!
 enum metakey {
     MetaContent = 1 | META_STR_MASK,
@@ -24,6 +30,7 @@ enum metakey {
     MetaGenre = 11 | META_STR_MASK,
     MetaTitle = 12 | META_STR_MASK,
     MetaFontName = 13 | META_STR_MASK,
+    MetaParent = 14 | META_STR_MASK,
 };
 
 typedef struct index_descriptor {
@@ -63,13 +70,39 @@ typedef struct document {
     short ext;
     meta_line_t *meta_head;
     meta_line_t *meta_tail;
+    struct document *child_head;
+    struct document *child_tail;
     char *filepath;
 } document_t;
+
+typedef struct vfile vfile_t;
+
+typedef int (*read_func_t)(struct vfile *, void *buf, size_t size);
+
+typedef int (*seek_func_t)(struct vfile *, size_t size, int whence);
+
+typedef void (*close_func_t)(struct vfile *);
+
+typedef struct vfile {
+
+    union {
+        int fd;
+        struct archive *arc;
+    };
+
+    int is_fs_file;
+    char *filepath;
+
+    read_func_t read;
+    close_func_t close;
+} vfile_t;
 
 typedef struct parse_job_t {
     int base;
     int ext;
     struct stat info;
+    struct vfile vfile;
+    uuid_t parent;
     char filepath[1];
 } parse_job_t;
 

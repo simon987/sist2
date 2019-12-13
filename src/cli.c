@@ -1,7 +1,7 @@
 #include "cli.h"
 
 #define DEFAULT_OUTPUT "index.sist2/"
-#define DEFAULT_CONTENT_SIZE 4096
+#define DEFAULT_CONTENT_SIZE 32768
 #define DEFAULT_QUALITY 5
 #define DEFAULT_SIZE 500
 #define DEFAULT_REWRITE_URL ""
@@ -35,6 +35,7 @@ void scan_args_destroy(scan_args_t *args) {
 }
 
 #ifndef SIST_SCAN_ONLY
+
 void index_args_destroy(index_args_t *args) {
     //todo
     free(args);
@@ -44,6 +45,7 @@ void web_args_destroy(web_args_t *args) {
     //todo
     free(args);
 }
+
 #endif
 
 int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
@@ -119,10 +121,24 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (args->rewrite_url == NULL) {
         args->rewrite_url = DEFAULT_REWRITE_URL;
     }
+
+    if (args->archive == NULL || strcmp(args->archive, "recurse") == 0) {
+        args->archive_mode = ARC_MODE_RECURSE;
+    } else if (strcmp(args->archive, "list") == 0) {
+        args->archive_mode = ARC_MODE_LIST;
+    } else if (strcmp(args->archive, "shallow") == 0) {
+        args->archive_mode = ARC_MODE_SHALLOW;
+    } else if (strcmp(args->archive, "skip") == 0) {
+        args->archive_mode = ARC_MODE_SKIP;
+    } else {
+        fprintf(stderr, "Archive mode must be one of (skip, list, shallow, recurse), got '%s'", args->archive);
+        return 1;
+    }
     return 0;
 }
 
 #ifndef SIST_SCAN_ONLY
+
 int index_args_validate(index_args_t *args, int argc, const char **argv) {
 
     if (argc < 2) {
@@ -196,7 +212,7 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     }
 
     if (args->credentials != NULL) {
-        args->b64credentials = onion_base64_encode(args->credentials, (int)strlen(args->credentials));
+        args->b64credentials = onion_base64_encode(args->credentials, (int) strlen(args->credentials));
         //Remove trailing newline
         *(args->b64credentials + strlen(args->b64credentials) - 1) = '\0';
     }
@@ -223,5 +239,6 @@ web_args_t *web_args_create() {
     web_args_t *args = calloc(sizeof(web_args_t), 1);
     return args;
 }
+
 #endif
 

@@ -10,7 +10,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.1.9";
+static const char *const Version = "1.1.10";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -51,7 +51,7 @@ void scan_print_header() {
     }
 
     if (ScanCtx.content_size > 0) {
-        printf("content_size\t%d B\n", ScanCtx.content_size);
+        printf("content_size\t\t%d B\n", ScanCtx.content_size);
     } else {
         printf("content_size\t\t\tdisabled\n");
     }
@@ -66,6 +66,7 @@ void sist2_scan(scan_args_t *args) {
     ScanCtx.content_size = args->content_size;
     ScanCtx.threads = args->threads;
     ScanCtx.depth = args->depth;
+    ScanCtx.archive_mode = args->archive_mode;
     strncpy(ScanCtx.index.path, args->output, sizeof(ScanCtx.index.path));
     strncpy(ScanCtx.index.desc.name, args->name, sizeof(ScanCtx.index.desc.name));
     strncpy(ScanCtx.index.desc.root, args->path, sizeof(ScanCtx.index.desc.root));
@@ -242,7 +243,7 @@ int main(int argc, const char *argv[]) {
             OPT_INTEGER(0, "size", &scan_args->size,
                         "Thumbnail size, in pixels. Use negative value to disable. DEFAULT=500"),
             OPT_INTEGER(0, "content-size", &scan_args->content_size,
-                        "Number of bytes to be extracted from text documents. Use negative value to disable. DEFAULT=4096"),
+                        "Number of bytes to be extracted from text documents. Use negative value to disable. DEFAULT=32768"),
             OPT_STRING(0, "incremental", &scan_args->incremental,
                        "Reuse an existing index and only scan modified files."),
             OPT_STRING('o', "output", &scan_args->output, "Output directory. DEFAULT=index.sist2/"),
@@ -250,6 +251,9 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "name", &scan_args->name, "Index display name. DEFAULT: (name of the directory)"),
             OPT_INTEGER(0, "depth", &scan_args->depth, "Scan up to DEPTH subdirectories deep. "
                                                        "Use 0 to only scan files in PATH. DEFAULT: -1"),
+            OPT_STRING(0, "archive", &scan_args->archive, "Archive file mode (skip|list|shallow|recurse). "
+                                                          "skip: Don't parse, list: only get file names as text, "
+                                                          "shallow: Don't parse archives inside archives. DEFAULT: recurse"),
 
 #ifndef SIST_SCAN_ONLY
             OPT_GROUP("Index options"),

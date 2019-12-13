@@ -41,7 +41,7 @@ if (WITH_SIST2)
 
             # utf8.h
             utf8.h/utf8.h
-    )
+            src/parsing/arc.c src/parsing/arc.h)
 endif ()
 
 if (WITH_SIST2_SCAN)
@@ -74,7 +74,7 @@ if (WITH_SIST2_SCAN)
 
             # utf8.h
             utf8.h/utf8.h
-    )
+            src/parsing/arc.c src/parsing/arc.h)
 endif ()
 
 find_package(PkgConfig REQUIRED)
@@ -160,6 +160,7 @@ if (WITH_SIST2)
             ${PROJECT_SOURCE_DIR}/lib/libharfbuzz.a
             ${PROJECT_SOURCE_DIR}/lib/libopenjp2.a
             freetype
+            archive
     )
 
 endif ()
@@ -228,6 +229,11 @@ if (WITH_SIST2_SCAN)
             ${PROJECT_SOURCE_DIR}/lib/libharfbuzz.a
             ${PROJECT_SOURCE_DIR}/lib/libopenjp2.a
             freetype
+
+            ${PROJECT_SOURCE_DIR}/lib/libarchive.a
+            ${PROJECT_SOURCE_DIR}/lib/liblz4.a
+            ${PROJECT_SOURCE_DIR}/lib/liblzma.a
+            ${PROJECT_SOURCE_DIR}/lib/libzstd.a
     )
 endif ()
 

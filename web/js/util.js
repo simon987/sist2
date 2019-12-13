@@ -3,7 +3,7 @@
  */
 function humanFileSize(bytes) {
     if (bytes === 0) {
-        return "? B"
+        return "0 B"
     }
 
     let thresh = 1000;

@@ -411,3 +411,8 @@ audio/x-hx-aac-adts,
 application/x-chrome-extension,
 image/heic, heic
 image/x-gem,
+application/x-lzma, lzma
+application/warc, warc
+application/x-lz4, lz4
+application/x-lzip, lz
+application/x-lzop, lzo

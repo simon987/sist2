@@ -165,12 +165,19 @@ function createDocCard(hit) {
     let docCardBody = document.createElement("div");
     docCardBody.setAttribute("class", "card-body document");
 
+    //Title
+    let title = makeTitle(hit);
+    let isSubDocument = false;
+
     let link = document.createElement("a");
     link.setAttribute("href", "f/" + hit["_id"]);
     link.setAttribute("target", "_blank");
+    link.appendChild(title);
 
-    //Title
-    let title = makeTitle(hit);
+    if (hit["_source"].hasOwnProperty("parent")) {
+        docCard.classList.add("sub-document");
+        isSubDocument = true;
+    }
 
     let tagContainer = document.createElement("div");
     tagContainer.setAttribute("class", "card-text");
@@ -204,7 +211,7 @@ function createDocCard(hit) {
                 }
 
                 // Hover
-                if (thumbnail && hit["_source"]["videoc"] === "gif") {
+                if (thumbnail && hit["_source"]["videoc"] === "gif" && !isSubDocument) {
                     gifOver(thumbnail, hit);
                 }
                 break;
@@ -241,7 +248,7 @@ function createDocCard(hit) {
         }
 
         //Audio
-        if (mimeCategory === "audio" && hit["_source"].hasOwnProperty("audioc")) {
+        if (mimeCategory === "audio" && hit["_source"].hasOwnProperty("audioc") && !isSubDocument) {
 
             let audio = document.createElement("audio");
             audio.setAttribute("preload", "none");
@@ -267,7 +274,6 @@ function createDocCard(hit) {
     docCardBody.appendChild(link);
     docCard.appendChild(docCardBody);
 
-    link.appendChild(title);
     docCardBody.appendChild(tagContainer);
 
     return docCard;
@@ -275,8 +281,9 @@ function createDocCard(hit) {
 
 function makeThumbnail(mimeCategory, hit, imgWrapper, small) {
     let thumbnail;
+    let isSubDocument = hit["_source"].hasOwnProperty("parent");
 
-    if (mimeCategory === "video" && shouldPlayVideo(hit)) {
+    if (mimeCategory === "video" && shouldPlayVideo(hit) && !isSubDocument) {
         thumbnail = document.createElement("video");
         addVidSrc("f/" + hit["_id"], hit["_source"]["mime"], thumbnail);
 

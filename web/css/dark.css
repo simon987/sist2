@@ -23,6 +23,15 @@ body {
     border: none;
 }
 
+.sub-document {
+    background: #37474F;
+}
+
+.sub-document .text-muted {
+    color: #8a949c !important;
+}
+
+
 .list-group-item {
     background: #212121;
     color: #e0e0e0;

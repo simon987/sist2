@@ -8,13 +8,19 @@
 #define MIME_EMPTY 1
 
 #define DONT_PARSE 0x80000000
-#define SHOULD_PARSE(mime_id) (mime_id & DONT_PARSE) != DONT_PARSE
+#define SHOULD_PARSE(mime_id) (mime_id & DONT_PARSE) != DONT_PARSE && mime_id != 0
 
 #define PDF_MASK 0x40000000
 #define IS_PDF(mime_id) (mime_id & PDF_MASK) == PDF_MASK
 
 #define FONT_MASK 0x20000000
 #define IS_FONT(mime_id) (mime_id & FONT_MASK) == FONT_MASK
+
+#define ARC_MASK 0x10000000
+#define IS_ARC(mime_id) (mime_id & ARC_MASK) == ARC_MASK
+
+#define ARC_FILTER_MASK 0x08000000
+#define IS_ARC_FILTER(mime_id) (mime_id & ARC_FILTER_MASK) == ARC_FILTER_MASK
 
 enum major_mime {
     MimeInvalid = 0,

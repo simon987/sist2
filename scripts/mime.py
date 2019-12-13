@@ -34,6 +34,28 @@ font = (
     "font/woff2"
 )
 
+# Archive "formats"
+archive = (
+    "application/x-tar",
+    "application/zip",
+    "application/x-rar",
+    "application/x-arc",
+    "application/x-warc",
+    "application/x-7z-compressed",
+)
+
+# Archive "filters"
+arc_filter = (
+    "application/gzip",
+    "application/x-bzip2",
+    "application/x-xz",
+    "application/x-zstd",
+    "application/x-lzma",
+    "application/x-lz4",
+    "application/x-lzip",
+    "application/x-lzop",
+)
+
 cnt = 1
 
 
@@ -48,6 +70,10 @@ def mime_id(mime):
         mime_id += " | 0x40000000"
     elif mime in font:
         mime_id += " | 0x20000000"
+    elif mime in archive:
+        mime_id += " | 0x10000000"
+    elif mime in arc_filter:
+        mime_id += " | 0x08000000"
     elif mime == "application/x-empty":
         return "1"
     return mime_id

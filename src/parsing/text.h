@@ -3,6 +3,6 @@
 
 #include "src/sist.h"
 
-void parse_text(int bytes_read, int *fd, char *buf, document_t *doc);
+void parse_text(int bytes_read, struct vfile *f, char *buf, document_t *doc);
 
 #endif

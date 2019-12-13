@@ -1,9 +1,32 @@
+#include <src/ctx.h>
 #include "src/sist.h"
 #include "src/ctx.h"
 
 __thread magic_t Magic = NULL;
 
-void *read_all(parse_job_t *job, const char *buf, int bytes_read, int *fd) {
+int fs_read(struct vfile *f, void *buf, size_t size) {
+
+    if (f->fd == -1) {
+        f->fd = open(f->filepath, O_RDONLY);
+        if (f->fd == -1) {
+            perror("open");
+            printf("%s\n", f->filepath);
+            return -1;
+        }
+    }
+
+    return read(f->fd, buf, size);
+}
+
+#define CLOSE_FILE(f) if (f.close != NULL) {f.close(&f);};
+
+void fs_close(struct vfile *f) {
+    if (f->fd != -1) {
+        close(f->fd);
+    }
+}
+
+void *read_all(parse_job_t *job, const char *buf, int bytes_read) {
 
     void *full_buf;
 
@@ -11,17 +34,10 @@ void *read_all(parse_job_t *job, const char *buf, int bytes_read, int *fd) {
         full_buf = malloc(job->info.st_size);
         memcpy(full_buf, buf, job->info.st_size);
     } else {
-        if (*fd == -1) {
-            *fd = open(job->filepath, O_RDONLY);
-            if (*fd == -1) {
-                perror("open");
-                printf("%s\n", job->filepath);
-                return NULL;
-            }
-        }
         full_buf = malloc(job->info.st_size);
         memcpy(full_buf, buf, bytes_read);
-        int ret = read(*fd, full_buf + bytes_read, job->info.st_size - bytes_read);
+
+        int ret = job->vfile.read(&job->vfile, full_buf + bytes_read, job->info.st_size - bytes_read);
         if (ret == -1) {
             perror("read");
             return NULL;
@@ -65,24 +81,13 @@ void parse(void *arg) {
         doc.mime = mime_get_mime_by_ext(ScanCtx.ext_table, job->filepath + job->ext);
     }
 
-    int fd = -1;
     int bytes_read = 0;
 
     if (doc.mime == 0) {
         // Get mime type with libmagic
-        fd = open(job->filepath, O_RDONLY);
-        if (fd == -1) {
-            perror("open");
-            free(job);
-            return;
-        }
-
-        bytes_read = read(fd, buf, PARSE_BUF_SIZE);
-
+        bytes_read = job->vfile.read(&job->vfile, buf, PARSE_BUF_SIZE);
         if (bytes_read == -1) {
-            perror("read");
-            close(fd);
-            free(job);
+            CLOSE_FILE(job->vfile)
             return;
         }
 
@@ -100,11 +105,16 @@ void parse(void *arg) {
     if (!(SHOULD_PARSE(doc.mime))) {
 
     } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) ||
-    (mmime == MimeImage && doc.size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
-        parse_media(job->filepath, &doc);
+               (mmime == MimeImage && doc.size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
+
+        if (job->vfile.is_fs_file) {
+            parse_media_filename(job->filepath, &doc);
+        } else {
+            parse_media_vfile(&job->vfile, &doc);
+        }
 
     } else if (IS_PDF(doc.mime)) {
-        void *pdf_buf = read_all(job, (char *) buf, bytes_read, &fd);
+        void *pdf_buf = read_all(job, (char *) buf, bytes_read);
         parse_pdf(pdf_buf, doc.size, &doc);
 
         if (pdf_buf != buf && pdf_buf != NULL) {
@@ -112,22 +122,35 @@ void parse(void *arg) {
         }
 
     } else if (mmime == MimeText && ScanCtx.content_size > 0) {
-        parse_text(bytes_read, &fd, (char *) buf, &doc);
+        parse_text(bytes_read, &job->vfile, (char *) buf, &doc);
 
     } else if (IS_FONT(doc.mime)) {
-        void *font_buf = read_all(job, (char *) buf, bytes_read, &fd);
+        void *font_buf = read_all(job, (char *) buf, bytes_read);
         parse_font(font_buf, doc.size, &doc);
 
         if (font_buf != buf && font_buf != NULL) {
             free(font_buf);
         }
+    } else if (
+            ScanCtx.archive_mode != ARC_MODE_SKIP && (
+                    IS_ARC(doc.mime) ||
+                    (IS_ARC_FILTER(doc.mime) && should_parse_filtered_file(doc.filepath, doc.ext))
+            )) {
+        parse_archive(&job->vfile, &doc);
+    }
+
+    //Parent meta
+    if (!uuid_is_null(job->parent)) {
+        char tmp[UUID_STR_LEN];
+        uuid_unparse(job->parent, tmp);
+
+        meta_line_t *meta_parent = malloc(sizeof(meta_line_t) + UUID_STR_LEN + 1);
+        meta_parent->key = MetaParent;
+        strcpy(meta_parent->strval, tmp);
+        APPEND_META((&doc), meta_parent)
     }
 
     write_document(&doc);
 
-    if (fd != -1) {
-        close(fd);
-    }
-
-    free(job);
+    CLOSE_FILE(job->vfile)
 }

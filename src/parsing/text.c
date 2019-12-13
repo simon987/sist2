@@ -1,7 +1,7 @@
 #include "text.h"
 #include "src/ctx.h"
 
-void parse_text(int bytes_read, int *fd, char *buf, document_t *doc) {
+void parse_text(int bytes_read, struct vfile *f, char *buf, document_t *doc) {
 
     char *intermediate_buf;
     int intermediate_buf_len;
@@ -13,10 +13,6 @@ void parse_text(int bytes_read, int *fd, char *buf, document_t *doc) {
         memcpy(intermediate_buf, buf, to_copy);
 
     } else {
-        if (*fd == -1) {
-            *fd = open(doc->filepath, O_RDONLY);
-        }
-
         int to_read = MIN(ScanCtx.content_size, doc->size) - bytes_read;
 
         intermediate_buf = malloc(to_read + bytes_read);
@@ -25,7 +21,7 @@ void parse_text(int bytes_read, int *fd, char *buf, document_t *doc) {
             memcpy(intermediate_buf, buf, bytes_read);
         }
 
-        read(*fd, intermediate_buf + bytes_read, to_read);
+        f->read(f, intermediate_buf + bytes_read, to_read);
     }
     text_buffer_t tex = text_buffer_create(ScanCtx.content_size);
     text_buffer_append_string(&tex, intermediate_buf, intermediate_buf_len);

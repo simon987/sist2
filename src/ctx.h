@@ -16,6 +16,7 @@ struct {
     int content_size;
     float tn_qscale;
     int depth;
+    archive_mode_t archive_mode;
 
     size_t stat_tn_size;
     size_t stat_index_size;

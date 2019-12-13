@@ -360,12 +360,24 @@ int file(void *p, onion_request *req, onion_response *res) {
         return OCS_PROCESSED;
     }
 
-    cJSON *doc = elastic_get_document(arg_uuid);
-    cJSON *source = cJSON_GetObjectItem(doc, "_source");
-    cJSON *index_id = cJSON_GetObjectItem(source, "index");
-    if (index_id == NULL) {
-        cJSON_Delete(doc);
-        return OCS_NOT_PROCESSED;
+    char *next = arg_uuid;
+    cJSON *doc = NULL;
+    cJSON *index_id = NULL;
+    cJSON *source = NULL;
+
+    while (true) {
+        doc = elastic_get_document(next);
+        source = cJSON_GetObjectItem(doc, "_source");
+        index_id = cJSON_GetObjectItem(source, "index");
+        if (index_id == NULL) {
+            cJSON_Delete(doc);
+            return OCS_NOT_PROCESSED;
+        }
+        cJSON *parent = cJSON_GetObjectItem(source, "parent");
+        if (parent == NULL) {
+            break;
+        }
+        next = parent->valuestring;
     }
 
     index_t *idx = get_index_by_id(index_id->valuestring);

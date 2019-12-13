@@ -14,6 +14,8 @@ typedef struct scan_args {
     char *name;
     int depth;
     char *path;
+    char *archive;
+    archive_mode_t archive_mode;
 } scan_args_t;
 
 scan_args_t *scan_args_create();

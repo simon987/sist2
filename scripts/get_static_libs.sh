@@ -67,5 +67,39 @@ make -j 4
 cd ..
 mv libmagic/src/.libs/libmagic.a .
 
+# libarchive
+git clone https://github.com/libarchive/libarchive
+cd libarchive/build
+./autogen.sh
+cd ..
+./configure --without-nettle --without-expat --without-xml2 --without-openssl
+make -j 4
+cd ..
+mv libarchive/.libs/libarchive.a .
+
+# lz4
+git clone https://github.com/lz4/lz4
+cd lz4
+make -j 4
+cd ..
+mv lz4/lib/liblz4.a .
+
+# lzma
+wget https://newcontinuum.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz
+tar -xzf xz-5.2.3.tar.gz
+rm xz-5.2.3.tar.gz
+cd xz-5.2.3
+./autogen.sh
+./configure
+make -j 4
+cd ..
+mv xz-5.2.3/src/liblzma/.libs/liblzma.a .
+
+# zstd
+git clone https://github.com/facebook/zstd
+cd zstd
+make -j 4
+cd ..
+mv zstd/lib/libzstd.a .
 
 cd ..

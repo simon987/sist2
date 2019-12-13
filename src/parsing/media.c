@@ -2,6 +2,7 @@
 #include "src/ctx.h"
 
 #define MIN_SIZE 32
+#define AVIO_BUF_SIZE 8192
 
 __always_inline
 AVCodecContext *alloc_jpeg_encoder(int dstW, int dstH, float qscale) {
@@ -89,9 +90,9 @@ AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder, int st
             int read_frame_ret = av_read_frame(pFormatCtx, &avPacket);
 
             if (read_frame_ret != 0) {
-                if (read_frame_ret != AVERROR_EOF) {
-                    fprintf(stderr, "Error reading frame: %d\n", read_frame_ret);
-                }
+//                if (read_frame_ret != AVERROR_EOF) {
+//                    fprintf(stderr, "Error reading frame: %d\n", read_frame_ret);
+//                }
                 av_frame_free(&frame);
                 av_packet_unref(&avPacket);
                 return NULL;
@@ -188,21 +189,10 @@ void append_video_meta(AVFormatContext *pFormatCtx, AVFrame *frame, document_t *
     }
 }
 
-void parse_media(const char *filepath, document_t *doc) {
+void parse_media(AVFormatContext *pFormatCtx, document_t *doc) {
 
     int video_stream = -1;
     int audio_stream = -1;
-
-    AVFormatContext *pFormatCtx = avformat_alloc_context();
-    if (pFormatCtx == NULL) {
-        fprintf(stderr, "Could not allocate AVFormatContext! %s \n", filepath);
-        return;
-    }
-    int res = avformat_open_input(&pFormatCtx, filepath, NULL, NULL);
-    if (res < 0) {
-        fprintf(stderr, "media error: %s %s\n", filepath, av_err2str(res));
-        return;
-    }
 
     avformat_find_stream_info(pFormatCtx, NULL);
 
@@ -312,5 +302,60 @@ void parse_media(const char *filepath, document_t *doc) {
 
     avformat_close_input(&pFormatCtx);
     avformat_free_context(pFormatCtx);
+}
+
+void parse_media_filename(const char *filepath, document_t *doc) {
+
+    AVFormatContext *pFormatCtx = avformat_alloc_context();
+    if (pFormatCtx == NULL) {
+        fprintf(stderr, "Could not allocate AVFormatContext! %s \n", filepath);
+        return;
+    }
+    int res = avformat_open_input(&pFormatCtx, filepath, NULL, NULL);
+    if (res < 0) {
+        fprintf(stderr, "media error: %s %s\n", filepath, av_err2str(res));
+        return;
+    }
+
+    parse_media(pFormatCtx, doc);
+}
+
+
+int vfile_read(void *ptr, uint8_t *buf, int buf_size) {
+    struct vfile *f = ptr;
+
+    int ret = f->read(f, buf, buf_size);
+
+    if (ret == 0) {
+        return AVERROR_EOF;
+    }
+    return ret;
+}
+
+void parse_media_vfile(struct vfile *f, document_t *doc) {
+
+    AVFormatContext *pFormatCtx = avformat_alloc_context();
+    if (pFormatCtx == NULL) {
+        fprintf(stderr, "Could not allocate AVFormatContext! %s \n", f->filepath);
+        return;
+    }
+
+    unsigned char *buffer = (unsigned char *) av_malloc(AVIO_BUF_SIZE);
+    AVIOContext *io_ctx = avio_alloc_context(buffer, AVIO_BUF_SIZE, 0, f, vfile_read, NULL, NULL);
+
+    pFormatCtx->pb = io_ctx;
+    pFormatCtx->flags |= AVFMT_FLAG_CUSTOM_IO;
+
+    int res = avformat_open_input(&pFormatCtx, "", NULL, NULL);
+    if (res == -5) {
+        // Tried to parse media that requires seek
+        return;
+    } else if(res < 0) {
+        fprintf(stderr, "media error: %s %s\n", f->filepath, av_err2str(res));
+        return;
+    }
+
+    parse_media(pFormatCtx, doc);
+    av_free(io_ctx);
 }
 

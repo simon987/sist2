@@ -15,9 +15,11 @@ sist2 (Simple incremental search tool)
 * Generates thumbnails\*
 * Incremental scanning
 * Automatic tagging from file attributes via [user scripts](scripting/README.md)
+* Recursive scan inside archive files \*\*
 
 
-\* See [format support](#format-support)
+\* See [format support](#format-support)    
+\** See [Archive files](#archive-files)
 
 ## Getting Started
 
@@ -32,8 +34,6 @@ sist2 (Simple incremental search tool)
 
 
 ## Example usage
-
-![demo](demo.gif)
 
 See help page `sist2 --help` for more details.
 
@@ -91,10 +91,25 @@ pdf,xps,cbz,fb2,epub | MuPDF | yes | yes, `png` | title |
 `image/*` | ffmpeg | - | yes, `jpeg` | `EXIF:Artist`, `EXIF:ImageDescription` |
 ttf,ttc,cff,woff,fnt,otf | Freetype2 | - | yes, `bmp` | Name & style |
 `text/plain` | *(none)* | yes | no | - |
-tar, zip, rar, 7z, ar ...  | Libarchive | *planned* | - | no |
-docx, xlsx, pptx |  | *planned* | no | *planned* |
+tar, zip, rar, 7z, ar ...  | Libarchive | yes\* | - | no |
+docx, xlsx, pptx |  | yes | no | *planned* |
 
+\* *See [Archive files](#archive-files)*
+ 
+### Archive files
+**sist2** will scan files stored into archive files (zip, tar, 7z...) as if
+they were directly in the file system. Recursive (archives inside archives)
+scan is also supported.
 
+**Limitations**:
+* Parsing media files with formats that require
+*seek* (e.g. `.gif`, `.mp4` w/ fragmented metadata etc.) is not supported.
+* Archive files are scanned sequentially, by a single thread. On systems where
+**sist2** is not I/O bound, scans might be faster when larger archives are split
+ into smaller parts.
+
+To check if a media file can be parsed without *seek*, execute `cat file.mp4 | ffprobe -`
+ 
 
 
 ## Build from source

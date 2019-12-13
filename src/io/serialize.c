@@ -111,6 +111,8 @@ char *get_meta_key_text(enum metakey meta_key) {
             return "title";
         case MetaFontName:
             return "font_name";
+        case MetaParent:
+            return "parent";
         default:
             return NULL;
     }
@@ -247,6 +249,7 @@ void read_index(const char *path, const char index_id[UUID_STR_LEN], index_func 
                 case MetaAlbumArtist:
                 case MetaGenre:
                 case MetaFontName:
+                case MetaParent:
                 case MetaTitle: {
                     buf.cur = 0;
                     while ((c = getc(file)) != 0) {

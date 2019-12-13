@@ -119,6 +119,7 @@ static void *tpool_worker(void *arg) {
             }
 
             work->func(work->arg);
+            free(work->arg);
             free(work);
         }
 
