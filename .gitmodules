@@ -4,30 +4,39 @@
 [submodule "cJSON"]
 	path = cJSON
 	url = https://github.com/DaveGamble/cJSON
-[submodule "lib/mupdf"]
-	path = lib/mupdf
-	url = git://git.ghostscript.com/mupdf.git
-[submodule "lib/onion"]
-	path = lib/onion
-	url = https://github.com/davidmoreno/onion
-[submodule "lib/ffmpeg"]
-	path = lib/ffmpeg
-	url = https://git.ffmpeg.org/ffmpeg.git
 [submodule "lmdb"]
 	path = lmdb
 	url = https://github.com/LMDB/lmdb
 [submodule "utf8.h"]
 	path = utf8.h
 	url = https://github.com/sheredom/utf8.h
-[submodule "lib/openjpeg"]
-	path = lib/openjpeg
-	url = https://github.com/uclouvain/openjpeg
-[submodule "lib/harfbuzz"]
-	path = lib/harfbuzz
-	url = https://github.com/harfbuzz/harfbuzz
-[submodule "lib/libmagic"]
-	path = lib/libmagic
-	url = https://github.com/threatstack/libmagic
 [submodule "lib/bzip2-1.0.6"]
 	path = lib/bzip2-1.0.6
 	url = https://github.com/enthought/bzip2-1.0.6
+[submodule "lib/libmagic"]
+	path = lib/libmagic
+	url = https://github.com/threatstack/libmagic
+[submodule "lib/harfbuzz"]
+	path = lib/harfbuzz
+	url = https://github.com/harfbuzz/harfbuzz
+[submodule "lib/openjpeg"]
+	path = lib/openjpeg
+	url = https://github.com/uclouvain/openjpeg
+[submodule "lib/ffmpeg"]
+	path = lib/ffmpeg
+	url = https://git.ffmpeg.org/ffmpeg.git
+[submodule "lib/onion"]
+	path = lib/onion
+	url = https://github.com/davidmoreno/onion
+[submodule "lib/mupdf"]
+	path = lib/mupdf
+	url = git://git.ghostscript.com/mupdf.git
+[submodule "lib/zstd"]
+	path = lib/zstd
+	url = https://github.com/facebook/zstd
+[submodule "lib/lz4"]
+	path = lib/lz4
+	url = https://github.com/lz4/lz4
+[submodule "lib/libarchive"]
+	path = lib/libarchive
+	url = https://github.com/libarchive/libarchive
