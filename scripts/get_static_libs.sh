@@ -68,7 +68,6 @@ cd ..
 mv libmagic/src/.libs/libmagic.a .
 
 # libarchive
-git clone https://github.com/libarchive/libarchive
 cd libarchive/build
 ./autogen.sh
 cd ..
@@ -78,7 +77,6 @@ cd ..
 mv libarchive/.libs/libarchive.a .
 
 # lz4
-git clone https://github.com/lz4/lz4
 cd lz4
 make -j 4
 cd ..
@@ -96,7 +94,6 @@ cd ..
 mv xz-5.2.3/src/liblzma/.libs/liblzma.a .
 
 # zstd
-git clone https://github.com/facebook/zstd
 cd zstd
 make -j 4
 cd ..
