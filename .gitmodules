@@ -40,3 +40,6 @@
 [submodule "lib/libarchive"]
 	path = lib/libarchive
 	url = https://github.com/libarchive/libarchive
+[submodule "lib/libxml2"]
+	path = lib/libxml2
+	url = https://github.com/GNOME/libxml2

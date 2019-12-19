@@ -56,6 +56,12 @@ arc_filter = (
     "application/x-lzop",
 )
 
+doc = (
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+)
+
 cnt = 1
 
 
@@ -74,6 +80,8 @@ def mime_id(mime):
         mime_id += " | 0x10000000"
     elif mime in arc_filter:
         mime_id += " | 0x08000000"
+    elif mime in doc:
+        mime_id += " | 0x04000000"
     elif mime == "application/x-empty":
         return "1"
     return mime_id

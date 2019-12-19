@@ -30,6 +30,8 @@
 #include "freetype/freetype.h"
 #include <archive.h>
 #include <archive_entry.h>
+#include <opc/opc.h>
+#include <libxml/xmlstring.h>
 
 #ifndef SIST_SCAN_ONLY
 #include <onion/onion.h>
@@ -55,6 +57,7 @@
 #include "parsing/media.h"
 #include "parsing/font.h"
 #include "parsing/arc.h"
+#include "parsing/doc.h"
 #include "cli.h"
 #include "utf8.h/utf8.h"
 

@@ -99,4 +99,11 @@ make -j 4
 cd ..
 mv zstd/lib/libzstd.a .
 
+# xml2
+cd libxml2
+./autogen.sh --without-zlib --without-lzma
+make
+cd ..
+mv libxml2/.libs/libxml2.a .
+
 cd ..

@@ -92,7 +92,7 @@ pdf,xps,cbz,fb2,epub | MuPDF | yes | yes, `png` | title |
 ttf,ttc,cff,woff,fnt,otf | Freetype2 | - | yes, `bmp` | Name & style |
 `text/plain` | *(none)* | yes | no | - |
 tar, zip, rar, 7z, ar ...  | Libarchive | yes\* | - | no |
-docx, xlsx, pptx |  | yes | no | *planned* |
+docx, xlsx, pptx | libOPC | yes | no | no |
 
 \* *See [Archive files](#archive-files)*
  

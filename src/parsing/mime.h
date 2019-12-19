@@ -22,6 +22,9 @@
 #define ARC_FILTER_MASK 0x08000000
 #define IS_ARC_FILTER(mime_id) (mime_id & ARC_FILTER_MASK) == ARC_FILTER_MASK
 
+#define DOC_MASK 0x04000000
+#define IS_DOC(mime_id) (mime_id & DOC_MASK) == DOC_MASK
+
 enum major_mime {
     MimeInvalid = 0,
     MimeModel = 1,

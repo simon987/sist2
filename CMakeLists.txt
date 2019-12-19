@@ -41,7 +41,7 @@ if (WITH_SIST2)
 
             # utf8.h
             utf8.h/utf8.h
-            src/parsing/arc.c src/parsing/arc.h)
+            src/parsing/arc.c src/parsing/arc.h src/parsing/doc.c src/parsing/doc.h)
 endif ()
 
 if (WITH_SIST2_SCAN)
@@ -74,7 +74,7 @@ if (WITH_SIST2_SCAN)
 
             # utf8.h
             utf8.h/utf8.h
-            src/parsing/arc.c src/parsing/arc.h)
+            src/parsing/arc.c src/parsing/arc.h src/parsing/doc.c src/parsing/doc.h)
 endif ()
 
 find_package(PkgConfig REQUIRED)
@@ -113,6 +113,8 @@ if (WITH_SIST2)
             ${PROJECT_SOURCE_DIR}/lmdb/libraries/liblmdb/
             ${PROJECT_SOURCE_DIR}/lib/onion/src/
             ${PROJECT_SOURCE_DIR}/lib/mupdf/include/
+            ${PROJECT_SOURCE_DIR}/include/
+            /usr/include/libxml2/
     )
     target_link_directories(
             sist2 PUBLIC
@@ -161,6 +163,12 @@ if (WITH_SIST2)
             ${PROJECT_SOURCE_DIR}/lib/libopenjp2.a
             freetype
             archive
+
+#            ${PROJECT_SOURCE_DIR}/lib/libxml2.a
+            xml2
+            ${PROJECT_SOURCE_DIR}/lib/libopc/libmce.a
+            ${PROJECT_SOURCE_DIR}/lib/libopc/libopc.a
+            ${PROJECT_SOURCE_DIR}/lib/libopc/libplib.a
     )
 
 endif ()
@@ -190,6 +198,8 @@ if (WITH_SIST2_SCAN)
             ${PROJECT_SOURCE_DIR}/lmdb/libraries/liblmdb/
             ${PROJECT_SOURCE_DIR}/lib/onion/src/
             ${PROJECT_SOURCE_DIR}/lib/mupdf/include/
+            ${PROJECT_SOURCE_DIR}/include/
+            /usr/include/libxml2/
     )
     target_link_directories(
             sist2_scan PUBLIC
@@ -234,6 +244,11 @@ if (WITH_SIST2_SCAN)
             ${PROJECT_SOURCE_DIR}/lib/liblz4.a
             ${PROJECT_SOURCE_DIR}/lib/liblzma.a
             ${PROJECT_SOURCE_DIR}/lib/libzstd.a
+
+            ${PROJECT_SOURCE_DIR}/lib/libxml2.a
+            ${PROJECT_SOURCE_DIR}/lib/libopc/libmce.a
+            ${PROJECT_SOURCE_DIR}/lib/libopc/libopc.a
+            ${PROJECT_SOURCE_DIR}/lib/libopc/libplib.a
     )
 endif ()
 

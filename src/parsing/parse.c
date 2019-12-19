@@ -137,6 +137,13 @@ void parse(void *arg) {
                     (IS_ARC_FILTER(doc.mime) && should_parse_filtered_file(doc.filepath, doc.ext))
             )) {
         parse_archive(&job->vfile, &doc);
+    } else if (ScanCtx.content_size > 0 && IS_DOC(doc.mime)) {
+        void *doc_buf = read_all(job, (char *) buf, bytes_read);
+        parse_doc(doc_buf, doc.size, &doc);
+
+        if (doc_buf != buf && doc_buf != NULL) {
+            free(doc_buf);
+        }
     }
 
     //Parent meta
