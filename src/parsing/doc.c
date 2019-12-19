@@ -28,6 +28,10 @@ int should_read_part(opcPart part) {
 
     char *part_name = (char *) part;
 
+    if (part == NULL) {
+        return FALSE;
+    }
+
     if (    // Word
             strcmp(part_name, "word/document.xml") == 0
             || strncmp(part_name, "word/footer", sizeof("word/footer") - 1) == 0
