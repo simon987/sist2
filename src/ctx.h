@@ -17,6 +17,8 @@ struct {
     float tn_qscale;
     int depth;
     archive_mode_t archive_mode;
+    int verbose;
+    int very_verbose;
 
     size_t stat_tn_size;
     size_t stat_index_size;
@@ -27,6 +29,11 @@ struct {
     pthread_mutex_t mupdf_mu;
 } ScanCtx;
 
+struct {
+    int verbose;
+    int very_verbose;
+    int no_color;
+} LogCtx;
 
 #ifndef SIST_SCAN_ONLY
 struct {

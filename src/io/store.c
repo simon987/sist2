@@ -9,9 +9,9 @@ store_t *store_create(char *path) {
     mdb_env_create(&store->env);
 
     int open_ret = mdb_env_open(store->env,
-                 path,
-                 MDB_WRITEMAP | MDB_MAPASYNC,
-                 S_IRUSR | S_IWUSR
+                                path,
+                                MDB_WRITEMAP | MDB_MAPASYNC,
+                                S_IRUSR | S_IWUSR
     );
 
     if (open_ret != 0) {
@@ -42,6 +42,12 @@ void store_destroy(store_t *store) {
 
 void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t buf_len) {
 
+    if (LogCtx.very_verbose) {
+        char uuid_str[UUID_STR_LEN];
+        uuid_unparse((unsigned char *) key, uuid_str);
+        LOG_DEBUGF("store.c", "Store write {%s} %lu bytes", uuid_str, buf_len)
+    }
+
     MDB_val mdb_key;
     mdb_key.mv_data = key;
     mdb_key.mv_size = key_len;
@@ -68,6 +74,8 @@ void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t bu
         mdb_env_set_mapsize(store->env, store->size);
         mdb_txn_begin(store->env, NULL, 0, &txn);
         put_ret = mdb_put(txn, store->dbi, &mdb_key, &mdb_value, 0);
+
+        LOG_INFOF("store.c", "Updated mdb mapsize to %lu bytes", store->size)
     }
 
     mdb_txn_commit(txn);

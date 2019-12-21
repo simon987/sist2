@@ -10,7 +10,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.1.11";
+static const char *const Version = "1.1.12";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -40,24 +40,7 @@ void init_dir(const char *dirpath) {
 }
 
 void scan_print_header() {
-    printf("sist2 V%s\n", Version);
-    printf("---------------------\n");
-    printf("threads\t\t\t%d\n", ScanCtx.threads);
-    printf("tn_qscale\t\t%.1f/31.0\n", ScanCtx.tn_qscale);
-
-    if (ScanCtx.tn_size > 0) {
-        printf("tn_size\t\t\t%dpx\n", ScanCtx.tn_size);
-    } else {
-        printf("tn_size\t\t\tdisabled\n");
-    }
-
-    if (ScanCtx.content_size > 0) {
-        printf("content_size\t\t%d B\n", ScanCtx.content_size);
-    } else {
-        printf("content_size\t\t\tdisabled\n");
-    }
-
-    printf("output\t\t\t%s\n", ScanCtx.index.path);
+    LOG_INFOF("main.c", "sist2 v%s", Version)
 }
 
 void sist2_scan(scan_args_t *args) {
@@ -236,6 +219,8 @@ int main(int argc, const char *argv[]) {
             OPT_HELP(),
 
             OPT_BOOLEAN('v', "version", &arg_version, "Show version and exit"),
+            OPT_BOOLEAN(0, "verbose", &LogCtx.verbose, "Turn on logging"),
+            OPT_BOOLEAN(0, "very-verbose", &LogCtx.very_verbose, "Turn on debug messages"),
 
             OPT_GROUP("Scan options"),
             OPT_INTEGER('t', "threads", &scan_args->threads, "Number of threads. DEFAULT=1"),
@@ -283,6 +268,10 @@ int main(int argc, const char *argv[]) {
     if (arg_version) {
         printf(Version);
         exit(0);
+    }
+
+    if (LogCtx.very_verbose != 0) {
+        LogCtx.verbose = 1;
     }
 
 #ifndef SIST_SCAN_ONLY

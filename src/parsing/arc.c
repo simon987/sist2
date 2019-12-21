@@ -67,18 +67,24 @@ void parse_archive(vfile_t *f, document_t *doc) {
     struct archive *a;
     struct archive_entry *entry;
 
-    a = archive_read_new();
-
-    archive_read_support_filter_all(a);
-    archive_read_support_format_all(a);
 
     arc_data_f data;
     data.f = f;
 
     int ret = 0;
     if (data.f->is_fs_file) {
+
+        a = archive_read_new();
+        archive_read_support_filter_all(a);
+        archive_read_support_format_all(a);
+
         ret = archive_read_open_filename(a, doc->filepath, ARC_BUF_SIZE);
     } else if (ScanCtx.archive_mode == ARC_MODE_RECURSE) {
+
+        a = archive_read_new();
+        archive_read_support_filter_all(a);
+        archive_read_support_format_all(a);
+
         ret = archive_read_open(
                 a, &data,
                 vfile_open_callback,
@@ -86,12 +92,11 @@ void parse_archive(vfile_t *f, document_t *doc) {
                 vfile_close_callback
         );
     } else {
-        archive_read_free(a);
         return;
     }
 
     if (ret != ARCHIVE_OK) {
-        fprintf(stderr, "OPEN[%d]:%s %s\n", ret, archive_error_string(a), doc->filepath);
+        LOG_ERRORF(doc->filepath, "(arc.c) [%d] %s", ret, archive_error_string(a))
         archive_read_free(a);
         return;
     }

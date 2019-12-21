@@ -59,6 +59,7 @@
 #include "parsing/arc.h"
 #include "parsing/doc.h"
 #include "cli.h"
+#include "log.h"
 #include "utf8.h/utf8.h"
 
 #ifndef SIST_SCAN_ONLY

@@ -77,7 +77,8 @@ AVFrame *scale_frame(const AVCodecContext *decoder, const AVFrame *frame, int si
     return scaled_frame;
 }
 
-AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder, int stream_idx) {
+__always_inline
+AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder, int stream_idx, document_t *doc) {
     AVFrame *frame = av_frame_alloc();
 
     AVPacket avPacket;
@@ -90,9 +91,12 @@ AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder, int st
             int read_frame_ret = av_read_frame(pFormatCtx, &avPacket);
 
             if (read_frame_ret != 0) {
-//                if (read_frame_ret != AVERROR_EOF) {
-//                    fprintf(stderr, "Error reading frame: %d\n", read_frame_ret);
-//                }
+                if (read_frame_ret != AVERROR_EOF) {
+                    LOG_WARNINGF(doc->filepath,
+                                 "(media.c) avcodec_read_frame() returned error code [%d] %s",
+                                 read_frame_ret, av_err2str(read_frame_ret)
+                    )
+                }
                 av_frame_free(&frame);
                 av_packet_unref(&avPacket);
                 return NULL;
@@ -109,7 +113,10 @@ AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder, int st
         // Feed it to decoder
         int decode_ret = avcodec_send_packet(decoder, &avPacket);
         if (decode_ret != 0) {
-            printf("Error decoding frame: %s\n", av_err2str(decode_ret));
+            LOG_WARNINGF(doc->filepath,
+                         "(media.c) avcodec_send_packet() returned error code [%d] %s",
+                         decode_ret, av_err2str(decode_ret)
+            )
         }
         av_packet_unref(&avPacket);
         receive_ret = avcodec_receive_frame(decoder, frame);
@@ -152,7 +159,8 @@ void append_audio_meta(AVFormatContext *pFormatCtx, document_t *doc) {
 }
 
 __always_inline
-void append_video_meta(AVFormatContext *pFormatCtx, AVFrame *frame, document_t *doc, int include_audio_tags, int is_video) {
+void
+append_video_meta(AVFormatContext *pFormatCtx, AVFrame *frame, document_t *doc, int include_audio_tags, int is_video) {
 
     if (is_video) {
         meta_line_t *meta_duration = malloc(sizeof(meta_line_t));
@@ -259,7 +267,7 @@ void parse_media(AVFormatContext *pFormatCtx, document_t *doc) {
             }
         }
 
-        AVFrame *frame = read_frame(pFormatCtx, decoder, video_stream);
+        AVFrame *frame = read_frame(pFormatCtx, decoder, video_stream, doc);
         if (frame == NULL) {
             avcodec_free_context(&decoder);
             avformat_close_input(&pFormatCtx);
@@ -308,12 +316,12 @@ void parse_media_filename(const char *filepath, document_t *doc) {
 
     AVFormatContext *pFormatCtx = avformat_alloc_context();
     if (pFormatCtx == NULL) {
-        fprintf(stderr, "Could not allocate AVFormatContext! %s \n", filepath);
+        LOG_ERROR(doc->filepath, "(media.c) Could not allocate context with avformat_alloc_context()")
         return;
     }
     int res = avformat_open_input(&pFormatCtx, filepath, NULL, NULL);
     if (res < 0) {
-        fprintf(stderr, "media error: %s %s\n", filepath, av_err2str(res));
+        LOG_ERRORF(doc->filepath, "(media.c) avformat_open_input() returned [%d] %s", res, av_err2str(res))
         return;
     }
 
@@ -336,7 +344,7 @@ void parse_media_vfile(struct vfile *f, document_t *doc) {
 
     AVFormatContext *pFormatCtx = avformat_alloc_context();
     if (pFormatCtx == NULL) {
-        fprintf(stderr, "Could not allocate AVFormatContext! %s \n", f->filepath);
+        LOG_ERROR(doc->filepath, "(media.c) Could not allocate context with avformat_alloc_context()")
         return;
     }
 
@@ -350,8 +358,8 @@ void parse_media_vfile(struct vfile *f, document_t *doc) {
     if (res == -5) {
         // Tried to parse media that requires seek
         return;
-    } else if(res < 0) {
-        fprintf(stderr, "media error: %s %s\n", f->filepath, av_err2str(res));
+    } else if (res < 0) {
+        LOG_ERRORF(doc->filepath, "(media.c) avformat_open_input() returned [%d] %s", res, av_err2str(res))
         return;
     }
 

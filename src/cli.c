@@ -1,4 +1,5 @@
 #include "cli.h"
+#include "ctx.h"
 
 #define DEFAULT_OUTPUT "index.sist2/"
 #define DEFAULT_CONTENT_SIZE 32768
@@ -134,6 +135,19 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         fprintf(stderr, "Archive mode must be one of (skip, list, shallow, recurse), got '%s'", args->archive);
         return 1;
     }
+
+    LOG_DEBUGF("cli.c", "arg quality=%f", args->quality)
+    LOG_DEBUGF("cli.c", "arg size=%d", args->size)
+    LOG_DEBUGF("cli.c", "arg content_size=%d", args->content_size)
+    LOG_DEBUGF("cli.c", "arg threads=%d", args->threads)
+    LOG_DEBUGF("cli.c", "arg incremental=%s", args->incremental)
+    LOG_DEBUGF("cli.c", "arg output=%s", args->incremental)
+    LOG_DEBUGF("cli.c", "arg rewrite_url=%s", args->rewrite_url)
+    LOG_DEBUGF("cli.c", "arg name=%s", args->name)
+    LOG_DEBUGF("cli.c", "arg depth=%d", args->depth)
+    LOG_DEBUGF("cli.c", "arg path=%s", args->path)
+    LOG_DEBUGF("cli.c", "arg archive=%s", args->archive)
+
     return 0;
 }
 
@@ -189,6 +203,14 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
         args->batch_size = DEFAULT_BATCH_SIZE;
     }
 
+    LOG_DEBUGF("cli.c", "arg es_url=%s", args->es_url)
+    LOG_DEBUGF("cli.c", "arg index_path=%s", args->index_path)
+    LOG_DEBUGF("cli.c", "arg script_path=%s", args->script_path)
+    LOG_DEBUGF("cli.c", "arg script=%s", args->script)
+    LOG_DEBUGF("cli.c", "arg print=%d", args->print)
+    LOG_DEBUGF("cli.c", "arg batch_size=%d", args->batch_size)
+    LOG_DEBUGF("cli.c", "arg force_reset=%d", args->force_reset)
+
     return 0;
 }
 
@@ -223,10 +245,21 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     for (int i = 0; i < args->index_count; i++) {
         char *abs_path = abspath(args->indices[i]);
         if (abs_path == NULL) {
-            fprintf(stderr, "File not found: %s\n", abs_path);
+            fprintf(stderr, "File not found: %s\n", args->indices[i]);
             return 1;
         }
     }
+
+    LOG_DEBUGF("cli.c", "arg es_url=%s", args->es_url)
+    LOG_DEBUGF("cli.c", "arg bind=%s", args->bind)
+    LOG_DEBUGF("cli.c", "arg port=%s", args->port)
+    LOG_DEBUGF("cli.c", "arg credentials=%s", args->credentials)
+    LOG_DEBUGF("cli.c", "arg b64credentials=%s", args->b64credentials)
+    LOG_DEBUGF("cli.c", "arg index_count=%d", args->index_count)
+    for (int i = 0; i < args->index_count; i++) {
+        LOG_DEBUGF("cli.c", "arg indices[%d]=%s", i, args->indices[i])
+    }
+
     return 0;
 }
 

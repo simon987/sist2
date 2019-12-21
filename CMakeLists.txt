@@ -27,6 +27,9 @@ if (WITH_SIST2)
             src/index/elastic.c src/index/elastic.h
             src/util.c src/util.h
             src/ctx.h src/types.h src/parsing/font.c src/parsing/font.h
+            src/parsing/arc.c src/parsing/arc.h
+            src/parsing/doc.c src/parsing/doc.h
+            src/log.c src/log.h
 
             # argparse
             argparse/argparse.h argparse/argparse.c
@@ -41,7 +44,7 @@ if (WITH_SIST2)
 
             # utf8.h
             utf8.h/utf8.h
-            src/parsing/arc.c src/parsing/arc.h src/parsing/doc.c src/parsing/doc.h)
+    )
 endif ()
 
 if (WITH_SIST2_SCAN)
@@ -60,6 +63,9 @@ if (WITH_SIST2_SCAN)
             src/parsing/text.h src/parsing/text.c
             src/util.c src/util.h
             src/ctx.h src/types.h src/parsing/font.c src/parsing/font.h
+            src/parsing/arc.h src/parsing/arc.c
+            src/parsing/doc.h src/parsing/doc.c
+            src/log.h src/log.c
 
             # argparse
             argparse/argparse.h argparse/argparse.c
@@ -74,7 +80,7 @@ if (WITH_SIST2_SCAN)
 
             # utf8.h
             utf8.h/utf8.h
-            src/parsing/arc.c src/parsing/arc.h src/parsing/doc.c src/parsing/doc.h)
+    )
 endif ()
 
 find_package(PkgConfig REQUIRED)

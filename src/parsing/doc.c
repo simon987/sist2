@@ -1,6 +1,7 @@
 #include "doc.h"
+#include "src/ctx.h"
 
-static void dumpText(mceTextReader_t *reader, dyn_buffer_t *buf) {
+static void dump_text(mceTextReader_t *reader, dyn_buffer_t *buf) {
 
     mce_skip_attributes(reader);
 
@@ -17,7 +18,7 @@ static void dumpText(mceTextReader_t *reader, dyn_buffer_t *buf) {
         } mce_end_element(reader);
 
         mce_start_element(reader, NULL, NULL) {
-            dumpText(reader, buf);
+            dump_text(reader, buf);
         } mce_end_element(reader);
 
     } mce_end_children(reader)
@@ -50,19 +51,20 @@ int should_read_part(opcPart part) {
     return FALSE;
 }
 
-void read_part(opcContainer *c, dyn_buffer_t *buf, opcPart part) {
+__always_inline
+void read_part(opcContainer *c, dyn_buffer_t *buf, opcPart part, document_t *doc) {
 
     mceTextReader_t reader;
     int ret = opcXmlReaderOpen(c, &reader, part, NULL, "UTF-8", 0);
 
     if (ret != OPC_ERROR_NONE) {
-        //todo verbose
+        LOG_ERRORF(doc->filepath, "(doc.c) opcXmlReaderOpen() returned error code %d", ret);
         return;
     }
 
     mce_start_document(&reader) {
         mce_start_element(&reader, NULL, NULL) {
-            dumpText(&reader, buf);
+                dump_text(&reader, buf);
         } mce_end_element(&reader);
     }mce_end_document(&reader);
 
@@ -71,9 +73,13 @@ void read_part(opcContainer *c, dyn_buffer_t *buf, opcPart part) {
 
 void parse_doc(void *mem, size_t mem_len, document_t *doc) {
 
+    if (mem == NULL) {
+        return;
+    }
+
     opcContainer *c = opcContainerOpenMem(mem, mem_len, OPC_OPEN_READ_ONLY, NULL);
     if (c == NULL) {
-        //todo verbose
+        LOG_ERROR(doc->filepath, "(doc.c) Couldn't open document with opcContainerOpenMem()");
         return;
     }
 
@@ -82,7 +88,7 @@ void parse_doc(void *mem, size_t mem_len, document_t *doc) {
     opcPart part = opcPartGetFirst(c);
     do {
         if (should_read_part(part)) {
-            read_part(c, &buf, part);
+            read_part(c, &buf, part, doc);
         }
     } while ((part = opcPartGetNext(c, part)));
 

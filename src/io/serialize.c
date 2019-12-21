@@ -262,8 +262,7 @@ void read_index(const char *path, const char index_id[UUID_STR_LEN], index_func 
                     break;
                 }
                 default:
-                    fprintf(stderr, "Invalid meta key (corrupt index): %x\n", key);
-                    break;
+                    LOG_FATALF("serialize.c", "Invalid meta key (corrupt index): %x", key)
             }
 
             key = getc(file);

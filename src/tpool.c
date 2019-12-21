@@ -136,6 +136,7 @@ static void *tpool_worker(void *arg) {
         pthread_mutex_unlock(&(pool->work_mutex));
     }
 
+    LOG_INFO("tpool.c", "Executing cleaup function")
     pool->cleanup_func();
 
     pthread_cond_signal(&(pool->working_cond));
@@ -144,6 +145,7 @@ static void *tpool_worker(void *arg) {
 }
 
 void tpool_wait(tpool_t *pool) {
+    LOG_INFO("tpool.c", "Waiting for worker threads to finish")
     pthread_mutex_lock(&(pool->work_mutex));
     while (1) {
         if (pool->done_cnt < pool->work_cnt) {
@@ -159,12 +161,16 @@ void tpool_wait(tpool_t *pool) {
     }
     progress_bar_print(1.0, ScanCtx.stat_tn_size, ScanCtx.stat_index_size);
     pthread_mutex_unlock(&(pool->work_mutex));
+
+    LOG_INFO("tpool.c", "Worker threads finished")
 }
 
 void tpool_destroy(tpool_t *pool) {
     if (pool == NULL) {
         return;
     }
+
+    LOG_INFO("tpool.c", "Destroying thread pool")
 
     pthread_mutex_lock(&(pool->work_mutex));
     tpool_work_t *work = pool->work_head;
@@ -184,6 +190,8 @@ void tpool_destroy(tpool_t *pool) {
             pthread_join(thread, &_);
         }
     }
+
+    LOG_INFO("tpool.c", "Final cleanup")
 
     pthread_mutex_destroy(&(pool->work_mutex));
     pthread_cond_destroy(&(pool->has_work_cond));
@@ -219,6 +227,8 @@ tpool_t *tpool_create(size_t thread_cnt, void cleanup_func()) {
 }
 
 void tpool_start(tpool_t *pool) {
+
+    LOG_INFOF("tpool.c", "Starting thread pool with %d threads", pool->thread_cnt)
 
     for (size_t i = 0; i < pool->thread_cnt; i++) {
         pthread_create(&pool->threads[i], NULL, tpool_worker, pool);

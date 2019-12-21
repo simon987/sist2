@@ -9,8 +9,7 @@ int fs_read(struct vfile *f, void *buf, size_t size) {
     if (f->fd == -1) {
         f->fd = open(f->filepath, O_RDONLY);
         if (f->fd == -1) {
-            perror("open");
-            printf("%s\n", f->filepath);
+            LOG_ERRORF(f->filepath, "open(): [%d] %s", errno, strerror(errno))
             return -1;
         }
     }
@@ -39,7 +38,7 @@ void *read_all(parse_job_t *job, const char *buf, int bytes_read) {
 
         int ret = job->vfile.read(&job->vfile, full_buf + bytes_read, job->info.st_size - bytes_read);
         if (ret == -1) {
-            perror("read");
+            LOG_ERRORF(job->filepath, "read(): [%d] %s", errno, strerror(errno))
             return NULL;
         }
     }
@@ -75,6 +74,12 @@ void parse(void *arg) {
     uuid_generate(doc.uuid);
     char *buf[PARSE_BUF_SIZE];
 
+    if (LogCtx.very_verbose) {
+        char uuid_str[UUID_STR_LEN];
+        uuid_unparse(doc.uuid, uuid_str);
+        LOG_DEBUGF(job->filepath, "Starting parse job {%s}", uuid_str)
+    }
+
     if (job->info.st_size == 0) {
         doc.mime = MIME_EMPTY;
     } else if (*(job->filepath + job->ext) != '\0' && (job->ext - job->base != 1)) {
@@ -87,6 +92,7 @@ void parse(void *arg) {
         // Get mime type with libmagic
         bytes_read = job->vfile.read(&job->vfile, buf, PARSE_BUF_SIZE);
         if (bytes_read == -1) {
+            LOG_WARNINGF(job->filepath, "read() Error: %s", strerror(errno))
             CLOSE_FILE(job->vfile)
             return;
         }
@@ -95,7 +101,7 @@ void parse(void *arg) {
         if (magic_mime_str != NULL) {
             doc.mime = mime_get_mime_by_string(ScanCtx.mime_table, magic_mime_str);
             if (doc.mime == 0) {
-                fprintf(stderr, "Couldn't find mime %s, %s\n", magic_mime_str, job->filepath + job->base);
+                LOG_WARNINGF(job->filepath, "Couldn't find mime %s", magic_mime_str);
             }
         }
     }
