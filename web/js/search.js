@@ -19,6 +19,19 @@ if (localStorage.getItem("mode") === null) {
     mode = localStorage.getItem("mode")
 }
 
+function showEsError() {
+    $.toast({
+        heading: "Elasticsearch connection error",
+        text: "sist2 web module encountered an error while connecting " +
+            "to Elasticsearch. See server logs for more information.",
+        stack: false,
+        bgColor: "#a94442",
+        textColor: "#f2dede",
+        position: 'bottom-right',
+        hideAfter: false
+    });
+}
+
 jQuery["jsonPost"] = function (url, data) {
     return jQuery.ajax({
         url: url,
@@ -26,6 +39,7 @@ jQuery["jsonPost"] = function (url, data) {
         data: JSON.stringify(data),
         contentType: "application/json"
     }).fail(err => {
+        showEsError();
         console.log(err);
     });
 };
