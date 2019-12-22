@@ -93,12 +93,15 @@ void parse_doc(void *mem, size_t mem_len, document_t *doc) {
     } while ((part = opcPartGetNext(c, part)));
 
     opcContainerClose(c, OPC_CLOSE_NOW);
-    dyn_buffer_write_char(&buf, '\0');
 
-    meta_line_t *meta = malloc(sizeof(meta_line_t) + buf.cur);
-    meta->key = MetaContent;
-    strcpy(meta->strval, buf.buf);
-    APPEND_META(doc, meta)
+    if (buf.cur > 0) {
+        dyn_buffer_write_char(&buf, '\0');
+
+        meta_line_t *meta = malloc(sizeof(meta_line_t) + buf.cur);
+        meta->key = MetaContent;
+        strcpy(meta->strval, buf.buf);
+        APPEND_META(doc, meta)
+    }
 
     dyn_buffer_destroy(&buf);
 }
