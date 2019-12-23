@@ -141,7 +141,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg content_size=%d", args->content_size)
     LOG_DEBUGF("cli.c", "arg threads=%d", args->threads)
     LOG_DEBUGF("cli.c", "arg incremental=%s", args->incremental)
-    LOG_DEBUGF("cli.c", "arg output=%s", args->incremental)
+    LOG_DEBUGF("cli.c", "arg output=%s", args->output)
     LOG_DEBUGF("cli.c", "arg rewrite_url=%s", args->rewrite_url)
     LOG_DEBUGF("cli.c", "arg name=%s", args->name)
     LOG_DEBUGF("cli.c", "arg depth=%d", args->depth)
