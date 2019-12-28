@@ -2,6 +2,23 @@
     outline: 0;
 }
 
+.path-row {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-align: start;
+    align-items: flex-start;
+}
+
+.tag-container {
+    margin-left: 0.3rem;
+}
+
+.path-line {
+    color: #444;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
 body {
     overflow-y: scroll;
 }
@@ -16,7 +33,7 @@ body {
 }
 
 .sub-document {
-    background: #AB47BC1F;
+    background: #AB47BC1F !important;
 }
 
 .navbar-brand {
@@ -82,6 +99,7 @@ body {
 }
 
 .file-title {
+    width: 100%;
     font-size: 10pt;
     white-space: nowrap;
     text-overflow: ellipsis;

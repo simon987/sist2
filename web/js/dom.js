@@ -367,6 +367,10 @@ function createDocLine(hit) {
     const line = document.createElement("div");
     line.setAttribute("class", "list-group-item flex-column align-items-start");
 
+    if (hit["_source"].hasOwnProperty("parent")) {
+        line.classList.add("sub-document");
+        isSubDocument = true;
+    }
 
     const title = makeTitle(hit);
 
@@ -396,8 +400,16 @@ function createDocLine(hit) {
         titleDiv.appendChild(contentDiv);
     }
 
+    let pathLine = document.createElement("div");
+    pathLine.setAttribute("class", "path-row");
+
+    let path = document.createElement("div");
+    path.setAttribute("class", "path-line");
+    path.setAttribute("title", hit["_source"]["path"] + "/");
+    path.appendChild(document.createTextNode(hit["_source"]["path"] + "/"));
+
     let tagContainer = document.createElement("div");
-    tagContainer.setAttribute("class", "");
+    tagContainer.setAttribute("class", "tag-container");
 
     for (let i = 0; i < tags.length; i++) {
         tagContainer.appendChild(tags[i]);
@@ -409,7 +421,9 @@ function createDocLine(hit) {
     sizeTag.setAttribute("class", "text-muted");
     tagContainer.appendChild(sizeTag);
 
-    titleDiv.appendChild(tagContainer);
+    titleDiv.appendChild(pathLine);
+    pathLine.appendChild(path);
+    pathLine.appendChild(tagContainer);
 
     return line;
 }

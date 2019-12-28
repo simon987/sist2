@@ -2,6 +2,23 @@
     outline: 0;
 }
 
+.path-row {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-align: start;
+    align-items: flex-start;
+}
+
+.tag-container {
+    margin-left: 0.3rem;
+}
+
+.path-line {
+    color: #BBB;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
 a {
     color: #00BCD4;
 }
@@ -24,7 +41,11 @@ body {
 }
 
 .sub-document {
-    background: #37474F;
+    background: #37474F !important;
+}
+
+.list-group-item.sub-document {
+    border-top: 1px solid #646464 !important;
 }
 
 .sub-document .text-muted {
@@ -112,6 +133,7 @@ body {
 }
 
 .file-title {
+    width: 100%;
     font-size: 10pt;
     white-space: nowrap;
     text-overflow: ellipsis;
