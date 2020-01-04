@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+THREADS=$(nproc)
+
 cd lib
 
 cd mupdf
@@ -12,7 +15,7 @@ mv mupdf/build/release/libmupdf-third.a .
 cd openjpeg
 #cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3 -march=native -DNDEBUG"
 cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3"
-make -j 4
+make -j $THREADS
 cd ..
 mv openjpeg/bin/libopenjp2.a .
 
@@ -20,7 +23,7 @@ mv openjpeg/bin/libopenjp2.a .
 cd harfbuzz
 ./autogen.sh
 ./configure --disable-shared --enable-static
-make -j 4
+make -j $THREADS
 cd ..
 mv harfbuzz/src/.libs/libharfbuzz.a .
 
@@ -31,7 +34,7 @@ cd ffmpeg
  --disable-manpages --disable-postproc --disable-avfilter \
  --disable-alsa --disable-lzma --disable-xlib --disable-debug\
  --disable-vdpau --disable-vaapi --disable-sdl2 --disable-network
-make -j 4
+make -j $THREADS
 cd ..
 
 mv ffmpeg/libavcodec/libavcodec.a .
@@ -48,14 +51,14 @@ cmake -DONION_USE_SSL=false -DONION_USE_PAM=false -DONION_USE_PNG=false -DONION_
 -DONION_USE_JPEG=false -DONION_USE_XML2=false -DONION_USE_SYSTEMD=false -DONION_USE_SQLITE3=false \
 -DONION_USE_REDIS=false -DONION_USE_GC=false -DONION_USE_TESTS=false -DONION_EXAMPLES=false \
 -DONION_USE_BINDINGS_CPP=false ..
-make -j 4
+make -j $THREADS
 cd ../..
 
 mv onion/build/src/onion/libonion_static.a .
 
 #bzip2
 cd bzip2-1.0.6
-make -j 4
+make -j $THREADS
 cd ..
 mv bzip2-1.0.6/libbz2.a .
 
@@ -63,7 +66,7 @@ mv bzip2-1.0.6/libbz2.a .
 cd libmagic
 ./autogen.sh
 ./configure --enable-static --disable-shared
-make -j 4
+make -j $THREADS
 cd ..
 mv libmagic/src/.libs/libmagic.a .
 
@@ -72,13 +75,13 @@ cd libarchive/build
 ./autogen.sh
 cd ..
 ./configure --without-nettle --without-expat --without-xml2 --without-openssl
-make -j 4
+make -j $THREADS
 cd ..
 mv libarchive/.libs/libarchive.a .
 
 # lz4
 cd lz4
-make -j 4
+make -j $THREADS
 cd ..
 mv lz4/lib/liblz4.a .
 
@@ -89,13 +92,13 @@ rm xz-5.2.3.tar.gz
 cd xz-5.2.3
 ./autogen.sh
 ./configure
-make -j 4
+make -j $THREADS
 cd ..
 mv xz-5.2.3/src/liblzma/.libs/liblzma.a .
 
 # zstd
 cd zstd
-make -j 4
+make -j $THREADS
 cd ..
 mv zstd/lib/libzstd.a .
 
