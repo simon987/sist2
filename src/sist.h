@@ -12,11 +12,11 @@
 #include <ftw.h>
 #include <uuid.h>
 #include <magic.h>
-#include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
-#include <libswresample/swresample.h>
-#include <libavcodec/avcodec.h>
-#include <libavutil/imgutils.h>
+#include "libavformat/avformat.h"
+#include "libswscale/swscale.h"
+#include "libswresample/swresample.h"
+#include "libavcodec/avcodec.h"
+#include "libavutil/imgutils.h"
 #include <ctype.h>
 #include <mupdf/fitz.h>
 #include <mupdf/pdf.h>

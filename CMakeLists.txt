@@ -86,8 +86,6 @@ endif ()
 find_package(PkgConfig REQUIRED)
 set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig/")
 
-find_package(LibMagic REQUIRED)
-find_package(FFmpeg REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Freetype REQUIRED)
 
@@ -95,7 +93,6 @@ pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(GOBJECT REQUIRED gobject-2.0)
 pkg_check_modules(UUID REQUIRED uuid)
 
-add_definitions(${LIBMAGIC_CFLAGS_OTHER})
 add_definitions(${UUID_CFLAGS_OTHER})
 add_definitions(${GLIB_CFLAGS_OTHER})
 add_definitions(${GOBJECT_CFLAGS_OTHER})
@@ -108,11 +105,9 @@ list(REMOVE_ITEM UUID_LIBRARIES pcre)
 if (WITH_SIST2)
     target_include_directories(
             sist2 PUBLIC
-            ${LIBMAGIC_INCLUDE_DIRS}
             ${GOBJECT_INCLUDE_DIRS}
-            ${OPENSSL_INCLUDE_DIR}
-            ${FFMPEG_INCLUDE_DIRS}
             ${GLIB_INCLUDE_DIRS}
+            ${PROJECT_SOURCE_DIR}/lib/ffmpeg/
             ${FREETYPE_INCLUDE_DIRS}
             ${UUID_INCLUDE_DIRS}
             ${PROJECT_SOURCE_DIR}/
@@ -125,7 +120,6 @@ if (WITH_SIST2)
     target_link_directories(
             sist2 PUBLIC
             ${UUID_LIBRARY_DIRS}
-            ${FFMPEG_LIBRARY_DIRS}
     )
 
 
@@ -150,8 +144,6 @@ if (WITH_SIST2)
             ${PROJECT_SOURCE_DIR}/lib/libavutil.a
             ${PROJECT_SOURCE_DIR}/lib/libswscale.a
             ${PROJECT_SOURCE_DIR}/lib/libswresample.a
-            #        ${FFMPEG_LIBRARIES}
-            #        swscale
 
             # mupdf
             ${PROJECT_SOURCE_DIR}/lib/libmupdf.a
@@ -164,7 +156,7 @@ if (WITH_SIST2)
             curl
             m
             bz2
-            magic
+            ${PROJECT_SOURCE_DIR}/lib/libmagic.a
             ${PROJECT_SOURCE_DIR}/lib/libharfbuzz.a
             ${PROJECT_SOURCE_DIR}/lib/libopenjp2.a
             freetype
@@ -196,7 +188,7 @@ if (WITH_SIST2_SCAN)
             ${LIBMAGIC_INCLUDE_DIRS}
             ${GOBJECT_INCLUDE_DIRS}
             ${OPENSSL_INCLUDE_DIR}
-            ${FFMPEG_INCLUDE_DIRS}
+            ${PROJECT_SOURCE_DIR}/lib/ffmpeg/
             ${GLIB_INCLUDE_DIRS}
             ${UUID_INCLUDE_DIRS}
             ${FREETYPE_INCLUDE_DIRS}
@@ -210,7 +202,6 @@ if (WITH_SIST2_SCAN)
     target_link_directories(
             sist2_scan PUBLIC
             ${UUID_LIBRARY_DIRS}
-            ${FFMPEG_LIBRARY_DIRS}
     )
     target_compile_options(sist2_scan
             PRIVATE

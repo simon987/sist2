@@ -1,7 +1,7 @@
 #include "doc.h"
 #include "src/ctx.h"
 
-static void dump_text(mceTextReader_t *reader, dyn_buffer_t *buf) {
+void dump_text(mceTextReader_t *reader, dyn_buffer_t *buf) {
 
     mce_skip_attributes(reader);
 
