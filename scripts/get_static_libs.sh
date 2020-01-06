@@ -5,7 +5,7 @@ THREADS=$(nproc)
 cd lib
 
 cd mupdf
-USE_SYSTEM_HARFBUZZ=yes USE_SYSTEM_OPENJPEG=yes HAVE_X11=no HAVE_GLUT=no make -j 4
+make USE_SYSTEM_HARFBUZZ=yes USE_SYSTEM_OPENJPEG=yes HAVE_X11=no HAVE_GLUT=no -j $THREADS
 cd ..
 
 mv mupdf/build/release/libmupdf.a .
