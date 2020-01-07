@@ -86,7 +86,7 @@ endif ()
 find_package(PkgConfig REQUIRED)
 set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig/")
 
-find_package(OpenSSL REQUIRED)
+#find_package(OpenSSL REQUIRED)
 find_package(Freetype REQUIRED)
 
 pkg_check_modules(GLIB REQUIRED glib-2.0)
