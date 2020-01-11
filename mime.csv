@@ -252,7 +252,7 @@ text/html, acgi|htm|html|htmls|htx|shtml
 text/javascript, js
 text/mcf, mcf
 text/pascal, pas
-text/plain, com|cmd|conf|def|g|idc|list|lst|mar|sdml|text|txt|md|groovy|license|properties|desktop|ini|rst|cmake|ipynb|readme|less|lo|go|yml|d|cs|hpp|srt|nfo|sfv|m3u
+text/plain, com|cmd|conf|def|g|idc|list|lst|mar|sdml|text|txt|md|groovy|license|properties|desktop|ini|rst|cmake|ipynb|readme|less|lo|go|yml|d|cs|hpp|srt|nfo|sfv|m3u|csv|eml
 text/richtext, rt|rtf|rtx
 text/rtf,
 text/scriplet, wsc

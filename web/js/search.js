@@ -60,19 +60,28 @@ function toggleFuzzy() {
 }
 
 $.jsonPost("i").then(resp => {
+
+    const urlIndices = (new URLSearchParams(location.search)).get("i");
+
     resp["indices"].forEach(idx => {
         const opt = $("<option>")
             .attr("value", idx.id)
             .append(idx.name);
-        if (!idx.name.includes("(nsfw)")) {
-            opt.attr("selected", !idx.name.includes("(nsfw)"));
+
+        if (urlIndices) {
+            if (urlIndices.split(",").indexOf(idx.name) !== -1) {
+                opt.attr("selected", true);
+                selectedIndices.push(idx.id);
+            }
+        } else if (!idx.name.includes("(nsfw)")) {
+            opt.attr("selected", true);
             selectedIndices.push(idx.id);
         }
         $("#indices").append(opt);
     });
 });
 
-function handleTreeClick (tree) {
+function handleTreeClick(tree) {
     return (event, node, handler) => {
         event.preventTreeDefault();
 
@@ -141,7 +150,7 @@ $.jsonPost("es", {
 
 function leafTag(tag) {
     const tokens = tag.split(".");
-    return tokens[tokens.length-1]
+    return tokens[tokens.length - 1]
 }
 
 // Tags tree
@@ -159,8 +168,8 @@ $.jsonPost("es", {
     resp["aggregations"]["tags"]["buckets"]
         .sort((a, b) => a["key"].localeCompare(b["key"]))
         .forEach(bucket => {
-        addTag(tagMap, bucket["key"], bucket["key"], bucket["doc_count"])
-    });
+            addTag(tagMap, bucket["key"], bucket["key"], bucket["doc_count"])
+        });
 
     tagMap.push({"text": "All", "id": "any"});
     tagTree = new InspireTree({
