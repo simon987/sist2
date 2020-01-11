@@ -66,7 +66,7 @@ void read_part(opcContainer *c, dyn_buffer_t *buf, opcPart part, document_t *doc
         mce_start_element(&reader, NULL, NULL) {
                 dump_text(&reader, buf);
         } mce_end_element(&reader);
-    }mce_end_document(&reader);
+    } mce_end_document(&reader);
 
     mceTextReaderCleanup(&reader);
 }

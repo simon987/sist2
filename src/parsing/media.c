@@ -322,6 +322,8 @@ void parse_media_filename(const char *filepath, document_t *doc) {
     int res = avformat_open_input(&pFormatCtx, filepath, NULL, NULL);
     if (res < 0) {
         LOG_ERRORF(doc->filepath, "(media.c) avformat_open_input() returned [%d] %s", res, av_err2str(res))
+        avformat_close_input(&pFormatCtx);
+        avformat_free_context(pFormatCtx);
         return;
     }
 
@@ -357,13 +359,22 @@ void parse_media_vfile(struct vfile *f, document_t *doc) {
     int res = avformat_open_input(&pFormatCtx, "", NULL, NULL);
     if (res == -5) {
         // Tried to parse media that requires seek
+        av_free(io_ctx->buffer);
+        avio_context_free(&io_ctx);
+        avformat_close_input(&pFormatCtx);
+        avformat_free_context(pFormatCtx);
         return;
     } else if (res < 0) {
         LOG_ERRORF(doc->filepath, "(media.c) avformat_open_input() returned [%d] %s", res, av_err2str(res))
+        av_free(io_ctx->buffer);
+        avio_context_free(&io_ctx);
+        avformat_close_input(&pFormatCtx);
+        avformat_free_context(pFormatCtx);
         return;
     }
 
     parse_media(pFormatCtx, doc);
-    av_free(io_ctx);
+    av_free(io_ctx->buffer);
+    avio_context_free(&io_ctx);
 }
 
