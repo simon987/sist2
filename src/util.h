@@ -7,7 +7,7 @@
 #define INITIAL_BUF_SIZE 1024 * 16
 
 #define SHOULD_IGNORE_CHAR(c) !(SHOULD_KEEP_CHAR(c))
-#define SHOULD_KEEP_CHAR(c) (c >= (int)'!')
+#define SHOULD_KEEP_CHAR(c) ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'z') || (c > 127))
 
 
 typedef struct dyn_buffer {
