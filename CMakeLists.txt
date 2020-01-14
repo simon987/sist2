@@ -74,7 +74,7 @@ target_include_directories(
         ${PROJECT_SOURCE_DIR}/lib/mupdf/include/
         ${PROJECT_SOURCE_DIR}/include/
         /usr/include/libxml2/
-        ${PROJECT_SOURCE_DIR}/lib/tesseract_build/include/
+        ${PROJECT_SOURCE_DIR}/lib/tesseract/include/
 )
 target_link_directories(
         sist2 PUBLIC
