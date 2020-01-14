@@ -1,5 +1,6 @@
 ![GitHub](https://img.shields.io/github/license/simon987/sist2.svg)
 [![CodeFactor](https://www.codefactor.io/repository/github/simon987/sist2/badge?s=05daa325188aac4eae32c786f3d9cf4e0593f822)](https://www.codefactor.io/repository/github/simon987/sist2)
+[![Development snapshots](https://ci.simon987.net/app/rest/builds/buildType(Sist2_Build)/statusIcon)](https://files.simon987.net/artifacts/Sist2/Build/)
 
 # sist2
 
@@ -28,6 +29,7 @@ sist2 (Simple incremental search tool)
 1. Have an [Elasticsearch](https://www.elastic.co/downloads/elasticsearch) instance running
 1. 
     1. Download the [latest sist2 release](https://github.com/simon987/sist2/releases) *
+    1. *(or)* Download an [development snapshot](https://files.simon987.net/artifacts/Sist2/Build/) *(Not recommended!)*
     1. *(or)* `docker pull simon987/sist2:latest`
    
 
