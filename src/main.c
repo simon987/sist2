@@ -1,16 +1,12 @@
 #include "sist.h"
 #include "ctx.h"
 
-#ifndef SIST_SCAN_ONLY
 #define DESCRIPTION "Lightning-fast file system indexer and search tool."
-#else
-#define DESCRIPTION "Lightning-fast file system indexer and search tool. (SCAN ONLY)"
-#endif
 
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.1.15";
+static const char *const Version = "1.2.0";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -19,9 +15,7 @@ static const char *const usage[] = {
 };
 
 void global_init() {
-#ifndef SIST_SCAN_ONLY
     curl_global_init(CURL_GLOBAL_NOTHING);
-#endif
     av_log_set_level(AV_LOG_QUIET);
     opcInitLibrary();
 }
@@ -55,6 +49,7 @@ void sist2_scan(scan_args_t *args) {
     strncpy(ScanCtx.index.desc.name, args->name, sizeof(ScanCtx.index.desc.name));
     strncpy(ScanCtx.index.desc.root, args->path, sizeof(ScanCtx.index.desc.root));
     ScanCtx.index.desc.root_len = (short) strlen(ScanCtx.index.desc.root);
+    ScanCtx.tesseract_lang = args->tesseract_lang;
 
     init_dir(ScanCtx.index.path);
 
@@ -121,8 +116,6 @@ void sist2_scan(scan_args_t *args) {
 
     store_destroy(ScanCtx.index.store);
 }
-
-#ifndef SIST_SCAN_ONLY
 
 void sist2_index(index_args_t *args) {
 
@@ -198,18 +191,14 @@ void sist2_web(web_args_t *args) {
     serve(args->bind, args->port);
 }
 
-#endif
-
 
 int main(int argc, const char *argv[]) {
 
     global_init();
 
     scan_args_t *scan_args = scan_args_create();
-#ifndef SIST_SCAN_ONLY
     index_args_t *index_args = index_args_create();
     web_args_t *web_args = web_args_create();
-#endif
 
     int arg_version = 0;
 
@@ -240,8 +229,9 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "archive", &scan_args->archive, "Archive file mode (skip|list|shallow|recurse). "
                                                           "skip: Don't parse, list: only get file names as text, "
                                                           "shallow: Don't parse archives inside archives. DEFAULT: recurse"),
+            OPT_STRING(0, "ocr", &scan_args->tesseract_lang, "Tesseract language (use tesseract --list-langs to see "
+                                                             "which are installed on your machine)"),
 
-#ifndef SIST_SCAN_ONLY
             OPT_GROUP("Index options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT=http://localhost:9200"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
@@ -255,7 +245,6 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "bind", &web_args->bind, "Listen on this address. DEFAULT=localhost"),
             OPT_STRING(0, "port", &web_args->port, "Listen on this port. DEFAULT=4090"),
             OPT_STRING(0, "auth", &web_args->credentials, "Basic auth in user:password format"),
-#endif
 
             OPT_END(),
     };
@@ -274,10 +263,8 @@ int main(int argc, const char *argv[]) {
         LogCtx.verbose = 1;
     }
 
-#ifndef SIST_SCAN_ONLY
     web_args->es_url = common_es_url;
     index_args->es_url = common_es_url;
-#endif
 
     if (argc == 0) {
         argparse_usage(&argparse);
@@ -292,7 +279,6 @@ int main(int argc, const char *argv[]) {
 
     }
 
-#ifndef SIST_SCAN_ONLY
     else if (strcmp(argv[0], "index") == 0) {
 
         int err = index_args_validate(index_args, argc, argv);
@@ -310,7 +296,6 @@ int main(int argc, const char *argv[]) {
         sist2_web(web_args);
 
     }
-#endif
     else {
         fprintf(stderr, "Invalid command: '%s'\n", argv[0]);
         argparse_usage(&argparse);
@@ -320,10 +305,8 @@ int main(int argc, const char *argv[]) {
 
     scan_args_destroy(scan_args);
 
-#ifndef SIST_SCAN_ONLY
     index_args_destroy(index_args);
     web_args_destroy(web_args);
-#endif
 
     return 0;
 }

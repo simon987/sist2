@@ -70,43 +70,21 @@ make -j $THREADS
 cd ..
 mv libmagic/src/.libs/libmagic.a .
 
-# libarchive
-cd libarchive/build
+# tesseract
+cd tesseract
+mkdir build
+cd build
+cmake -DSTATIC=on -DBUILD_TRAINING_TOOLS=off ..
+make -j $THREADS
+cd ../..
+mv tesseract/build/libtesseract.a .
+
+# leptonica
+cd leptonica
 ./autogen.sh
-cd ..
-./configure --without-nettle --without-expat --without-xml2 --without-openssl
+./configure --without-zlib --without-jpeg --without-giflib \
+  --without-giflib --without-libwebp --without-libwebpmux --without-libopenjpeg \
+  --enable-static --disable-shared
 make -j $THREADS
 cd ..
-mv libarchive/.libs/libarchive.a .
-
-# lz4
-cd lz4
-make -j $THREADS
-cd ..
-mv lz4/lib/liblz4.a .
-
-# lzma
-wget https://newcontinuum.dl.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz
-tar -xzf xz-5.2.3.tar.gz
-rm xz-5.2.3.tar.gz
-cd xz-5.2.3
-./autogen.sh
-./configure
-make -j $THREADS
-cd ..
-mv xz-5.2.3/src/liblzma/.libs/liblzma.a .
-
-# zstd
-cd zstd
-make -j $THREADS
-cd ..
-mv zstd/lib/libzstd.a .
-
-# xml2
-cd libxml2
-./autogen.sh --without-zlib --without-lzma
-make
-cd ..
-mv libxml2/.libs/libxml2.a .
-
-cd ..
+mv leptonica/src/.libs/liblept.a .

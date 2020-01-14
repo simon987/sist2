@@ -127,6 +127,7 @@ AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder, int st
 #define APPEND_TAG_META(doc, tag_, keyname) \
     text_buffer_t tex = text_buffer_create(-1); \
     text_buffer_append_string0(&tex, tag_->value); \
+    text_buffer_terminate_string(&tex); \
     meta_line_t *meta_tag = malloc(sizeof(meta_line_t) + tex.dyn_buffer.cur); \
     meta_tag->key = keyname; \
     strcpy(meta_tag->strval, tex.dyn_buffer.buf); \

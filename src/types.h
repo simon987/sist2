@@ -70,16 +70,12 @@ typedef struct document {
     short ext;
     meta_line_t *meta_head;
     meta_line_t *meta_tail;
-    struct document *child_head;
-    struct document *child_tail;
     char *filepath;
 } document_t;
 
 typedef struct vfile vfile_t;
 
 typedef int (*read_func_t)(struct vfile *, void *buf, size_t size);
-
-typedef int (*seek_func_t)(struct vfile *, size_t size, int whence);
 
 typedef void (*close_func_t)(struct vfile *);
 

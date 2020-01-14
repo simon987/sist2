@@ -31,15 +31,9 @@
 [submodule "lib/mupdf"]
 	path = lib/mupdf
 	url = git://git.ghostscript.com/mupdf.git
-[submodule "lib/zstd"]
-	path = lib/zstd
-	url = https://github.com/facebook/zstd
-[submodule "lib/lz4"]
-	path = lib/lz4
-	url = https://github.com/lz4/lz4
-[submodule "lib/libarchive"]
-	path = lib/libarchive
-	url = https://github.com/libarchive/libarchive
-[submodule "lib/libxml2"]
-	path = lib/libxml2
-	url = https://github.com/GNOME/libxml2
+[submodule "lib/tesseract"]
+	path = lib/tesseract
+	url = https://github.com/tesseract-ocr/tesseract
+[submodule "lib/leptonica"]
+	path = lib/leptonica
+	url = https://github.com/danbloomberg/leptonica

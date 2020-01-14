@@ -1,6 +1,8 @@
 #include "cli.h"
 #include "ctx.h"
 
+#include <tesseract/capi.h>
+
 #define DEFAULT_OUTPUT "index.sist2/"
 #define DEFAULT_CONTENT_SIZE 32768
 #define DEFAULT_QUALITY 5
@@ -35,8 +37,6 @@ void scan_args_destroy(scan_args_t *args) {
     free(args);
 }
 
-#ifndef SIST_SCAN_ONLY
-
 void index_args_destroy(index_args_t *args) {
     //todo
     free(args);
@@ -46,8 +46,6 @@ void web_args_destroy(web_args_t *args) {
     //todo
     free(args);
 }
-
-#endif
 
 int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (argc < 2) {
@@ -136,6 +134,17 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         return 1;
     }
 
+    if (args->tesseract_lang != NULL) {
+        TessBaseAPI *api = TessBaseAPICreate();
+        ret = TessBaseAPIInit3(api, TESS_DATAPATH, args->tesseract_lang);
+        if (ret != 0) {
+            fprintf(stderr, "Could not initialize tesseract with lang '%s'\n", args->tesseract_lang);
+            return 1;
+        }
+        TessBaseAPIEnd(api);
+        TessBaseAPIDelete(api);
+    }
+
     LOG_DEBUGF("cli.c", "arg quality=%f", args->quality)
     LOG_DEBUGF("cli.c", "arg size=%d", args->size)
     LOG_DEBUGF("cli.c", "arg content_size=%d", args->content_size)
@@ -147,11 +156,10 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg depth=%d", args->depth)
     LOG_DEBUGF("cli.c", "arg path=%s", args->path)
     LOG_DEBUGF("cli.c", "arg archive=%s", args->archive)
+    LOG_DEBUGF("cli.c", "arg ocr=%s", args->tesseract_lang)
 
     return 0;
 }
-
-#ifndef SIST_SCAN_ONLY
 
 int index_args_validate(index_args_t *args, int argc, const char **argv) {
 
@@ -272,6 +280,4 @@ web_args_t *web_args_create() {
     web_args_t *args = calloc(sizeof(web_args_t), 1);
     return args;
 }
-
-#endif
 

@@ -149,7 +149,6 @@ int text_buffer_append_string(text_buffer_t *buf, char *str, size_t len) {
         (0xe0 == (0xf0 & str[0]) && len < 3) ||
         (0xc0 == (0xe0 & str[0]) && len == 1) ||
         *(str) == 0) {
-        text_buffer_terminate_string(buf);
         return 0;
     }
 
@@ -158,7 +157,6 @@ int text_buffer_append_string(text_buffer_t *buf, char *str, size_t len) {
             text_buffer_append_char(buf, c);
         }
     }
-    text_buffer_terminate_string(buf);
     return 0;
 }
 
@@ -169,7 +167,6 @@ int text_buffer_append_string0(text_buffer_t *buf, char *str) {
             text_buffer_append_char(buf, c);
         }
     }
-    text_buffer_terminate_string(buf);
 }
 
 int text_buffer_append_char(text_buffer_t *buf, int c) {

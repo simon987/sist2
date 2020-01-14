@@ -16,13 +16,13 @@ typedef struct scan_args {
     char *path;
     char *archive;
     archive_mode_t archive_mode;
+    char *tesseract_lang;
 } scan_args_t;
 
 scan_args_t *scan_args_create();
 void scan_args_destroy(scan_args_t *args);
 int scan_args_validate(scan_args_t *args, int argc, const char **argv);
 
-#ifndef SIST_SCAN_ONLY
 typedef struct index_args {
     char *es_url;
     const char *index_path;
@@ -51,6 +51,5 @@ void web_args_destroy(web_args_t *args);
 
 int index_args_validate(index_args_t *args, int argc, const char **argv);
 int web_args_validate(web_args_t *args, int argc, const char **argv);
-#endif
 
 #endif

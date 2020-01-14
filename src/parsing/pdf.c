@@ -1,6 +1,10 @@
 #include "pdf.h"
 #include "src/ctx.h"
 
+#define MIN_OCR_SIZE 128
+__thread text_buffer_t thread_buffer;
+
+
 fz_page *render_cover(fz_context *ctx, document_t *doc, fz_document *fzdoc) {
 
     int err = 0;
@@ -86,13 +90,12 @@ fz_page *render_cover(fz_context *ctx, document_t *doc, fz_document *fzdoc) {
     return cover;
 }
 
-void fz_err_callback(void *user, __attribute__((unused)) const char *message) {
-   if (LogCtx.verbose) {
-       document_t *doc = (document_t*) user;
-       LOG_WARNINGF(doc->filepath, "FZ: %s", message)
-   }
+void fz_err_callback(void *user, UNUSED(const char *message)) {
+    if (LogCtx.verbose) {
+        document_t *doc = (document_t *) user;
+        LOG_WARNINGF(doc->filepath, "FZ: %s", message)
+    }
 }
-
 
 __always_inline
 void init_ctx(fz_context *ctx, document_t *doc) {
@@ -122,6 +125,40 @@ int read_stext_block(fz_stext_block *block, text_buffer_t *tex) {
         line = line->next;
     }
     return 0;
+}
+
+
+void fill_image(fz_context *ctx, UNUSED(fz_device *dev),
+        fz_image *img, UNUSED(fz_matrix ctm), UNUSED(float alpha),
+        UNUSED(fz_color_params color_params)) {
+
+    int l2factor = 0;
+
+    if (img->w > MIN_OCR_SIZE && img->h > MIN_OCR_SIZE) {
+
+        fz_pixmap *pix = img->get_pixmap(ctx, img, NULL, img->w, img->h, &l2factor);
+
+        if (pix->h > MIN_OCR_SIZE && img->h > MIN_OCR_SIZE && img->xres != 0) {
+            TessBaseAPI *api = TessBaseAPICreate();
+            TessBaseAPIInit3(api, TESS_DATAPATH, ScanCtx.tesseract_lang);
+
+            TessBaseAPISetImage(api, pix->samples, pix->w, pix->h, pix->n, pix->stride);
+            TessBaseAPISetSourceResolution(api, pix->xres);
+
+            char *text = TessBaseAPIGetUTF8Text(api);
+            size_t len = strlen(text);
+            text_buffer_append_string(&thread_buffer, text, len - 1);
+            LOG_DEBUGF(
+                    "pdf.c",
+                    "(OCR) %dx%d got %dB from tesseract (%s), buffer:%dB",
+                    pix->w, pix->h, len, ScanCtx.tesseract_lang, thread_buffer.dyn_buffer.cur
+            )
+
+            TessBaseAPIEnd(api);
+            TessBaseAPIDelete(api);
+            fz_drop_pixmap(ctx, pix);
+        }
+    }
 }
 
 void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
@@ -210,7 +247,7 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
 
     if (ScanCtx.content_size > 0) {
         fz_stext_options opts = {0};
-        text_buffer_t text_buf = text_buffer_create(ScanCtx.content_size);
+        thread_buffer = text_buffer_create(ScanCtx.content_size);
 
         for (int current_page = 0; current_page < page_count; current_page++) {
             fz_page *page = NULL;
@@ -224,7 +261,7 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
                     err = ctx->error.errcode;
                 if (err != 0) {
                     LOG_WARNINGF(doc->filepath, "fz_load_page() returned error code [%d] %s", err, ctx->error.message)
-                    text_buffer_destroy(&text_buf);
+                    text_buffer_destroy(&thread_buffer);
                     fz_drop_page(ctx, page);
                     fz_drop_stream(ctx, stream);
                     fz_drop_document(ctx, fzdoc);
@@ -235,6 +272,15 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
 
             fz_stext_page *stext = fz_new_stext_page(ctx, fz_bound_page(ctx, page));
             fz_device *dev = fz_new_stext_device(ctx, stext, &opts);
+            dev->stroke_path = NULL;
+            dev->stroke_text = NULL;
+            dev->clip_text = NULL;
+            dev->clip_stroke_path = NULL;
+            dev->clip_stroke_text = NULL;
+
+            if (ScanCtx.tesseract_lang != NULL) {
+                dev->fill_image = fill_image;
+            }
 
             fz_var(err);
             fz_try(ctx)
@@ -249,7 +295,7 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
 
             if (err != 0) {
                 LOG_WARNINGF(doc->filepath, "fz_run_page() returned error code [%d] %s", err, ctx->error.message)
-                text_buffer_destroy(&text_buf);
+                text_buffer_destroy(&thread_buffer);
                 fz_drop_page(ctx, page);
                 fz_drop_stext_page(ctx, stext);
                 fz_drop_stream(ctx, stream);
@@ -260,7 +306,7 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
 
             fz_stext_block *block = stext->first_block;
             while (block != NULL) {
-                int ret = read_stext_block(block, &text_buf);
+                int ret = read_stext_block(block, &thread_buffer);
                 if (ret == TEXT_BUF_FULL) {
                     break;
                 }
@@ -269,18 +315,18 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
             fz_drop_stext_page(ctx, stext);
             fz_drop_page(ctx, page);
 
-            if (text_buf.dyn_buffer.cur >= text_buf.dyn_buffer.size) {
+            if (thread_buffer.dyn_buffer.cur >= thread_buffer.dyn_buffer.size) {
                 break;
             }
         }
-        text_buffer_terminate_string(&text_buf);
+        text_buffer_terminate_string(&thread_buffer);
 
-        meta_line_t *meta_content = malloc(sizeof(meta_line_t) + text_buf.dyn_buffer.cur);
+        meta_line_t *meta_content = malloc(sizeof(meta_line_t) + thread_buffer.dyn_buffer.cur);
         meta_content->key = MetaContent;
-        memcpy(meta_content->strval, text_buf.dyn_buffer.buf, text_buf.dyn_buffer.cur);
+        memcpy(meta_content->strval, thread_buffer.dyn_buffer.buf, thread_buffer.dyn_buffer.cur);
         APPEND_META(doc, meta_content)
 
-        text_buffer_destroy(&text_buf);
+        text_buffer_destroy(&thread_buffer);
     }
 
     fz_drop_stream(ctx, stream);

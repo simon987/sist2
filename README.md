@@ -11,15 +11,17 @@ sist2 (Simple incremental search tool)
 
 * Fast, low memory usage, multi-threaded
 * Portable (all its features are packaged in a single executable)
-* Extracts text from common file types\*
-* Generates thumbnails\*
+* Extracts text from common file types \*
+* Generates thumbnails \*
 * Incremental scanning
 * Automatic tagging from file attributes via [user scripts](scripting/README.md)
 * Recursive scan inside archive files \*\*
+* OCR support with tesseract \*\*\*
 
 
 \* See [format support](#format-support)    
-\** See [Archive files](#archive-files)
+\*\* See [Archive files](#archive-files)    
+\*\*\* See [OCR](#ocr)    
 
 ## Getting Started
 
@@ -85,7 +87,7 @@ docker stop sist2
 
 File type | Library | Content | Thumbnail | Metadata
 :---|:---|:---|:---|:---
-pdf,xps,cbz,fb2,epub | MuPDF | yes | yes, `png` | title |
+pdf,xps,cbz,fb2,epub | MuPDF | text+ocr | yes, `png` | title |
 `audio/*` | ffmpeg | - | yes, `jpeg` | ID3 tags |
 `video/*` | ffmpeg | - | yes, `jpeg` | title, comment, artist |
 `image/*` | ffmpeg | - | yes, `jpeg` | `EXIF:Artist`, `EXIF:ImageDescription` |
@@ -110,6 +112,21 @@ scan is also supported.
 
 To check if a media file can be parsed without *seek*, execute `cat file.mp4 | ffprobe -`
  
+ 
+### OCR
+
+You can enable OCR support for pdf,xps,cbz,fb2,epub file types with the
+`--ocr <lang>` option. Download the language data files with your
+package manager (`apt install tesseract-ocr-eng`) or directly [from Github](https://github.com/tesseract-ocr/tesseract/wiki/Data-Files).
+
+The `simon987/sist2` github image comes with common languages 
+(hin, jpn, eng, fra, rus, spa) pre-installed.
+
+Examples
+```bash
+sist2 scan --ocr jpn ~/Books/Manga/
+sist2 scan --ocr eng ~/Books/Textbooks/
+```
 
 
 ## Build from source

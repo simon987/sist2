@@ -2,6 +2,8 @@
 #define SIST_H
 
 #define UUID_STR_LEN 37
+#define UNUSED(x) __attribute__((__unused__))  x
+#define TESS_DATAPATH "/usr/share/tessdata/"
 
 #include <glib-2.0/glib.h>
 #include <unistd.h>
@@ -33,14 +35,12 @@
 #include <opc/opc.h>
 #include <libxml/xmlstring.h>
 
-#ifndef SIST_SCAN_ONLY
 #include <onion/onion.h>
 #include <onion/handler.h>
 #include <onion/block.h>
 #include <onion/shortcuts.h>
 #include <onion/codecs.h>
 #include <curl/curl.h>
-#endif
 
 #include "cJSON/cJSON.h"
 
@@ -62,12 +62,10 @@
 #include "log.h"
 #include "utf8.h/utf8.h"
 
-#ifndef SIST_SCAN_ONLY
 #include "src/index/elastic.h"
 #include "index/web.h"
 #include "web/serve.h"
 #include "web/auth_basic.h"
-#endif
 
 ;
 

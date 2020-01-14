@@ -25,6 +25,7 @@ void parse_text(int bytes_read, struct vfile *f, char *buf, document_t *doc) {
     }
     text_buffer_t tex = text_buffer_create(ScanCtx.content_size);
     text_buffer_append_string(&tex, intermediate_buf, intermediate_buf_len);
+    text_buffer_terminate_string(&tex);
 
     meta_line_t *meta = malloc(sizeof(meta_line_t) + tex.dyn_buffer.cur);
     meta->key = MetaContent;
