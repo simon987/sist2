@@ -37,3 +37,6 @@
 [submodule "lib/leptonica"]
 	path = lib/leptonica
 	url = https://github.com/danbloomberg/leptonica
+[submodule "lib/libtiff"]
+	path = lib/libtiff
+	url = https://gitlab.com/libtiff/libtiff

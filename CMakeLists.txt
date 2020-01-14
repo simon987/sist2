@@ -127,8 +127,8 @@ TARGET_LINK_LIBRARIES(
 
         ${PROJECT_SOURCE_DIR}/lib/libtesseract.a
         ${PROJECT_SOURCE_DIR}/lib/liblept.a
+        ${PROJECT_SOURCE_DIR}/lib/libtiff.a
         png
-        tiff
         stdc++
 )
 

@@ -88,3 +88,12 @@ cd leptonica
 make -j $THREADS
 cd ..
 mv leptonica/src/.libs/liblept.a .
+
+# tiff
+cd libtiff
+./autogen.sh
+./configure --enable-static --disable-shared --disable-lzw --disable-jpeg --disable-webp \
+  --disable-lzma --disable-zstd --disable-jbig
+make -j $THREADS
+cd ..
+mv libtiff/libtiff/.libs/libtiff.a .
