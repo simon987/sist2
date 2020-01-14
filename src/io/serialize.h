@@ -11,7 +11,7 @@ void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
 
 void write_document(document_t *doc);
 
-void read_index(const char *path, const char[UUID_STR_LEN], index_func);
+void read_index(const char *path, const char[UUID_STR_LEN], const char *type, index_func);
 
 void incremental_read(GHashTable *table, const char *filepath);
 

@@ -13,19 +13,24 @@
       "type": "keyword"
     },
     "videoc": {
-      "type": "keyword"
+      "type": "keyword",
+      "index": false
     },
     "audioc": {
-      "type": "keyword"
+      "type": "keyword",
+      "index": false
     },
     "duration": {
-      "type": "float"
+      "type": "float",
+      "index": false
     },
     "width": {
-      "type": "integer"
+      "type": "integer",
+      "index": false
     },
     "height": {
-      "type": "integer"
+      "type": "integer",
+      "index": false
     },
     "mtime": {
       "type": "integer"
@@ -69,6 +74,23 @@
     "album_artist": {
       "analyzer": "my_nGram",
       "type": "text"
+    },
+    "_keyword.*":  {
+      "type": "keyword"
+    },
+    "_text.*":  {
+      "analyzer": "content_analyzer",
+      "type": "text",
+      "fields": {
+        "nGram": {
+          "type": "text",
+          "analyzer": "my_nGram"
+        }
+      }
+    },
+    "_url": {
+      "type": "keyword",
+      "index": false
     },
     "content": {
       "analyzer": "content_analyzer",

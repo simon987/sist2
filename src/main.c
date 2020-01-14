@@ -6,7 +6,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.2.0";
+static const char *const Version = "1.2.1";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -29,6 +29,7 @@ void init_dir(const char *dirpath) {
     uuid_unparse(uuid, ScanCtx.index.desc.uuid);
     time(&ScanCtx.index.desc.timestamp);
     strcpy(ScanCtx.index.desc.version, Version);
+    strcpy(ScanCtx.index.desc.type, INDEX_TYPE_BIN);
 
     write_index_descriptor(path, &ScanCtx.index.desc);
 }
@@ -130,8 +131,12 @@ void sist2_index(index_args_t *args) {
     snprintf(descriptor_path, PATH_MAX, "%s/descriptor.json", args->index_path);
 
     index_descriptor_t desc = read_index_descriptor(descriptor_path);
-    if (strcmp(desc.version, Version) != 0) {
-        fprintf(stderr, "Version mismatch! Index is v%s but executable is v%s\n", desc.version, Version);
+
+    LOG_DEBUGF("main.c", "descriptor version %s (%s)", desc.version, desc.type)
+
+    if (strcmp(desc.version, Version) != 0 && strcmp(desc.version, INDEX_VERSION_EXTERNAL) != 0) {
+        fprintf(stderr, "Version mismatch! Index is %s but executable is %s/%s\n",
+                desc.version, Version, INDEX_VERSION_EXTERNAL);
         return;
     }
 
@@ -153,7 +158,7 @@ void sist2_index(index_args_t *args) {
         if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
             char file_path[PATH_MAX];
             snprintf(file_path, PATH_MAX, "%s/%s", args->index_path, de->d_name);
-            read_index(file_path, desc.uuid, f);
+            read_index(file_path, desc.uuid, desc.type, f);
         }
     }
     closedir(dir);

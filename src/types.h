@@ -33,6 +33,10 @@ enum metakey {
     MetaParent = 14 | META_STR_MASK,
 };
 
+#define INDEX_TYPE_BIN "binary"
+#define INDEX_TYPE_JSON "json"
+#define INDEX_VERSION_EXTERNAL "_external_v1"
+
 typedef struct index_descriptor {
     char uuid[UUID_STR_LEN];
     char version[6];
@@ -41,6 +45,7 @@ typedef struct index_descriptor {
     char rewrite_url[8196];
     short root_len;
     char name[1024];
+    char type[64];
 } index_descriptor_t;
 
 typedef struct index_t {

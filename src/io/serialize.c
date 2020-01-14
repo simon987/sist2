@@ -34,6 +34,7 @@ void write_index_descriptor(char *path, index_descriptor_t *desc) {
     cJSON_AddStringToObject(json, "version", desc->version);
     cJSON_AddStringToObject(json, "root", desc->root);
     cJSON_AddStringToObject(json, "name", desc->name);
+    cJSON_AddStringToObject(json, "type", desc->type);
     cJSON_AddStringToObject(json, "rewrite_url", desc->rewrite_url);
     cJSON_AddNumberToObject(json, "timestamp", (double) desc->timestamp);
 
@@ -56,8 +57,7 @@ index_descriptor_t read_index_descriptor(char *path) {
     int fd = open(path, O_RDONLY);
 
     if (fd == -1) {
-        fprintf(stderr, "Invalid/corrupt index (Could not find descriptor)\n");
-        exit(1);
+        LOG_FATAL("serialize.c", "Invalid/corrupt index (Could not find descriptor)\n")
     }
 
     char *buf = malloc(info.st_size + 1);
@@ -75,6 +75,11 @@ index_descriptor_t read_index_descriptor(char *path) {
     descriptor.root_len = (short) strlen(descriptor.root);
     strcpy(descriptor.version, cJSON_GetObjectItem(json, "version")->valuestring);
     strcpy(descriptor.uuid, cJSON_GetObjectItem(json, "uuid")->valuestring);
+    if (cJSON_GetObjectItem(json, "type") == NULL) {
+        strcpy(descriptor.type, INDEX_TYPE_BIN);
+    } else {
+        strcpy(descriptor.type, cJSON_GetObjectItem(json, "type")->valuestring);
+    }
 
     cJSON_Delete(json);
     free(buf);
@@ -172,8 +177,8 @@ void thread_cleanup() {
     close(index_fd);
 }
 
-void read_index(const char *path, const char index_id[UUID_STR_LEN], index_func func) {
 
+void read_index_bin(const char *path, const char *index_id, index_func func) {
     line_t line;
     dyn_buffer_t buf = dyn_buffer_create();
 
@@ -229,7 +234,7 @@ void read_index(const char *path, const char index_id[UUID_STR_LEN], index_func 
                 case MetaMediaBitrate: {
                     long value;
                     fread(&value, sizeof(long), 1, file);
-                    cJSON_AddNumberToObject(document, get_meta_key_text(key), value);
+                    cJSON_AddNumberToObject(document, get_meta_key_text(key), (double) value);
                     break;
                 }
                 case MetaMediaAudioCodec:
@@ -262,7 +267,7 @@ void read_index(const char *path, const char index_id[UUID_STR_LEN], index_func 
                     break;
                 }
                 default:
-                    LOG_FATALF("serialize.c", "Invalid meta key (corrupt index): %x", key)
+                LOG_FATALF("serialize.c", "Invalid meta key (corrupt index): %x", key)
             }
 
             key = getc(file);
@@ -273,6 +278,89 @@ void read_index(const char *path, const char index_id[UUID_STR_LEN], index_func 
     }
     dyn_buffer_destroy(&buf);
     fclose(file);
+}
+
+const char *json_type_copy_fields[] = {
+        "mime", "name", "path", "extension", "index", "size", "mtime", "parent",
+
+        // Meta
+        "title", "content", "width", "height", "duration", "audioc", "videoc",
+        "bitrate", "artist", "album", "album_artist", "genre", "title", "font_name",
+
+        // Special
+        "tag", "_url"
+};
+
+const char *json_type_array_fields[] = {
+        "_keyword", "_text"
+};
+
+void read_index_json(const char *path, UNUSED(const char *index_id), index_func func) {
+
+    FILE *file = fopen(path, "r");
+    while (1) {
+        char *line = NULL;
+        size_t len;
+        size_t read = getline(&line, &len, file);
+        if (read == -1) {
+            if (line) {
+                free(line);
+            }
+            break;
+        }
+
+        cJSON *input = cJSON_Parse(line);
+        if (input == NULL) {
+            LOG_FATALF("serialize.c", "Could not parse JSON line: \n%s", line)
+        }
+        if (line) {
+            free(line);
+        }
+
+        cJSON *document = cJSON_CreateObject();
+        const char *uuid_str = cJSON_GetObjectItem(input, "_id")->valuestring;
+
+        for (int i = 0; i < (sizeof(json_type_copy_fields) / sizeof(json_type_copy_fields[0])); i++) {
+            cJSON *value = cJSON_GetObjectItem(input, json_type_copy_fields[i]);
+            if (value != NULL) {
+                cJSON_AddItemReferenceToObject(document, json_type_copy_fields[i], value);
+            }
+        }
+
+        for (int i = 0; i < (sizeof(json_type_array_fields) / sizeof(json_type_array_fields[0])); i++) {
+            cJSON *arr = cJSON_GetObjectItem(input, json_type_array_fields[i]);
+            if (arr != NULL) {
+                cJSON *obj;
+                cJSON_ArrayForEach(obj, arr) {
+                    char key[1024];
+                    cJSON *k = cJSON_GetObjectItem(obj, "k");
+                    cJSON *v = cJSON_GetObjectItem(obj, "v");
+                    if (k == NULL || v == NULL || !cJSON_IsString(k) || !cJSON_IsString(v)) {
+                        char *str = cJSON_Print(obj);
+                        LOG_FATALF("serialize.c", "Invalid %s member: must contain .k and .v string fields: \n%s",
+                                   json_type_array_fields[i], str)
+                    }
+                    snprintf(key, sizeof(key), "%s.%s", json_type_array_fields[i], k->valuestring);
+                    cJSON_AddStringToObject(document, key, v->valuestring);
+                }
+            }
+        }
+
+        func(document, uuid_str);
+        cJSON_Delete(document);
+        cJSON_Delete(input);
+
+    }
+    fclose(file);
+}
+
+void read_index(const char *path, const char index_id[UUID_STR_LEN], const char *type, index_func func) {
+
+    if (strcmp(type, INDEX_TYPE_BIN) == 0) {
+        read_index_bin(path, index_id, func);
+    } else if (strcmp(type, INDEX_TYPE_JSON) == 0) {
+        read_index_json(path, index_id, func);
+    }
 }
 
 void incremental_read(GHashTable *table, const char *filepath) {

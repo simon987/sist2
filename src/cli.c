@@ -163,6 +163,8 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
 int index_args_validate(index_args_t *args, int argc, const char **argv) {
 
+    LogCtx.verbose = 1;
+
     if (argc < 2) {
         fprintf(stderr, "Required positional argument: PATH.\n");
         return 1;
@@ -223,6 +225,8 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
 }
 
 int web_args_validate(web_args_t *args, int argc, const char **argv) {
+
+    LogCtx.verbose = 1;
 
     if (argc < 2) {
         fprintf(stderr, "Required positional argument: PATH.\n");

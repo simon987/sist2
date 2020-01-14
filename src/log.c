@@ -56,7 +56,7 @@ void sist_logf(char *filepath, int level, char *format, ...) {
         log_len += 1;
     }
 
-    write(STDOUT_FILENO, log_str, log_len);
+    write(STDERR_FILENO, log_str, log_len);
 }
 
 void sist_log(char *filepath, int level, char *str) {

@@ -27,13 +27,14 @@ void print_json(cJSON *document, const char uuid_str[UUID_STR_LEN]) {
     cJSON_AddStringToObject(line, "_id", uuid_str);
     cJSON_AddStringToObject(line, "_index", "sist2");
     cJSON_AddStringToObject(line, "_type", "_doc");
-    cJSON_AddItemToObject(line, "_source", document);
+    cJSON_AddItemReferenceToObject(line, "_source", document);
 
     char *json = cJSON_PrintUnformatted(line);
 
     printf("%s\n", json);
 
-    cJSON_free(line);
+    cJSON_free(json);
+    cJSON_Delete(line);
 }
 
 void index_json(cJSON *document, const char uuid_str[UUID_STR_LEN]) {
@@ -68,7 +69,7 @@ void execute_update_script(const char *script, const char index_id[UUID_STR_LEN]
     char bulk_url[4096];
     snprintf(bulk_url, 4096, "%s/sist2/_update_by_query?pretty", Indexer->es_url);
     response_t *r = web_post(bulk_url, str, "Content-Type: application/json");
-    printf("Executed user script <%d>\n", r->status_code);
+    LOG_INFOF("elastic.c", "Executed user script <%d>", r->status_code);
     cJSON *resp = cJSON_Parse(r->body);
 
     cJSON_free(str);
@@ -79,7 +80,7 @@ void execute_update_script(const char *script, const char index_id[UUID_STR_LEN]
     if (error != NULL) {
         char *error_str = cJSON_Print(error);
 
-        fprintf(stderr, "User script error: \n%s\n", error_str);
+        LOG_ERRORF("elastic.c", "User script error: \n%s", error_str);
         cJSON_free(error_str);
     }
 
@@ -132,11 +133,10 @@ void elastic_flush() {
     response_t *r = web_post(bulk_url, buf, "Content-Type: application/x-ndjson");
 
     if (r->status_code == 0) {
-        fprintf(stderr, "Could not connect to %s, make sure that elasticsearch is running!\n", IndexCtx.es_url);
-        exit(1);
+        LOG_FATALF("elastic.c", "Could not connect to %s, make sure that elasticsearch is running!\n", IndexCtx.es_url)
     }
 
-    printf("Indexed %3d documents (%zukB) <%d>\n", count, buf_cur / 1024, r->status_code);
+    LOG_INFOF("elastic.c", "Indexed %3d documents (%zukB) <%d>", count, buf_cur / 1024, r->status_code);
 
     cJSON *ret_json = cJSON_Parse(r->body);
     if (cJSON_GetObjectItem(ret_json, "errors")->valueint != 0) {
@@ -144,7 +144,7 @@ void elastic_flush() {
         cJSON_ArrayForEach(err, cJSON_GetObjectItem(ret_json, "items")) {
             if (cJSON_GetObjectItem(cJSON_GetObjectItem(err, "index"), "status")->valueint != 201) {
                 char* str = cJSON_Print(err);
-                fprintf(stderr, "%s\n", str);
+                LOG_ERRORF("elastic.c", "%s\n", str);
                 cJSON_free(str);
             }
         }
@@ -198,7 +198,7 @@ void destroy_indexer(char * script, char index_id[UUID_STR_LEN]) {
 
     snprintf(url, sizeof(url), "%s/sist2/_refresh", IndexCtx.es_url);
     response_t *r = web_post(url, "", NULL);
-    printf("Refresh index <%d>\n", r->status_code);
+    LOG_INFOF("elastic.c", "Refresh index <%d>", r->status_code);
     free_response(r);
 
     if (script != NULL) {
@@ -207,12 +207,12 @@ void destroy_indexer(char * script, char index_id[UUID_STR_LEN]) {
 
     snprintf(url, sizeof(url), "%s/sist2/_refresh", IndexCtx.es_url);
     r = web_post(url, "", NULL);
-    printf("Refresh index <%d>\n", r->status_code);
+    LOG_INFOF("elastic.c", "Refresh index <%d>", r->status_code);
     free_response(r);
 
     snprintf(url, sizeof(url), "%s/sist2/_forcemerge", IndexCtx.es_url);
     r = web_post(url, "", NULL);
-    printf("Merge index <%d>\n", r->status_code);
+    LOG_INFOF("elastic.c", "Merge index <%d>", r->status_code);
     free_response(r);
 
     if (Indexer != NULL) {
@@ -232,32 +232,32 @@ void elastic_init(int force_reset) {
 
     if (!index_exists || force_reset) {
         r = web_delete(url);
-        printf("Delete index <%d>\n", r->status_code);
+        LOG_INFOF("elastic.c", "Delete index <%d>", r->status_code);
         free_response(r);
 
         snprintf(url, 4096, "%s/sist2", IndexCtx.es_url);
         r = web_put(url, "", NULL);
-        printf("Create index <%d>\n", r->status_code);
+        LOG_INFOF("elastic.c", "Create index <%d>", r->status_code);
         free_response(r);
 
         snprintf(url, 4096, "%s/sist2/_close", IndexCtx.es_url);
         r = web_post(url, "", NULL);
-        printf("Close index <%d>\n", r->status_code);
+        LOG_INFOF("elastic.c", "Close index <%d>", r->status_code);
         free_response(r);
 
         snprintf(url, 4096, "%s/sist2/_settings", IndexCtx.es_url);
         r = web_put(url, settings_json, "Content-Type: application/json");
-        printf("Update settings <%d>\n", r->status_code);
+        LOG_INFOF("elastic.c", "Update settings <%d>", r->status_code);
         free_response(r);
 
         snprintf(url, 4096, "%s/sist2/_mappings/_doc?include_type_name=true", IndexCtx.es_url);
         r = web_put(url, mappings_json, "Content-Type: application/json");
-        printf("Update mappings <%d>\n", r->status_code);
+        LOG_INFOF("elastic.c", "Update mappings <%d>", r->status_code);
         free_response(r);
 
         snprintf(url, 4096, "%s/sist2/_open", IndexCtx.es_url);
         r = web_post(url, "", NULL);
-        printf("Open index <%d>\n", r->status_code);
+        LOG_INFOF("elastic.c", "Open index <%d>", r->status_code);
         free_response(r);
     }
 }
