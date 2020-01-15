@@ -82,7 +82,8 @@ fz_page *render_cover(fz_context *ctx, document_t *doc, fz_document *fzdoc) {
     fz_drop_pixmap(ctx, pixmap);
 
     if (err != 0) {
-        LOG_WARNINGF(doc->filepath, "fz_new_buffer_from_pixmap_as_png() returned error code [%d] %s", err, ctx->error.message)
+        LOG_WARNINGF(doc->filepath, "fz_new_buffer_from_pixmap_as_png() returned error code [%d] %s", err,
+                     ctx->error.message)
         fz_drop_page(ctx, cover);
         return NULL;
     }
@@ -129,8 +130,8 @@ int read_stext_block(fz_stext_block *block, text_buffer_t *tex) {
 
 
 void fill_image(fz_context *ctx, UNUSED(fz_device *dev),
-        fz_image *img, UNUSED(fz_matrix ctm), UNUSED(float alpha),
-        UNUSED(fz_color_params color_params)) {
+                fz_image *img, UNUSED(fz_matrix ctm), UNUSED(float alpha),
+                UNUSED(fz_color_params color_params)) {
 
     int l2factor = 0;
 
