@@ -98,3 +98,9 @@ cd libtiff
 make -j $THREADS
 cd ..
 mv libtiff/libtiff/.libs/libtiff.a .
+
+cd libpng
+./configure --enable-static --disable-shared
+make -j $THREADS
+cd ..
+mv libpng/.libs/libpng16.a .

@@ -40,3 +40,6 @@
 [submodule "lib/libtiff"]
 	path = lib/libtiff
 	url = https://gitlab.com/libtiff/libtiff
+[submodule "lib/libpng"]
+	path = lib/libpng
+	url = https://github.com/glennrp/libpng
