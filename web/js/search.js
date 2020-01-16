@@ -82,7 +82,10 @@ $.jsonPost("i").then(resp => {
 });
 
 function getDocumentInfo(id) {
-    return $.getJSON("d/" + id)
+    return $.getJSON("d/" + id).fail(e => {
+        console.log(e);
+        showEsError();
+    })
 }
 
 function handleTreeClick(tree) {
