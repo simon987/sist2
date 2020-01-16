@@ -153,11 +153,44 @@ function getTags(hit, mimeCategory) {
     return tags
 }
 
-/**
- *
- * @param hit
- * @returns {Element}
- */
+function infoButtonCb(hit) {
+    return () => {
+        getDocumentInfo(hit["_id"]).then(doc => {
+            $("#modal-title").text(doc["name"] + (doc["extension"] ? "." + doc["extension"] : ""));
+
+            const tbody = $("<tbody>");
+            $("#modal-body").empty()
+                .append($("<table class='table table-sm'>")
+                    .append($("<thead>")
+                        .append($("<tr>")
+                            .append($("<th>").text("Field"))
+                            .append($("<th>").text("Value"))
+                        )
+                    )
+                    .append(tbody)
+                );
+
+            const displayFields = new Set([
+                "mime", "size", "mtime", "path", "title", "width", "height", "duration", "audioc", "videoc",
+                "bitrate", "artist", "album", "album_artist", "genre", "title", "font_name", "tag"
+            ]);
+            Object.keys(doc)
+                .filter(key => key.startsWith("_keyword.") || key.startsWith("_text.") || displayFields.has(key))
+                .forEach(key => {
+                    tbody.append($("<tr>")
+                        .append($("<td>").text(key))
+                        .append($("<td>").text(doc[key]))
+                    );
+                });
+            if (doc.hasOwnProperty("content") && doc["content"]) {
+                $("#modal-body").append($("<div class='content-div'>").text(doc["content"]))
+            }
+
+            $("#modal").modal();
+        });
+    }
+}
+
 function createDocCard(hit) {
     let docCard = document.createElement("div");
     docCard.setAttribute("class", "card");
@@ -172,6 +205,7 @@ function createDocCard(hit) {
     let link = document.createElement("a");
     link.setAttribute("href", "f/" + hit["_id"]);
     link.setAttribute("target", "_blank");
+    link.style.maxWidth = "calc(100% - 1.2rem)";
     link.appendChild(title);
 
     if (hit["_source"].hasOwnProperty("parent")) {
@@ -271,7 +305,15 @@ function createDocCard(hit) {
     sizeTag.setAttribute("class", "text-muted");
     tagContainer.appendChild(sizeTag);
 
-    docCardBody.appendChild(link);
+    const titleWrapper = document.createElement("div");
+    titleWrapper.style.display = "flex";
+
+    const infoButton = makeInfoButton(hit);
+
+    titleWrapper.appendChild(infoButton);
+    titleWrapper.appendChild(link);
+
+    docCardBody.appendChild(titleWrapper);
     docCard.appendChild(docCardBody);
 
     docCardBody.appendChild(tagContainer);
@@ -352,6 +394,14 @@ function makeThumbnail(mimeCategory, hit, imgWrapper, small) {
     return thumbnail;
 }
 
+function makeInfoButton(hit) {
+    const infoButton = document.createElement("span");
+    infoButton.appendChild(document.createTextNode("🛈"));
+    infoButton.setAttribute("class", "info-icon");
+    infoButton.addEventListener("click", infoButtonCb(hit));
+    return infoButton;
+}
+
 function createDocLine(hit) {
 
     const mime = hit["_source"]["mime"];
@@ -372,6 +422,8 @@ function createDocLine(hit) {
         isSubDocument = true;
     }
 
+    const infoButton = makeInfoButton(hit);
+
     const title = makeTitle(hit);
 
     let link = document.createElement("a");
@@ -380,8 +432,13 @@ function createDocLine(hit) {
     link.appendChild(title);
 
     const titleDiv = document.createElement("div");
-    titleDiv.setAttribute("class", "file-title");
-    titleDiv.appendChild(link);
+
+    const titleWrapper = document.createElement("div");
+    titleWrapper.style.display = "flex";
+    titleWrapper.appendChild(infoButton);
+    titleWrapper.appendChild(link);
+
+    titleDiv.appendChild(titleWrapper);
 
     line.appendChild(media);
 

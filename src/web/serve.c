@@ -110,7 +110,7 @@ int thumbnail(void *p, onion_request *req, onion_response *res) {
     int written = onion_response_write(res, data, data_len);
     onion_response_flush(res);
     if (written != data_len || data_len == 0) {
-        printf("Couldn't write thumb\n");
+        LOG_DEBUG("serve.c", "Couldn't write thumbnail");
     }
     free(data);
 
@@ -214,7 +214,7 @@ int chunked_response_file(const char *filename, const char *mime,
     return OCS_PROCESSED;
 }
 
-int search(void *p, onion_request *req, onion_response *res) {
+int search(UNUSED(void *p), onion_request *req, onion_response *res) {
 
     int flags = onion_request_get_flags(req);
     if ((flags & OR_METHODS) != OR_POST) {
@@ -254,7 +254,7 @@ int search(void *p, onion_request *req, onion_response *res) {
     return OCS_PROCESSED;
 }
 
-int scroll(void *p, onion_request *req, onion_response *res) {
+int scroll(UNUSED(void *p), onion_request *req, onion_response *res) {
 
     int flags = onion_request_get_flags(req);
     if ((flags & OR_METHODS) != OR_GET) {
@@ -327,7 +327,7 @@ int serve_file_from_disk(cJSON *json, index_t *idx, onion_request *req, onion_re
     return chunked_response_file(full_path, mime, 1, req, res);
 }
 
-int index_info(void *p, onion_request *req, onion_response *res) {
+int index_info(UNUSED(void *p), onion_request *req, onion_response *res) {
     cJSON *json = cJSON_CreateObject();
     cJSON *arr = cJSON_AddArrayToObject(json, "indices");
 
@@ -353,14 +353,47 @@ int index_info(void *p, onion_request *req, onion_response *res) {
     return OCS_PROCESSED;
 }
 
-int file(void *p, onion_request *req, onion_response *res) {
+
+int document_info(UNUSED(void *p), onion_request *req, onion_response *res) {
 
     const char *arg_uuid = onion_request_get_query(req, "1");
     if (arg_uuid == NULL) {
         return OCS_PROCESSED;
     }
 
-    char *next = arg_uuid;
+    cJSON *doc = elastic_get_document(arg_uuid);
+    cJSON *source = cJSON_GetObjectItem(doc, "_source");
+
+    cJSON *index_id = cJSON_GetObjectItem(source, "index");
+    if (index_id == NULL) {
+        cJSON_Delete(doc);
+        return OCS_NOT_PROCESSED;
+    }
+
+    index_t *idx = get_index_by_id(index_id->valuestring);
+    if (idx == NULL) {
+        cJSON_Delete(doc);
+        return OCS_NOT_PROCESSED;
+    }
+
+    onion_response_set_header(res, "Content-Type", "application/json");
+
+    char *json_str = cJSON_PrintUnformatted(source);
+    onion_response_write0(res, json_str);
+    free(json_str);
+    cJSON_Delete(doc);
+
+    return OCS_PROCESSED;
+}
+
+int file(UNUSED(void *p), onion_request *req, onion_response *res) {
+
+    const char *arg_uuid = onion_request_get_query(req, "1");
+    if (arg_uuid == NULL) {
+        return OCS_PROCESSED;
+    }
+
+    const char *next = arg_uuid;
     cJSON *doc = NULL;
     cJSON *index_id = NULL;
     cJSON *source = NULL;
@@ -424,6 +457,7 @@ void serve(const char *hostname, const char *port) {
             thumbnail
     );
     onion_url_add(urls, "^f/([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})$", file);
+    onion_url_add(urls, "^d/([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})$", document_info);
     onion_url_add(urls, "i", index_info);
 
 

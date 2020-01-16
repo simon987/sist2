@@ -2,6 +2,25 @@
     outline: 0;
 }
 
+.info-icon {
+    width: 1rem;
+    margin-right: 0.2rem;
+    cursor: pointer;
+    color: #757575;
+    line-height: 1rem;
+    height: 1rem;
+}
+
+.info-icon:hover {
+    color: inherit;
+}
+
+.modal-title {
+    max-width: calc(100% - 2rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .path-row {
     display: -ms-flexbox;
     display: flex;
@@ -100,6 +119,8 @@ body {
 
 .file-title {
     width: 100%;
+    line-height: 1rem;
+    height: 1.1rem;
     font-size: 10pt;
     white-space: nowrap;
     text-overflow: ellipsis;

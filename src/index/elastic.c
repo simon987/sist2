@@ -136,7 +136,7 @@ void elastic_flush() {
         LOG_FATALF("elastic.c", "Could not connect to %s, make sure that elasticsearch is running!\n", IndexCtx.es_url)
     }
 
-    LOG_INFOF("elastic.c", "Indexed %3d documents (%zukB) <%d>", count, buf_cur / 1024, r->status_code);
+    LOG_INFOF("elastic.c", "Indexed %d documents (%zukB) <%d>", count, buf_cur / 1024, r->status_code);
 
     cJSON *ret_json = cJSON_Parse(r->body);
     if (cJSON_GetObjectItem(ret_json, "errors")->valueint != 0) {

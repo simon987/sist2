@@ -2,6 +2,26 @@
     outline: 0;
 }
 
+.info-icon {
+    width: 1rem;
+    margin-right: 0.2rem;
+    cursor: pointer;
+    color: #757575;
+    line-height: 1rem;
+    height: 1.1rem;
+}
+
+.info-icon:hover {
+    color: inherit;
+}
+
+.modal-title {
+    max-width: calc(100% - 2rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
 .path-row {
     display: -ms-flexbox;
     display: flex;
@@ -32,12 +52,33 @@ body {
     margin-top: 1em;
 }
 
-.card {
+.card, .modal-content {
     margin-top: 1em;
     background: #212121;
     color: #e0e0e0;
     border-radius: 1px;
     border: none;
+}
+
+.table {
+    color: #e0e0e0;
+}
+
+.table td, .table th {
+    border: none;
+}
+
+.table thead th {
+    border-bottom: 1px solid #646464;
+}
+
+.modal-header .close {
+    color: #e0e0e0;
+    text-shadow: none;
+}
+
+.modal-header {
+    border-bottom: 1px solid #646464;
 }
 
 .sub-document {
@@ -134,6 +175,8 @@ body {
 
 .file-title {
     width: 100%;
+    line-height: 1rem;
+    height: 1.1rem;
     font-size: 10pt;
     white-space: nowrap;
     text-overflow: ellipsis;

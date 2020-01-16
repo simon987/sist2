@@ -81,6 +81,10 @@ $.jsonPost("i").then(resp => {
     });
 });
 
+function getDocumentInfo(id) {
+    return $.getJSON("d/" + id)
+}
+
 function handleTreeClick(tree) {
     return (event, node, handler) => {
         event.preventTreeDefault();
