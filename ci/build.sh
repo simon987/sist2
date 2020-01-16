@@ -5,4 +5,3 @@
 cmake .
 make
 strip sist2
-strip sist2_scan
