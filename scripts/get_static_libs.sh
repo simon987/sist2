@@ -5,7 +5,7 @@ THREADS=$(nproc)
 cd lib
 
 cd mupdf
-make USE_SYSTEM_HARFBUZZ=yes USE_SYSTEM_OPENJPEG=yes HAVE_X11=no HAVE_GLUT=no -j $THREADS
+make USE_SYSTEM_HARFBUZZ=yes USE_SYSTEM_OPENJPEG=yes HAVE_X11=no HAVE_GLUT=no CFLAGS=-fPIC -j $THREADS
 cd ..
 
 mv mupdf/build/release/libmupdf.a .
@@ -33,7 +33,8 @@ cd ffmpeg
  --disable-ffprobe --disable-doc\
  --disable-manpages --disable-postproc --disable-avfilter \
  --disable-alsa --disable-lzma --disable-xlib --disable-debug\
- --disable-vdpau --disable-vaapi --disable-sdl2 --disable-network
+ --disable-vdpau --disable-vaapi --disable-sdl2 --disable-network\
+ --extra-cflags=-fPIC
 make -j $THREADS
 cd ..
 
