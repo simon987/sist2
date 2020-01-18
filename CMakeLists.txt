@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.7)
 set(CMAKE_C_STANDARD 11)
 
+option(CURL_STATIC "Link to curl statically" on)
+
 project(sist2 C)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/CMakeModules")
 
@@ -89,6 +91,16 @@ target_compile_options(sist2
         -fomit-frame-pointer
         )
 
+if (CURL_STATIC)
+    execute_process(COMMAND curl-config --static-libs
+            OUTPUT_VARIABLE CURL_STATIC_LIBS
+            ERROR_QUIET
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
+    string(REPLACE " " ";" CURL_LIBS "${CURL_STATIC_LIBS}")
+else ()
+    set(CURL_LIBS curl)
+endif ()
+
 TARGET_LINK_LIBRARIES(
         sist2
 
@@ -111,7 +123,7 @@ TARGET_LINK_LIBRARIES(
         ${PROJECT_SOURCE_DIR}/lib/libonion_static.a
 
         pthread
-        curl
+        ${CURL_LIBS}
         m
         bz2
         ${PROJECT_SOURCE_DIR}/lib/libmagic.a
