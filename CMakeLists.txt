@@ -47,7 +47,6 @@ add_executable(
 find_package(PkgConfig REQUIRED)
 set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig/")
 
-#find_package(OpenSSL REQUIRED)
 find_package(Freetype REQUIRED)
 
 pkg_check_modules(GLIB REQUIRED glib-2.0)
@@ -86,20 +85,11 @@ target_link_directories(
 target_compile_options(sist2
         PRIVATE
         -Ofast
-        # -march=native
+        -march=native
+        -fPIC
         -fno-stack-protector
         -fomit-frame-pointer
         )
-
-if (CURL_STATIC)
-    execute_process(COMMAND curl-config --static-libs
-            OUTPUT_VARIABLE CURL_STATIC_LIBS
-            ERROR_QUIET
-            OUTPUT_STRIP_TRAILING_WHITESPACE)
-    string(REPLACE " " ";" CURL_LIBS "${CURL_STATIC_LIBS}")
-else ()
-    set(CURL_LIBS curl)
-endif ()
 
 TARGET_LINK_LIBRARIES(
         sist2
@@ -123,7 +113,11 @@ TARGET_LINK_LIBRARIES(
         ${PROJECT_SOURCE_DIR}/lib/libonion_static.a
 
         pthread
-        ${CURL_LIBS}
+
+        # curl
+        ${PROJECT_SOURCE_DIR}/lib/libcurl.a
+        ssl crypto
+
         m
         bz2
         ${PROJECT_SOURCE_DIR}/lib/libmagic.a

@@ -13,8 +13,7 @@ mv mupdf/build/release/libmupdf-third.a .
 
 # openjp2
 cd openjpeg
-#cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3 -march=native -DNDEBUG"
-cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3"
+cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3 -march=native -DNDEBUG -fPIC"
 make -j $THREADS
 cd ..
 mv openjpeg/bin/libopenjp2.a .
@@ -22,7 +21,7 @@ mv openjpeg/bin/libopenjp2.a .
 # harfbuzz
 cd harfbuzz
 ./autogen.sh
-./configure --disable-shared --enable-static
+CFLAGS=-fPIC ./configure --disable-shared --enable-static
 make -j $THREADS
 cd ..
 mv harfbuzz/src/.libs/libharfbuzz.a .
@@ -75,7 +74,8 @@ mv libmagic/src/.libs/libmagic.a .
 cd tesseract
 mkdir build
 cd build
-cmake -DSTATIC=on -DBUILD_TRAINING_TOOLS=off ..
+cmake -DSTATIC=on -DBUILD_TRAINING_TOOLS=off -DBUILD_TESTS=off -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_FLAGS="-fPIC"  ..
 make -j $THREADS
 cd ../..
 mv tesseract/build/libtesseract.a .
@@ -83,7 +83,7 @@ mv tesseract/build/libtesseract.a .
 # leptonica
 cd leptonica
 ./autogen.sh
-./configure --without-zlib --without-jpeg --without-giflib \
+CFLAGS="-fPIC" ./configure --without-zlib --without-jpeg --without-giflib \
   --without-giflib --without-libwebp --without-libwebpmux --without-libopenjpeg \
   --enable-static --disable-shared
 make -j $THREADS
@@ -93,14 +93,25 @@ mv leptonica/src/.libs/liblept.a .
 # tiff
 cd libtiff
 ./autogen.sh
-./configure --enable-static --disable-shared --disable-lzw --disable-jpeg --disable-webp \
+CFLAGS="-fPIC" CXXFLAGS="-fPIC" CXX_FLAGS="-fPIC" ./configure --enable-static --disable-shared --disable-lzw --disable-jpeg --disable-webp \
   --disable-lzma --disable-zstd --disable-jbig
 make -j $THREADS
 cd ..
 mv libtiff/libtiff/.libs/libtiff.a .
 
+# png
 cd libpng
-./configure --enable-static --disable-shared
+CFLAGS="-fPIC" ./configure --enable-static --disable-shared
 make -j $THREADS
 cd ..
 mv libpng/.libs/libpng16.a .
+
+# curl
+wget -nc https://curl.haxx.se/download/curl-7.68.0.tar.gz
+tar -xzf curl-7.68.0.tar.gz
+cd curl-7.68.0
+./configure --disable-ldap --disable-ldaps --without-librtmp --disable-rtsp --disable-crypto-auth \
+  --disable-smtp --enable-static --disable-shared
+make -j $THREADS
+cd ..
+mv curl-7.68.0/lib/.libs/libcurl.a .
