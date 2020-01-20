@@ -39,6 +39,9 @@ sist2 (Simple incremental search tool)
 
 ## Example usage
 
+
+![demo](demo.gif)
+
 See help page `sist2 --help` for more details.
 
 **Scan a directory**
