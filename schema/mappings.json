@@ -7,7 +7,7 @@
     },
     "suggest-path": {
       "type": "completion",
-      "analyzer": "keyword"
+      "analyzer": "case_insensitive_kw_analyzer"
     },
     "mime": {
       "type": "keyword"
