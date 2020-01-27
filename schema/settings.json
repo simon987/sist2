@@ -21,6 +21,12 @@
           "lowercase"
         ]
       },
+      "case_insensitive_kw_analyzer": {
+        "tokenizer": "keyword",
+        "filter": [
+          "lowercase"
+        ]
+      },
       "my_nGram": {
         "tokenizer": "my_nGram_tokenizer",
         "filter": [
