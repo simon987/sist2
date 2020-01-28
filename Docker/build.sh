@@ -8,3 +8,5 @@ echo "Version ${version}"
 docker build . -t simon987/sist2:${version} -t simon987/sist2:latest
 docker push simon987/sist2:${version}
 docker push simon987/sist2:latest
+
+docker run --rm -it simon987/sist2 -v

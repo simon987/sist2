@@ -274,3 +274,28 @@ cJSON *elastic_get_document(const char *uuid_str) {
     free_response(r);
     return json;
 }
+
+char *elastic_get_status() {
+    char url[4096];
+    snprintf(url, 4096,
+            "%s/_cluster/state/metadata/sist2?filter_path=metadata.indices.*.state", WebCtx.es_url);
+
+    response_t *r = web_get(url);
+    cJSON *json = NULL;
+    char *status = malloc(128 * sizeof(char));
+    status[0] = '\0';
+
+    if (r->status_code == 200) {
+        json = cJSON_Parse(r->body);
+        const cJSON *metadata = cJSON_GetObjectItem(json, "metadata");
+        if (metadata != NULL) {
+            const cJSON *indices = cJSON_GetObjectItem(metadata, "indices");
+            const cJSON *sist2 = cJSON_GetObjectItem(indices, "sist2");
+            const cJSON *state = cJSON_GetObjectItem(sist2, "state");
+            strcpy(status, state->valuestring);
+        }
+    }
+    free_response(r);
+    cJSON_Delete(json);
+    return status;
+}

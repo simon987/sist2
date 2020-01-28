@@ -111,7 +111,8 @@ wget -nc https://curl.haxx.se/download/curl-7.68.0.tar.gz
 tar -xzf curl-7.68.0.tar.gz
 cd curl-7.68.0
 ./configure --disable-ldap --disable-ldaps --without-librtmp --disable-rtsp --disable-crypto-auth \
-  --disable-smtp --enable-static --disable-shared
+  --disable-smtp --without-libidn2 --without-nghttp2 --without-brotli --enable-static --disable-shared \
+  --without-libpsl
 make -j $THREADS
 cd ..
 mv curl-7.68.0/lib/.libs/libcurl.a .

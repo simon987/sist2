@@ -431,6 +431,23 @@ int file(UNUSED(void *p), onion_request *req, onion_response *res) {
     return ret;
 }
 
+int status(UNUSED(void *p), UNUSED(onion_request *req), onion_response *res) {
+    set_default_headers(res);
+
+    onion_response_set_header(res, "Content-Type", "application/x-empty");
+
+    char *status = elastic_get_status();
+    if (strcmp(status, "open") == 0) {
+        onion_response_set_code(res, 204);
+    } else {
+        onion_response_set_code(res, 500);
+    }
+
+    free(status);
+
+    return OCS_PROCESSED;
+}
+
 void serve(const char *hostname, const char *port) {
     onion *o = onion_new(O_POOL);
     onion_set_timeout(o, 3500);
@@ -450,6 +467,7 @@ void serve(const char *hostname, const char *port) {
 
     onion_url_add(urls, "es", search);
     onion_url_add(urls, "scroll", scroll);
+    onion_url_add(urls, "status", status);
     onion_url_add(
             urls,
             "^t/([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})/"

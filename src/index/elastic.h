@@ -30,4 +30,6 @@ void elastic_init(int force_reset);
 
 cJSON *elastic_get_document(const char *uuid_str);
 
+char *elastic_get_status();
+
 #endif
