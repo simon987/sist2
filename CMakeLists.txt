@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 set(CMAKE_C_STANDARD 11)
 
-option(CURL_STATIC "Link to curl statically" on)
-
 project(sist2 C)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/CMakeModules")
 
@@ -114,10 +112,6 @@ TARGET_LINK_LIBRARIES(
 
         pthread
 
-        # curl
-        ${PROJECT_SOURCE_DIR}/lib/libcurl.a
-        ssl crypto
-
         m
         bz2
         ${PROJECT_SOURCE_DIR}/lib/libmagic.a
@@ -136,6 +130,10 @@ TARGET_LINK_LIBRARIES(
         ${PROJECT_SOURCE_DIR}/lib/libtiff.a
         ${PROJECT_SOURCE_DIR}/lib/libpng16.a
         stdc++
+
+        # curl
+        ${PROJECT_SOURCE_DIR}/lib/libcurl.a
+        -L/usr/local/lib ssl crypto
 )
 
 add_custom_target(
