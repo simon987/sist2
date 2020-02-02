@@ -17,6 +17,7 @@ typedef struct scan_args {
     char *archive;
     archive_mode_t archive_mode;
     char *tesseract_lang;
+    const char *tesseract_path;
 } scan_args_t;
 
 scan_args_t *scan_args_create();

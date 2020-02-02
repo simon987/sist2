@@ -15,6 +15,13 @@
 #define DEFAULT_BIND_ADDR "localhost"
 #define DEFAULT_PORT "4090"
 
+const char* TESS_DATAPATHS[] = {
+        "/usr/share/tessdata/",
+        "/usr/share/tesseract-ocr/tessdata/",
+        "./",
+        NULL
+};
+
 
 scan_args_t *scan_args_create() {
     scan_args_t *args = calloc(sizeof(scan_args_t), 1);
@@ -136,13 +143,23 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
     if (args->tesseract_lang != NULL) {
         TessBaseAPI *api = TessBaseAPICreate();
-        ret = TessBaseAPIInit3(api, TESS_DATAPATH, args->tesseract_lang);
+
+        char filename[128];
+        sprintf(filename, "%s.traineddata", args->tesseract_lang);
+        const char * path = find_file_in_paths(TESS_DATAPATHS, filename);
+        if (path == NULL) {
+            LOG_FATAL("cli.c", "Could not find tesseract language file!");
+        }
+
+        ret = TessBaseAPIInit3(api, path, args->tesseract_lang);
         if (ret != 0) {
             fprintf(stderr, "Could not initialize tesseract with lang '%s'\n", args->tesseract_lang);
             return 1;
         }
         TessBaseAPIEnd(api);
         TessBaseAPIDelete(api);
+
+        args->tesseract_path = path;
     }
 
     LOG_DEBUGF("cli.c", "arg quality=%f", args->quality)
@@ -156,7 +173,8 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg depth=%d", args->depth)
     LOG_DEBUGF("cli.c", "arg path=%s", args->path)
     LOG_DEBUGF("cli.c", "arg archive=%s", args->archive)
-    LOG_DEBUGF("cli.c", "arg ocr=%s", args->tesseract_lang)
+    LOG_DEBUGF("cli.c", "arg tesseract_lang=%s", args->tesseract_lang)
+    LOG_DEBUGF("cli.c", "arg tesseract_path=%s", args->tesseract_path)
 
     return 0;
 }

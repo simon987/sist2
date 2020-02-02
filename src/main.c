@@ -51,6 +51,7 @@ void sist2_scan(scan_args_t *args) {
     strncpy(ScanCtx.index.desc.root, args->path, sizeof(ScanCtx.index.desc.root));
     ScanCtx.index.desc.root_len = (short) strlen(ScanCtx.index.desc.root);
     ScanCtx.tesseract_lang = args->tesseract_lang;
+    ScanCtx.tesseract_path = args->tesseract_path;
 
     init_dir(ScanCtx.index.path);
 

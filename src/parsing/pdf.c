@@ -141,7 +141,7 @@ void fill_image(fz_context *ctx, UNUSED(fz_device *dev),
 
         if (pix->h > MIN_OCR_SIZE && img->h > MIN_OCR_SIZE && img->xres != 0) {
             TessBaseAPI *api = TessBaseAPICreate();
-            TessBaseAPIInit3(api, TESS_DATAPATH, ScanCtx.tesseract_lang);
+            TessBaseAPIInit3(api, ScanCtx.tesseract_path, ScanCtx.tesseract_lang);
 
             TessBaseAPISetImage(api, pix->samples, pix->w, pix->h, pix->n, pix->stride);
             TessBaseAPISetSourceResolution(api, pix->xres);
@@ -157,8 +157,8 @@ void fill_image(fz_context *ctx, UNUSED(fz_device *dev),
 
             TessBaseAPIEnd(api);
             TessBaseAPIDelete(api);
-            fz_drop_pixmap(ctx, pix);
         }
+        fz_drop_pixmap(ctx, pix);
     }
 }
 

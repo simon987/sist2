@@ -3,7 +3,6 @@
 
 #define UUID_STR_LEN 37
 #define UNUSED(x) __attribute__((__unused__))  x
-#define TESS_DATAPATH "/usr/share/tessdata/"
 
 #include <glib-2.0/glib.h>
 #include <unistd.h>

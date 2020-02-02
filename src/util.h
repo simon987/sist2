@@ -74,5 +74,6 @@ int incremental_get(GHashTable *table, unsigned long inode_no);
 
 int incremental_mark_file_for_copy(GHashTable *table, unsigned long inode_no);
 
+const char *find_file_in_paths(const char **paths, const char *filename);
 
 #endif

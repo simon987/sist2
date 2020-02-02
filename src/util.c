@@ -1,4 +1,5 @@
 #include "util.h"
+#include "src/ctx.h"
 
 dyn_buffer_t dyn_buffer_create() {
     dyn_buffer_t buf;
@@ -315,6 +316,31 @@ void progress_bar_print(double percentage, size_t tn_size, size_t index_size) {
 GHashTable *incremental_get_table() {
     GHashTable *file_table = g_hash_table_new(g_direct_hash, g_direct_equal);
     return file_table;
+}
+
+const char *find_file_in_paths(const char *paths[], const char *filename) {
+
+    for (int i = 0; paths[i] != NULL; i++) {
+
+        char *apath = abspath(paths[i]);
+        if (apath == NULL) {
+            continue;
+        }
+
+        char path[PATH_MAX];
+        snprintf(path, sizeof(path), "%s%s", apath, filename);
+
+        LOG_DEBUGF("util.c", "Looking for '%s' in folder '%s'", filename, apath)
+        free(apath);
+
+        struct stat info;
+        int ret = stat(path, &info);
+        if (ret != -1) {
+            return paths[i];
+        }
+    }
+
+    return NULL;
 }
 
 
