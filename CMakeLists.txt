@@ -83,7 +83,7 @@ target_link_directories(
 target_compile_options(sist2
         PRIVATE
         -Ofast
-        -march=native
+#        -march=native
         -fPIC
         -fno-stack-protector
         -fomit-frame-pointer
