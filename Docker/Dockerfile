@@ -16,4 +16,7 @@ RUN mkdir -p /usr/share/tessdata && \
 
 ADD sist2 /root/sist2
 
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+
 ENTRYPOINT ["/root/sist2"]
