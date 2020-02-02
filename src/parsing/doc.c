@@ -55,7 +55,14 @@ __always_inline
 void read_part(opcContainer *c, dyn_buffer_t *buf, opcPart part, document_t *doc) {
 
     mceTextReader_t reader;
-    int ret = opcXmlReaderOpen(c, &reader, part, NULL, "UTF-8", 0);
+    int options;
+    if (LogCtx.very_verbose) {
+        options = XML_PARSE_NONET;
+    } else {
+        options = XML_PARSE_NOWARNING | XML_PARSE_NOERROR | XML_PARSE_NONET;
+    }
+
+    int ret = opcXmlReaderOpen(c, &reader, part, NULL, "UTF-8", options);
 
     if (ret != OPC_ERROR_NONE) {
         LOG_ERRORF(doc->filepath, "(doc.c) opcXmlReaderOpen() returned error code %d", ret);
