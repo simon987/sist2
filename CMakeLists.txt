@@ -89,8 +89,6 @@ target_compile_options(sist2
         -fomit-frame-pointer
         )
 
-target_link_directories(sist2 PRIVATE /usr/local/lib)
-
 TARGET_LINK_LIBRARIES(
         sist2
 
@@ -135,7 +133,9 @@ TARGET_LINK_LIBRARIES(
 
         # curl
         ${PROJECT_SOURCE_DIR}/lib/libcurl.a
-        ssl crypto
+        ${PROJECT_SOURCE_DIR}/lib/libcrypto.a
+        ${PROJECT_SOURCE_DIR}/lib/libssl.a
+        dl
 )
 
 add_custom_target(

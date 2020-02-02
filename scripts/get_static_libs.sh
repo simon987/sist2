@@ -106,13 +106,23 @@ make -j $THREADS
 cd ..
 mv libpng/.libs/libpng16.a .
 
+# openssl...
+git clone --depth 1 -b OpenSSL_1_1_0-stable https://github.com/openssl/openssl
+cd openssl
+./config --prefix=$(pwd)/../ssl
+make depend
+make -j $THREADS
+make install
+cd ..
+mv ./openssl/libcrypto.a ./openssl/libssl.a .
+
 # curl
 wget -nc https://curl.haxx.se/download/curl-7.68.0.tar.gz
 tar -xzf curl-7.68.0.tar.gz
 cd curl-7.68.0
 ./configure --disable-ldap --disable-ldaps --without-librtmp --disable-rtsp --disable-crypto-auth \
   --disable-smtp --without-libidn2 --without-nghttp2 --without-brotli --enable-static --disable-shared \
-  --without-libpsl
+  --without-libpsl --with-ssl=$(pwd)/../ssl
 make -j $THREADS
 cd ..
 mv curl-7.68.0/lib/.libs/libcurl.a .
