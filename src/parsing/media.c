@@ -193,6 +193,22 @@ append_video_meta(AVFormatContext *pFormatCtx, AVFrame *frame, document_t *doc, 
                 APPEND_TAG_META(doc, tag, MetaArtist)
             } else if (strcmp(tag->key, "ImageDescription") == 0) {
                 APPEND_TAG_META(doc, tag, MetaContent)
+            } else if (strcmp(tag->key, "Make") == 0) {
+                APPEND_TAG_META(doc, tag, MetaExifMake)
+            } else if (strcmp(tag->key, "Model") == 0) {
+                APPEND_TAG_META(doc, tag, MetaExifModel)
+            } else if (strcmp(tag->key, "Software") == 0) {
+                APPEND_TAG_META(doc, tag, MetaExifSoftware)
+            } else if (strcmp(tag->key, "FNumber") == 0) {
+                APPEND_TAG_META(doc, tag, MetaExifFNumber)
+            } else if (strcmp(tag->key, "FocalLength") == 0) {
+                APPEND_TAG_META(doc, tag, MetaExifFocalLength)
+            } else if (strcmp(tag->key, "UserComment") == 0) {
+                APPEND_TAG_META(doc, tag, MetaExifUserComment)
+            } else if (strcmp(tag->key, "ISOSpeedRatings") == 0) {
+                APPEND_TAG_META(doc, tag, MetaExifIsoSpeedRatings)
+            } else if (strcmp(tag->key, "ExposureTime") == 0) {
+                APPEND_TAG_META(doc, tag, MetaExifExposureTime)
             }
         }
     }

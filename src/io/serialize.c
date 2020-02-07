@@ -118,6 +118,22 @@ char *get_meta_key_text(enum metakey meta_key) {
             return "font_name";
         case MetaParent:
             return "parent";
+        case MetaExifMake:
+            return "exif_make";
+        case MetaExifSoftware:
+            return "exif_software";
+        case MetaExifExposureTime:
+            return "exif_exposure_time";
+        case MetaExifFNumber:
+            return "exif_fnumber";
+        case MetaExifFocalLength:
+            return "exif_focal_length";
+        case MetaExifUserComment:
+            return "exif_user_comment";
+        case MetaExifIsoSpeedRatings:
+            return "exif_iso_speed_ratings";
+        case MetaExifModel:
+            return "exif_model";
         default:
             return NULL;
     }
@@ -255,6 +271,14 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
                 case MetaGenre:
                 case MetaFontName:
                 case MetaParent:
+                case MetaExifMake:
+                case MetaExifSoftware:
+                case MetaExifExposureTime:
+                case MetaExifFNumber:
+                case MetaExifFocalLength:
+                case MetaExifUserComment:
+                case MetaExifIsoSpeedRatings:
+                case MetaExifModel:
                 case MetaTitle: {
                     buf.cur = 0;
                     while ((c = getc(file)) != 0) {

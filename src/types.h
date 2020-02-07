@@ -2,9 +2,9 @@
 #define SIST2_TYPES_H
 
 
-#define META_INT_MASK 0xF0
-#define META_STR_MASK 0xE0
-#define META_LONG_MASK 0xD0
+#define META_INT_MASK 0x80
+#define META_STR_MASK 0x40
+#define META_LONG_MASK 0x20
 #define IS_META_INT(key) (key & META_INT_MASK) == META_INT_MASK
 #define IS_META_LONG(key) (key & META_LONG_MASK) == META_LONG_MASK
 #define IS_META_STR(meta) (meta->key & META_STR_MASK) == META_STR_MASK
@@ -31,6 +31,15 @@ enum metakey {
     MetaTitle = 12 | META_STR_MASK,
     MetaFontName = 13 | META_STR_MASK,
     MetaParent = 14 | META_STR_MASK,
+    MetaExifMake = 15 | META_STR_MASK,
+    MetaExifSoftware = 16 | META_STR_MASK,
+    MetaExifExposureTime = 17 | META_STR_MASK,
+    MetaExifFNumber = 18 | META_STR_MASK,
+    MetaExifFocalLength = 19 | META_STR_MASK,
+    MetaExifUserComment = 20 | META_STR_MASK,
+    MetaExifModel = 21 | META_STR_MASK,
+    MetaExifIsoSpeedRatings = 22 | META_STR_MASK,
+    //Note to self: this will break after 31 entries
 };
 
 #define INDEX_TYPE_BIN "binary"
