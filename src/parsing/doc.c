@@ -1,9 +1,19 @@
 #include "doc.h"
 #include "src/ctx.h"
 
-void dump_text(mceTextReader_t *reader, dyn_buffer_t *buf) {
+int dump_text(mceTextReader_t *reader, dyn_buffer_t *buf) {
 
     mce_skip_attributes(reader);
+
+    xmlErrorPtr err = xmlGetLastError();
+    if (err != NULL) {
+        if (err->level == XML_ERR_FATAL) {
+            LOG_ERRORF("doc.c", "Got fatal XML error while parsing document: %s", err->message)
+            return -1;
+        } else {
+            LOG_ERRORF("doc.c", "Got recoverable XML error while parsing document: %s", err->message)
+        }
+    }
 
     mce_start_children(reader) {
         mce_start_element(reader, NULL, _X("t")) {
@@ -18,10 +28,14 @@ void dump_text(mceTextReader_t *reader, dyn_buffer_t *buf) {
         } mce_end_element(reader);
 
         mce_start_element(reader, NULL, NULL) {
-            dump_text(reader, buf);
+            int ret = dump_text(reader, buf);
+            if (ret != 0) {
+                return ret;
+            }
         } mce_end_element(reader);
 
     } mce_end_children(reader)
+    return 0;
 }
 
 __always_inline
@@ -52,30 +66,28 @@ int should_read_part(opcPart part) {
 }
 
 __always_inline
-void read_part(opcContainer *c, dyn_buffer_t *buf, opcPart part, document_t *doc) {
+int read_part(opcContainer *c, dyn_buffer_t *buf, opcPart part, document_t *doc) {
 
     mceTextReader_t reader;
-    int options;
-    if (LogCtx.very_verbose) {
-        options = XML_PARSE_NONET;
-    } else {
-        options = XML_PARSE_NOWARNING | XML_PARSE_NOERROR | XML_PARSE_NONET;
-    }
-
-    int ret = opcXmlReaderOpen(c, &reader, part, NULL, "UTF-8", options);
+    int ret = opcXmlReaderOpen(c, &reader, part, NULL, "UTF-8", XML_PARSE_NOWARNING | XML_PARSE_NOERROR | XML_PARSE_NONET);
 
     if (ret != OPC_ERROR_NONE) {
         LOG_ERRORF(doc->filepath, "(doc.c) opcXmlReaderOpen() returned error code %d", ret);
-        return;
+        return -1;
     }
 
     mce_start_document(&reader) {
         mce_start_element(&reader, NULL, NULL) {
-                dump_text(&reader, buf);
+            ret = dump_text(&reader, buf);
+            if (ret != 0) {
+                mceTextReaderCleanup(&reader);
+                return -1;
+            }
         } mce_end_element(&reader);
     } mce_end_document(&reader);
 
     mceTextReaderCleanup(&reader);
+    return 0;
 }
 
 void parse_doc(void *mem, size_t mem_len, document_t *doc) {
@@ -95,7 +107,10 @@ void parse_doc(void *mem, size_t mem_len, document_t *doc) {
     opcPart part = opcPartGetFirst(c);
     do {
         if (should_read_part(part)) {
-            read_part(c, &buf, part, doc);
+            int ret = read_part(c, &buf, part, doc);
+            if (ret != 0) {
+                break;
+            }
         }
     } while ((part = opcPartGetNext(c, part)));
 
