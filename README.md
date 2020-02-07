@@ -95,7 +95,7 @@ File type | Library | Content | Thumbnail | Metadata
 pdf,xps,cbz,fb2,epub | MuPDF | text+ocr | yes, `png` | title |
 `audio/*` | ffmpeg | - | yes, `jpeg` | ID3 tags |
 `video/*` | ffmpeg | - | yes, `jpeg` | title, comment, artist |
-`image/*` | ffmpeg | - | yes, `jpeg` | `EXIF:Artist`, `EXIF:ImageDescription` |
+`image/*` | ffmpeg | - | yes, `jpeg` |  [Common EXIF tags](https://github.com/simon987/sist2/blob/efdde2734eca9b14a54f84568863b7ffd59bdba3/src/parsing/media.c#L190) |
 ttf,ttc,cff,woff,fnt,otf | Freetype2 | - | yes, `bmp` | Name & style |
 `text/plain` | *(none)* | yes | no | - |
 tar, zip, rar, 7z, ar ...  | Libarchive | yes\* | - | no |
