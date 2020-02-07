@@ -91,7 +91,11 @@ text_buffer_t text_buffer_create(int max_size) {
 }
 
 void text_buffer_terminate_string(text_buffer_t *buf) {
-    dyn_buffer_write_char(&buf->dyn_buffer, '\0');
+    if (*(buf->dyn_buffer.buf + buf->dyn_buffer.cur - 1) == ' ') {
+        *(buf->dyn_buffer.buf + buf->dyn_buffer.cur - 1) = '\0';
+    } else {
+        dyn_buffer_write_char(&buf->dyn_buffer, '\0');
+    }
 }
 
 __always_inline
@@ -172,8 +176,8 @@ int text_buffer_append_string0(text_buffer_t *buf, char *str) {
 
 int text_buffer_append_char(text_buffer_t *buf, int c) {
 
-    if (SHOULD_IGNORE_CHAR(c)) {
-        if (!buf->last_char_was_whitespace) {
+    if (SHOULD_IGNORE_CHAR(c) || c == ' ') {
+        if (!buf->last_char_was_whitespace && buf->dyn_buffer.cur != 0) {
             dyn_buffer_write_char(&buf->dyn_buffer, ' ');
             buf->last_char_was_whitespace = TRUE;
 
