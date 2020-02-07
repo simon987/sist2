@@ -1,6 +1,9 @@
+import json
+
 files = [
     "schema/mappings.json",
     "schema/settings.json",
+    "schema/pipeline.json",
 ]
 
 
@@ -9,6 +12,6 @@ def clean(filepath):
 
 
 for file in files:
-    with open(file, "rb") as f:
-        data = f.read()
+    with open(file, "r") as f:
+        data = json.dumps(json.load(f), separators=(",", ":")).encode()
     print("char %s[%d] = {%s};" % (clean(file), len(data), ",".join(str(int(b)) for b in data)))

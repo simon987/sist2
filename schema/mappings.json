@@ -1,5 +1,9 @@
 {
   "properties": {
+    "_tie": {
+      "type": "keyword",
+      "doc_values": true
+    },
     "path": {
       "type": "text",
       "analyzer": "path_analyzer",
@@ -105,6 +109,30 @@
     },
     "tag": {
       "type": "keyword"
+    },
+    "exif_make": {
+      "type": "text"
+    },
+    "exif_model": {
+      "type": "text"
+    },
+    "exif:software": {
+      "type": "text"
+    },
+    "exif_exposure_time": {
+      "type": "keyword"
+    },
+    "exif_fnumber": {
+      "type": "keyword"
+    },
+    "exif_iso_speed_ratings": {
+      "type": "keyword"
+    },
+    "exif_focal_length": {
+      "type": "keyword"
+    },
+    "exif_user_comment": {
+      "type": "text"
     }
   }
 }

@@ -6,7 +6,8 @@ let tagTree;
 
 let searchBar = document.getElementById("searchBar");
 let pathBar = document.getElementById("pathBar");
-let scroll_id = null;
+let lastDoc = null;
+let reachedEnd = false;
 let docCount = 0;
 let coolingDown = false;
 let searchBusy = true;
@@ -259,40 +260,17 @@ function insertHits(resultContainer, hits) {
 }
 
 window.addEventListener("scroll", function () {
-    if (!coolingDown && !searchBusy) {
+    if (!searchBusy) {
         let threshold = 400;
 
         if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - threshold) {
-            coolingDown = true;
-            doScroll();
+            if (!reachedEnd) {
+                coolingDown = true;
+                search(lastDoc);
+            }
         }
     }
 });
-
-function doScroll() {
-    $.get("scroll", {scroll_id: scroll_id})
-        .then(searchResult => {
-            let searchResults = document.getElementById("searchResults");
-            let hits = searchResult["hits"]["hits"];
-
-            //Page indicator
-            let pageIndicator = makePageIndicator(searchResult);
-            searchResults.appendChild(pageIndicator);
-
-            //Result container
-            let resultContainer = makeResultContainer();
-            searchResults.appendChild(resultContainer);
-
-            insertHits(resultContainer, hits);
-
-            if (hits.length === SIZE) {
-                coolingDown = false;
-            }
-        })
-        .fail(() => {
-            window.location.reload();
-        })
-}
 
 function getSelectedNodes(tree) {
     let selectedNodes = [];
@@ -314,20 +292,24 @@ function getSelectedNodes(tree) {
     return selectedNodes
 }
 
-function search() {
+function search(after = null) {
+    lastDoc = null;
+
     if (searchBusy) {
         return;
     }
     searchBusy = true;
 
-    //Clear old search results
     let searchResults = document.getElementById("searchResults");
-    while (searchResults.firstChild) {
-        searchResults.removeChild(searchResults.firstChild);
+    //Clear old search results
+    let preload;
+    if (!after) {
+        while (searchResults.firstChild) {
+            searchResults.removeChild(searchResults.firstChild);
+        }
+        preload = makePreloader();
+        searchResults.appendChild(preload);
     }
-
-    const preload = makePreloader();
-    searchResults.appendChild(preload);
 
     let query = searchBar.value;
     let empty = query === "";
@@ -362,9 +344,9 @@ function search() {
         filters.push([{terms: {"tag": tags}}]);
     }
 
-    $.jsonPost("es?scroll=1", {
+    let q = {
         "_source": {
-            excludes: ["content"]
+            excludes: ["content", "_tie"]
         },
         query: {
             bool: {
@@ -379,8 +361,9 @@ function search() {
                 filter: filters
             }
         },
-        sort: [
-            "_score"
+        "sort": [
+            {"_score": {"order": "desc"}},
+            {"_tie": {"order":"asc"}}
         ],
         highlight: {
             pre_tags: ["<mark>"],
@@ -397,20 +380,35 @@ function search() {
             total_size: {"sum": {"field": "size"}}
         },
         size: SIZE,
-    }).then(searchResult => {
-        scroll_id = searchResult["_scroll_id"];
+    }
 
-        preload.remove();
-        //Search stats
-        searchResults.appendChild(makeStatsCard(searchResult));
+    if (after) {
+        q.search_after = [after["_score"], after["_id"]];
+    }
+
+    $.jsonPost("es", q).then(searchResult => {
+        let hits = searchResult["hits"]["hits"];
+        if (hits) {
+            lastDoc = hits[hits.length - 1];
+        }
+
+        if (!after) {
+            preload.remove();
+            searchResults.appendChild(makeStatsCard(searchResult));
+        } else {
+            let pageIndicator = makePageIndicator(searchResult);
+            searchResults.appendChild(pageIndicator);
+        }
 
         //Setup page
         let resultContainer = makeResultContainer();
         searchResults.appendChild(resultContainer);
 
-        docCount = 0;
-        insertHits(resultContainer, searchResult["hits"]["hits"]);
-
+        if (!after) {
+            docCount = 0;
+        }
+        reachedEnd = hits.length !== SIZE;
+        insertHits(resultContainer, hits);
         searchBusy = false;
     });
 }

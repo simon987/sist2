@@ -1,0 +1,10 @@
+{
+  "description": "Copy _id to _tie",
+  "processors": [
+    {
+      "script": {
+        "source": "ctx._tie = ctx._id;"
+      }
+    }
+  ]
+}

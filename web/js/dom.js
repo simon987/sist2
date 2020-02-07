@@ -113,7 +113,7 @@ function getTags(hit, mimeCategory) {
     switch (mimeCategory) {
         case "video":
         case "image":
-            if (hit["_source"].hasOwnProperty("videoc")) {
+            if (hit["_source"].hasOwnProperty("videoc") && hit["_source"]["videoc"]) {
                 const formatTag = document.createElement("span");
                 formatTag.setAttribute("class", "badge badge-pill badge-video");
                 formatTag.appendChild(document.createTextNode(hit["_source"]["videoc"].replace(" ", "")));
@@ -121,7 +121,7 @@ function getTags(hit, mimeCategory) {
             }
             break;
         case "audio": {
-            if (hit["_source"].hasOwnProperty("audioc")) {
+            if (hit["_source"].hasOwnProperty("audioc") && hit["_source"]["audioc"]) {
                 let formatTag = document.createElement("span");
                 formatTag.setAttribute("class", "badge badge-pill badge-audio");
                 formatTag.appendChild(document.createTextNode(hit["_source"]["audioc"]));

@@ -221,14 +221,6 @@ int search(UNUSED(void *p), onion_request *req, onion_response *res) {
         return OCS_NOT_PROCESSED;
     }
 
-    char *scroll_param;
-    const char *scroll = onion_request_get_query(req, "scroll");
-    if (scroll != NULL) {
-        scroll_param = "?scroll=3m";
-    } else {
-        scroll_param = "";
-    }
-
     const struct onion_block_t *block = onion_request_get_data(req);
 
     if (block == NULL) {
@@ -236,7 +228,7 @@ int search(UNUSED(void *p), onion_request *req, onion_response *res) {
     }
 
     char url[4096];
-    snprintf(url, 4096, "%s/sist2/_search%s", WebCtx.es_url, scroll_param);
+    snprintf(url, 4096, "%s/sist2/_search", WebCtx.es_url);
     response_t *r = web_post(url, onion_block_data(block), "Content-Type: application/json");
 
     set_default_headers(res);
@@ -249,43 +241,6 @@ int search(UNUSED(void *p), onion_request *req, onion_response *res) {
         onion_response_set_code(res, HTTP_INTERNAL_ERROR);
     }
 
-    free_response(r);
-
-    return OCS_PROCESSED;
-}
-
-int scroll(UNUSED(void *p), onion_request *req, onion_response *res) {
-
-    int flags = onion_request_get_flags(req);
-    if ((flags & OR_METHODS) != OR_GET) {
-        return OCS_NOT_PROCESSED;
-    }
-
-    char url[4096];
-    snprintf(url, 4096, "%s/_search/scroll", WebCtx.es_url);
-
-    const char *scroll_id = onion_request_get_query(req, "scroll_id");
-
-    cJSON *json = cJSON_CreateObject();
-    cJSON_AddStringToObject(json, "scroll_id", scroll_id);
-    cJSON_AddStringToObject(json, "scroll", "3m");
-
-    char *json_str = cJSON_PrintUnformatted(json);
-    response_t *r = web_post(url, json_str, "Content-Type: application/json");
-
-    cJSON_Delete(json);
-    cJSON_free(json_str);
-
-    if (r->status_code != 200) {
-        free_response(r);
-        return OCS_NOT_PROCESSED;
-    }
-
-    set_default_headers(res);
-    onion_response_set_header(res, "Content-Type", "application/json");
-    onion_response_set_header(res, "Content-Disposition", "application/json");
-    onion_response_set_length(res, r->size);
-    onion_response_write(res, r->body, r->size);
     free_response(r);
 
     return OCS_PROCESSED;
@@ -466,7 +421,6 @@ void serve(const char *hostname, const char *port) {
     onion_url_add(urls, "img/sprite-skin-flat.png", img_sprite_skin_flag);
 
     onion_url_add(urls, "es", search);
-    onion_url_add(urls, "scroll", scroll);
     onion_url_add(urls, "status", status);
     onion_url_add(
             urls,

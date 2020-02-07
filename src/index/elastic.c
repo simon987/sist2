@@ -129,7 +129,7 @@ void elastic_flush() {
     Indexer->queued = 0;
 
     char bulk_url[4096];
-    snprintf(bulk_url, 4096, "%s/sist2/_bulk", Indexer->es_url);
+    snprintf(bulk_url, 4096, "%s/sist2/_bulk?pipeline=tie", Indexer->es_url);
     response_t *r = web_post(bulk_url, buf, "Content-Type: application/x-ndjson");
 
     if (r->status_code == 0) {
@@ -243,6 +243,11 @@ void elastic_init(int force_reset) {
         snprintf(url, 4096, "%s/sist2/_close", IndexCtx.es_url);
         r = web_post(url, "", NULL);
         LOG_INFOF("elastic.c", "Close index <%d>", r->status_code);
+        free_response(r);
+
+        snprintf(url, 4096, "%s/_ingest/pipeline/tie", IndexCtx.es_url);
+        r = web_put(url, pipeline_json, "Content-Type: application/json");
+        LOG_INFOF("elastic.c", "Create pipeline <%d>", r->status_code);
         free_response(r);
 
         snprintf(url, 4096, "%s/sist2/_settings", IndexCtx.es_url);
