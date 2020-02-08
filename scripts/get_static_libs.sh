@@ -75,7 +75,7 @@ cd tesseract
 mkdir build
 cd build
 cmake -DSTATIC=on -DBUILD_TRAINING_TOOLS=off -DBUILD_TESTS=off -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_FLAGS="-fPIC"  ..
+  -DCMAKE_CXX_FLAGS="-fPIC" -DAUTO_OPTIMIZE=off ..
 make -j $THREADS
 cd ../..
 mv tesseract/build/libtesseract.a .
