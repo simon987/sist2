@@ -499,8 +499,7 @@ function makePreloader() {
 function makePageIndicator(searchResult) {
     let pageIndicator = document.createElement("div");
     pageIndicator.setAttribute("class", "page-indicator font-weight-light");
-    const totalHits = searchResult["hits"]["total"].hasOwnProperty("value")
-        ? searchResult["hits"]["total"]["value"] : searchResult["hits"]["total"];
+    const totalHits = searchResult["aggregations"]["total_count"]["value"];
     pageIndicator.appendChild(document.createTextNode(docCount + " / " + totalHits));
     return pageIndicator;
 }
@@ -547,8 +546,7 @@ function makeStatsCard(searchResult) {
     });
 
     let stat = document.createElement("span");
-    const totalHits = searchResult["hits"]["total"].hasOwnProperty("value")
-        ? searchResult["hits"]["total"]["value"] : searchResult["hits"]["total"];
+    const totalHits = searchResult["aggregations"]["total_count"]["value"];
     stat.appendChild(document.createTextNode(totalHits + " results in " + searchResult["took"] + "ms"));
 
     statsCardBody.appendChild(stat);

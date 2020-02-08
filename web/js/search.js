@@ -363,7 +363,7 @@ function search(after = null) {
         },
         "sort": [
             {"_score": {"order": "desc"}},
-            {"_tie": {"order":"asc"}}
+            {"_tie": {"order": "asc"}}
         ],
         highlight: {
             pre_tags: ["<mark>"],
@@ -376,11 +376,13 @@ function search(after = null) {
                 font_name: {},
             }
         },
-        aggs: {
-            total_size: {"sum": {"field": "size"}}
-        },
+        aggs:
+            {
+                total_size: {"sum": {"field": "size"}},
+                total_count: {"value_count": {"field": "size"}}
+            },
         size: SIZE,
-    }
+    };
 
     if (after) {
         q.search_after = [after["_score"], after["_id"]];
