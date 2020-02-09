@@ -49,7 +49,7 @@ enum metakey {
 
 typedef struct index_descriptor {
     char uuid[UUID_STR_LEN];
-    char version[6];
+    char version[64];
     long timestamp;
     char root[PATH_MAX];
     char rewrite_url[8196];
