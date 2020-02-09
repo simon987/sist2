@@ -1293,6 +1293,7 @@ g_hash_table_insert(ext_table, "isu", (gpointer)video_x_isvideo);
 g_hash_table_insert(ext_table, "mjpg", (gpointer)video_x_motion_jpeg);
 g_hash_table_insert(ext_table, "asf", (gpointer)video_x_ms_asf);
 g_hash_table_insert(ext_table, "asx", (gpointer)video_x_ms_asf);
+g_hash_table_insert(ext_table, "wmv", (gpointer)video_x_ms_asf);
 g_hash_table_insert(ext_table, "qtc", (gpointer)video_x_qtc);
 g_hash_table_insert(ext_table, "movie", (gpointer)video_x_sgi_movie);
 g_hash_table_insert(ext_table, "mv", (gpointer)video_x_sgi_movie);

@@ -320,7 +320,7 @@ video/x-dv, dif|dv
 video/x-fli, fli
 video/x-isvideo, isu
 video/x-motion-jpeg, mjpg
-video/x-ms-asf, asf|asx
+video/x-ms-asf, asf|asx|wmv
 video/x-qtc, qtc
 video/x-sgi-movie, movie|mv
 application/x-7z-compressed, 7z

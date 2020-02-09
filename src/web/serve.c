@@ -181,7 +181,12 @@ int chunked_response_file(const char *filename, const char *mime,
         }
     }
     onion_response_set_length(res, length);
-    onion_response_set_header(res, "Content-Type", mime);
+    if (mime != NULL) {
+        onion_response_set_header(res, "Content-Type", mime);
+    } else {
+        onion_response_set_header(res, "Content-Type", "application/octet-stream");
+    }
+
     onion_response_write_headers(res);
     if ((onion_request_get_flags(request) & OR_HEAD) == OR_HEAD) {
         length = 0;

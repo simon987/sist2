@@ -214,7 +214,12 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
         char uuid_str[UUID_STR_LEN];
         uuid_unparse(line.uuid, uuid_str);
 
-        cJSON_AddStringToObject(document, "mime", mime_get_mime_text(line.mime));
+        const char* mime_text = mime_get_mime_text(line.mime);
+        if (mime_text == NULL) {
+            cJSON_AddNullToObject(document, "mime");
+        } else {
+            cJSON_AddStringToObject(document, "mime", mime_get_mime_text(line.mime));
+        }
         cJSON_AddNumberToObject(document, "size", (double) line.size);
         cJSON_AddNumberToObject(document, "mtime", line.mtime);
 
