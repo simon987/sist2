@@ -134,6 +134,8 @@ char *get_meta_key_text(enum metakey meta_key) {
             return "exif_iso_speed_ratings";
         case MetaExifModel:
             return "exif_model";
+        case MetaExifDateTime:
+            return "exif_datetime";
         default:
             return NULL;
     }
@@ -278,6 +280,7 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
                 case MetaExifFocalLength:
                 case MetaExifUserComment:
                 case MetaExifIsoSpeedRatings:
+                case MetaExifDateTime:
                 case MetaExifModel:
                 case MetaTitle: {
                     buf.cur = 0;

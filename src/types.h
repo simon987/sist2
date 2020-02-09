@@ -39,6 +39,7 @@ enum metakey {
     MetaExifUserComment = 20 | META_STR_MASK,
     MetaExifModel = 21 | META_STR_MASK,
     MetaExifIsoSpeedRatings = 22 | META_STR_MASK,
+    MetaExifDateTime = 23 | META_STR_MASK,
     //Note to self: this will break after 31 entries
 };
 

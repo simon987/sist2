@@ -209,6 +209,8 @@ append_video_meta(AVFormatContext *pFormatCtx, AVFrame *frame, document_t *doc, 
                 APPEND_TAG_META(doc, tag, MetaExifIsoSpeedRatings)
             } else if (strcmp(tag->key, "ExposureTime") == 0) {
                 APPEND_TAG_META(doc, tag, MetaExifExposureTime)
+            } else if (strcmp(tag->key, "DateTime") == 0) {
+                APPEND_TAG_META(doc, tag, MetaExifDateTime)
             }
         }
     }
