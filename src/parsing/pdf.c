@@ -1,7 +1,7 @@
 #include "pdf.h"
 #include "src/ctx.h"
 
-#define MIN_OCR_SIZE 128
+#define MIN_OCR_SIZE 350
 __thread text_buffer_t thread_buffer;
 
 
