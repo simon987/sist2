@@ -13,7 +13,7 @@ mv mupdf/build/release/libmupdf-third.a .
 
 # openjp2
 cd openjpeg
-cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3 -march=native -DNDEBUG -fPIC"
+cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3 -DNDEBUG -fPIC"
 make -j $THREADS
 cd ..
 mv openjpeg/bin/libopenjp2.a .
