@@ -2,6 +2,7 @@
 #include "src/ctx.h"
 
 #define MIN_OCR_SIZE 350
+#define MIN_OCR_LEN 10
 __thread text_buffer_t thread_buffer;
 
 
@@ -128,6 +129,7 @@ int read_stext_block(fz_stext_block *block, text_buffer_t *tex) {
     return 0;
 }
 
+#define IS_VALID_BPP(d) (d==1 || d==2 || d==4 || d==8 || d==16 || d==24 || d==32)
 
 void fill_image(fz_context *ctx, UNUSED(fz_device *dev),
                 fz_image *img, UNUSED(fz_matrix ctm), UNUSED(float alpha),
@@ -135,7 +137,7 @@ void fill_image(fz_context *ctx, UNUSED(fz_device *dev),
 
     int l2factor = 0;
 
-    if (img->w > MIN_OCR_SIZE && img->h > MIN_OCR_SIZE) {
+    if (img->w > MIN_OCR_SIZE && img->h > MIN_OCR_SIZE && IS_VALID_BPP(img->n)) {
 
         fz_pixmap *pix = img->get_pixmap(ctx, img, NULL, img->w, img->h, &l2factor);
 
@@ -148,12 +150,14 @@ void fill_image(fz_context *ctx, UNUSED(fz_device *dev),
 
             char *text = TessBaseAPIGetUTF8Text(api);
             size_t len = strlen(text);
-            text_buffer_append_string(&thread_buffer, text, len - 1);
-            LOG_DEBUGF(
-                    "pdf.c",
-                    "(OCR) %dx%d got %dB from tesseract (%s), buffer:%dB",
-                    pix->w, pix->h, len, ScanCtx.tesseract_lang, thread_buffer.dyn_buffer.cur
-            )
+            if (len >= MIN_OCR_LEN) {
+                text_buffer_append_string(&thread_buffer, text, len - 1);
+                LOG_DEBUGF(
+                        "pdf.c",
+                        "(OCR) %dx%d got %dB from tesseract (%s), buffer:%dB",
+                        pix->w, pix->h, len, ScanCtx.tesseract_lang, thread_buffer.dyn_buffer.cur
+                )
+            }
 
             TessBaseAPIEnd(api);
             TessBaseAPIDelete(api);
