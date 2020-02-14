@@ -75,6 +75,10 @@ function shouldPlayVideo(hit) {
     return videoc !== "hevc" && videoc !== "mpeg2video" && videoc !== "wmv3";
 }
 
+function shouldDisplayRawImage(hit) {
+    return hit["_source"]["videoc"] !== "tiff";
+}
+
 function makePlaceholder(w, h, small) {
     let calc;
     if (small) {
@@ -96,10 +100,14 @@ function makePlaceholder(w, h, small) {
     return el;
 }
 
+function ext(hit) {
+    return hit["_source"].hasOwnProperty("extension") && hit["_source"]["extension"] !== "" ? "." + hit["_source"]["extension"] : "";
+}
+
 function makeTitle(hit) {
     let title = document.createElement("div");
     title.setAttribute("class", "file-title");
-    let extension = hit["_source"].hasOwnProperty("extension") && hit["_source"]["extension"] !== "" ? "." + hit["_source"]["extension"] : "";
+    let extension = ext(hit);
 
     applyNameToTitle(hit, title, extension);
 
@@ -156,7 +164,7 @@ function getTags(hit, mimeCategory) {
 function infoButtonCb(hit) {
     return () => {
         getDocumentInfo(hit["_id"]).then(doc => {
-            $("#modal-title").text(doc["name"] + (doc["extension"] ? "." + doc["extension"] : ""));
+            $("#modal-title").text(doc["name"] + ext(hit));
 
             const tbody = $("<tbody>");
             $("#modal-body").empty()
@@ -378,6 +386,14 @@ function makeThumbnail(mimeCategory, hit, imgWrapper, small) {
             thumbnail.setAttribute("class", "card-img-top fit");
         }
         thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
+
+        if (!hit["_source"]["parent"] && shouldDisplayRawImage(hit)) {
+            imgWrapper.setAttribute("id", "sp" + hit["_id"]);
+            imgWrapper.setAttribute("href", `f/${hit["_id"]}`);
+            imgWrapper.setAttribute("data-caption", hit["_source"]["path"] + "/" + hit["_source"]["name"] + ext(hit));
+            imgWrapper.setAttribute("data-group", "p" + Math.floor(docCount / SIZE));
+            imgWrapper.classList.add("sp");
+        }
 
         const placeholder = makePlaceholder(hit["_source"]["width"], hit["_source"]["height"], small);
         imgWrapper.appendChild(placeholder);

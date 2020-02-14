@@ -406,6 +406,10 @@ function search(after = null) {
         let resultContainer = makeResultContainer();
         searchResults.appendChild(resultContainer);
 
+        window.setTimeout(() => {
+            $(".sp").SmartPhoto({animationSpeed: 200});
+        }, 100);
+
         if (!after) {
             docCount = 0;
         }
