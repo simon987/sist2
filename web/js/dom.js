@@ -76,7 +76,7 @@ function shouldPlayVideo(hit) {
 }
 
 function shouldDisplayRawImage(hit) {
-    return hit["_source"]["videoc"] !== "tiff";
+    return hit["_source"]["mime"] && hit["_source"]["mime"].startsWith("image/") && hit["_source"]["videoc"] !== "tiff";
 }
 
 function makePlaceholder(w, h, small) {
