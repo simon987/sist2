@@ -11,7 +11,7 @@
 
 <nav class="navbar navbar-expand-lg">
     <a class="navbar-brand" href="/">sist2</a>
-    <span class="badge badge-pill version">v1.2.11</span>
+    <span class="badge badge-pill version">v1.2.12</span>
     <span class="tagline">Lightning-fast file system indexer and search tool </span>
     <a style="margin-left: auto" id="theme" class="btn" title="Toggle theme" href="/">Theme</a>
 </nav>
@@ -25,13 +25,20 @@
             <div class="input-group">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
-                        <span title="Toggle fuzzy searching"  onclick="document.getElementById('fuzzyToggle').click()">Fuzzy&nbsp</span>
+                        <span title="Toggle fuzzy searching" onclick="document.getElementById('fuzzyToggle').click()">Fuzzy&nbsp</span>
                         <input title="Toggle fuzzy searching" type="checkbox" id="fuzzyToggle"
                                onclick="toggleFuzzy()" checked>
                     </div>
                 </div>
                 <input id="searchBar" type="search" class="form-control" placeholder="Search">
-
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary small-btn" type="button" data-toggle="modal"
+                            data-target="#help">?
+                    </button>
+                    <button class="btn btn-outline-secondary large-btn" type="button" data-toggle="modal"
+                            data-target="#help">Help
+                    </button>
+                </div>
             </div>
 
             <input title="File size" id="sizeSlider" name="size">
@@ -45,10 +52,12 @@
                 <div class="col" id="treeTabs">
                     <ul class="nav nav-tabs" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active" data-toggle="tab" href="#mime" role="tab" aria-controls="home" aria-selected="true">Mime Types</a>
+                            <a class="nav-link active" data-toggle="tab" href="#mime" role="tab" aria-controls="home"
+                               aria-selected="true">Mime Types</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-toggle="tab" href="#tag" role="tab" aria-controls="profile" aria-selected="false" title="User-defined tags">Tags</a>
+                            <a class="nav-link" data-toggle="tab" href="#tag" role="tab" aria-controls="profile"
+                               aria-selected="false" title="User-defined tags">Tags</a>
                         </li>
                     </ul>
                     <div class="tab-content" id="myTabContent">
@@ -75,6 +84,69 @@
                     </button>
                 </div>
                 <div class="modal-body" id="modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="help" tabindex="-1" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Search help</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <table class="table">
+                        <tbody>
+                        <tr>
+                            <td><code>+</code></td>
+                            <td>signifies AND operation</td>
+                        </tr>
+                        <tr>
+                            <td><code>|</code></td>
+                            <td>signifies OR operation</td>
+                        </tr>
+                        <tr>
+                            <td><code>-</code></td>
+                            <td>negates a single token</td>
+                        </tr>
+                        <tr>
+                            <td><code>""</code></td>
+                            <td>wraps a number of tokens to signify a phrase for searching</td>
+                        </tr>
+                        <tr>
+                            <td><code>*</code></td>
+                            <td>at the end of a term signifies a prefix query</td>
+                        </tr>
+                        <tr>
+                            <td><code>(</code> and <code>)</code></td>
+                            <td>signify precedence</td>
+                        </tr>
+                        <tr>
+                            <td><code>~N</code></td>
+                            <td>after a word signifies edit distance (fuzziness)</td>
+                        </tr>
+                        <tr>
+                            <td><code>~N</code></td>
+                            <td>after a phrase signifies slop amount</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <p>For example: <code>"fried eggs" +(eggplant | potato) -frittata</code> will match the phrase
+                        <i>fried eggs</i> and either <i>eggplant</i> or <i>potato</i>, but will ignore results
+                        containing <i>frittata</i>.</p>
+
+                    <p>When neither <code>+</code> or <code>|</code> is specified, the default operator is <code>+</code> (and).</p>
+                    <p>When the <b>Fuzzy</b> option is checked, partial matches are also returned.</p>
+                    <br>
+                    <p>For more information, see <a target="_blank"
+                                                    href="//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html">Elasticsearch
+                        documentation</a></p>
+                </div>
             </div>
         </div>
     </div>

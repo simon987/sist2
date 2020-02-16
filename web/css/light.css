@@ -287,3 +287,21 @@ mark {
     margin-top: -14px;
     font-size: 11px;
 }
+
+@media (min-width: 800px) {
+    .small-btn {
+        display: none;
+    }
+    .large-btn {
+        display: inherit;
+    }
+}
+
+@media (max-width: 801px) {
+    .small-btn {
+        display: inherit;
+    }
+    .large-btn {
+        display: none;
+    }
+}

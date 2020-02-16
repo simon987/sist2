@@ -28,7 +28,7 @@ struct {
 
     pthread_mutex_t mupdf_mu;
     char * tesseract_lang;
-    char * tesseract_path;
+    const char * tesseract_path;
 } ScanCtx;
 
 struct {

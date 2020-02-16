@@ -152,8 +152,8 @@ $.jsonPost("es", {
         target: '#mimeTree'
     });
     mimeTree.on("node.click", handleTreeClick(mimeTree));
-    mimeTree.select();
-    mimeTree.node("any").deselect();
+    mimeTree.deselect();
+    mimeTree.node("any").select();
 });
 
 function leafTag(tag) {
@@ -351,11 +351,10 @@ function search(after = null) {
         query: {
             bool: {
                 [condition]: {
-                    multi_match: {
+                    simple_query_string: {
                         query: query,
-                        type: "most_fields",
                         fields: fields,
-                        operator: "and"
+                        default_operator: "and"
                     }
                 },
                 filter: filters
@@ -407,7 +406,7 @@ function search(after = null) {
         searchResults.appendChild(resultContainer);
 
         window.setTimeout(() => {
-            $(".sp").SmartPhoto({animationSpeed: 200});
+            $(".sp").SmartPhoto({animationSpeed: 0, swipeTopToClose: true, showAnimation: false, forceInterval: 50});
         }, 100);
 
         if (!after) {
@@ -474,6 +473,15 @@ function updateIndices() {
 
 document.getElementById("indices").addEventListener("change", updateIndices);
 updateIndices();
+
+window.onkeyup = function(e) {
+    if (e.key === "/" || e.key === "Escape") {
+        const bar = document.getElementById("searchBar");
+        bar.scrollIntoView();
+        bar.focus();
+    }
+    console.log(e)
+};
 
 //Suggest
 function getPathChoices() {

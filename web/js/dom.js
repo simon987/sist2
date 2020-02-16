@@ -389,6 +389,7 @@ function makeThumbnail(mimeCategory, hit, imgWrapper, small) {
 
         if (!hit["_source"]["parent"] && shouldDisplayRawImage(hit)) {
             imgWrapper.setAttribute("id", "sp" + hit["_id"]);
+            imgWrapper.setAttribute("data-src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
             imgWrapper.setAttribute("href", `f/${hit["_id"]}`);
             imgWrapper.setAttribute("data-caption", hit["_source"]["path"] + "/" + hit["_source"]["name"] + ext(hit));
             imgWrapper.setAttribute("data-group", "p" + Math.floor(docCount / SIZE));
