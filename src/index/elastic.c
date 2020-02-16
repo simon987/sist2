@@ -138,19 +138,21 @@ void elastic_flush() {
 
     LOG_INFOF("elastic.c", "Indexed %d documents (%zukB) <%d>", count, buf_cur / 1024, r->status_code);
 
-    cJSON *ret_json = cJSON_Parse(r->body);
-    if (cJSON_GetObjectItem(ret_json, "errors")->valueint != 0) {
-        cJSON *err;
-        cJSON_ArrayForEach(err, cJSON_GetObjectItem(ret_json, "items")) {
-            if (cJSON_GetObjectItem(cJSON_GetObjectItem(err, "index"), "status")->valueint != 201) {
-                char* str = cJSON_Print(err);
-                LOG_ERRORF("elastic.c", "%s\n", str);
-                cJSON_free(str);
+    if (r->status_code != 200 && r->status_code != 413) {
+        cJSON *ret_json = cJSON_Parse(r->body);
+        if (cJSON_GetObjectItem(ret_json, "errors")->valueint != 0) {
+            cJSON *err;
+            cJSON_ArrayForEach(err, cJSON_GetObjectItem(ret_json, "items")) {
+                if (cJSON_GetObjectItem(cJSON_GetObjectItem(err, "index"), "status")->valueint != 201) {
+                    char* str = cJSON_Print(err);
+                    LOG_ERRORF("elastic.c", "%s\n", str);
+                    cJSON_free(str);
+                }
             }
         }
-    }
 
-    cJSON_Delete(ret_json);
+        cJSON_Delete(ret_json);
+    }
 
     free_response(r);
     free(buf);
