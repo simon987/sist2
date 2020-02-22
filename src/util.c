@@ -91,7 +91,7 @@ text_buffer_t text_buffer_create(int max_size) {
 }
 
 void text_buffer_terminate_string(text_buffer_t *buf) {
-    if (*(buf->dyn_buffer.buf + buf->dyn_buffer.cur - 1) == ' ') {
+    if (buf->dyn_buffer.cur > 0 && *(buf->dyn_buffer.buf + buf->dyn_buffer.cur - 1) == ' ') {
         *(buf->dyn_buffer.buf + buf->dyn_buffer.cur - 1) = '\0';
     } else {
         dyn_buffer_write_char(&buf->dyn_buffer, '\0');
