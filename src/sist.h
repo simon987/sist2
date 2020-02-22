@@ -59,6 +59,7 @@
 #include "parsing/font.h"
 #include "parsing/arc.h"
 #include "parsing/doc.h"
+#include "parsing/cbr.h"
 #include "cli.h"
 #include "log.h"
 #include "utf8.h/utf8.h"

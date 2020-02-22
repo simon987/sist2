@@ -2,6 +2,7 @@
 #define SIST2_ARC_H
 
 #include "src/sist.h"
+#define ARC_BUF_SIZE 8192
 
 int should_parse_filtered_file(const char *filepath, int ext);
 

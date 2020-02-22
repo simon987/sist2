@@ -1,8 +1,6 @@
 #include "arc.h"
 #include "src/ctx.h"
 
-#define ARC_BUF_SIZE 8192
-
 int should_parse_filtered_file(const char *filepath, int ext) {
     char tmp[PATH_MAX * 2];
 

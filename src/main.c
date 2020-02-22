@@ -6,7 +6,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.2.13";
+static const char *const Version = "1.2.14";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -58,6 +58,8 @@ void sist2_scan(scan_args_t *args) {
 
     ScanCtx.mime_table = mime_get_mime_table();
     ScanCtx.ext_table = mime_get_ext_table();
+
+    cbr_init();
 
     char store_path[PATH_MAX];
     snprintf(store_path, PATH_MAX, "%sthumbs", ScanCtx.index.path);

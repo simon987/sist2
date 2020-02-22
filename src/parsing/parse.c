@@ -149,6 +149,13 @@ void parse(void *arg) {
         if (doc_buf != buf && doc_buf != NULL) {
             free(doc_buf);
         }
+    } else if (is_cbr(doc.mime)) {
+        void *cbr_buf = read_all(job, (char *) buf, bytes_read);
+        parse_cbr(cbr_buf, doc.size, &doc);
+
+        if (cbr_buf != buf && cbr_buf != NULL) {
+            free(cbr_buf);
+        }
     }
 
     //Parent meta

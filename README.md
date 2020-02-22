@@ -92,7 +92,7 @@ docker stop sist2
 
 File type | Library | Content | Thumbnail | Metadata
 :---|:---|:---|:---|:---
-pdf,xps,cbz,fb2,epub | MuPDF | text+ocr | yes, `png` | title |
+pdf,xps,cbz,cbr,fb2,epub | MuPDF | text+ocr | yes, `png` | title |
 `audio/*` | ffmpeg | - | yes, `jpeg` | ID3 tags |
 `video/*` | ffmpeg | - | yes, `jpeg` | title, comment, artist |
 `image/*` | ffmpeg | - | yes, `jpeg` | [Common EXIF tags](https://github.com/simon987/sist2/blob/efdde2734eca9b14a54f84568863b7ffd59bdba3/src/parsing/media.c#L190) |
@@ -120,7 +120,7 @@ To check if a media file can be parsed without *seek*, execute `cat file.mp4 | f
  
 ### OCR
 
-You can enable OCR support for pdf,xps,cbz,fb2,epub file types with the
+You can enable OCR support for pdf,xps,cbz,cbr,fb2,epub file types with the
 `--ocr <lang>` option. Download the language data files with your
 package manager (`apt install tesseract-ocr-eng`) or directly [from Github](https://github.com/tesseract-ocr/tesseract/wiki/Data-Files).
 

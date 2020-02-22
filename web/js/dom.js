@@ -377,6 +377,7 @@ function makeThumbnail(mimeCategory, hit, imgWrapper, small) {
         || hit["_source"]["mime"] === "application/pdf"
         || hit["_source"]["mime"] === "application/epub+zip"
         || hit["_source"]["mime"] === "application/x-cbz"
+        || hit["_source"]["mime"] === "application/x-cbr"
         || hit["_source"].hasOwnProperty("font_name")
     ) {
         thumbnail = document.createElement("img");

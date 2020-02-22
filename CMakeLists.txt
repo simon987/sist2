@@ -26,6 +26,7 @@ add_executable(
         src/parsing/arc.c src/parsing/arc.h
         src/parsing/doc.c src/parsing/doc.h
         src/log.c src/log.h
+        src/parsing/cbr.h src/parsing/cbr.c
 
         # argparse
         argparse/argparse.h argparse/argparse.c
