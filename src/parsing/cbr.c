@@ -20,7 +20,6 @@ void parse_cbr(void *buf, size_t buf_len, document_t *doc) {
     struct archive *rar_in = archive_read_new();
     archive_read_support_filter_none(rar_in);
     archive_read_support_format_rar(rar_in);
-    archive_read_support_format_rar5(rar_in);
 
     archive_read_open_memory(rar_in, buf, buf_len);
 
