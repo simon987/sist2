@@ -196,6 +196,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg tesseract_lang=%s", args->tesseract_lang)
     LOG_DEBUGF("cli.c", "arg tesseract_path=%s", args->tesseract_path)
     LOG_DEBUGF("cli.c", "arg exclude=%s", args->exclude_regex)
+    LOG_DEBUGF("cli.c", "arg fast=%d", args->fast)
 
     return 0;
 }

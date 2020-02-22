@@ -8,7 +8,7 @@
 #define MIME_EMPTY 1
 
 #define DONT_PARSE 0x80000000
-#define SHOULD_PARSE(mime_id) (mime_id & DONT_PARSE) != DONT_PARSE && mime_id != 0
+#define SHOULD_PARSE(mime_id) (ScanCtx.fast == 0 && (mime_id & DONT_PARSE) != DONT_PARSE && mime_id != 0)
 
 #define PDF_MASK 0x40000000
 #define IS_PDF(mime_id) (mime_id & PDF_MASK) == PDF_MASK

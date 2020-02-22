@@ -31,6 +31,7 @@ struct {
     const char * tesseract_path;
     pcre *exclude;
     pcre_extra *exclude_extra;
+    int fast;
 } ScanCtx;
 
 struct {

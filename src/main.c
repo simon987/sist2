@@ -6,7 +6,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.2.14";
+static const char *const Version = "1.2.15";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -53,6 +53,7 @@ void sist2_scan(scan_args_t *args) {
     ScanCtx.index.desc.root_len = (short) strlen(ScanCtx.index.desc.root);
     ScanCtx.tesseract_lang = args->tesseract_lang;
     ScanCtx.tesseract_path = args->tesseract_path;
+    ScanCtx.fast = args->fast;
 
     init_dir(ScanCtx.index.path);
 
@@ -241,6 +242,7 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "ocr", &scan_args->tesseract_lang, "Tesseract language (use tesseract --list-langs to see "
                                                              "which are installed on your machine)"),
             OPT_STRING('e', "exclude", &scan_args->exclude_regex, "Files that match this regex will not be scanned"),
+            OPT_BOOLEAN(0, "fast", &scan_args->fast, "Only index file names & mime type"),
 
             OPT_GROUP("Index options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT=http://localhost:9200"),

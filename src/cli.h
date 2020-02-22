@@ -19,6 +19,7 @@ typedef struct scan_args {
     char *tesseract_lang;
     const char *tesseract_path;
     char *exclude_regex;
+    int fast;
 } scan_args_t;
 
 scan_args_t *scan_args_create();
