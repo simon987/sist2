@@ -183,7 +183,7 @@ function infoButtonCb(hit) {
                 "bitrate", "artist", "album", "album_artist", "genre", "title", "font_name", "tag"
             ]);
             Object.keys(doc)
-                .filter(key => key.startsWith("_keyword.") || key.startsWith("_text.") || displayFields.has(key) || key.startsWith("exif_"))
+                .filter(key => key.startsWith("_keyword.") || key.startsWith("_text.") || displayFields.has(key) || key.startsWith("exif_"))
                 .forEach(key => {
                     tbody.append($("<tr>")
                         .append($("<td>").text(key))

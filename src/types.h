@@ -95,7 +95,6 @@ typedef int (*read_func_t)(struct vfile *, void *buf, size_t size);
 typedef void (*close_func_t)(struct vfile *);
 
 typedef struct vfile {
-
     union {
         int fd;
         struct archive *arc;
