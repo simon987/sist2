@@ -240,6 +240,7 @@ int main(int argc, const char *argv[]) {
                                                           "shallow: Don't parse archives inside archives. DEFAULT: recurse"),
             OPT_STRING(0, "ocr", &scan_args->tesseract_lang, "Tesseract language (use tesseract --list-langs to see "
                                                              "which are installed on your machine)"),
+            OPT_STRING('e', "exclude", &scan_args->exclude_regex, "Files that match this regex will not be scanned"),
 
             OPT_GROUP("Index options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT=http://localhost:9200"),
@@ -286,9 +287,7 @@ int main(int argc, const char *argv[]) {
         }
         sist2_scan(scan_args);
 
-    }
-
-    else if (strcmp(argv[0], "index") == 0) {
+    } else if (strcmp(argv[0], "index") == 0) {
 
         int err = index_args_validate(index_args, argc, argv);
         if (err != 0) {
@@ -304,8 +303,7 @@ int main(int argc, const char *argv[]) {
         }
         sist2_web(web_args);
 
-    }
-    else {
+    } else {
         fprintf(stderr, "Invalid command: '%s'\n", argv[0]);
         argparse_usage(&argparse);
         return 1;

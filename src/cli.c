@@ -162,6 +162,26 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->tesseract_path = path;
     }
 
+    if (args->exclude_regex != NULL) {
+        const char *error;
+        int error_offset;
+
+        pcre *re = pcre_compile(args->exclude_regex, 0, &error, &error_offset, 0);
+        if (error != NULL) {
+            LOG_FATALF("cli.c", "pcre_compile returned error: %s (offset:%d)", error, error_offset)
+        }
+
+        pcre_extra *re_extra = pcre_study(re, 0, &error);
+        if (error != NULL) {
+            LOG_FATALF("cli.c", "pcre_study returned error: %s", error)
+        }
+
+        ScanCtx.exclude = re;
+        ScanCtx.exclude_extra = re_extra;
+    } else {
+        ScanCtx.exclude = NULL;
+    }
+
     LOG_DEBUGF("cli.c", "arg quality=%f", args->quality)
     LOG_DEBUGF("cli.c", "arg size=%d", args->size)
     LOG_DEBUGF("cli.c", "arg content_size=%d", args->content_size)
@@ -175,6 +195,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg archive=%s", args->archive)
     LOG_DEBUGF("cli.c", "arg tesseract_lang=%s", args->tesseract_lang)
     LOG_DEBUGF("cli.c", "arg tesseract_path=%s", args->tesseract_path)
+    LOG_DEBUGF("cli.c", "arg exclude=%s", args->exclude_regex)
 
     return 0;
 }

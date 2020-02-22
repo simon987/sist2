@@ -137,6 +137,8 @@ TARGET_LINK_LIBRARIES(
         ${PROJECT_SOURCE_DIR}/lib/libcrypto.a
         ${PROJECT_SOURCE_DIR}/lib/libssl.a
         dl
+
+        pcre
 )
 
 add_custom_target(

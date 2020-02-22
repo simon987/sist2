@@ -35,6 +35,7 @@
 #include <libxml/xmlstring.h>
 #define BOOL int
 #include <tesseract/capi.h>
+#include <pcre.h>
 
 #include <onion/onion.h>
 #include <onion/handler.h>
