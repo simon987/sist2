@@ -54,6 +54,11 @@ script.painless.regex.enabled: true
 ```
 Or, if you're using docker add `-e "script.painless.regex.enabled=true"`
 
+**Tag color**
+
+You can specify the color for an individual tag by appending an 
+hexadecimal color code (`#RRGGBBAA`) to the tag name.
+
 ### Examples
 
 If `(20XX)` is in the file name, add the `year.<year>` tag:
@@ -114,4 +119,34 @@ if (ctx._source.path != "") {
     String[] names = ctx._source.path.splitOnToken('/');
     tags.add("studio." + names[names.length-1]);
 }
+```
+
+Parse `EXIF:F Number` tag
+```Java
+if (ctx._source?.exif_fnumber != null) {
+    String[] values = ctx._source.exif_fnumber.splitOnToken(' ');
+    String aperture = String.valueOf(Float.parseFloat(values[0]) / Float.parseFloat(values[1]));
+    if (aperture == "NaN") {
+        aperture = "0,0";
+    }
+    tags.add("Aperture.f/" + aperture.replace(".", ","));
+}
+```
+
+Display year and months from `EXIF:DateTime` tag
+```Java
+if (ctx._source?.exif_datetime != null) {
+    SimpleDateFormat parser = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
+    Date date = parser.parse(ctx._source.exif_datetime);
+
+    SimpleDateFormat yp = new SimpleDateFormat("yyyy");
+    SimpleDateFormat mp = new SimpleDateFormat("MMMMMMMMM");
+
+    String year = yp.format(date);
+    String month = mp.format(date);
+
+    tags.add("Month." + month);
+    tags.add("Year." + year);
+}
+
 ```

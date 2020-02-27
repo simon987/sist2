@@ -8,9 +8,12 @@ sist2 (Simple incremental search tool)
 
 *Warning: sist2 is in early development*
 
+![sist2.png](sist2.png)
+
 ## Features
 
 * Fast, low memory usage, multi-threaded
+* Mobile-friendly Web interface
 * Portable (all its features are packaged in a single executable)
 * Extracts text from common file types \*
 * Generates thumbnails \*
@@ -26,11 +29,27 @@ sist2 (Simple incremental search tool)
 
 ## Getting Started
 
-1. Have an [Elasticsearch](https://www.elastic.co/downloads/elasticsearch) instance running
-1. 
+1. Have an Elasticsearch (>= 6.X.X) instance running
+    1. Download [from official website](https://www.elastic.co/downloads/elasticsearch)
+    1. *(or)* Run using docker:
+        ```bash
+       docker run -d --name es1 --net sist2_net -p 9200:9200 \
+            -e "discovery.type=single-node" elasticsearch:7.5.2
+        ```
+    1. *(or)* Run using docker-compose:
+        ```yaml
+          elasticsearch:
+            image: docker.elastic.co/elasticsearch/elasticsearch:7.5.2
+            environment:
+              - discovery.type=single-node
+              - "ES_JAVA_OPTS=-Xms1G -Xmx2G"
+        ```
+1. Download sist2 executable
     1. Download the [latest sist2 release](https://github.com/simon987/sist2/releases) *
     1. *(or)* Download a [development snapshot](https://files.simon987.net/artifacts/Sist2/Build/) *(Not recommended!)*
     1. *(or)* `docker pull simon987/sist2:latest`
+
+1. See [Usage guide](USAGE.md)
    
 
 \* *Windows users*: **sist2** runs under [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux)    
@@ -39,53 +58,11 @@ sist2 (Simple incremental search tool)
 
 ## Example usage
 
+See [Usage guide](USAGE.md) for more details
 
-![demo](demo.gif)
-
-See help page `sist2 --help` for more details.
-
-**Scan a directory**
-```bash
-sist2 scan ~/Documents -o ./orig_idx/
-sist2 scan --threads 4 --content-size 16384 /mnt/Pictures
-sist2 scan --incremental ./orig_idx/ -o ./updated_idx/ ~/Documents
-```
-
-**Push index to Elasticsearch or file**
-```bash
-sist2 index --force-reset ./my_idx
-sist2 index --print ./my_idx > raw_documents.ndjson
-```
-
-**Start web interface**
-```bash
-sist2 web --bind 0.0.0.0 --port 4321 ./my_idx1 ./my_idx2 ./my_idx3
-```
-
-### Use sist2 with docker
-
-**scan**
-```bash
-docker run -it \
-    -v /path/to/files/:/files \
-    -v $PWD/out/:/out \
-    simon987/sist2 scan -t 4 /files -o /out/my_idx1
-```
-**index**
-```bash
-docker run -it --network host\
-    -v $PWD/out/:/out \
-    simon987/sist2 index /out/my_idx1
-```
-
-**web**
-```bash
-docker run --rm --network host -d --name sist2\
-    -v $PWD/out/my_idx:/idx \
-    -v $PWD/my/files:/files
-    simon987/sist2 web --bind 0.0.0.0 /idx
-docker stop sist2
-```
+1. Scan a directory: `sist2 scan ~/Documents -o ./docs_idx`
+1. Push index to Elasticsearch: `sist2 index ./docs_idx`
+1. Start web interface: `sist2 web ./docs_idx`
 
 
 ## Format support
@@ -145,8 +122,9 @@ binaries.
     ```bash
     apt install git cmake pkg-config libglib2.0-dev \
         libssl-dev uuid-dev python3 libmagic-dev libfreetype6-dev \
-        libcurl-dev libbz2-dev yasm libharfbuzz-dev ragel \
-        libarchive-dev libtiff5 libpng16-16 libpango1.0-dev
+        libcurl4-openssl-dev libbz2-dev yasm libharfbuzz-dev ragel \
+        libarchive-dev libtiff5 libpng16-16 libpango1.0-dev \
+        libxml2-dev
    ```
 
 2. Build

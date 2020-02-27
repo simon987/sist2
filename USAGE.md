@@ -1,0 +1,275 @@
+# Usage
+
+*More examples (specifically with docker/compose) are in progress*
+
+* [scan](#scan)
+    * [options](#scan-options)
+    * [examples](#scan-examples)
+    * [index format](#index-format)
+* [index](#index)
+    * [options](#index-options)
+    * [examples](#index-examples)
+* [web](#web)
+    * [options](#web-options)
+    * [examples](#web-examples)
+    * [rewrite_url](#rewrite_url)
+    * [link to specific indices](#link-to-specific-indices)
+
+```
+Usage: sist2 scan [OPTION]... PATH
+   or: sist2 index [OPTION]... INDEX
+   or: sist2 web [OPTION]... INDEX...
+Lightning-fast file system indexer and search tool.
+
+    -h, --help            show this help message and exit
+    -v, --version         Show version and exit
+    --verbose             Turn on logging
+    --very-verbose        Turn on debug messages
+
+Scan options
+    -t, --threads=<int>   Number of threads. DEFAULT=1
+    -q, --quality=<flt>   Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=5
+    --size=<int>          Thumbnail size, in pixels. Use negative value to disable. DEFAULT=500
+    --content-size=<int>  Number of bytes to be extracted from text documents. Use negative value to disable. DEFAULT=32768
+    --incremental=<str>   Reuse an existing index and only scan modified files.
+    -o, --output=<str>    Output directory. DEFAULT=index.sist2/
+    --rewrite-url=<str>   Serve files from this url instead of from disk.
+    --name=<str>          Index display name. DEFAULT: (name of the directory)
+    --depth=<int>         Scan up to DEPTH subdirectories deep. Use 0 to only scan files in PATH. DEFAULT: -1
+    --archive=<str>       Archive file mode (skip|list|shallow|recurse). skip: Don't parse, list: only get file names as text, shallow: Don't parse archives inside archives. DEFAULT: recurse
+    --ocr=<str>           Tesseract language (use tesseract --list-langs to see which are installed on your machine)
+    -e, --exclude=<str>   Files that match this regex will not be scanned
+    --fast                Only index file names & mime type
+
+Index options
+    --es-url=<str>        Elasticsearch url with port. DEFAULT=http://localhost:9200
+    -p, --print           Just print JSON documents to stdout.
+    --script-file=<str>   Path to user script.
+    --batch-size=<int>    Index batch size. DEFAULT: 100
+    -f, --force-reset     Reset Elasticsearch mappings and settings. (You must use this option the first time you use the index command)
+
+Web options
+    --es-url=<str>        Elasticsearch url. DEFAULT=http://localhost:9200
+    --bind=<str>          Listen on this address. DEFAULT=localhost
+    --port=<str>          Listen on this port. DEFAULT=4090
+    --auth=<str>          Basic auth in user:password format
+Made by simon987 <me@simon987.net>. Released under GPL-3.0
+
+```
+
+## Scan
+
+### Scan options
+
+* `-t, --threads` 
+      Number of threads for file parsing. **Do not set a number higher than `$(nproc)`!**.
+* `-q, --quality` 
+    Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. *Does not affect PDF thumbnails quality*
+* `--size` 
+    Thumbnail size in pixels.
+* `--content-size` 
+    Number of bytes of text to be extracted from the content of files (plain text and PDFs).
+    Repeated whitespace and special characters do not count toward this limit.
+* `--incremental`
+    Specify an existing index. Information about files in this index that were not modified (based on *mtime* attribute)
+    will be copied to the new index and will not be parsed again.
+* `-o, --output` Output directory. 
+* `--rewrite-url` Set the `rewrite_url` option for the web module (See [rewrite_url](#rewrite_url)) 
+* `--name` Set the `name` option for the web module
+* `--depth` Maximum scan dept. Set to 0 only scan files directly in the root directory, set to -1 for infinite depth
+* `--archive` Archive file mode.
+    * skip: Don't parse
+    * list: Only get file names as text
+    * shallow: Don't parse archives inside archives.
+    * recurse: Scan archives recursively (default)
+* `--ocr` See [OCR](README.md#OCR)
+* `-e, --exclude` Regex pattern to exclude files. A file is excluded if the pattern matches any 
+    part of the full absolute path.
+    
+    Examples: 
+    * `-e ".*\.ttf"`: Ignore ttf files
+    * `-e ".*\.(ttf|rar)"`: Ignore ttf and rar files
+    * `-e "^/mnt/backups/"`: Ignore all files in the `/mnt/backups/` directory
+    * `-e "^/mnt/Data[12]/"`: Ignore all files in the `/mnt/Data1/` and `/mnt/Data2/` directory
+    * `-e "(^/usr/)|(^/var/)|(^/media/DRIVE-A/tmp/)|(^/media/DRIVE-B/Trash/)"` Exclude the
+     `/usr`, `/var`, `/media/DRIVE-A/tmp`, `/media/DRIVE-B/Trash` directories
+* `--fast` Only index file names and mime type
+
+### Scan examples
+
+Simple scan
+```bash
+sist2 scan ~/Documents
+
+sist2 scan \
+    --threads 4 --content-size 16000000 --quality 1.0 --archive shallow \
+    --name "My Documents" --rewrite-url "http://nas.domain.local/My Documents/" \
+    ~/Documents -o ./documents.idx/
+```
+
+Incremental scan
+```
+sist2 scan --incremental ./orig_idx/ -o ./updated_idx/ ~/Documents
+```
+
+### Index format
+
+A typical `binary` type index structure looks like this:
+```
+documents.idx/
+├── descriptor.json
+├── _index_139965416830720
+├── _index_139965425223424
+├── _index_139965433616128
+├── _index_139965442008832
+└── thumbs
+    ├── data.mdb
+    └── lock.mdb
+```
+
+The `_index_*` files contain the raw binary index data and are not meant to be
+read by other applications. The format is generally compatible across different 
+sist2 versions.
+
+The `thumbs/` folder is a [LMDB](https://en.wikipedia.org/wiki/Lightning_Memory-Mapped_Database)
+database containing the thumbnails.
+
+The `descriptor.json` file contains general information about the index. The 
+following fields are safe to modify manually: `root`, `name`, [rewrite_url](#rewrite_url) and `timestamp`.
+
+
+*Advanced usage*
+
+Instead of using the `scan` module, you can also import an index generated
+by a third party application. The 'external' index must have the following format:
+
+```
+my_index/
+├── descriptor.json
+├── _index_0
+└── thumbs
+    ├── data.mdb
+    └── lock.mdb
+```
+
+*descriptor.json*:
+```json
+{
+    "uuid": "<valid UUID4>",
+    "version": "_external_v1",
+    "root": "(optional)",
+    "name": "<name>",
+    "rewrite_url": "(optional)",
+    "type": "json",
+    "timestamp": 1578971024
+}
+```
+
+*_index_0*: NDJSON format (One json object per line)
+
+```json
+{
+  "_id": "unique uuid for the file",
+  "index": "index uuid4 (same one as descriptor.json!)",
+  "mime": "application/x-cbz",
+  "size": 14341204,
+  "mtime": 1578882996,
+  "extension": "cbz",
+  "name": "my_book",
+  "path": "path/to/books",
+  "content": "text contents of the book",
+  "title": "Title of the book",
+  "tag": ["genre.fiction", "author.someguy", "etc..."],
+  "_keyword": [
+    {"k": "ISBN", "v": "ABCD34789231"}
+  ],
+  "_text": [
+    {"k": "other", "v": "This will be indexed as text"}
+  ]
+}
+```
+
+You can find the full list of supported fields [here](src/io/serialize.c#L90)
+
+The `_keyword.*` items will be indexed and searchable as **keyword** fields (only full matches allowed).
+The `_text.*` items will be indexed and searchable as **text** fields (fuzzy searching allowed)
+
+
+*thumbs/*:
+
+LMDB key-value store. Keys are **binary** 128-bit UUID4s (`_id` field)
+and values are raw image bytes.
+
+Importing an external `binary` type index is technically possible but
+it is currently unsupported and has no guaranties of back/forward compatibility.
+
+
+## Index
+### Index options
+ * `--es-url` 
+ Elasticsearch url and port. If you are using docker, make sure that both containers are on the
+ same network.
+ * `-p, --print` 
+    Print index in JSON format to stdout.
+ * `--script-file` 
+    Path to user script. See [Scripting](scripting/README.md).
+ * `--batch-size=<int>` 
+    Index batch size. Indexing is generally faster with larger batches, but payloads that
+    are too large will fail and additional overhead for retrying with smaller sizes may slow
+    down the process.
+ * `-f, --force-reset` 
+    Reset Elasticsearch mappings and settings.
+    **(You must use this option the first time you use the index command)**.
+    
+### Index examples
+
+**Push to elasticsearch**
+```bash
+sist2 index --force-reset --batch-size 1000 --es-url http://localhost:9200 ./my_index/
+sist2 index ./my_index/
+```
+
+**Save index in JSON format**
+```bash
+sist2 index --print ./my_index/ > my_index.ndjson
+```
+
+**Inspect contents of an index**
+```bash
+sist2 index --print ./my_index/ | jq | less
+```
+
+## Web
+
+### Web options
+ * `--es-url=<str>` Elasticsearch url.
+ * `--bind=<str>` Listen on this address.
+ * `--port=<str>` Listen on this port.
+ * `--auth=<str>` Basic auth in user:password format
+ 
+### Web examples
+
+**Single index**
+```bash
+sist2 web --auth admin:hunter2 --bind 0.0.0.0 --port 8888 my_index
+```
+
+**Multiple indices**
+```bash
+# Indices will be displayed in this order in the web interface
+sist2 web index1 index2 index3 index4
+```
+
+### rewrite_url
+
+When the `rewrite_url` field is not empty, the web module ignores the `root`
+field and will return a HTTP redirect to `<rewrite_url><path>/<name><extension>`
+instead of serving the file from disk. 
+Both the `root` and `rewrite_url` fields are safe to manually modify from the 
+`descriptor.json` file.
+
+### Link to specific indices
+
+To link to specific indices, you can add a list of comma-separated index name to 
+the URL: `?i=<name>,<name>`. By default, indices with `"(nsfw)"` in their name are
+not displayed.
