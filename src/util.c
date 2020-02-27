@@ -259,8 +259,10 @@ char *abspath(const char *path) {
     if (abs == NULL) {
         return NULL;
     }
-    abs = realloc(abs, strlen(abs) + 2);
-    strcat(abs, "/");
+    if (strlen(abs) > 1) {
+        abs = realloc(abs, strlen(abs) + 2);
+        strcat(abs, "/");
+    }
 
     wordfree(&w);
     return abs;
