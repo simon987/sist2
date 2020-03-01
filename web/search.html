@@ -11,9 +11,10 @@
 
 <nav class="navbar navbar-expand-lg">
     <a class="navbar-brand" href="/">sist2</a>
-    <span class="badge badge-pill version">v1.2.16</span>
+    <span class="badge badge-pill version">v1.2.17</span>
     <span class="tagline">Lightning-fast file system indexer and search tool </span>
-    <a style="margin-left: auto" id="theme" class="btn" title="Toggle theme" href="/">Theme</a>
+    <button style="margin-left: auto" class="btn" type="button" data-toggle="modal" data-target="#settings" onclick="loadSettings()">Settings</button>
+    <a id="theme" class="btn" title="Toggle theme" href="/">Theme</a>
 </nav>
 
 <div class="container">
@@ -146,6 +147,39 @@
                     <p>For more information, see <a target="_blank"
                                                     href="//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html">Elasticsearch
                         documentation</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="settings" tabindex="-1" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Settings</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="settingHighlight">
+                        <label class="custom-control-label" for="settingHighlight">Enable highlighting</label>
+                    </div>
+
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="settingFuzzy">
+                        <label class="custom-control-label" for="settingFuzzy">Set fuzzy search by default</label>
+                    </div>
+
+                    <label for="settingDisplay">Display</label>
+                    <select id="settingDisplay" class="form-control form-control-sm">
+                        <option value="grid">Grid</option>
+                        <option value="list">List</option>
+                    </select>
+
+                    <br>
+                    <button style="float: right" class="btn btn-primary" onclick="updateSettings()">Update settings</button>
                 </div>
             </div>
         </div>

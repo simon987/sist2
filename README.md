@@ -53,7 +53,6 @@ sist2 (Simple incremental search tool)
    
 
 \* *Windows users*: **sist2** runs under [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux)    
-\* *Mac users*: See [#1](https://github.com/simon987/sist2/issues/1)
 
 
 ## Example usage

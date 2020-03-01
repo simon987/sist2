@@ -13,12 +13,38 @@ let coolingDown = false;
 let searchBusy = true;
 let selectedIndices = [];
 
-let mode;
-if (localStorage.getItem("mode") === null) {
-    mode = "grid";
-} else {
-    mode = localStorage.getItem("mode")
+const CONF = new Settings();
+
+const _defaults = {
+    display: "grid",
+    fuzzy: true,
+    highlight: true
+};
+
+function Settings() {
+    this.options = {};
+
+    this._onUpdate = function() {
+        $("#fuzzyToggle").prop("checked", this.options.fuzzy);
+    }
+
+    this.load = function() {
+        const raw = window.localStorage.getItem("options");
+        if (raw === null) {
+            this.options = _defaults;
+        } else {
+            this.options = JSON.parse(raw);
+        }
+
+        this._onUpdate();
+    }
+
+    this.save = function() {
+        window.localStorage.setItem("options", JSON.stringify(this.options));
+        this._onUpdate();
+    }
 }
+
 
 function showEsError() {
     $.toast({
@@ -54,6 +80,7 @@ window.onload = () => {
         }
         window.location.reload();
     })
+    CONF.load();
 };
 
 function toggleFuzzy() {
@@ -250,7 +277,7 @@ new autoComplete({
 function insertHits(resultContainer, hits) {
     for (let i = 0; i < hits.length; i++) {
 
-        if (mode === "grid") {
+        if (CONF.options.display === "grid") {
             resultContainer.appendChild(createDocCard(hits[i]));
         } else {
             resultContainer.appendChild(createDocLine(hits[i]));
@@ -364,17 +391,6 @@ function search(after = null) {
             {"_score": {"order": "desc"}},
             {"_tie": {"order": "asc"}}
         ],
-        highlight: {
-            pre_tags: ["<mark>"],
-            post_tags: ["</mark>"],
-            fields: {
-                content: {},
-                // "content.nGram": {},
-                name: {},
-                "name.nGram": {},
-                font_name: {},
-            }
-        },
         aggs:
             {
                 total_size: {"sum": {"field": "size"}},
@@ -385,6 +401,20 @@ function search(after = null) {
 
     if (after) {
         q.search_after = [after["_score"], after["_id"]];
+    }
+
+    if (CONF.options.highlight) {
+        q.highlight = {
+            pre_tags: ["<mark>"],
+                post_tags: ["</mark>"],
+                fields: {
+                content: {},
+                // "content.nGram": {},
+                name: {},
+                "name.nGram": {},
+                font_name: {},
+            }
+        };
     }
 
     $.jsonPost("es", q).then(searchResult => {
@@ -480,7 +510,6 @@ window.onkeyup = function(e) {
         bar.scrollIntoView();
         bar.focus();
     }
-    console.log(e)
 };
 
 //Suggest
@@ -501,3 +530,30 @@ function getPathChoices() {
     })
 }
 
+function updateSettings() {
+    CONF.options.display = $("#settingDisplay").val();
+    CONF.options.fuzzy = $("#settingFuzzy").prop("checked");
+    CONF.options.highlight = $("#settingHighlight").prop("checked");
+    CONF.save();
+
+    searchDebounced();
+
+    $.toast({
+        heading: "Settings updated",
+        text: "Settings saved to browser storage",
+        stack: 3,
+        bgColor: "#00a4bc",
+        textColor: "#fff",
+        position: 'bottom-right',
+        hideAfter: 3000,
+        loaderBg: "#08c7e8",
+    });
+}
+
+function loadSettings() {
+    CONF.load();
+
+    $("#settingDisplay").val(CONF.options.display);
+    $("#settingFuzzy").prop("checked", CONF.options.fuzzy);
+    $("#settingHighlight").prop("checked", CONF.options.highlight);
+}

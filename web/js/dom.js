@@ -546,20 +546,24 @@ function makeStatsCard(searchResult) {
     resultMode.appendChild(gridMode);
     resultMode.appendChild(listMode);
 
-    if (mode === "grid") {
+    if (CONF.options.display === "grid") {
         gridMode.classList.add("active")
     } else {
         listMode.classList.add("active")
     }
 
     gridMode.addEventListener("click", () => {
-        mode = "grid";
-        localStorage.setItem("mode", mode);
+        console.log("what");
+        console.log(CONF.options);
+        CONF.options.display = "grid";
+        console.log(CONF.options);
+        CONF.save();
+        console.log(CONF.options);
         searchDebounced();
     });
     listMode.addEventListener("click", () => {
-        mode = "list";
-        localStorage.setItem("mode", mode);
+        CONF.options.display = "list";
+        CONF.save();
         searchDebounced();
     });
 
@@ -584,7 +588,7 @@ function makeStatsCard(searchResult) {
 function makeResultContainer() {
     let resultContainer = document.createElement("div");
 
-    if (mode === "grid") {
+    if (CONF.options.display === "grid") {
         resultContainer.setAttribute("class", "card-columns");
     } else {
         resultContainer.setAttribute("class", "list-group");

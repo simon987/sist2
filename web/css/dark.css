@@ -244,10 +244,17 @@ body {
 }
 
 mark {
-    background: #fff217;
+    background: rgba(251, 191, 41, 0.25);
     border-radius: 0;
     padding: 1px 0;
+    color: inherit;
 }
+
+.content-div mark {
+    background: rgba(251, 191, 41, 0.40);
+    color: white;
+}
+
 
 .content-div {
     font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -437,4 +444,8 @@ option {
     .large-btn {
         display: none;
     }
+}
+
+.input-group > .custom-select:not(:first-child), .input-group > .form-control:not(:first-child) {
+    border-right: none;
 }
