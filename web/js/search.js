@@ -520,7 +520,7 @@ function getPathChoices() {
                 path: {
                     prefix: pathBar.value,
                     completion: {
-                        field: "suggest-path",
+                        field: "suggest_path",
                         skip_duplicates: true,
                         size: 10000
                     }

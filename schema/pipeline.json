@@ -1,9 +1,9 @@
 {
-  "description": "Copy _id to _tie",
+  "description": "Copy _id to _tie, save path depth",
   "processors": [
     {
       "script": {
-        "source": "ctx._tie = ctx._id;"
+        "source": "ctx._tie = ctx._id; ctx._depth = ctx.path.length() - ctx.path.replace(\"/\", \"\").length();"
       }
     }
   ]

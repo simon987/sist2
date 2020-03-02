@@ -7,9 +7,9 @@
     "path": {
       "type": "text",
       "analyzer": "path_analyzer",
-      "copy_to": "suggest-path"
+      "copy_to": "suggest_path"
     },
-    "suggest-path": {
+    "suggest_path": {
       "type": "completion",
       "analyzer": "case_insensitive_kw_analyzer"
     },
