@@ -71,8 +71,8 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (args->incremental != NULL) {
         abs_path = abspath(args->incremental);
         if (abs_path == NULL) {
-            fprintf(stderr, "File not found: %s\n", args->incremental);
-            return 1;
+            sist_log("main.c", SIST_WARNING, "Could not open original index! Disabled incremental scan feature.");
+            args->incremental = NULL;
         }
     }
 
