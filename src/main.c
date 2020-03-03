@@ -75,9 +75,17 @@ void sist2_scan(scan_args_t *args) {
 
         DIR *dir = opendir(args->incremental);
         if (dir == NULL) {
-            perror("opendir");
-            return;
+            LOG_FATALF("main.c", "Could not open original index for incremental scan: %s", strerror(errno))
         }
+
+        char descriptor_path[PATH_MAX];
+        snprintf(descriptor_path, PATH_MAX, "%s/descriptor.json", args->incremental);
+        index_descriptor_t original_desc = read_index_descriptor(descriptor_path);
+
+        if (strcmp(original_desc.version, Version) != 0) {
+            LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", original_desc.version, Version, INDEX_VERSION_EXTERNAL)
+        }
+
         struct dirent *de;
         while ((de = readdir(dir)) != NULL) {
             if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
@@ -140,9 +148,7 @@ void sist2_index(index_args_t *args) {
     LOG_DEBUGF("main.c", "descriptor version %s (%s)", desc.version, desc.type)
 
     if (strcmp(desc.version, Version) != 0 && strcmp(desc.version, INDEX_VERSION_EXTERNAL) != 0) {
-        fprintf(stderr, "Version mismatch! Index is %s but executable is %s/%s\n",
-                desc.version, Version, INDEX_VERSION_EXTERNAL);
-        return;
+        LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", desc.version, Version, INDEX_VERSION_EXTERNAL)
     }
 
     DIR *dir = opendir(args->index_path);

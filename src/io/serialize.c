@@ -57,7 +57,7 @@ index_descriptor_t read_index_descriptor(char *path) {
     int fd = open(path, O_RDONLY);
 
     if (fd == -1) {
-        LOG_FATAL("serialize.c", "Invalid/corrupt index (Could not find descriptor)\n")
+        LOG_FATALF("serialize.c", "Invalid/corrupt index (Could not find descriptor): %s: %s\n", path ,strerror(errno))
     }
 
     char *buf = malloc(info.st_size + 1);
