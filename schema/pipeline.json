@@ -3,7 +3,7 @@
   "processors": [
     {
       "script": {
-        "source": "ctx._tie = ctx._id; ctx._depth = ctx.path.length() - ctx.path.replace(\"/\", \"\").length();"
+        "source": "ctx._tie = ctx._id; ctx._depth = ctx.path.length() == 0 ? 0 : 1 + ctx.path.length() - ctx.path.replace(\"/\", \"\").length();"
       }
     }
   ]

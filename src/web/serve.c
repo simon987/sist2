@@ -243,6 +243,7 @@ int search(UNUSED(void *p), onion_request *req, onion_response *res) {
     if (r->status_code == 200) {
         onion_response_write(res, r->body, r->size);
     } else {
+        sist_log("serve.c", SIST_WARNING, "ElasticSearch error during query");
         onion_response_set_code(res, HTTP_INTERNAL_ERROR);
     }
 

@@ -310,3 +310,7 @@ mark {
 .input-group > .custom-select:not(:first-child), .input-group > .form-control:not(:first-child) {
     border-right: none;
 }
+
+#pathTree .title {
+    cursor: pointer;
+}

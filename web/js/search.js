@@ -12,6 +12,7 @@ let docCount = 0;
 let coolingDown = false;
 let searchBusy = true;
 let selectedIndices = [];
+let indexMap = {};
 
 const CONF = new Settings();
 
@@ -24,11 +25,11 @@ const _defaults = {
 function Settings() {
     this.options = {};
 
-    this._onUpdate = function() {
+    this._onUpdate = function () {
         $("#fuzzyToggle").prop("checked", this.options.fuzzy);
     }
 
-    this.load = function() {
+    this.load = function () {
         const raw = window.localStorage.getItem("options");
         if (raw === null) {
             this.options = _defaults;
@@ -39,7 +40,7 @@ function Settings() {
         this._onUpdate();
     }
 
-    this.save = function() {
+    this.save = function () {
         window.localStorage.setItem("options", JSON.stringify(this.options));
         this._onUpdate();
     }
@@ -90,8 +91,8 @@ function toggleFuzzy() {
 $.jsonPost("i").then(resp => {
 
     const urlIndices = (new URLSearchParams(location.search)).get("i");
-
     resp["indices"].forEach(idx => {
+        indexMap[idx.id] = idx.name;
         const opt = $("<option>")
             .attr("value", idx.id)
             .append(idx.name);
@@ -107,6 +108,8 @@ $.jsonPost("i").then(resp => {
         }
         $("#indices").append(opt);
     });
+
+    createPathTree("#pathTree");
 });
 
 function getDocumentInfo(id) {
@@ -133,6 +136,7 @@ function handleTreeClick(tree) {
     }
 }
 
+//TODO: filter based on selected indexes, sort mime types
 $.jsonPost("es", {
     aggs: {
         mimeTypes: {
@@ -182,11 +186,6 @@ $.jsonPost("es", {
     mimeTree.deselect();
     mimeTree.node("any").select();
 });
-
-function leafTag(tag) {
-    const tokens = tag.split(".");
-    return tokens[tokens.length - 1]
-}
 
 // Tags tree
 $.jsonPost("es", {
@@ -248,31 +247,6 @@ function addTag(map, tag, id, count) {
         }
     }
 }
-
-new autoComplete({
-    selector: '#pathBar',
-    minChars: 1,
-    delay: 400,
-    renderItem: function (item) {
-        return '<div class="autocomplete-suggestion" data-val="' + item + '">' + item + '</div>';
-    },
-    source: async function (term, suggest) {
-        term = term.toLowerCase();
-
-        const choices = await getPathChoices();
-
-        let matches = [];
-        for (let i = 0; i < choices.length; i++) {
-            if (~choices[i].toLowerCase().indexOf(term)) {
-                matches.push(choices[i]);
-            }
-        }
-        suggest(matches);
-    },
-    onSelect: function () {
-        searchDebounced();
-    }
-});
 
 function insertHits(resultContainer, hits) {
     for (let i = 0; i < hits.length; i++) {
@@ -406,8 +380,8 @@ function search(after = null) {
     if (CONF.options.highlight) {
         q.highlight = {
             pre_tags: ["<mark>"],
-                post_tags: ["</mark>"],
-                fields: {
+            post_tags: ["</mark>"],
+            fields: {
                 content: {},
                 // "content.nGram": {},
                 name: {},
@@ -504,7 +478,7 @@ function updateIndices() {
 document.getElementById("indices").addEventListener("change", updateIndices);
 updateIndices();
 
-window.onkeyup = function(e) {
+window.onkeyup = function (e) {
     if (e.key === "/" || e.key === "Escape") {
         const bar = document.getElementById("searchBar");
         bar.scrollIntoView();
@@ -512,22 +486,102 @@ window.onkeyup = function(e) {
     }
 };
 
-//Suggest
-function getPathChoices() {
-    return new Promise(getPaths => {
-        $.jsonPost("es", {
-            suggest: {
-                path: {
-                    prefix: pathBar.value,
-                    completion: {
-                        field: "suggest_path",
-                        skip_duplicates: true,
-                        size: 10000
-                    }
+function getNextDepth(node) {
+    let q = {
+        query: {
+            bool: {
+                filter: [
+                    {term: {index: node.index}},
+                    {term: {_depth: node.depth + 1}}
+                ]
+            }
+        },
+        aggs: {
+            paths: {
+                terms: {
+                    field: "path",
+                    size: 10000
                 }
             }
-        }).then(resp => getPaths(resp["suggest"]["path"][0]["options"].map(opt => opt["_source"]["path"])));
+        },
+        size: 0
+    }
+
+    if (node.depth > 0) {
+        q.query.bool.must = {
+            prefix: {
+                path: node.id,
+            }
+        };
+    }
+
+    return $.jsonPost("es", q).then(resp => {
+        const buckets = resp["aggregations"]["paths"]["buckets"];
+        if (!buckets) {
+            return false;
+        }
+        return buckets
+            .filter(bucket => bucket.key.length > node.id.length || node.id.startsWith("/"))
+            .sort((a, b) => a.key > b.key)
+            .map(bucket => {
+                const i = bucket.key.lastIndexOf("/");
+                const name = (i === -1 || i === 1) ? bucket.key : bucket.key.slice(i + 1);
+
+                return {
+                    id: bucket.key,
+                    text: `${name}/ (${bucket.doc_count})`,
+                    depth: node.depth + 1,
+                    index: node.index,
+                    children: true,
+                }
+            })
     })
+}
+
+function handlePathTreeClick(tree) {
+    return (event, node, handler) => {
+
+        if (node.depth !== 0) {
+            $("#pathBar").val(node.id)
+            $("#pathTreeModal").modal("hide")
+            searchDebounced();
+        }
+
+        handler();
+    }
+}
+
+function createPathTree(target) {
+    let pathTree = new InspireTree({
+        data: function (node, resolve, reject) {
+            return getNextDepth(node);
+        }
+    });
+
+    selectedIndices.forEach(index => {
+        pathTree.addNode({
+            id: "/" + index,
+            text: `/[${indexMap[index]}]`,
+            index: index,
+            depth: 0,
+            children: true
+        })
+    })
+
+    new InspireTreeDOM(pathTree, {
+        target: target
+    });
+
+    pathTree.on("node.click", handlePathTreeClick(pathTree));
+
+    const button = document.querySelector("#pathBarHelper")
+    const tooltip = document.querySelector("#pathTreeTooltip")
+    console.log(button)
+    console.log(tooltip)
+    Popper.createPopper(button, tooltip ,{
+        trigger: "click",
+        placement: "right",
+    });
 }
 
 function updateSettings() {

@@ -20,9 +20,18 @@
 <div class="container">
     <div class="card">
         <div class="card-body">
+
             <div class="form-group">
-                <input id="pathBar" type="search" class="form-control" placeholder="Filter path">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <button id="pathBarHelper" class="btn btn-outline-secondary" data-toggle="modal" data-target="#pathTreeModal">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="20px"><path d="M288 224h224a32 32 0 0 0 32-32V64a32 32 0 0 0-32-32H400L368 0h-80a32 32 0 0 0-32 32v64H64V8a8 8 0 0 0-8-8H40a8 8 0 0 0-8 8v392a16 16 0 0 0 16 16h208v64a32 32 0 0 0 32 32h224a32 32 0 0 0 32-32V352a32 32 0 0 0-32-32H400l-32-32h-80a32 32 0 0 0-32 32v64H64V128h192v64a32 32 0 0 0 32 32zm0 96h66.74l32 32H512v128H288zm0-288h66.74l32 32H512v128H288z"/></svg>
+                        </button>
+                    </div>
+                    <input id="pathBar" type="search" class="form-control" placeholder="Filter path">
+                </div>
             </div>
+
             <div class="input-group">
                 <div class="input-group-prepend">
                     <div class="input-group-text">
@@ -180,6 +189,22 @@
 
                     <br>
                     <button style="float: right" class="btn btn-primary" onclick="updateSettings()">Update settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="pathTreeModal" tabindex="-1" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select path</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="pathTree" class="tree"></div>
                 </div>
             </div>
         </div>

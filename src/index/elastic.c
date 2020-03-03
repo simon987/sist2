@@ -122,6 +122,21 @@ void *create_bulk_buffer(int max, int *count, size_t *buf_len) {
     return buf;
 }
 
+void *print_errors(response_t *r) {
+    cJSON *ret_json = cJSON_Parse(r->body);
+    if (cJSON_GetObjectItem(ret_json, "errors")->valueint != 0) {
+        cJSON *err;
+        cJSON_ArrayForEach(err, cJSON_GetObjectItem(ret_json, "items")) {
+            if (cJSON_GetObjectItem(cJSON_GetObjectItem(err, "index"), "status")->valueint != 201) {
+                char *str = cJSON_Print(err);
+                LOG_ERRORF("elastic.c", "%s\n", str);
+                cJSON_free(str);
+            }
+        }
+    }
+    cJSON_Delete(ret_json);
+}
+
 void _elastic_flush(int max) {
     size_t buf_len;
     int count;
@@ -156,24 +171,13 @@ void _elastic_flush(int max) {
         return;
 
     } else if (r->status_code != 200) {
-        cJSON *ret_json = cJSON_Parse(r->body);
-        if (cJSON_GetObjectItem(ret_json, "errors")->valueint != 0) {
-            cJSON *err;
-            cJSON_ArrayForEach(err, cJSON_GetObjectItem(ret_json, "items")) {
-                if (cJSON_GetObjectItem(cJSON_GetObjectItem(err, "index"), "status")->valueint != 201) {
-                    char *str = cJSON_Print(err);
-                    LOG_ERRORF("elastic.c", "%s\n", str);
-                    cJSON_free(str);
-                }
-            }
-        }
-
-        cJSON_Delete(ret_json);
+        print_errors(r);
         delete_queue(Indexer->queued);
 
     } else {
-        LOG_INFOF("elastic.c", "Indexed %d documents (%zukB) <%d>", count, buf_len / 1024, r->status_code);
 
+        print_errors(r);
+        LOG_INFOF("elastic.c", "Indexed %d documents (%zukB) <%d>", count, buf_len / 1024, r->status_code);
         delete_queue(max);
 
         if (Indexer->queued != 0) {
