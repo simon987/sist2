@@ -446,7 +446,7 @@ option {
     }
 }
 
-.input-group > .custom-select:not(:first-child), .input-group > .form-control:not(:first-child) {
+#searchBar {
     border-right: none;
 }
 
