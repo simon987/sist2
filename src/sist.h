@@ -48,6 +48,7 @@
 
 #include "types.h"
 #include "tpool.h"
+#include "utf8.h/utf8.h"
 #include "util.h"
 #include "io/store.h"
 #include "io/serialize.h"
@@ -63,7 +64,6 @@
 #include "parsing/cbr.h"
 #include "cli.h"
 #include "log.h"
-#include "utf8.h/utf8.h"
 
 #include "src/index/elastic.h"
 #include "index/web.h"
