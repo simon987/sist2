@@ -83,7 +83,8 @@ void sist2_scan(scan_args_t *args) {
         index_descriptor_t original_desc = read_index_descriptor(descriptor_path);
 
         if (strcmp(original_desc.version, Version) != 0) {
-            LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", original_desc.version, Version, INDEX_VERSION_EXTERNAL)
+            LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", original_desc.version,
+                       Version, INDEX_VERSION_EXTERNAL)
         }
 
         struct dirent *de;
@@ -96,7 +97,7 @@ void sist2_scan(scan_args_t *args) {
         }
         closedir(dir);
 
-        printf("Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table));
+        LOG_INFOF("main.c", "Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table))
     }
 
     ScanCtx.pool = tpool_create(args->threads, thread_cleanup);
@@ -148,13 +149,13 @@ void sist2_index(index_args_t *args) {
     LOG_DEBUGF("main.c", "descriptor version %s (%s)", desc.version, desc.type)
 
     if (strcmp(desc.version, Version) != 0 && strcmp(desc.version, INDEX_VERSION_EXTERNAL) != 0) {
-        LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", desc.version, Version, INDEX_VERSION_EXTERNAL)
+        LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", desc.version, Version,
+                   INDEX_VERSION_EXTERNAL)
     }
 
     DIR *dir = opendir(args->index_path);
     if (dir == NULL) {
-        perror("opendir");
-        return;
+        LOG_FATALF("main.c", "Could not open index %s: %s", args->index_path, strerror(errno))
     }
 
     index_func f;
