@@ -36,7 +36,7 @@ void *read_all(parse_job_t *job, const char *buf, int bytes_read) {
         memcpy(full_buf, buf, bytes_read);
 
         int ret = job->vfile.read(&job->vfile, full_buf + bytes_read, job->info.st_size - bytes_read);
-        if (ret == -1) {
+        if (ret < 0) {
             LOG_ERRORF(job->filepath, "read(): [%d] %s", errno, strerror(errno))
             return NULL;
         }
@@ -58,6 +58,7 @@ void parse(void *arg) {
 
     if (Magic == NULL) {
         Magic = magic_open(MAGIC_MIME_TYPE);
+        magic_load(Magic, NULL);
     }
 
     doc.filepath = job->filepath;
@@ -90,7 +91,7 @@ void parse(void *arg) {
     if (doc.mime == 0 && !ScanCtx.fast) {
         // Get mime type with libmagic
         bytes_read = job->vfile.read(&job->vfile, buf, PARSE_BUF_SIZE);
-        if (bytes_read == -1) {
+        if (bytes_read < 0) {
             LOG_WARNINGF(job->filepath, "read() Error: %s", strerror(errno))
             CLOSE_FILE(job->vfile)
             return;
@@ -99,10 +100,16 @@ void parse(void *arg) {
         const char *magic_mime_str = magic_buffer(Magic, buf, bytes_read);
         if (magic_mime_str != NULL) {
             doc.mime = mime_get_mime_by_string(ScanCtx.mime_table, magic_mime_str);
+
+            LOG_DEBUGF(job->filepath, "libmagic: %s", magic_mime_str);
+
             if (doc.mime == 0) {
                 LOG_WARNINGF(job->filepath, "Couldn't find mime %s", magic_mime_str);
             }
         }
+
+        magic_close(Magic);
+        Magic = NULL;
     }
 
     int mmime = MAJOR_MIME(doc.mime);
@@ -112,11 +119,11 @@ void parse(void *arg) {
     } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) ||
                (mmime == MimeImage && doc.size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
 
-        if (job->vfile.is_fs_file) {
-            parse_media_filename(job->filepath, &doc);
-        } else {
-            parse_media_vfile(&job->vfile, &doc);
-        }
+//        if (job->vfile.is_fs_file) {
+//            parse_media_filename(job->filepath, &doc);
+//        } else {
+//            parse_media_vfile(&job->vfile, &doc);
+//        }
 
     } else if (IS_PDF(doc.mime)) {
         void *pdf_buf = read_all(job, (char *) buf, bytes_read);

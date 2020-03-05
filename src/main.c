@@ -6,7 +6,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.3.0";
+static const char *const Version = "1.3.1";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -17,7 +17,6 @@ static const char *const usage[] = {
 void global_init() {
     curl_global_init(CURL_GLOBAL_NOTHING);
     av_log_set_level(AV_LOG_QUIET);
-    opcInitLibrary();
 }
 
 void init_dir(const char *dirpath) {

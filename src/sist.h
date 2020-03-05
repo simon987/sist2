@@ -31,8 +31,8 @@
 #include "freetype/freetype.h"
 #include <archive.h>
 #include <archive_entry.h>
-#include <opc/opc.h>
 #include <libxml/xmlstring.h>
+#include <libxml/parser.h>
 #define BOOL int
 #include <tesseract/capi.h>
 #include <pcre.h>

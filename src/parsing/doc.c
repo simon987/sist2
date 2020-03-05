@@ -1,27 +1,31 @@
 #include "doc.h"
 #include "src/ctx.h"
 
+
+#define STR_STARTS_WITH(x, y) (strncmp(y, x, sizeof(y) - 1) == 0)
+
 __always_inline
-static int should_read_part(char *part) {
+static int should_read_part(const char *part) {
 
     LOG_DEBUGF("doc.c", "Got part : %s", part)
-    char *part_name = (char *) part;
 
     if (part == NULL) {
         return FALSE;
     }
 
     if (    // Word
-            strcmp(part_name, "word/document.xml") == 0
-            || strncmp(part_name, "word/footer", sizeof("word/footer") - 1) == 0
-            || strncmp(part_name, "word/header", sizeof("word/header") - 1) == 0
+            STR_STARTS_WITH(part, "word/document.xml")
+            || STR_STARTS_WITH(part, "word/footnotes.xml")
+            || STR_STARTS_WITH(part, "word/endnotes.xml")
+            || STR_STARTS_WITH(part, "word/footer")
+            || STR_STARTS_WITH(part, "word/header")
             // PowerPoint
-            || strncmp(part_name, "ppt/slides/slide", sizeof("ppt/slides/slide") - 1) == 0
-            || strncmp(part_name, "ppt/notesSlides/notesSlide", sizeof("ppt/notesSlides/notesSlide") - 1) == 0
+            || STR_STARTS_WITH(part, "ppt/slides/slide")
+            || STR_STARTS_WITH(part, "ppt/notesSlides/slide")
             // Excel
-            || strncmp(part_name, "xl/worksheets/sheet", sizeof("xl/worksheets/sheet") - 1) == 0
-            || strcmp(part_name, "xl/sharedStrings.xml") == 0
-            || strcmp(part_name, "xl/workbook.xml") == 0
+            || STR_STARTS_WITH(part, "xl/worksheets/sheet")
+            || STR_STARTS_WITH(part, "xl/sharedStrings.xml")
+            || STR_STARTS_WITH(part, "xl/workbook.xml")
             ) {
         return TRUE;
     }
@@ -29,78 +33,64 @@ static int should_read_part(char *part) {
     return FALSE;
 }
 
-typedef int (XMLCALL *xmlInputReadCallback)(void *context, char *buffer, int len);
+int extract_text(xmlDoc *xml, xmlNode *node, text_buffer_t *buf) {
+    //TODO: Check which nodes are likely to have a 't' child, and ignore nodes that aren't
+    xmlErrorPtr err = xmlGetLastError();
+    if (err != NULL) {
+        if (err->level == XML_ERR_FATAL) {
+            LOG_ERRORF("doc.c", "Got fatal XML error while parsing document: %s", err->message)
+            return -1;
+        } else {
+            LOG_ERRORF("doc.c", "Got recoverable XML error while parsing document: %s", err->message)
+        }
+    }
 
-typedef struct {
-    struct archive *a;
-} xml_io_ctx;
+    for (xmlNode *child = node; child; child = child->next) {
+        if (*child->name == 't' && *(child->name + 1) == '\0') {
+            xmlChar *text = xmlNodeListGetString(xml, child->xmlChildrenNode, 1);
 
-int xml_io_read(void *context, char *buffer, int len) {
-    xml_io_ctx *ctx = context;
+            if (text) {
+                text_buffer_append_string0(buf, (char *) text);
+                text_buffer_append_char(buf, ' ');
+                xmlFree(text);
+            }
+        }
 
-    //TODO: return value ?
-    return archive_read_data(ctx->a, buffer, len);
+        extract_text(xml, child->children, buf);
+    }
 }
 
-int xml_io_close(void *context) {
+int xml_io_read(void *context, char *buffer, int len) {
+    struct archive *a = context;
+    return archive_read_data(a, buffer, len);
+}
+
+int xml_io_close(UNUSED(void *context)) {
     //noop
     return 0;
 }
 
 __always_inline
-static int read_part(struct archive *a, dyn_buffer_t *buf, document_t *doc) {
+static int read_part(struct archive *a, text_buffer_t *buf, document_t *doc) {
 
-    xmlNode *root, *first_child, *node1, *node2, *node3, *node4;
+    xmlDoc *xml = xmlReadIO(xml_io_read, xml_io_close, a, "/", NULL, XML_PARSE_RECOVER | XML_PARSE_NOWARNING | XML_PARSE_NOERROR | XML_PARSE_NONET);
 
-    xml_io_ctx ctx = {a};
-
-    /* do actual parsing of document */
-    xmlDoc *xml = xmlReadIO(xml_io_read, xml_io_close, &ctx, "/", NULL, 0);
-
-    /* error checking! */
     if (xml == NULL) {
-        fprintf(stderr, "Document not parsed successfully. \n");
+        LOG_ERROR(doc->filepath, "Could not parse XML")
         return -1;
     }
-    root = xmlDocGetRootElement(xml);
+
+    xmlNode *root = xmlDocGetRootElement(xml);
     if (root == NULL) {
-        fprintf(stderr, "empty document\n");
-        xmlFreeDoc(xml);
-        return -1;
-    }
-    if (xmlStrcmp(root->name, (const xmlChar *) "document") != 0) {
-        fprintf(stderr, "document of the wrong type, root node != document");
+        LOG_ERROR(doc->filepath, "Empty document")
         xmlFreeDoc(xml);
         return -1;
     }
 
-    /* init a few more variables */
-    xmlChar *key;
+    extract_text(xml, root, buf);
+    xmlFreeDoc(xml);
 
-    first_child = root->children;
-    for (node1 = first_child; node1; node1 = node1->next) {
-        if ((xmlStrcmp(node1->name, (const xmlChar *) "body")) == 0) {
-            for (node2 = node1->children; node2; node2 = node2->next) {
-                if ((xmlStrcmp(node2->name, (const xmlChar *) "p")) == 0) {
-
-                    dyn_buffer_write_char(buf, ' ');
-
-                    for (node3 = node2->children; node3; node3 = node3->next) {
-                        if ((xmlStrcmp(node3->name, (const xmlChar *) "r")) == 0) {
-                            for (node4 = node3->children; node4; node4 = node4->next) {
-                                if ((!xmlStrcmp(node4->name, (const xmlChar *) "t"))) {
-                                    key = xmlNodeListGetString(xml, node4->xmlChildrenNode, 1);
-
-                                    dyn_buffer_append_string(buf, (char *) key);
-                                    dyn_buffer_write_char(buf, ' ');
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    return 0;
 }
 
 void parse_doc(void *mem, size_t mem_len, document_t *doc) {
@@ -114,17 +104,17 @@ void parse_doc(void *mem, size_t mem_len, document_t *doc) {
 
     int ret = archive_read_open_memory(a, mem, mem_len);
     if (ret != ARCHIVE_OK) {
-        LOG_ERRORF(doc->filepath, "Could not read archive: %s", archive_error_string(a));
+        LOG_ERRORF(doc->filepath, "Could not read archive: %s", archive_error_string(a))
         archive_read_free(a);
         return;
     }
 
-    dyn_buffer_t buf = dyn_buffer_create();
+    text_buffer_t buf = text_buffer_create(ScanCtx.content_size);
 
     struct archive_entry *entry;
     while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
         if (S_ISREG(archive_entry_stat(entry)->st_mode)) {
-            char *path = (char *) archive_entry_pathname(entry);
+            const char *path = archive_entry_pathname(entry);
 
             if (should_read_part(path)) {
                 ret = read_part(a, &buf, doc);
@@ -132,21 +122,19 @@ void parse_doc(void *mem, size_t mem_len, document_t *doc) {
                     break;
                 }
             }
-
         }
     }
 
+    if (buf.dyn_buffer.cur > 0) {
+        text_buffer_terminate_string(&buf);
 
-    // close
-
-    if (buf.cur > 0) {
-        dyn_buffer_write_char(&buf, '\0');
-
-        meta_line_t *meta = malloc(sizeof(meta_line_t) + buf.cur);
+        meta_line_t *meta = malloc(sizeof(meta_line_t) + buf.dyn_buffer.cur);
         meta->key = MetaContent;
-        strcpy(meta->strval, buf.buf);
+        strcpy(meta->strval, buf.dyn_buffer.buf);
         APPEND_META(doc, meta)
     }
 
-    dyn_buffer_destroy(&buf);
+    archive_read_close(a);
+    archive_read_free(a);
+    text_buffer_destroy(&buf);
 }
