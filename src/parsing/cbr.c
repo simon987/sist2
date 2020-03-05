@@ -1,5 +1,5 @@
-#import "cbr.h"
-#import "src/ctx.h"
+#include "cbr.h"
+#include "src/ctx.h"
 
 unsigned int cbr_mime;
 unsigned int cbz_mime;

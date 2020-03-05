@@ -4,6 +4,8 @@ set(CMAKE_C_STANDARD 11)
 project(sist2 C)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/CMakeModules")
 
+option(SIST_DEBUG "Build a debug executable" on)
+
 add_executable(
         sist2
         src/main.c
@@ -81,14 +83,40 @@ target_link_directories(
         ${UUID_LIBRARY_DIRS}
 )
 
-target_compile_options(sist2
+target_compile_options(
+        sist2
         PRIVATE
-        -Ofast
-#        -march=native
         -fPIC
-        -fno-stack-protector
-        -fomit-frame-pointer
-        )
+)
+
+if (SIST_DEBUG)
+    target_compile_options(
+            sist2
+            PRIVATE
+            -g
+            -fstack-protector
+            -fno-omit-frame-pointer
+            -fsanitize=address
+    )
+    target_link_options(
+            sist2
+            PRIVATE
+            -fsanitize=address
+    )
+    set_target_properties(
+            sist2
+            PROPERTIES
+            OUTPUT_NAME sist2_debug
+    )
+else ()
+    target_compile_options(
+            sist2
+            PRIVATE
+            -Ofast
+            -fno-stack-protector
+            -fomit-frame-pointer
+    )
+endif ()
 
 TARGET_LINK_LIBRARIES(
         sist2
@@ -115,16 +143,14 @@ TARGET_LINK_LIBRARIES(
 
         m
         bz2
-        ${PROJECT_SOURCE_DIR}/lib/libmagic.a
+#        ${PROJECT_SOURCE_DIR}/lib/libmagic.a
+        magic
         ${PROJECT_SOURCE_DIR}/lib/libharfbuzz.a
         ${PROJECT_SOURCE_DIR}/lib/libopenjp2.a
         freetype
         archive
 
         xml2
-        ${PROJECT_SOURCE_DIR}/lib/libopc/libmce.a
-        ${PROJECT_SOURCE_DIR}/lib/libopc/libopc.a
-        ${PROJECT_SOURCE_DIR}/lib/libopc/libplib.a
 
         ${PROJECT_SOURCE_DIR}/lib/libtesseract.a
         ${PROJECT_SOURCE_DIR}/lib/liblept.a

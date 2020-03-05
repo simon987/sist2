@@ -1,10 +1,40 @@
 #include "doc.h"
 #include "src/ctx.h"
 
-int dump_text(mceTextReader_t *reader, dyn_buffer_t *buf) {
 
-    mce_skip_attributes(reader);
+#define STR_STARTS_WITH(x, y) (strncmp(y, x, sizeof(y) - 1) == 0)
 
+__always_inline
+static int should_read_part(const char *part) {
+
+    LOG_DEBUGF("doc.c", "Got part : %s", part)
+
+    if (part == NULL) {
+        return FALSE;
+    }
+
+    if (    // Word
+            STR_STARTS_WITH(part, "word/document.xml")
+            || STR_STARTS_WITH(part, "word/footnotes.xml")
+            || STR_STARTS_WITH(part, "word/endnotes.xml")
+            || STR_STARTS_WITH(part, "word/footer")
+            || STR_STARTS_WITH(part, "word/header")
+            // PowerPoint
+            || STR_STARTS_WITH(part, "ppt/slides/slide")
+            || STR_STARTS_WITH(part, "ppt/notesSlides/slide")
+            // Excel
+            || STR_STARTS_WITH(part, "xl/worksheets/sheet")
+            || STR_STARTS_WITH(part, "xl/sharedStrings.xml")
+            || STR_STARTS_WITH(part, "xl/workbook.xml")
+            ) {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+int extract_text(xmlDoc *xml, xmlNode *node, text_buffer_t *buf) {
+    //TODO: Check which nodes are likely to have a 't' child, and ignore nodes that aren't
     xmlErrorPtr err = xmlGetLastError();
     if (err != NULL) {
         if (err->level == XML_ERR_FATAL) {
@@ -15,78 +45,51 @@ int dump_text(mceTextReader_t *reader, dyn_buffer_t *buf) {
         }
     }
 
-    mce_start_children(reader) {
-        mce_start_element(reader, NULL, _X("t")) {
-            mce_skip_attributes(reader);
-            mce_start_children(reader) {
-                mce_start_text(reader) {
-                    char *str = (char *) xmlTextReaderConstValue(reader->reader);
-                    dyn_buffer_append_string(buf, str);
-                    dyn_buffer_write_char(buf, ' ');
-                } mce_end_text(reader);
-            } mce_end_children(reader);
-        } mce_end_element(reader);
+    for (xmlNode *child = node; child; child = child->next) {
+        if (*child->name == 't' && *(child->name + 1) == '\0') {
+            xmlChar *text = xmlNodeListGetString(xml, child->xmlChildrenNode, 1);
 
-        mce_start_element(reader, NULL, NULL) {
-            int ret = dump_text(reader, buf);
-            if (ret != 0) {
-                return ret;
+            if (text) {
+                text_buffer_append_string0(buf, (char *) text);
+                text_buffer_append_char(buf, ' ');
+                xmlFree(text);
             }
-        } mce_end_element(reader);
+        }
 
-    } mce_end_children(reader)
+        extract_text(xml, child->children, buf);
+    }
+}
+
+int xml_io_read(void *context, char *buffer, int len) {
+    struct archive *a = context;
+    return archive_read_data(a, buffer, len);
+}
+
+int xml_io_close(UNUSED(void *context)) {
+    //noop
     return 0;
 }
 
 __always_inline
-int should_read_part(opcPart part) {
+static int read_part(struct archive *a, text_buffer_t *buf, document_t *doc) {
 
-    char *part_name = (char *) part;
+    xmlDoc *xml = xmlReadIO(xml_io_read, xml_io_close, a, "/", NULL, XML_PARSE_RECOVER | XML_PARSE_NOWARNING | XML_PARSE_NOERROR | XML_PARSE_NONET);
 
-    if (part == NULL) {
-        return FALSE;
-    }
-
-    if (    // Word
-            strcmp(part_name, "word/document.xml") == 0
-            || strncmp(part_name, "word/footer", sizeof("word/footer") - 1) == 0
-            || strncmp(part_name, "word/header", sizeof("word/header") - 1) == 0
-            // PowerPoint
-            || strncmp(part_name, "ppt/slides/slide", sizeof("ppt/slides/slide") - 1) == 0
-            || strncmp(part_name, "ppt/notesSlides/notesSlide", sizeof("ppt/notesSlides/notesSlide") - 1) == 0
-            // Excel
-            || strncmp(part_name, "xl/worksheets/sheet", sizeof("xl/worksheets/sheet") - 1) == 0
-            || strcmp(part_name, "xl/sharedStrings.xml") == 0
-            || strcmp(part_name, "xl/workbook.xml") == 0
-            ) {
-        return TRUE;
-    }
-
-    return FALSE;
-}
-
-__always_inline
-int read_part(opcContainer *c, dyn_buffer_t *buf, opcPart part, document_t *doc) {
-
-    mceTextReader_t reader;
-    int ret = opcXmlReaderOpen(c, &reader, part, NULL, "UTF-8", XML_PARSE_NOWARNING | XML_PARSE_NOERROR | XML_PARSE_NONET);
-
-    if (ret != OPC_ERROR_NONE) {
-        LOG_ERRORF(doc->filepath, "(doc.c) opcXmlReaderOpen() returned error code %d", ret);
+    if (xml == NULL) {
+        LOG_ERROR(doc->filepath, "Could not parse XML")
         return -1;
     }
 
-    mce_start_document(&reader) {
-        mce_start_element(&reader, NULL, NULL) {
-            ret = dump_text(&reader, buf);
-            if (ret != 0) {
-                mceTextReaderCleanup(&reader);
-                return -1;
-            }
-        } mce_end_element(&reader);
-    } mce_end_document(&reader);
+    xmlNode *root = xmlDocGetRootElement(xml);
+    if (root == NULL) {
+        LOG_ERROR(doc->filepath, "Empty document")
+        xmlFreeDoc(xml);
+        return -1;
+    }
 
-    mceTextReaderCleanup(&reader);
+    extract_text(xml, root, buf);
+    xmlFreeDoc(xml);
+
     return 0;
 }
 
@@ -96,34 +99,42 @@ void parse_doc(void *mem, size_t mem_len, document_t *doc) {
         return;
     }
 
-    opcContainer *c = opcContainerOpenMem(mem, mem_len, OPC_OPEN_READ_ONLY, NULL);
-    if (c == NULL) {
-        LOG_ERROR(doc->filepath, "(doc.c) Couldn't open document with opcContainerOpenMem()");
+    struct archive *a = archive_read_new();
+    archive_read_support_format_zip(a);
+
+    int ret = archive_read_open_memory(a, mem, mem_len);
+    if (ret != ARCHIVE_OK) {
+        LOG_ERRORF(doc->filepath, "Could not read archive: %s", archive_error_string(a))
+        archive_read_free(a);
         return;
     }
 
-    dyn_buffer_t buf = dyn_buffer_create();
+    text_buffer_t buf = text_buffer_create(ScanCtx.content_size);
 
-    opcPart part = opcPartGetFirst(c);
-    do {
-        if (should_read_part(part)) {
-            int ret = read_part(c, &buf, part, doc);
-            if (ret != 0) {
-                break;
+    struct archive_entry *entry;
+    while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
+        if (S_ISREG(archive_entry_stat(entry)->st_mode)) {
+            const char *path = archive_entry_pathname(entry);
+
+            if (should_read_part(path)) {
+                ret = read_part(a, &buf, doc);
+                if (ret != 0) {
+                    break;
+                }
             }
         }
-    } while ((part = opcPartGetNext(c, part)));
+    }
 
-    opcContainerClose(c, OPC_CLOSE_NOW);
+    if (buf.dyn_buffer.cur > 0) {
+        text_buffer_terminate_string(&buf);
 
-    if (buf.cur > 0) {
-        dyn_buffer_write_char(&buf, '\0');
-
-        meta_line_t *meta = malloc(sizeof(meta_line_t) + buf.cur);
+        meta_line_t *meta = malloc(sizeof(meta_line_t) + buf.dyn_buffer.cur);
         meta->key = MetaContent;
-        strcpy(meta->strval, buf.buf);
+        strcpy(meta->strval, buf.dyn_buffer.buf);
         APPEND_META(doc, meta)
     }
 
-    dyn_buffer_destroy(&buf);
+    archive_read_close(a);
+    archive_read_free(a);
+    text_buffer_destroy(&buf);
 }

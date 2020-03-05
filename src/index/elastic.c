@@ -1,12 +1,6 @@
 #include "elastic.h"
 #include "src/ctx.h"
 
-#include <stdlib.h>
-#include "web.h"
-#include <stdio.h>
-#include <string.h>
-#include <cJSON/cJSON.h>
-
 #include "static_generated.c"
 
 

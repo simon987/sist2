@@ -31,8 +31,8 @@
 #include "freetype/freetype.h"
 #include <archive.h>
 #include <archive_entry.h>
-#include <opc/opc.h>
 #include <libxml/xmlstring.h>
+#include <libxml/parser.h>
 #define BOOL int
 #include <tesseract/capi.h>
 #include <pcre.h>
@@ -48,6 +48,7 @@
 
 #include "types.h"
 #include "tpool.h"
+#include "utf8.h/utf8.h"
 #include "util.h"
 #include "io/store.h"
 #include "io/serialize.h"
@@ -63,7 +64,6 @@
 #include "parsing/cbr.h"
 #include "cli.h"
 #include "log.h"
-#include "utf8.h/utf8.h"
 
 #include "src/index/elastic.h"
 #include "index/web.h"

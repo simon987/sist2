@@ -39,8 +39,8 @@ void write_index_descriptor(char *path, index_descriptor_t *desc) {
     cJSON_AddNumberToObject(json, "timestamp", (double) desc->timestamp);
 
     int fd = open(path, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-    if (fd == -1) {
-        perror(path);
+    if (fd < 0) {
+        LOG_FATALF("serialize.c", "Could not write index descriptor: %s", strerror(errno));
     }
     char *str = cJSON_Print(json);
     write(fd, str, strlen(str));
@@ -185,7 +185,7 @@ void write_document(document_t *doc) {
 
     int res = write(index_fd, buf.buf, buf.cur);
     if (res == -1) {
-        perror("write");
+        LOG_FATALF("serialize.c", "Could not write document: %s", strerror(errno))
     }
     ScanCtx.stat_index_size += buf.cur;
     dyn_buffer_destroy(&buf);
@@ -334,7 +334,7 @@ void read_index_json(const char *path, UNUSED(const char *index_id), index_func 
         char *line = NULL;
         size_t len;
         size_t read = getline(&line, &len, file);
-        if (read == -1) {
+        if (read < 0) {
             if (line) {
                 free(line);
             }

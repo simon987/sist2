@@ -5,7 +5,7 @@
 #define AVIO_BUF_SIZE 8192
 
 __always_inline
-AVCodecContext *alloc_jpeg_encoder(int dstW, int dstH, float qscale) {
+static AVCodecContext *alloc_jpeg_encoder(int dstW, int dstH, float qscale) {
 
     AVCodec *jpeg_codec = avcodec_find_encoder(AV_CODEC_ID_MJPEG);
     AVCodecContext *jpeg = avcodec_alloc_context3(jpeg_codec);
@@ -78,7 +78,7 @@ AVFrame *scale_frame(const AVCodecContext *decoder, const AVFrame *frame, int si
 }
 
 __always_inline
-AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder, int stream_idx, document_t *doc) {
+static AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder, int stream_idx, document_t *doc) {
     AVFrame *frame = av_frame_alloc();
 
     AVPacket avPacket;
@@ -135,7 +135,7 @@ AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder, int st
     text_buffer_destroy(&tex);
 
 __always_inline
-void append_audio_meta(AVFormatContext *pFormatCtx, document_t *doc) {
+static void append_audio_meta(AVFormatContext *pFormatCtx, document_t *doc) {
 
     AVDictionaryEntry *tag = NULL;
     while ((tag = av_dict_get(pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
@@ -160,8 +160,7 @@ void append_audio_meta(AVFormatContext *pFormatCtx, document_t *doc) {
 }
 
 __always_inline
-void
-append_video_meta(AVFormatContext *pFormatCtx, AVFrame *frame, document_t *doc, int include_audio_tags, int is_video) {
+static void append_video_meta(AVFormatContext *pFormatCtx, AVFrame *frame, document_t *doc, int include_audio_tags, int is_video) {
 
     if (is_video) {
         meta_line_t *meta_duration = malloc(sizeof(meta_line_t));

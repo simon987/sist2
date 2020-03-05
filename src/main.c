@@ -6,7 +6,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.3.0";
+static const char *const Version = "1.3.1";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -17,7 +17,6 @@ static const char *const usage[] = {
 void global_init() {
     curl_global_init(CURL_GLOBAL_NOTHING);
     av_log_set_level(AV_LOG_QUIET);
-    opcInitLibrary();
 }
 
 void init_dir(const char *dirpath) {
@@ -83,7 +82,8 @@ void sist2_scan(scan_args_t *args) {
         index_descriptor_t original_desc = read_index_descriptor(descriptor_path);
 
         if (strcmp(original_desc.version, Version) != 0) {
-            LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", original_desc.version, Version, INDEX_VERSION_EXTERNAL)
+            LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", original_desc.version,
+                       Version, INDEX_VERSION_EXTERNAL)
         }
 
         struct dirent *de;
@@ -96,7 +96,7 @@ void sist2_scan(scan_args_t *args) {
         }
         closedir(dir);
 
-        printf("Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table));
+        LOG_INFOF("main.c", "Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table))
     }
 
     ScanCtx.pool = tpool_create(args->threads, thread_cleanup);
@@ -148,13 +148,13 @@ void sist2_index(index_args_t *args) {
     LOG_DEBUGF("main.c", "descriptor version %s (%s)", desc.version, desc.type)
 
     if (strcmp(desc.version, Version) != 0 && strcmp(desc.version, INDEX_VERSION_EXTERNAL) != 0) {
-        LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", desc.version, Version, INDEX_VERSION_EXTERNAL)
+        LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", desc.version, Version,
+                   INDEX_VERSION_EXTERNAL)
     }
 
     DIR *dir = opendir(args->index_path);
     if (dir == NULL) {
-        perror("opendir");
-        return;
+        LOG_FATALF("main.c", "Could not open index %s: %s", args->index_path, strerror(errno))
     }
 
     index_func f;
@@ -274,7 +274,7 @@ int main(int argc, const char *argv[]) {
 
     if (arg_version) {
         printf(Version);
-        exit(0);
+        goto end;
     }
 
     if (LogCtx.very_verbose != 0) {
@@ -286,12 +286,12 @@ int main(int argc, const char *argv[]) {
 
     if (argc == 0) {
         argparse_usage(&argparse);
-        return 1;
+        goto end;
     } else if (strcmp(argv[0], "scan") == 0) {
 
         int err = scan_args_validate(scan_args, argc, argv);
         if (err != 0) {
-            return err;
+            goto end;
         }
         sist2_scan(scan_args);
 
@@ -299,7 +299,7 @@ int main(int argc, const char *argv[]) {
 
         int err = index_args_validate(index_args, argc, argv);
         if (err != 0) {
-            return err;
+            goto end;
         }
         sist2_index(index_args);
 
@@ -307,19 +307,19 @@ int main(int argc, const char *argv[]) {
 
         int err = web_args_validate(web_args, argc, argv);
         if (err != 0) {
-            return err;
+            goto end;
         }
         sist2_web(web_args);
 
     } else {
         fprintf(stderr, "Invalid command: '%s'\n", argv[0]);
         argparse_usage(&argparse);
-        return 1;
+        goto end;
     }
     printf("\n");
 
+    end:
     scan_args_destroy(scan_args);
-
     index_args_destroy(index_args);
     web_args_destroy(web_args);
 

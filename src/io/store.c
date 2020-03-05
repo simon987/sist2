@@ -15,8 +15,7 @@ store_t *store_create(char *path) {
     );
 
     if (open_ret != 0) {
-        fprintf(stderr, "Error while opening store: %s (%s)\n", mdb_strerror(open_ret), path);
-        exit(1);
+        LOG_FATALF("store.c", "Error while opening store: %s (%s)\n", mdb_strerror(open_ret), path)
     }
 
     store->size = (size_t) 1024 * 1024 * 5;
@@ -82,7 +81,7 @@ void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t bu
     pthread_rwlock_unlock(&store->lock);
 
     if (put_ret != 0) {
-        printf("%s\n", mdb_strerror(put_ret));
+        LOG_ERROR("store.c", mdb_strerror(put_ret))
     }
 }
 
