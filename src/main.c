@@ -274,7 +274,7 @@ int main(int argc, const char *argv[]) {
 
     if (arg_version) {
         printf(Version);
-        exit(0);
+        goto end;
     }
 
     if (LogCtx.very_verbose != 0) {
@@ -286,12 +286,12 @@ int main(int argc, const char *argv[]) {
 
     if (argc == 0) {
         argparse_usage(&argparse);
-        return 1;
+        goto end;
     } else if (strcmp(argv[0], "scan") == 0) {
 
         int err = scan_args_validate(scan_args, argc, argv);
         if (err != 0) {
-            return err;
+            goto end;
         }
         sist2_scan(scan_args);
 
@@ -299,7 +299,7 @@ int main(int argc, const char *argv[]) {
 
         int err = index_args_validate(index_args, argc, argv);
         if (err != 0) {
-            return err;
+            goto end;
         }
         sist2_index(index_args);
 
@@ -307,19 +307,19 @@ int main(int argc, const char *argv[]) {
 
         int err = web_args_validate(web_args, argc, argv);
         if (err != 0) {
-            return err;
+            goto end;
         }
         sist2_web(web_args);
 
     } else {
         fprintf(stderr, "Invalid command: '%s'\n", argv[0]);
         argparse_usage(&argparse);
-        return 1;
+        goto end;
     }
     printf("\n");
 
+    end:
     scan_args_destroy(scan_args);
-
     index_args_destroy(index_args);
     web_args_destroy(web_args);
 

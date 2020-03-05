@@ -82,15 +82,14 @@ int render_cover(fz_context *ctx, document_t *doc, fz_document *fzdoc) {
 
     fz_drop_buffer(ctx, fzbuf);
     fz_drop_pixmap(ctx, pixmap);
+    fz_drop_page(ctx, cover);
 
     if (err != 0) {
         LOG_WARNINGF(doc->filepath, "fz_new_buffer_from_pixmap_as_png() returned error code [%d] %s", err,
                      ctx->error.message)
-        fz_drop_page(ctx, cover);
         return FALSE;
     }
 
-    fz_drop_page(ctx, cover);
     return TRUE;
 }
 
@@ -102,7 +101,7 @@ void fz_err_callback(void *user, UNUSED(const char *message)) {
 }
 
 __always_inline
-void init_ctx(fz_context *ctx, document_t *doc) {
+static void init_ctx(fz_context *ctx, document_t *doc) {
     fz_disable_icc(ctx);
     fz_register_document_handlers(ctx);
 
@@ -112,7 +111,8 @@ void init_ctx(fz_context *ctx, document_t *doc) {
     ctx->error.print = fz_err_callback;
 }
 
-int read_stext_block(fz_stext_block *block, text_buffer_t *tex) {
+__always_inline
+static int read_stext_block(fz_stext_block *block, text_buffer_t *tex) {
     if (block->type != FZ_STEXT_BLOCK_TEXT) {
         return 0;
     }
@@ -199,7 +199,7 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
     fz_catch(ctx)
         err = ctx->error.errcode;
 
-    if (err) {
+    if (err != 0) {
         fz_drop_stream(ctx, stream);
         fz_drop_document(ctx, fzdoc);
         fz_drop_context(ctx);
@@ -280,12 +280,12 @@ void parse_pdf(void *buf, size_t buf_len, document_t *doc) {
 
             fz_var(err);
             fz_try(ctx)
-                        fz_run_page(ctx, page, dev, fz_identity, NULL);
+                fz_run_page(ctx, page, dev, fz_identity, NULL);
             fz_always(ctx)
-                {
-                    fz_close_device(ctx, dev);
-                    fz_drop_device(ctx, dev);
-                }
+            {
+                fz_close_device(ctx, dev);
+                fz_drop_device(ctx, dev);
+            }
             fz_catch(ctx)
                 err = ctx->error.errcode;
 
