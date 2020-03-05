@@ -1,8 +1,6 @@
 #include "cli.h"
 #include "ctx.h"
 
-#include <tesseract/capi.h>
-
 #define DEFAULT_OUTPUT "index.sist2/"
 #define DEFAULT_CONTENT_SIZE 32768
 #define DEFAULT_QUALITY 5

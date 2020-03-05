@@ -81,14 +81,20 @@ target_link_directories(
         ${UUID_LIBRARY_DIRS}
 )
 
-target_compile_options(sist2
+target_compile_options(
+        sist2
         PRIVATE
-        -Ofast
-#        -march=native
+
         -fPIC
-        -fno-stack-protector
-        -fomit-frame-pointer
-        )
+
+        -Ofast
+#        -fno-stack-protector
+#        -fomit-frame-pointer
+
+        -g
+        -march=native
+        -fstack-protector
+)
 
 TARGET_LINK_LIBRARIES(
         sist2

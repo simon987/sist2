@@ -1,46 +1,10 @@
 #include "doc.h"
 #include "src/ctx.h"
 
-int dump_text(mceTextReader_t *reader, dyn_buffer_t *buf) {
-
-    mce_skip_attributes(reader);
-
-    xmlErrorPtr err = xmlGetLastError();
-    if (err != NULL) {
-        if (err->level == XML_ERR_FATAL) {
-            LOG_ERRORF("doc.c", "Got fatal XML error while parsing document: %s", err->message)
-            return -1;
-        } else {
-            LOG_ERRORF("doc.c", "Got recoverable XML error while parsing document: %s", err->message)
-        }
-    }
-
-    mce_start_children(reader) {
-        mce_start_element(reader, NULL, _X("t")) {
-            mce_skip_attributes(reader);
-            mce_start_children(reader) {
-                mce_start_text(reader) {
-                    char *str = (char *) xmlTextReaderConstValue(reader->reader);
-                    dyn_buffer_append_string(buf, str);
-                    dyn_buffer_write_char(buf, ' ');
-                } mce_end_text(reader);
-            } mce_end_children(reader);
-        } mce_end_element(reader);
-
-        mce_start_element(reader, NULL, NULL) {
-            int ret = dump_text(reader, buf);
-            if (ret != 0) {
-                return ret;
-            }
-        } mce_end_element(reader);
-
-    } mce_end_children(reader)
-    return 0;
-}
-
 __always_inline
-int should_read_part(opcPart part) {
+static int should_read_part(char *part) {
 
+    LOG_DEBUGF("doc.c", "Got part : %s", part)
     char *part_name = (char *) part;
 
     if (part == NULL) {
@@ -65,29 +29,78 @@ int should_read_part(opcPart part) {
     return FALSE;
 }
 
+typedef int (XMLCALL *xmlInputReadCallback)(void *context, char *buffer, int len);
+
+typedef struct {
+    struct archive *a;
+} xml_io_ctx;
+
+int xml_io_read(void *context, char *buffer, int len) {
+    xml_io_ctx *ctx = context;
+
+    //TODO: return value ?
+    return archive_read_data(ctx->a, buffer, len);
+}
+
+int xml_io_close(void *context) {
+    //noop
+    return 0;
+}
+
 __always_inline
-int read_part(opcContainer *c, dyn_buffer_t *buf, opcPart part, document_t *doc) {
+static int read_part(struct archive *a, dyn_buffer_t *buf, document_t *doc) {
 
-    mceTextReader_t reader;
-    int ret = opcXmlReaderOpen(c, &reader, part, NULL, "UTF-8", XML_PARSE_NOWARNING | XML_PARSE_NOERROR | XML_PARSE_NONET);
+    xmlNode *root, *first_child, *node1, *node2, *node3, *node4;
 
-    if (ret != OPC_ERROR_NONE) {
-        LOG_ERRORF(doc->filepath, "(doc.c) opcXmlReaderOpen() returned error code %d", ret);
+    xml_io_ctx ctx = {a};
+
+    /* do actual parsing of document */
+    xmlDoc *xml = xmlReadIO(xml_io_read, xml_io_close, &ctx, "/", NULL, 0);
+
+    /* error checking! */
+    if (xml == NULL) {
+        fprintf(stderr, "Document not parsed successfully. \n");
+        return -1;
+    }
+    root = xmlDocGetRootElement(xml);
+    if (root == NULL) {
+        fprintf(stderr, "empty document\n");
+        xmlFreeDoc(xml);
+        return -1;
+    }
+    if (xmlStrcmp(root->name, (const xmlChar *) "document") != 0) {
+        fprintf(stderr, "document of the wrong type, root node != document");
+        xmlFreeDoc(xml);
         return -1;
     }
 
-    mce_start_document(&reader) {
-        mce_start_element(&reader, NULL, NULL) {
-            ret = dump_text(&reader, buf);
-            if (ret != 0) {
-                mceTextReaderCleanup(&reader);
-                return -1;
-            }
-        } mce_end_element(&reader);
-    } mce_end_document(&reader);
+    /* init a few more variables */
+    xmlChar *key;
 
-    mceTextReaderCleanup(&reader);
-    return 0;
+    first_child = root->children;
+    for (node1 = first_child; node1; node1 = node1->next) {
+        if ((xmlStrcmp(node1->name, (const xmlChar *) "body")) == 0) {
+            for (node2 = node1->children; node2; node2 = node2->next) {
+                if ((xmlStrcmp(node2->name, (const xmlChar *) "p")) == 0) {
+
+                    dyn_buffer_write_char(buf, ' ');
+
+                    for (node3 = node2->children; node3; node3 = node3->next) {
+                        if ((xmlStrcmp(node3->name, (const xmlChar *) "r")) == 0) {
+                            for (node4 = node3->children; node4; node4 = node4->next) {
+                                if ((!xmlStrcmp(node4->name, (const xmlChar *) "t"))) {
+                                    key = xmlNodeListGetString(xml, node4->xmlChildrenNode, 1);
+
+                                    dyn_buffer_append_string(buf, (char *) key);
+                                    dyn_buffer_write_char(buf, ' ');
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 void parse_doc(void *mem, size_t mem_len, document_t *doc) {
@@ -96,25 +109,35 @@ void parse_doc(void *mem, size_t mem_len, document_t *doc) {
         return;
     }
 
-    opcContainer *c = opcContainerOpenMem(mem, mem_len, OPC_OPEN_READ_ONLY, NULL);
-    if (c == NULL) {
-        LOG_ERROR(doc->filepath, "(doc.c) Couldn't open document with opcContainerOpenMem()");
+    struct archive *a = archive_read_new();
+    archive_read_support_format_zip(a);
+
+    int ret = archive_read_open_memory(a, mem, mem_len);
+    if (ret != ARCHIVE_OK) {
+        LOG_ERRORF(doc->filepath, "Could not read archive: %s", archive_error_string(a));
+        archive_read_free(a);
         return;
     }
 
     dyn_buffer_t buf = dyn_buffer_create();
 
-    opcPart part = opcPartGetFirst(c);
-    do {
-        if (should_read_part(part)) {
-            int ret = read_part(c, &buf, part, doc);
-            if (ret != 0) {
-                break;
-            }
-        }
-    } while ((part = opcPartGetNext(c, part)));
+    struct archive_entry *entry;
+    while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
+        if (S_ISREG(archive_entry_stat(entry)->st_mode)) {
+            char *path = (char *) archive_entry_pathname(entry);
 
-    opcContainerClose(c, OPC_CLOSE_NOW);
+            if (should_read_part(path)) {
+                ret = read_part(a, &buf, doc);
+                if (ret != 0) {
+                    break;
+                }
+            }
+
+        }
+    }
+
+
+    // close
 
     if (buf.cur > 0) {
         dyn_buffer_write_char(&buf, '\0');
