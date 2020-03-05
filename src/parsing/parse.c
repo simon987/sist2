@@ -87,7 +87,7 @@ void parse(void *arg) {
 
     int bytes_read = 0;
 
-    if (doc.mime == 0) {
+    if (doc.mime == 0 && !ScanCtx.fast) {
         // Get mime type with libmagic
         bytes_read = job->vfile.read(&job->vfile, buf, PARSE_BUF_SIZE);
         if (bytes_read == -1) {
