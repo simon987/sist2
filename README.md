@@ -123,7 +123,7 @@ binaries.
         libssl-dev uuid-dev python3 libmagic-dev libfreetype6-dev \
         libcurl4-openssl-dev libbz2-dev yasm libharfbuzz-dev ragel \
         libarchive-dev libtiff5 libpng16-16 libpango1.0-dev \
-        libxml2-dev
+        libxml2-dev libopenjp2-7-dev
    ```
 
 2. Build
