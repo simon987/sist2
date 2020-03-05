@@ -46,14 +46,14 @@ int render_cover(fz_context *ctx, document_t *doc, fz_document *fzdoc) {
     fz_var(err);
     fz_try(ctx)
     {
-//        pthread_mutex_lock(&ScanCtx.mupdf_mu);
+        pthread_mutex_lock(&ScanCtx.mupdf_mu);
         fz_run_page(ctx, cover, dev, fz_identity, NULL);
     }
     fz_always(ctx)
     {
         fz_close_device(ctx, dev);
         fz_drop_device(ctx, dev);
-//        pthread_mutex_unlock(&ScanCtx.mupdf_mu);
+        pthread_mutex_unlock(&ScanCtx.mupdf_mu);
     }
     fz_catch(ctx)
         err = ctx->error.errcode;

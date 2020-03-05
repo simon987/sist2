@@ -41,9 +41,6 @@ void store_destroy(store_t *store) {
 
 void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t buf_len) {
 
-    // TODO: DEBUG
-    return;
-
     if (LogCtx.very_verbose) {
         char uuid_str[UUID_STR_LEN];
         uuid_unparse((unsigned char *) key, uuid_str);
