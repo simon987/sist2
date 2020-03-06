@@ -14,6 +14,12 @@ let searchBusy = true;
 let selectedIndices = [];
 let indexMap = {};
 
+let size_min = 0;
+let size_max = 10000000000000;
+
+let date_min = null;
+let date_max = null;
+
 const CONF = new Settings();
 
 const _defaults = {
@@ -120,9 +126,7 @@ function getDocumentInfo(id) {
 }
 
 function handleTreeClick(tree) {
-    return (event, node, handler) => {
-        event.preventTreeDefault();
-
+    return (node) => {
         if (node.id === "any") {
             if (!node.itree.state.checked) {
                 tree.deselect();
@@ -131,12 +135,10 @@ function handleTreeClick(tree) {
             tree.node("any").deselect();
         }
 
-        handler();
         searchDebounced();
     }
 }
 
-//TODO: filter based on selected indexes, sort mime types
 $.jsonPost("es", {
     aggs: {
         mimeTypes: {
@@ -148,7 +150,7 @@ $.jsonPost("es", {
     },
     size: 0,
 }).then(resp => {
-    resp["aggregations"]["mimeTypes"]["buckets"].forEach(bucket => {
+    resp["aggregations"]["mimeTypes"]["buckets"].sort((a, b) => a.key > b.key).forEach(bucket => {
         let tmp = bucket["key"].split("/");
         let category = tmp[0];
         let mime = tmp[1];
@@ -182,7 +184,7 @@ $.jsonPost("es", {
     new InspireTreeDOM(mimeTree, {
         target: '#mimeTree'
     });
-    mimeTree.on("node.click", handleTreeClick(mimeTree));
+    mimeTree.on("node.state.changed", handleTreeClick(mimeTree));
     mimeTree.deselect();
     mimeTree.node("any").select();
 });
@@ -215,7 +217,7 @@ $.jsonPost("es", {
     new InspireTreeDOM(tagTree, {
         target: '#tagTree'
     });
-    tagTree.on("node.click", handleTreeClick(tagTree));
+    tagTree.on("node.state.changed", handleTreeClick(tagTree));
     tagTree.node("any").select();
     searchBusy = false;
 });
@@ -345,6 +347,14 @@ function search(after = null) {
         filters.push([{terms: {"tag": tags}}]);
     }
 
+    if (date_min && date_max) {
+        filters.push([{range: {mtime: {gte: date_min, lte: date_max}}}])
+    } else if (date_min) {
+        filters.push([{range: {mtime: {gte: date_min}}}])
+    } else if (date_max) {
+        filters.push([{range: {mtime: {lte: date_max}}}])
+    }
+
     let q = {
         "_source": {
             excludes: ["content", "_tie"]
@@ -422,8 +432,6 @@ function search(after = null) {
     });
 }
 
-let size_min = 0;
-let size_max = 10000000000000;
 
 let searchDebounced = _.debounce(function () {
     coolingDown = false;
@@ -431,6 +439,7 @@ let searchDebounced = _.debounce(function () {
 }, 500);
 
 searchBar.addEventListener("keyup", searchDebounced);
+pathBar.addEventListener("keyup", searchDebounced);
 
 //Size slider
 $("#sizeSlider").ionRangeSlider({
@@ -465,6 +474,37 @@ $("#sizeSlider").ionRangeSlider({
     }
 });
 
+//Date slider
+$.jsonPost("es", {
+    aggs: {
+        date_min: {min: {field: "mtime"}},
+        date_max: {max: {field: "mtime"}},
+    },
+    size: 0
+}).then(resp => {
+    $("#dateSlider").ionRangeSlider({
+        type: "double",
+        grid: false,
+        force_edges: true,
+        min: resp["aggregations"]["date_min"]["value"],
+        max: resp["aggregations"]["date_max"]["value"],
+        from: 0,
+        to: (Date.now() / 1000),
+        min_interval: 3600 * 24 * 7,
+        step: 3600 * 24,
+        drag_interval: true,
+        prettify: function (num) {
+            let date = (new Date(num * 1000));
+            return date.getUTCFullYear() + "-" + ("0" + (date.getUTCMonth() + 1)).slice(-2) + "-" + ("0" + date.getUTCDate()).slice(-2)
+        },
+        onFinish: function (e) {
+            date_min = e.from === e.min ? null : e.from;
+            date_max = e.to === e.max ? null : e.to;
+            searchDebounced();
+        }
+    });
+})
+
 function updateIndices() {
     let selected = $('#indices').find('option:selected');
     selectedIndices = [];
@@ -492,7 +532,7 @@ function getNextDepth(node) {
             bool: {
                 filter: [
                     {term: {index: node.index}},
-                    {term: {_depth: node.depth + 1}}
+                    {range: {_depth: {gte: node.depth + 1, lte: node.depth + 3}}},
                 ]
             }
         },
@@ -520,12 +560,21 @@ function getNextDepth(node) {
         if (!buckets) {
             return false;
         }
+
+        const paths = [];
+
         return buckets
             .filter(bucket => bucket.key.length > node.id.length || node.id.startsWith("/"))
             .sort((a, b) => a.key > b.key)
             .map(bucket => {
-                const i = bucket.key.lastIndexOf("/");
-                const name = (i === -1 || i === 1) ? bucket.key : bucket.key.slice(i + 1);
+
+                if (paths.some(n => bucket.key.startsWith(n))) {
+                    return null;
+                }
+
+                const name = node.id.startsWith("/") ? bucket.key : bucket.key.slice(node.id.length + 1);
+
+                paths.push(bucket.key);
 
                 return {
                     id: bucket.key,
@@ -534,7 +583,7 @@ function getNextDepth(node) {
                     index: node.index,
                     children: true,
                 }
-            })
+            }).filter(x => x !== null)
     })
 }
 
@@ -576,9 +625,7 @@ function createPathTree(target) {
 
     const button = document.querySelector("#pathBarHelper")
     const tooltip = document.querySelector("#pathTreeTooltip")
-    console.log(button)
-    console.log(tooltip)
-    Popper.createPopper(button, tooltip ,{
+    Popper.createPopper(button, tooltip, {
         trigger: "click",
         placement: "right",
     });
