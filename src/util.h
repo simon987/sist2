@@ -257,12 +257,7 @@ static int text_buffer_append_string(text_buffer_t *buf, char *str, size_t len) 
 
 __always_inline
 static int text_buffer_append_string0(text_buffer_t *buf, char *str) {
-    utf8_int32_t c;
-    for (void *v = utf8codepoint(str, &c); c != '\0'; v = utf8codepoint(v, &c)) {
-        if (utf8_validchr2(v)) {
-            text_buffer_append_char(buf, c);
-        }
-    }
+    return text_buffer_append_string(buf, str, strlen(str));
 }
 
 __always_inline
