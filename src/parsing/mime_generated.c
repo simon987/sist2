@@ -14,424 +14,439 @@ enum mime {
     application_book=655366,
     application_clariscad=655367,
     application_commonground=655368,
-    application_dicom=655369,
-    application_drafting=655370,
-    application_epub_zip=655371 | 0x40000000,
-    application_freeloader=655372,
-    application_futuresplash=655373,
-    application_groupwise=655374,
-    application_gzip=655375 | 0x08000000,
-    application_hta=655376,
-    application_i_deas=655377,
-    application_iges=655378,
-    application_inf=655379,
-    application_java=655380,
-    application_java_archive=655381,
-    application_javascript=655382,
-    application_json=655383,
-    application_marc=655384,
-    application_mbedlet=655385,
-    application_mime=655386,
-    application_mspowerpoint=655387,
-    application_msword=655388,
-    application_netmc=655389,
-    application_octet_stream=655390,
-    application_oda=655391,
-    application_ogg=655392,
-    application_pdf=655393 | 0x40000000,
-    application_pgp_keys=655394,
-    application_pgp_signature=655395,
-    application_pkcs7_signature=655396,
-    application_pkix_cert=655397,
-    application_postscript=655398,
-    application_pro_eng=655399,
-    application_ringing_tones=655400,
-    application_smil=655401,
-    application_solids=655402,
-    application_sounder=655403,
-    application_step=655404,
-    application_streamingmedia=655405,
-    application_vda=655406,
-    application_vnd_fdf=655407,
-    application_vnd_font_fontforge_sfd=655408,
-    application_vnd_hp_hpgl=655409,
-    application_vnd_iccprofile=655410,
-    application_vnd_lotus_1_2_3=655411,
-    application_vnd_ms_cab_compressed=655412,
-    application_vnd_ms_excel=655413,
-    application_vnd_ms_fontobject=655414,
-    application_vnd_ms_opentype=655415 | 0x20000000,
-    application_vnd_ms_pki_certstore=655416,
-    application_vnd_ms_pki_pko=655417,
-    application_vnd_ms_pki_seccat=655418,
-    application_vnd_ms_powerpoint=655419,
-    application_vnd_ms_project=655420,
-    application_vnd_oasis_opendocument_base=655421,
-    application_vnd_oasis_opendocument_formula=655422,
-    application_vnd_oasis_opendocument_graphics=655423,
-    application_vnd_oasis_opendocument_presentation=655424,
-    application_vnd_oasis_opendocument_spreadsheet=655425,
-    application_vnd_oasis_opendocument_text=655426,
-    application_vnd_openxmlformats_officedocument_presentationml_presentation=655427 | 0x04000000,
-    application_vnd_openxmlformats_officedocument_spreadsheetml_sheet=655428 | 0x04000000,
-    application_vnd_openxmlformats_officedocument_wordprocessingml_document=655429 | 0x04000000,
-    application_vnd_symbian_install=655430,
-    application_vnd_tcpdump_pcap=655431,
-    application_vnd_wap_wmlc=655432,
-    application_vnd_wap_wmlscriptc=655433,
-    application_vnd_xara=655434,
-    application_vocaltec_media_desc=655435,
-    application_vocaltec_media_file=655436,
-    application_warc=655437,
-    application_winhelp=655438,
-    application_wordperfect=655439,
-    application_wordperfect6_0=655440,
-    application_wordperfect6_1=655441,
-    application_x_123=655442,
-    application_x_7z_compressed=655443 | 0x10000000,
-    application_x_aim=655444,
-    application_x_apple_diskimage=655445,
-    application_x_arc=655446 | 0x10000000,
-    application_x_archive=655447,
-    application_x_atari_7800_rom=655448,
-    application_x_authorware_bin=655449,
-    application_x_authorware_map=655450,
-    application_x_authorware_seg=655451,
-    application_x_avira_qua=655452,
-    application_x_bcpio=655453,
-    application_x_bittorrent=655454,
-    application_x_bsh=655455,
-    application_x_bytecode_python=655456,
-    application_x_bzip=655457,
-    application_x_bzip2=655458 | 0x08000000,
-    application_x_cbr=655459,
-    application_x_cbz=655460 | 0x40000000,
-    application_x_cdlink=655461,
-    application_x_chat=655462,
-    application_x_chrome_extension=655463,
-    application_x_cocoa=655464,
-    application_x_conference=655465,
-    application_x_coredump=655466,
-    application_x_cpio=655467,
-    application_x_dbf=655468,
-    application_x_dbt=655469,
-    application_x_debian_package=655470,
-    application_x_deepv=655471,
-    application_x_director=655472,
-    application_x_dmp=655473,
-    application_x_dosdriver=655474,
-    application_x_dosexec=655475,
-    application_x_dvi=655476,
-    application_x_elc=655477,
+    application_csv=655369,
+    application_dicom=655370,
+    application_drafting=655371,
+    application_epub_zip=655372 | 0x40000000,
+    application_freeloader=655373,
+    application_futuresplash=655374,
+    application_groupwise=655375,
+    application_gzip=655376 | 0x08000000,
+    application_hta=655377,
+    application_i_deas=655378,
+    application_iges=655379,
+    application_inf=655380,
+    application_java=655381,
+    application_java_archive=655382,
+    application_javascript=655383,
+    application_json=655384,
+    application_marc=655385,
+    application_mbedlet=655386,
+    application_mime=655387,
+    application_mspowerpoint=655388,
+    application_msword=655389,
+    application_netmc=655390,
+    application_octet_stream=655391,
+    application_oda=655392,
+    application_ogg=655393,
+    application_pdf=655394 | 0x40000000,
+    application_pgp_keys=655395,
+    application_pgp_signature=655396,
+    application_pkcs7_signature=655397,
+    application_pkix_cert=655398,
+    application_postscript=655399,
+    application_pro_eng=655400,
+    application_ringing_tones=655401,
+    application_smil=655402,
+    application_solids=655403,
+    application_sounder=655404,
+    application_step=655405,
+    application_streamingmedia=655406,
+    application_vda=655407,
+    application_vnd_fdf=655408,
+    application_vnd_font_fontforge_sfd=655409,
+    application_vnd_hp_hpgl=655410,
+    application_vnd_iccprofile=655411,
+    application_vnd_lotus_1_2_3=655412,
+    application_vnd_ms_cab_compressed=655413,
+    application_vnd_ms_excel=655414,
+    application_vnd_ms_fontobject=655415,
+    application_vnd_ms_opentype=655416 | 0x20000000,
+    application_vnd_ms_pki_certstore=655417,
+    application_vnd_ms_pki_pko=655418,
+    application_vnd_ms_pki_seccat=655419,
+    application_vnd_ms_powerpoint=655420,
+    application_vnd_ms_project=655421,
+    application_vnd_oasis_opendocument_base=655422,
+    application_vnd_oasis_opendocument_formula=655423,
+    application_vnd_oasis_opendocument_graphics=655424,
+    application_vnd_oasis_opendocument_presentation=655425,
+    application_vnd_oasis_opendocument_spreadsheet=655426,
+    application_vnd_oasis_opendocument_text=655427,
+    application_vnd_openxmlformats_officedocument_presentationml_presentation=655428 | 0x04000000,
+    application_vnd_openxmlformats_officedocument_spreadsheetml_sheet=655429 | 0x04000000,
+    application_vnd_openxmlformats_officedocument_wordprocessingml_document=655430 | 0x04000000,
+    application_vnd_symbian_install=655431,
+    application_vnd_tcpdump_pcap=655432,
+    application_vnd_wap_wmlc=655433,
+    application_vnd_wap_wmlscriptc=655434,
+    application_vnd_xara=655435,
+    application_vocaltec_media_desc=655436,
+    application_vocaltec_media_file=655437,
+    application_warc=655438,
+    application_winhelp=655439,
+    application_wordperfect=655440,
+    application_wordperfect6_0=655441,
+    application_wordperfect6_1=655442,
+    application_x_123=655443,
+    application_x_7z_compressed=655444 | 0x10000000,
+    application_x_aim=655445,
+    application_x_apple_diskimage=655446,
+    application_x_arc=655447 | 0x10000000,
+    application_x_archive=655448,
+    application_x_atari_7800_rom=655449,
+    application_x_authorware_bin=655450,
+    application_x_authorware_map=655451,
+    application_x_authorware_seg=655452,
+    application_x_avira_qua=655453,
+    application_x_bcpio=655454,
+    application_x_bittorrent=655455,
+    application_x_bsh=655456,
+    application_x_bytecode_python=655457,
+    application_x_bzip=655458,
+    application_x_bzip2=655459 | 0x08000000,
+    application_x_cbr=655460,
+    application_x_cbz=655461 | 0x40000000,
+    application_x_cdlink=655462,
+    application_x_chat=655463,
+    application_x_chrome_extension=655464,
+    application_x_cocoa=655465,
+    application_x_conference=655466,
+    application_x_coredump=655467,
+    application_x_cpio=655468,
+    application_x_dbf=655469,
+    application_x_dbt=655470,
+    application_x_debian_package=655471,
+    application_x_deepv=655472,
+    application_x_director=655473,
+    application_x_dmp=655474,
+    application_x_dosdriver=655475,
+    application_x_dosexec=655476,
+    application_x_dvi=655477,
+    application_x_elc=655478,
     application_x_empty=1,
-    application_x_envoy=655479,
-    application_x_esrehber=655480,
-    application_x_excel=655481,
-    application_x_executable=655482,
-    application_x_font_gdos=655483,
-    application_x_font_pf2=655484,
-    application_x_font_pfm=655485,
-    application_x_font_sfn=655486,
-    application_x_font_ttf=655487 | 0x20000000,
-    application_x_freelance=655488,
-    application_x_gamecube_rom=655489,
-    application_x_gdbm=655490,
-    application_x_gettext_translation=655491,
-    application_x_git=655492,
-    application_x_gsp=655493,
-    application_x_gss=655494,
-    application_x_gtar=655495,
-    application_x_gzip=655496,
-    application_x_hdf=655497,
-    application_x_helpfile=655498,
-    application_x_httpd_imap=655499,
-    application_x_ima=655500,
-    application_x_innosetup=655501,
-    application_x_internett_signup=655502,
-    application_x_inventor=655503,
-    application_x_ip2=655504,
-    application_x_java_applet=655505,
-    application_x_java_commerce=655506,
-    application_x_java_image=655507,
-    application_x_java_jmod=655508,
-    application_x_java_keystore=655509,
-    application_x_kdelnk=655510,
-    application_x_koan=655511,
-    application_x_latex=655512,
-    application_x_livescreen=655513,
-    application_x_lotus=655514,
-    application_x_lz4=655515 | 0x08000000,
-    application_x_lz4_json=655516,
-    application_x_lzh=655517,
-    application_x_lzh_compressed=655518,
-    application_x_lzip=655519 | 0x08000000,
-    application_x_lzma=655520 | 0x08000000,
-    application_x_lzop=655521 | 0x08000000,
-    application_x_lzx=655522,
-    application_x_mach_binary=655523,
-    application_x_mach_executable=655524,
-    application_x_magic_cap_package_1_0=655525,
-    application_x_mathcad=655526,
-    application_x_maxis_dbpf=655527,
-    application_x_meme=655528,
-    application_x_midi=655529,
-    application_x_mif=655530,
-    application_x_mix_transfer=655531,
-    application_x_mobipocket_ebook=655532,
-    application_x_ms_compress_szdd=655533,
-    application_x_ms_pdb=655534,
-    application_x_ms_reader=655535,
-    application_x_msaccess=655536,
-    application_x_navi_animation=655537,
-    application_x_navidoc=655538,
-    application_x_navimap=655539,
-    application_x_navistyle=655540,
-    application_x_nes_rom=655541,
-    application_x_netcdf=655542,
-    application_x_newton_compatible_pkg=655543,
-    application_x_nintendo_ds_rom=655544,
-    application_x_object=655545,
-    application_x_omc=655546,
-    application_x_omcdatamaker=655547,
-    application_x_omcregerator=655548,
-    application_x_pagemaker=655549,
-    application_x_pcl=655550,
-    application_x_pgp_keyring=655551,
-    application_x_pixclscript=655552,
-    application_x_pkcs7_certreqresp=655553,
-    application_x_pkcs7_signature=655554,
-    application_x_project=655555,
-    application_x_qpro=655556,
-    application_x_rar=655557 | 0x10000000,
-    application_x_rpm=655558,
-    application_x_sdp=655559,
-    application_x_sea=655560,
-    application_x_seelogo=655561,
-    application_x_setupscript=655562,
-    application_x_shar=655563,
-    application_x_sharedlib=655564,
-    application_x_shockwave_flash=655565,
-    application_x_snappy_framed=655566,
-    application_x_sprite=655567,
-    application_x_sqlite3=655568,
-    application_x_sv4cpio=655569,
-    application_x_sv4crc=655570,
-    application_x_tar=655571 | 0x10000000,
-    application_x_tbook=655572,
-    application_x_terminfo=655573,
-    application_x_terminfo2=655574,
-    application_x_tex_tfm=655575,
-    application_x_texinfo=655576,
-    application_x_ustar=655577,
-    application_x_visio=655578,
-    application_x_vnd_audioexplosion_mzz=655579,
-    application_x_vnd_ls_xpix=655580,
-    application_x_vrml=655581,
-    application_x_wais_source=655582,
-    application_x_wine_extension_ini=655583,
-    application_x_wintalk=655584,
-    application_x_world=655585,
-    application_x_wri=655586,
-    application_x_x509_ca_cert=655587,
-    application_x_xz=655588 | 0x08000000,
-    application_x_zip=655589,
-    application_x_zstd=655590 | 0x08000000,
-    application_xml=655591,
-    application_zip=655592 | 0x10000000,
-    application_zlib=655593,
-    audio_it=458986,
-    audio_make=458987,
-    audio_mid=458988,
-    audio_midi=458989,
-    audio_mp4=458990,
-    audio_mpeg=458991,
-    audio_ogg=458992,
-    audio_s3m=458993,
-    audio_tsp_audio=458994,
-    audio_tsplayer=458995,
-    audio_vnd_qcelp=458996,
-    audio_voxware=458997,
-    audio_x_aiff=458998,
-    audio_x_flac=458999,
-    audio_x_gsm=459000,
-    audio_x_hx_aac_adts=459001,
-    audio_x_jam=459002,
-    audio_x_liveaudio=459003,
-    audio_x_m4a=459004,
-    audio_x_midi=459005,
-    audio_x_mod=459006,
-    audio_x_mp4a_latm=459007,
-    audio_x_mpeg_3=459008,
-    audio_x_mpequrl=459009,
-    audio_x_nspaudio=459010,
-    audio_x_pn_realaudio=459011,
-    audio_x_psid=459012,
-    audio_x_realaudio=459013,
-    audio_x_twinvq=459014,
-    audio_x_twinvq_plugin=459015,
-    audio_x_voc=459016,
-    audio_x_wav=459017,
-    audio_xm=459018,
-    font_otf=327947 | 0x20000000,
-    font_sfnt=327948 | 0x20000000,
-    font_woff=327949 | 0x20000000,
-    font_woff2=327950 | 0x20000000,
-    image_cmu_raster=524559,
-    image_fif=524560,
-    image_florian=524561,
-    image_g3fax=524562,
-    image_gif=524563,
-    image_heic=524564,
-    image_ief=524565,
-    image_jpeg=524566,
-    image_jutvision=524567,
-    image_naplps=524568,
-    image_pict=524569,
-    image_png=524570,
-    image_svg=524571 | 0x80000000,
-    image_svg_xml=524572 | 0x80000000,
-    image_tiff=524573,
-    image_vnd_adobe_photoshop=524574 | 0x80000000,
-    image_vnd_djvu=524575 | 0x80000000,
-    image_vnd_fpx=524576,
-    image_vnd_microsoft_icon=524577,
-    image_vnd_rn_realflash=524578,
-    image_vnd_rn_realpix=524579,
-    image_vnd_wap_wbmp=524580,
-    image_vnd_xiff=524581,
-    image_webp=524582,
-    image_wmf=524583,
-    image_x_3ds=524584,
-    image_x_cmu_raster=524585,
-    image_x_cur=524586,
-    image_x_dwg=524587,
-    image_x_eps=524588,
-    image_x_exr=524589,
-    image_x_gem=524590,
-    image_x_icns=524591,
-    image_x_icon=524592 | 0x80000000,
-    image_x_jg=524593,
-    image_x_jps=524594,
-    image_x_ms_bmp=524595,
-    image_x_niff=524596,
-    image_x_pcx=524597,
-    image_x_pict=524598,
-    image_x_portable_bitmap=524599,
-    image_x_portable_graymap=524600,
-    image_x_portable_pixmap=524601,
-    image_x_quicktime=524602,
-    image_x_rgb=524603,
-    image_x_tga=524604,
-    image_x_tiff=524605,
-    image_x_win_bitmap=524606,
-    image_x_xcf=524607 | 0x80000000,
-    image_x_xpixmap=524608 | 0x80000000,
-    image_x_xwindowdump=524609,
-    message_news=196930,
-    message_rfc822=196931,
-    model_vnd_dwf=65860,
-    model_vnd_gdl=65861,
-    model_vnd_gs_gdl=65862,
-    model_vrml=65863,
-    model_x_pov=65864,
-    text_PGP=590153,
-    text_asp=590154,
-    text_css=590155,
-    text_html=590156,
-    text_javascript=590157,
-    text_mcf=590158,
-    text_pascal=590159,
-    text_plain=590160,
-    text_richtext=590161,
-    text_rtf=590162,
-    text_scriplet=590163,
-    text_tab_separated_values=590164,
-    text_troff=590165,
-    text_uri_list=590166,
-    text_vnd_abc=590167,
-    text_vnd_fmi_flexstor=590168,
-    text_vnd_wap_wml=590169,
-    text_vnd_wap_wmlscript=590170,
-    text_webviewhtml=590171,
-    text_x_Algol68=590172,
-    text_x_asm=590173,
-    text_x_audiosoft_intra=590174,
-    text_x_awk=590175,
-    text_x_bcpl=590176,
-    text_x_c=590177,
-    text_x_c__=590178,
-    text_x_component=590179,
-    text_x_diff=590180,
-    text_x_fortran=590181,
-    text_x_java=590182,
-    text_x_la_asf=590183,
-    text_x_lisp=590184,
-    text_x_m=590185,
-    text_x_m4=590186,
-    text_x_makefile=590187,
-    text_x_ms_regedit=590188,
-    text_x_msdos_batch=590189,
-    text_x_objective_c=590190,
-    text_x_pascal=590191,
-    text_x_perl=590192,
-    text_x_php=590193,
-    text_x_po=590194,
-    text_x_python=590195,
-    text_x_ruby=590196,
-    text_x_sass=590197,
-    text_x_scss=590198,
-    text_x_server_parsed_html=590199,
-    text_x_setext=590200,
-    text_x_sgml=590201,
-    text_x_shellscript=590202,
-    text_x_speech=590203,
-    text_x_tcl=590204,
-    text_x_tex=590205,
-    text_x_uil=590206,
-    text_x_uuencode=590207,
-    text_x_vcalendar=590208,
-    text_x_vcard=590209,
-    text_xml=590210,
-    video_MP2T=393603,
-    video_animaflex=393604,
-    video_avi=393605,
-    video_avs_video=393606,
-    video_mp4=393607,
-    video_mpeg=393608,
-    video_quicktime=393609,
-    video_vdo=393610,
-    video_vivo=393611,
-    video_vnd_rn_realvideo=393612,
-    video_vosaic=393613,
-    video_webm=393614,
-    video_x_amt_demorun=393615,
-    video_x_amt_showrun=393616,
-    video_x_atomic3d_feature=393617,
-    video_x_dl=393618,
-    video_x_dv=393619,
-    video_x_fli=393620,
-    video_x_flv=393621,
-    video_x_isvideo=393622,
-    video_x_jng=393623 | 0x80000000,
-    video_x_m4v=393624,
-    video_x_matroska=393625,
-    video_x_mng=393626,
-    video_x_motion_jpeg=393627,
-    video_x_ms_asf=393628,
-    video_x_msvideo=393629,
-    video_x_qtc=393630,
-    video_x_sgi_movie=393631,
-    x_epoc_x_sisx_app=721312,
+    application_x_envoy=655480,
+    application_x_esrehber=655481,
+    application_x_excel=655482,
+    application_x_executable=655483,
+    application_x_font_gdos=655484,
+    application_x_font_pf2=655485,
+    application_x_font_pfm=655486,
+    application_x_font_sfn=655487,
+    application_x_font_ttf=655488 | 0x20000000,
+    application_x_fptapplication_x_dbt=655489,
+    application_x_freelance=655490,
+    application_x_gamecube_rom=655491,
+    application_x_gdbm=655492,
+    application_x_gettext_translation=655493,
+    application_x_git=655494,
+    application_x_gsp=655495,
+    application_x_gss=655496,
+    application_x_gtar=655497,
+    application_x_gzip=655498,
+    application_x_hdf=655499,
+    application_x_helpfile=655500,
+    application_x_httpd_imap=655501,
+    application_x_ima=655502,
+    application_x_innosetup=655503,
+    application_x_internett_signup=655504,
+    application_x_inventor=655505,
+    application_x_ip2=655506,
+    application_x_java_applet=655507,
+    application_x_java_commerce=655508,
+    application_x_java_image=655509,
+    application_x_java_jmod=655510,
+    application_x_java_keystore=655511,
+    application_x_kdelnk=655512,
+    application_x_koan=655513,
+    application_x_latex=655514,
+    application_x_livescreen=655515,
+    application_x_lotus=655516,
+    application_x_lz4=655517 | 0x08000000,
+    application_x_lz4_json=655518,
+    application_x_lzh=655519,
+    application_x_lzh_compressed=655520,
+    application_x_lzip=655521 | 0x08000000,
+    application_x_lzma=655522 | 0x08000000,
+    application_x_lzop=655523 | 0x08000000,
+    application_x_lzx=655524,
+    application_x_mach_binary=655525,
+    application_x_mach_executable=655526,
+    application_x_magic_cap_package_1_0=655527,
+    application_x_mathcad=655528,
+    application_x_maxis_dbpf=655529,
+    application_x_meme=655530,
+    application_x_midi=655531,
+    application_x_mif=655532,
+    application_x_mix_transfer=655533,
+    application_x_mobipocket_ebook=655534,
+    application_x_ms_compress_szdd=655535,
+    application_x_ms_pdb=655536,
+    application_x_ms_reader=655537,
+    application_x_msaccess=655538,
+    application_x_n64_rom=655539,
+    application_x_navi_animation=655540,
+    application_x_navidoc=655541,
+    application_x_navimap=655542,
+    application_x_navistyle=655543,
+    application_x_nes_rom=655544,
+    application_x_netcdf=655545,
+    application_x_newton_compatible_pkg=655546,
+    application_x_nintendo_ds_rom=655547,
+    application_x_object=655548,
+    application_x_omc=655549,
+    application_x_omcdatamaker=655550,
+    application_x_omcregerator=655551,
+    application_x_pagemaker=655552,
+    application_x_pcl=655553,
+    application_x_pgp_keyring=655554,
+    application_x_pixclscript=655555,
+    application_x_pkcs7_certreqresp=655556,
+    application_x_pkcs7_signature=655557,
+    application_x_project=655558,
+    application_x_qpro=655559,
+    application_x_rar=655560 | 0x10000000,
+    application_x_rpm=655561,
+    application_x_sdp=655562,
+    application_x_sea=655563,
+    application_x_seelogo=655564,
+    application_x_setupscript=655565,
+    application_x_shar=655566,
+    application_x_sharedlib=655567,
+    application_x_shockwave_flash=655568,
+    application_x_snappy_framed=655569,
+    application_x_sprite=655570,
+    application_x_sqlite3=655571,
+    application_x_stargallery_thm=655572,
+    application_x_stuffit=655573,
+    application_x_sv4cpio=655574,
+    application_x_sv4crc=655575,
+    application_x_tar=655576 | 0x10000000,
+    application_x_tbook=655577,
+    application_x_terminfo=655578,
+    application_x_terminfo2=655579,
+    application_x_tex_tfm=655580,
+    application_x_texinfo=655581,
+    application_x_ustar=655582,
+    application_x_visio=655583,
+    application_x_vnd_audioexplosion_mzz=655584,
+    application_x_vnd_ls_xpix=655585,
+    application_x_vrml=655586,
+    application_x_wais_source=655587,
+    application_x_wine_extension_ini=655588,
+    application_x_wintalk=655589,
+    application_x_world=655590,
+    application_x_wri=655591,
+    application_x_x509_ca_cert=655592,
+    application_x_xz=655593 | 0x08000000,
+    application_x_zip=655594,
+    application_x_zstd=655595 | 0x08000000,
+    application_xml=655596,
+    application_zip=655597 | 0x10000000,
+    application_zlib=655598,
+    audio_basic=458991 | 0x80000000,
+    audio_it=458992,
+    audio_make=458993,
+    audio_mid=458994,
+    audio_midi=458995,
+    audio_mp4=458996,
+    audio_mpeg=458997,
+    audio_ogg=458998,
+    audio_s3m=458999,
+    audio_tsp_audio=459000,
+    audio_tsplayer=459001,
+    audio_vnd_qcelp=459002,
+    audio_voxware=459003,
+    audio_x_aiff=459004,
+    audio_x_flac=459005,
+    audio_x_gsm=459006,
+    audio_x_hx_aac_adts=459007,
+    audio_x_jam=459008,
+    audio_x_liveaudio=459009,
+    audio_x_m4a=459010,
+    audio_x_midi=459011,
+    audio_x_mod=459012,
+    audio_x_mp4a_latm=459013,
+    audio_x_mpeg_3=459014,
+    audio_x_mpequrl=459015,
+    audio_x_nspaudio=459016,
+    audio_x_pn_realaudio=459017,
+    audio_x_psid=459018,
+    audio_x_realaudio=459019,
+    audio_x_s3m=459020,
+    audio_x_twinvq=459021,
+    audio_x_twinvq_plugin=459022,
+    audio_x_voc=459023,
+    audio_x_wav=459024,
+    audio_x_xbox_executable=459025 | 0x80000000,
+    audio_x_xbox360_executable=459026 | 0x80000000,
+    audio_xm=459027,
+    font_otf=327956 | 0x20000000,
+    font_sfnt=327957 | 0x20000000,
+    font_woff=327958 | 0x20000000,
+    font_woff2=327959 | 0x20000000,
+    image_bmp=524568,
+    image_cmu_raster=524569,
+    image_fif=524570,
+    image_florian=524571,
+    image_g3fax=524572,
+    image_gif=524573,
+    image_heic=524574,
+    image_ief=524575,
+    image_jpeg=524576,
+    image_jutvision=524577,
+    image_naplps=524578,
+    image_pict=524579,
+    image_png=524580,
+    image_svg=524581 | 0x80000000,
+    image_svg_xml=524582 | 0x80000000,
+    image_tiff=524583,
+    image_vnd_adobe_photoshop=524584 | 0x80000000,
+    image_vnd_djvu=524585 | 0x80000000,
+    image_vnd_fpx=524586,
+    image_vnd_microsoft_icon=524587,
+    image_vnd_rn_realflash=524588,
+    image_vnd_rn_realpix=524589,
+    image_vnd_wap_wbmp=524590,
+    image_vnd_xiff=524591,
+    image_webp=524592,
+    image_wmf=524593,
+    image_x_3ds=524594,
+    image_x_award_bioslogo=524595,
+    image_x_cmu_raster=524596,
+    image_x_cur=524597,
+    image_x_dwg=524598,
+    image_x_eps=524599,
+    image_x_exr=524600,
+    image_x_gem=524601,
+    image_x_icns=524602,
+    image_x_icon=524603 | 0x80000000,
+    image_x_jg=524604,
+    image_x_jps=524605,
+    image_x_ms_bmp=524606,
+    image_x_niff=524607,
+    image_x_pcx=524608,
+    image_x_pict=524609,
+    image_x_portable_bitmap=524610,
+    image_x_portable_graymap=524611,
+    image_x_portable_pixmap=524612,
+    image_x_quicktime=524613,
+    image_x_rgb=524614,
+    image_x_tga=524615,
+    image_x_tiff=524616,
+    image_x_win_bitmap=524617,
+    image_x_xcf=524618 | 0x80000000,
+    image_x_xpixmap=524619 | 0x80000000,
+    image_x_xwindowdump=524620,
+    message_news=196941,
+    message_rfc822=196942,
+    model_vnd_dwf=65871,
+    model_vnd_gdl=65872,
+    model_vnd_gs_gdl=65873,
+    model_vrml=65874,
+    model_x_pov=65875,
+    text_PGP=590164,
+    text_asp=590165,
+    text_css=590166,
+    text_html=590167,
+    text_javascript=590168,
+    text_mcf=590169,
+    text_pascal=590170,
+    text_plain=590171,
+    text_richtext=590172,
+    text_rtf=590173,
+    text_scriplet=590174,
+    text_tab_separated_values=590175,
+    text_troff=590176,
+    text_uri_list=590177,
+    text_vnd_abc=590178,
+    text_vnd_fmi_flexstor=590179,
+    text_vnd_wap_wml=590180,
+    text_vnd_wap_wmlscript=590181,
+    text_webviewhtml=590182,
+    text_x_Algol68=590183,
+    text_x_asm=590184,
+    text_x_audiosoft_intra=590185,
+    text_x_awk=590186,
+    text_x_bcpl=590187,
+    text_x_c=590188,
+    text_x_c__=590189,
+    text_x_component=590190,
+    text_x_diff=590191,
+    text_x_fortran=590192,
+    text_x_java=590193,
+    text_x_la_asf=590194,
+    text_x_lisp=590195,
+    text_x_m=590196,
+    text_x_m4=590197,
+    text_x_makefile=590198,
+    text_x_ms_regedit=590199,
+    text_x_msdos_batch=590200,
+    text_x_objective_c=590201,
+    text_x_pascal=590202,
+    text_x_perl=590203,
+    text_x_php=590204,
+    text_x_po=590205,
+    text_x_python=590206,
+    text_x_ruby=590207,
+    text_x_sass=590208,
+    text_x_scss=590209,
+    text_x_server_parsed_html=590210,
+    text_x_setext=590211,
+    text_x_sgml=590212,
+    text_x_shellscript=590213,
+    text_x_speech=590214,
+    text_x_tcl=590215,
+    text_x_tex=590216,
+    text_x_uil=590217,
+    text_x_uuencode=590218,
+    text_x_vcalendar=590219,
+    text_x_vcard=590220,
+    text_xml=590221,
+    video_MP2T=393614,
+    video_animaflex=393615,
+    video_avi=393616,
+    video_avs_video=393617,
+    video_mp4=393618,
+    video_mpeg=393619,
+    video_quicktime=393620,
+    video_vdo=393621,
+    video_vivo=393622,
+    video_vnd_rn_realvideo=393623,
+    video_vosaic=393624,
+    video_webm=393625,
+    video_x_amt_demorun=393626,
+    video_x_amt_showrun=393627,
+    video_x_atomic3d_feature=393628,
+    video_x_dl=393629,
+    video_x_dv=393630,
+    video_x_fli=393631,
+    video_x_flv=393632,
+    video_x_isvideo=393633,
+    video_x_jng=393634 | 0x80000000,
+    video_x_m4v=393635,
+    video_x_matroska=393636,
+    video_x_mng=393637,
+    video_x_motion_jpeg=393638,
+    video_x_ms_asf=393639,
+    video_x_msvideo=393640,
+    video_x_qtc=393641,
+    video_x_sgi_movie=393642,
+    x_epoc_x_sisx_app=721323,
 };
 char *mime_get_mime_text(unsigned int mime_id) {switch (mime_id) {
 case application_arj: return "application/arj";
 case application_base64: return "application/base64";
 case application_binhex: return "application/binhex";
 case application_book: return "application/book";
+case application_CDFV2_corrupt: return "application/CDFV2-corrupt";
 case application_CDFV2: return "application/CDFV2";
 case application_clariscad: return "application/clariscad";
 case application_commonground: return "application/commonground";
+case application_csv: return "application/csv";
+case application_dicom: return "application/dicom";
 case application_drafting: return "application/drafting";
+case application_epub_zip: return "application/epub+zip";
 case application_freeloader: return "application/freeloader";
 case application_futuresplash: return "application/futuresplash";
 case application_groupwise: return "application/groupwise";
@@ -443,7 +458,6 @@ case application_inf: return "application/inf";
 case application_java_archive: return "application/java-archive";
 case application_java: return "application/java";
 case application_javascript: return "application/javascript";
-case application_x_archive: return "application/x-archive";
 case application_json: return "application/json";
 case application_marc: return "application/marc";
 case application_mbedlet: return "application/mbedlet";
@@ -453,7 +467,9 @@ case application_msword: return "application/msword";
 case application_netmc: return "application/netmc";
 case application_octet_stream: return "application/octet-stream";
 case application_oda: return "application/oda";
+case application_ogg: return "application/ogg";
 case application_pdf: return "application/pdf";
+case application_pgp_keys: return "application/pgp-keys";
 case application_pgp_signature: return "application/pgp-signature";
 case application_pkcs7_signature: return "application/pkcs7-signature";
 case application_pkix_cert: return "application/pkix-cert";
@@ -469,6 +485,9 @@ case application_vda: return "application/vda";
 case application_vnd_fdf: return "application/vnd.fdf";
 case application_vnd_font_fontforge_sfd: return "application/vnd.font-fontforge-sfd";
 case application_vnd_hp_hpgl: return "application/vnd.hp-hpgl";
+case application_vnd_iccprofile: return "application/vnd.iccprofile";
+case application_vnd_lotus_1_2_3: return "application/vnd.lotus-1-2-3";
+case application_vnd_ms_cab_compressed: return "application/vnd.ms-cab-compressed";
 case application_vnd_ms_excel: return "application/vnd.ms-excel";
 case application_vnd_ms_fontobject: return "application/vnd.ms-fontobject";
 case application_vnd_ms_opentype: return "application/vnd.ms-opentype";
@@ -480,45 +499,75 @@ case application_vnd_ms_project: return "application/vnd.ms-project";
 case application_vnd_oasis_opendocument_base: return "application/vnd.oasis.opendocument.base";
 case application_vnd_oasis_opendocument_formula: return "application/vnd.oasis.opendocument.formula";
 case application_vnd_oasis_opendocument_graphics: return "application/vnd.oasis.opendocument.graphics";
+case application_vnd_oasis_opendocument_presentation: return "application/vnd.oasis.opendocument.presentation";
+case application_vnd_oasis_opendocument_spreadsheet: return "application/vnd.oasis.opendocument.spreadsheet";
 case application_vnd_oasis_opendocument_text: return "application/vnd.oasis.opendocument.text";
+case application_vnd_openxmlformats_officedocument_presentationml_presentation: return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+case application_vnd_openxmlformats_officedocument_spreadsheetml_sheet: return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+case application_vnd_openxmlformats_officedocument_wordprocessingml_document: return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+case application_vnd_symbian_install: return "application/vnd.symbian.install";
+case application_vnd_tcpdump_pcap: return "application/vnd.tcpdump.pcap";
 case application_vnd_wap_wmlc: return "application/vnd.wap.wmlc";
 case application_vnd_wap_wmlscriptc: return "application/vnd.wap.wmlscriptc";
 case application_vnd_xara: return "application/vnd.xara";
 case application_vocaltec_media_desc: return "application/vocaltec-media-desc";
 case application_vocaltec_media_file: return "application/vocaltec-media-file";
+case application_warc: return "application/warc";
+case application_winhelp: return "application/winhelp";
 case application_wordperfect6_0: return "application/wordperfect6.0";
 case application_wordperfect6_1: return "application/wordperfect6.1";
 case application_wordperfect: return "application/wordperfect";
 case application_x_123: return "application/x-123";
+case application_x_7z_compressed: return "application/x-7z-compressed";
 case application_x_aim: return "application/x-aim";
+case application_x_apple_diskimage: return "application/x-apple-diskimage";
+case application_x_arc: return "application/x-arc";
+case application_x_archive: return "application/x-archive";
+case application_x_atari_7800_rom: return "application/x-atari-7800-rom";
 case application_x_authorware_bin: return "application/x-authorware-bin";
 case application_x_authorware_map: return "application/x-authorware-map";
 case application_x_authorware_seg: return "application/x-authorware-seg";
+case application_x_avira_qua: return "application/x-avira-qua";
 case application_x_bcpio: return "application/x-bcpio";
 case application_x_bittorrent: return "application/x-bittorrent";
 case application_x_bsh: return "application/x-bsh";
 case application_x_bytecode_python: return "application/x-bytecode.python";
 case application_x_bzip2: return "application/x-bzip2";
 case application_x_bzip: return "application/x-bzip";
+case application_x_cbr: return "application/x-cbr";
+case application_x_cbz: return "application/x-cbz";
 case application_x_cdlink: return "application/x-cdlink";
 case application_x_chat: return "application/x-chat";
+case application_x_chrome_extension: return "application/x-chrome-extension";
 case application_x_cocoa: return "application/x-cocoa";
 case application_x_conference: return "application/x-conference";
+case application_x_coredump: return "application/x-coredump";
 case application_x_cpio: return "application/x-cpio";
 case application_x_dbf: return "application/x-dbf";
 case application_x_dbt: return "application/x-dbt";
+case application_x_debian_package: return "application/x-debian-package";
 case application_x_deepv: return "application/x-deepv";
 case application_x_director: return "application/x-director";
+case application_x_dmp: return "application/x-dmp";
+case application_x_dosdriver: return "application/x-dosdriver";
 case application_x_dosexec: return "application/x-dosexec";
 case application_x_dvi: return "application/x-dvi";
 case application_x_elc: return "application/x-elc";
+case application_x_empty: return "application/x-empty";
 case application_x_envoy: return "application/x-envoy";
 case application_x_esrehber: return "application/x-esrehber";
 case application_x_excel: return "application/x-excel";
 case application_x_executable: return "application/x-executable";
+case application_x_font_gdos: return "application/x-font-gdos";
+case application_x_font_pf2: return "application/x-font-pf2";
+case application_x_font_pfm: return "application/x-font-pfm";
 case application_x_font_sfn: return "application/x-font-sfn";
 case application_x_font_ttf: return "application/x-font-ttf";
+case application_x_fptapplication_x_dbt: return "application/x-fptapplication/x-dbt";
 case application_x_freelance: return "application/x-freelance";
+case application_x_gamecube_rom: return "application/x-gamecube-rom";
+case application_x_gdbm: return "application/x-gdbm";
+case application_x_gettext_translation: return "application/x-gettext-translation";
 case application_x_git: return "application/x-git";
 case application_x_gsp: return "application/x-gsp";
 case application_x_gss: return "application/x-gss";
@@ -528,46 +577,66 @@ case application_x_hdf: return "application/x-hdf";
 case application_x_helpfile: return "application/x-helpfile";
 case application_x_httpd_imap: return "application/x-httpd-imap";
 case application_x_ima: return "application/x-ima";
+case application_x_innosetup: return "application/x-innosetup";
 case application_x_internett_signup: return "application/x-internett-signup";
 case application_x_inventor: return "application/x-inventor";
 case application_x_ip2: return "application/x-ip2";
 case application_x_java_applet: return "application/x-java-applet";
 case application_x_java_commerce: return "application/x-java-commerce";
 case application_x_java_image: return "application/x-java-image";
+case application_x_java_jmod: return "application/x-java-jmod";
 case application_x_java_keystore: return "application/x-java-keystore";
+case application_x_kdelnk: return "application/x-kdelnk";
 case application_x_koan: return "application/x-koan";
 case application_x_latex: return "application/x-latex";
 case application_x_livescreen: return "application/x-livescreen";
 case application_x_lotus: return "application/x-lotus";
+case application_x_lz4_json: return "application/x-lz4+json";
+case application_x_lz4: return "application/x-lz4";
+case application_x_lzh_compressed: return "application/x-lzh-compressed";
 case application_x_lzh: return "application/x-lzh";
+case application_x_lzip: return "application/x-lzip";
+case application_x_lzma: return "application/x-lzma";
+case application_x_lzop: return "application/x-lzop";
 case application_x_lzx: return "application/x-lzx";
 case application_x_mach_binary: return "application/x-mach-binary";
 case application_x_mach_executable: return "application/x-mach-executable";
 case application_x_magic_cap_package_1_0: return "application/x-magic-cap-package-1.0";
 case application_x_mathcad: return "application/x-mathcad";
+case application_x_maxis_dbpf: return "application/x-maxis-dbpf";
 case application_x_meme: return "application/x-meme";
 case application_x_midi: return "application/x-midi";
 case application_x_mif: return "application/x-mif";
 case application_x_mix_transfer: return "application/x-mix-transfer";
 case application_xml: return "application/xml";
+case application_x_mobipocket_ebook: return "application/x-mobipocket-ebook";
+case application_x_msaccess: return "application/x-msaccess";
+case application_x_ms_compress_szdd: return "application/x-ms-compress-szdd";
 case application_x_ms_pdb: return "application/x-ms-pdb";
+case application_x_ms_reader: return "application/x-ms-reader";
+case application_x_n64_rom: return "application/x-n64-rom";
 case application_x_navi_animation: return "application/x-navi-animation";
 case application_x_navidoc: return "application/x-navidoc";
 case application_x_navimap: return "application/x-navimap";
 case application_x_navistyle: return "application/x-navistyle";
+case application_x_nes_rom: return "application/x-nes-rom";
 case application_x_netcdf: return "application/x-netcdf";
 case application_x_newton_compatible_pkg: return "application/x-newton-compatible-pkg";
+case application_x_nintendo_ds_rom: return "application/x-nintendo-ds-rom";
 case application_x_object: return "application/x-object";
 case application_x_omcdatamaker: return "application/x-omcdatamaker";
 case application_x_omc: return "application/x-omc";
 case application_x_omcregerator: return "application/x-omcregerator";
 case application_x_pagemaker: return "application/x-pagemaker";
 case application_x_pcl: return "application/x-pcl";
+case application_x_pgp_keyring: return "application/x-pgp-keyring";
 case application_x_pixclscript: return "application/x-pixclscript";
 case application_x_pkcs7_certreqresp: return "application/x-pkcs7-certreqresp";
 case application_x_pkcs7_signature: return "application/x-pkcs7-signature";
 case application_x_project: return "application/x-project";
 case application_x_qpro: return "application/x-qpro";
+case application_x_rar: return "application/x-rar";
+case application_x_rpm: return "application/x-rpm";
 case application_x_sdp: return "application/x-sdp";
 case application_x_sea: return "application/x-sea";
 case application_x_seelogo: return "application/x-seelogo";
@@ -575,12 +644,17 @@ case application_x_setupscript: return "application/x-setupscript";
 case application_x_sharedlib: return "application/x-sharedlib";
 case application_x_shar: return "application/x-shar";
 case application_x_shockwave_flash: return "application/x-shockwave-flash";
+case application_x_snappy_framed: return "application/x-snappy-framed";
 case application_x_sprite: return "application/x-sprite";
 case application_x_sqlite3: return "application/x-sqlite3";
+case application_x_stargallery_thm: return "application/x-stargallery-thm";
+case application_x_stuffit: return "application/x-stuffit";
 case application_x_sv4cpio: return "application/x-sv4cpio";
 case application_x_sv4crc: return "application/x-sv4crc";
 case application_x_tar: return "application/x-tar";
 case application_x_tbook: return "application/x-tbook";
+case application_x_terminfo: return "application/x-terminfo";
+case application_x_terminfo2: return "application/x-terminfo2";
 case application_x_texinfo: return "application/x-texinfo";
 case application_x_tex_tfm: return "application/x-tex-tfm";
 case application_x_ustar: return "application/x-ustar";
@@ -589,16 +663,22 @@ case application_x_vnd_audioexplosion_mzz: return "application/x-vnd.audioexplos
 case application_x_vnd_ls_xpix: return "application/x-vnd.ls-xpix";
 case application_x_vrml: return "application/x-vrml";
 case application_x_wais_source: return "application/x-wais-source";
+case application_x_wine_extension_ini: return "application/x-wine-extension-ini";
 case application_x_wintalk: return "application/x-wintalk";
 case application_x_world: return "application/x-world";
 case application_x_wri: return "application/x-wri";
 case application_x_x509_ca_cert: return "application/x-x509-ca-cert";
 case application_x_xz: return "application/x-xz";
+case application_x_zip: return "application/x-zip";
+case application_x_zstd: return "application/x-zstd";
 case application_zip: return "application/zip";
+case application_zlib: return "application/zlib";
+case audio_basic: return "audio/basic";
 case audio_it: return "audio/it";
 case audio_make: return "audio/make";
 case audio_midi: return "audio/midi";
 case audio_mid: return "audio/mid";
+case audio_mp4: return "audio/mp4";
 case audio_mpeg: return "audio/mpeg";
 case audio_ogg: return "audio/ogg";
 case audio_s3m: return "audio/s3m";
@@ -606,7 +686,10 @@ case audio_tsp_audio: return "audio/tsp-audio";
 case audio_tsplayer: return "audio/tsplayer";
 case audio_vnd_qcelp: return "audio/vnd.qcelp";
 case audio_voxware: return "audio/voxware";
+case audio_x_aiff: return "audio/x-aiff";
+case audio_x_flac: return "audio/x-flac";
 case audio_x_gsm: return "audio/x-gsm";
+case audio_x_hx_aac_adts: return "audio/x-hx-aac-adts";
 case audio_x_jam: return "audio/x-jam";
 case audio_x_liveaudio: return "audio/x-liveaudio";
 case audio_x_m4a: return "audio/x-m4a";
@@ -620,17 +703,24 @@ case audio_x_nspaudio: return "audio/x-nspaudio";
 case audio_x_pn_realaudio: return "audio/x-pn-realaudio";
 case audio_x_psid: return "audio/x-psid";
 case audio_x_realaudio: return "audio/x-realaudio";
+case audio_x_s3m: return "audio/x-s3m";
 case audio_x_twinvq_plugin: return "audio/x-twinvq-plugin";
 case audio_x_twinvq: return "audio/x-twinvq";
 case audio_x_voc: return "audio/x-voc";
 case audio_x_wav: return "audio/x-wav";
+case audio_x_xbox360_executable: return "audio/x-xbox360-executable";
+case audio_x_xbox_executable: return "audio/x-xbox-executable";
 case font_otf: return "font/otf";
 case font_sfnt: return "font/sfnt";
+case font_woff2: return "font/woff2";
+case font_woff: return "font/woff";
+case image_bmp: return "image/bmp";
 case image_cmu_raster: return "image/cmu-raster";
 case image_fif: return "image/fif";
 case image_florian: return "image/florian";
 case image_g3fax: return "image/g3fax";
 case image_gif: return "image/gif";
+case image_heic: return "image/heic";
 case image_ief: return "image/ief";
 case image_jpeg: return "image/jpeg";
 case image_jutvision: return "image/jutvision";
@@ -639,6 +729,9 @@ case image_pict: return "image/pict";
 case image_png: return "image/png";
 case image_svg: return "image/svg";
 case image_svg_xml: return "image/svg+xml";
+case image_tiff: return "image/tiff";
+case image_vnd_adobe_photoshop: return "image/vnd.adobe.photoshop";
+case image_vnd_djvu: return "image/vnd.djvu";
 case image_vnd_fpx: return "image/vnd.fpx";
 case image_vnd_microsoft_icon: return "image/vnd.microsoft.icon";
 case image_vnd_rn_realflash: return "image/vnd.rn-realflash";
@@ -646,9 +739,15 @@ case image_vnd_rn_realpix: return "image/vnd.rn-realpix";
 case image_vnd_wap_wbmp: return "image/vnd.wap.wbmp";
 case image_vnd_xiff: return "image/vnd.xiff";
 case image_webp: return "image/webp";
+case image_wmf: return "image/wmf";
+case image_x_3ds: return "image/x-3ds";
+case image_x_award_bioslogo: return "image/x-award-bioslogo";
 case image_x_cmu_raster: return "image/x-cmu-raster";
+case image_x_cur: return "image/x-cur";
 case image_x_dwg: return "image/x-dwg";
 case image_x_eps: return "image/x-eps";
+case image_x_exr: return "image/x-exr";
+case image_x_gem: return "image/x-gem";
 case image_x_icns: return "image/x-icns";
 case image_x_icon: return "image/x-icon";
 case image_x_jg: return "image/x-jg";
@@ -662,32 +761,30 @@ case image_x_portable_graymap: return "image/x-portable-graymap";
 case image_x_portable_pixmap: return "image/x-portable-pixmap";
 case image_x_quicktime: return "image/x-quicktime";
 case image_x_rgb: return "image/x-rgb";
+case image_x_tga: return "image/x-tga";
 case image_x_tiff: return "image/x-tiff";
-case image_tiff: return "image/tiff";
+case image_x_win_bitmap: return "image/x-win-bitmap";
 case image_x_xcf: return "image/x-xcf";
 case image_x_xpixmap: return "image/x-xpixmap";
+case image_x_xwindowdump: return "image/x-xwindowdump";
+case message_news: return "message/news";
 case message_rfc822: return "message/rfc822";
 case model_vnd_dwf: return "model/vnd.dwf";
+case model_vnd_gdl: return "model/vnd.gdl";
+case model_vnd_gs_gdl: return "model/vnd.gs.gdl";
 case model_vrml: return "model/vrml";
 case model_x_pov: return "model/x-pov";
 case text_asp: return "text/asp";
 case text_css: return "text/css";
-case text_x_sass: return "text/x-sass";
-case text_x_scss: return "text/x-scss";
 case text_html: return "text/html";
 case text_javascript: return "text/javascript";
 case text_mcf: return "text/mcf";
 case text_pascal: return "text/pascal";
+case text_PGP: return "text/PGP";
 case text_plain: return "text/plain";
 case text_richtext: return "text/richtext";
 case text_rtf: return "text/rtf";
 case text_scriplet: return "text/scriplet";
-case text_x_awk: return "text/x-awk";
-case video_x_jng: return "video/x-jng";
-case video_x_mng: return "video/x-mng";
-case image_x_cur: return "image/x-cur";
-case image_x_xwindowdump: return "image/x-xwindowdump";
-case image_vnd_adobe_photoshop: return "image/vnd.adobe.photoshop";
 case text_tab_separated_values: return "text/tab-separated-values";
 case text_troff: return "text/troff";
 case text_uri_list: return "text/uri-list";
@@ -699,6 +796,7 @@ case text_webviewhtml: return "text/webviewhtml";
 case text_x_Algol68: return "text/x-Algol68";
 case text_x_asm: return "text/x-asm";
 case text_x_audiosoft_intra: return "text/x-audiosoft-intra";
+case text_x_awk: return "text/x-awk";
 case text_x_bcpl: return "text/x-bcpl";
 case text_x_c: return "text/x-c";
 case text_x_c__: return "text/x-c++";
@@ -713,23 +811,31 @@ case text_x_makefile: return "text/x-makefile";
 case text_xml: return "text/xml";
 case text_x_m: return "text/x-m";
 case text_x_msdos_batch: return "text/x-msdos-batch";
+case text_x_ms_regedit: return "text/x-ms-regedit";
+case text_x_objective_c: return "text/x-objective-c";
 case text_x_pascal: return "text/x-pascal";
 case text_x_perl: return "text/x-perl";
 case text_x_php: return "text/x-php";
+case text_x_po: return "text/x-po";
 case text_x_python: return "text/x-python";
 case text_x_ruby: return "text/x-ruby";
+case text_x_sass: return "text/x-sass";
+case text_x_scss: return "text/x-scss";
 case text_x_server_parsed_html: return "text/x-server-parsed-html";
 case text_x_setext: return "text/x-setext";
 case text_x_sgml: return "text/x-sgml";
 case text_x_shellscript: return "text/x-shellscript";
 case text_x_speech: return "text/x-speech";
+case text_x_tcl: return "text/x-tcl";
 case text_x_tex: return "text/x-tex";
 case text_x_uil: return "text/x-uil";
 case text_x_uuencode: return "text/x-uuencode";
 case text_x_vcalendar: return "text/x-vcalendar";
+case text_x_vcard: return "text/x-vcard";
 case video_animaflex: return "video/animaflex";
 case video_avi: return "video/avi";
 case video_avs_video: return "video/avs-video";
+case video_MP2T: return "video/MP2T";
 case video_mp4: return "video/mp4";
 case video_mpeg: return "video/mpeg";
 case video_quicktime: return "video/quicktime";
@@ -744,102 +850,18 @@ case video_x_atomic3d_feature: return "video/x-atomic3d-feature";
 case video_x_dl: return "video/x-dl";
 case video_x_dv: return "video/x-dv";
 case video_x_fli: return "video/x-fli";
+case video_x_flv: return "video/x-flv";
 case video_x_isvideo: return "video/x-isvideo";
+case video_x_jng: return "video/x-jng";
+case video_x_m4v: return "video/x-m4v";
+case video_x_matroska: return "video/x-matroska";
+case video_x_mng: return "video/x-mng";
 case video_x_motion_jpeg: return "video/x-motion-jpeg";
 case video_x_ms_asf: return "video/x-ms-asf";
+case video_x_msvideo: return "video/x-msvideo";
 case video_x_qtc: return "video/x-qtc";
 case video_x_sgi_movie: return "video/x-sgi-movie";
-case application_x_7z_compressed: return "application/x-7z-compressed";
-case application_vnd_openxmlformats_officedocument_wordprocessingml_document: return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-case text_x_po: return "text/x-po";
-case application_x_rpm: return "application/x-rpm";
-case application_x_debian_package: return "application/x-debian-package";
-case application_vnd_iccprofile: return "application/vnd.iccprofile";
-case application_dicom: return "application/dicom";
-case image_x_exr: return "image/x-exr";
-case video_x_matroska: return "video/x-matroska";
-case application_x_empty: return "application/x-empty";
-case model_vnd_gdl: return "model/vnd.gdl";
-case model_vnd_gs_gdl: return "model/vnd.gs.gdl";
-case font_woff: return "font/woff";
-case font_woff2: return "font/woff2";
-case application_epub_zip: return "application/epub+zip";
-case application_x_mobipocket_ebook: return "application/x-mobipocket-ebook";
-case audio_x_flac: return "audio/x-flac";
-case application_x_rar: return "application/x-rar";
-case video_x_msvideo: return "video/x-msvideo";
-case video_x_flv: return "video/x-flv";
-case application_x_kdelnk: return "application/x-kdelnk";
-case text_x_tcl: return "text/x-tcl";
-case application_ogg: return "application/ogg";
-case application_vnd_openxmlformats_officedocument_spreadsheetml_sheet: return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-case application_vnd_ms_cab_compressed: return "application/vnd.ms-cab-compressed";
-case audio_mp4: return "audio/mp4";
-case image_vnd_djvu: return "image/vnd.djvu";
-case application_x_ms_reader: return "application/x-ms-reader";
-case application_CDFV2_corrupt: return "application/CDFV2-corrupt";
-case text_x_vcard: return "text/x-vcard";
-case application_x_innosetup: return "application/x-innosetup";
-case application_winhelp: return "application/winhelp";
-case image_x_tga: return "image/x-tga";
-case application_x_wine_extension_ini: return "application/x-wine-extension-ini";
-case application_x_cbz: return "application/x-cbz";
-case application_x_cbr: return "application/x-cbr";
-case application_x_ms_compress_szdd: return "application/x-ms-compress-szdd";
-case application_x_atari_7800_rom: return "application/x-atari-7800-rom";
-case application_x_nes_rom: return "application/x-nes-rom";
-case application_x_font_pfm: return "application/x-font-pfm";
-case application_x_gettext_translation: return "application/x-gettext-translation";
-case image_wmf: return "image/wmf";
-case application_pgp_keys: return "application/pgp-keys";
-case image_x_3ds: return "image/x-3ds";
-case application_x_lz4: return "application/x-lz4";
-case application_vnd_openxmlformats_officedocument_presentationml_presentation: return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-case application_vnd_oasis_opendocument_presentation: return "application/vnd.oasis.opendocument.presentation";
-case application_x_msaccess: return "application/x-msaccess";
-case application_vnd_oasis_opendocument_spreadsheet: return "application/vnd.oasis.opendocument.spreadsheet";
-case audio_x_aiff: return "audio/x-aiff";
-case text_x_ms_regedit: return "text/x-ms-regedit";
-case application_x_gamecube_rom: return "application/x-gamecube-rom";
-case application_x_nintendo_ds_rom: return "application/x-nintendo-ds-rom";
-case text_x_objective_c: return "text/x-objective-c";
-case application_x_font_gdos: return "application/x-font-gdos";
-case application_x_apple_diskimage: return "application/x-apple-diskimage";
-case application_x_zstd: return "application/x-zstd";
-case video_x_m4v: return "video/x-m4v";
-case message_news: return "message/news";
-case application_vnd_symbian_install: return "application/vnd.symbian.install";
-case application_x_lzh_compressed: return "application/x-lzh-compressed";
-case application_x_dosdriver: return "application/x-dosdriver";
-case application_vnd_tcpdump_pcap: return "application/vnd.tcpdump.pcap";
 case x_epoc_x_sisx_app: return "x-epoc/x-sisx-app";
-case application_x_avira_qua: return "application/x-avira-qua";
-case video_MP2T: return "video/MP2T";
-case application_x_snappy_framed: return "application/x-snappy-framed";
-case application_x_lz4_json: return "application/x-lz4+json";
-case application_x_dmp: return "application/x-dmp";
-case application_zlib: return "application/zlib";
-case application_x_pgp_keyring: return "application/x-pgp-keyring";
-case application_x_gdbm: return "application/x-gdbm";
-case application_x_font_pf2: return "application/x-font-pf2";
-case application_x_zip: return "application/x-zip";
-case application_x_coredump: return "application/x-coredump";
-case application_x_java_jmod: return "application/x-java-jmod";
-case application_x_terminfo: return "application/x-terminfo";
-case application_x_terminfo2: return "application/x-terminfo2";
-case application_x_arc: return "application/x-arc";
-case application_vnd_lotus_1_2_3: return "application/vnd.lotus-1-2-3";
-case image_x_win_bitmap: return "image/x-win-bitmap";
-case application_x_maxis_dbpf: return "application/x-maxis-dbpf";
-case text_PGP: return "text/PGP";
-case audio_x_hx_aac_adts: return "audio/x-hx-aac-adts";
-case application_x_chrome_extension: return "application/x-chrome-extension";
-case image_heic: return "image/heic";
-case image_x_gem: return "image/x-gem";
-case application_x_lzma: return "application/x-lzma";
-case application_warc: return "application/warc";
-case application_x_lzip: return "application/x-lzip";
-case application_x_lzop: return "application/x-lzop";
 default: return NULL;}}
 GHashTable *mime_get_ext_table() {GHashTable *ext_table = g_hash_table_new(g_str_hash, g_str_equal);
 g_hash_table_insert(ext_table, "arj", (gpointer)application_arj);
@@ -850,7 +872,9 @@ g_hash_table_insert(ext_table, "book", (gpointer)application_book);
 g_hash_table_insert(ext_table, "sdv", (gpointer)application_CDFV2);
 g_hash_table_insert(ext_table, "ccad", (gpointer)application_clariscad);
 g_hash_table_insert(ext_table, "dp", (gpointer)application_commonground);
+g_hash_table_insert(ext_table, "dcm", (gpointer)application_dicom);
 g_hash_table_insert(ext_table, "drw", (gpointer)application_drafting);
+g_hash_table_insert(ext_table, "epub", (gpointer)application_epub_zip);
 g_hash_table_insert(ext_table, "frl", (gpointer)application_freeloader);
 g_hash_table_insert(ext_table, "spl", (gpointer)application_futuresplash);
 g_hash_table_insert(ext_table, "vew", (gpointer)application_groupwise);
@@ -862,7 +886,6 @@ g_hash_table_insert(ext_table, "igs", (gpointer)application_iges);
 g_hash_table_insert(ext_table, "inf", (gpointer)application_inf);
 g_hash_table_insert(ext_table, "jar", (gpointer)application_java_archive);
 g_hash_table_insert(ext_table, "class", (gpointer)application_java);
-g_hash_table_insert(ext_table, "a", (gpointer)application_x_archive);
 g_hash_table_insert(ext_table, "json", (gpointer)application_json);
 g_hash_table_insert(ext_table, "mrc", (gpointer)application_marc);
 g_hash_table_insert(ext_table, "mbd", (gpointer)application_mbedlet);
@@ -878,6 +901,7 @@ g_hash_table_insert(ext_table, "bin", (gpointer)application_octet_stream);
 g_hash_table_insert(ext_table, "dump", (gpointer)application_octet_stream);
 g_hash_table_insert(ext_table, "gpg", (gpointer)application_octet_stream);
 g_hash_table_insert(ext_table, "oda", (gpointer)application_oda);
+g_hash_table_insert(ext_table, "ogv", (gpointer)application_ogg);
 g_hash_table_insert(ext_table, "pdf", (gpointer)application_pdf);
 g_hash_table_insert(ext_table, "pgp", (gpointer)application_pgp_signature);
 g_hash_table_insert(ext_table, "p7s", (gpointer)application_pkcs7_signature);
@@ -901,6 +925,8 @@ g_hash_table_insert(ext_table, "sfd", (gpointer)application_vnd_font_fontforge_s
 g_hash_table_insert(ext_table, "hgl", (gpointer)application_vnd_hp_hpgl);
 g_hash_table_insert(ext_table, "hpg", (gpointer)application_vnd_hp_hpgl);
 g_hash_table_insert(ext_table, "hpgl", (gpointer)application_vnd_hp_hpgl);
+g_hash_table_insert(ext_table, "icm", (gpointer)application_vnd_iccprofile);
+g_hash_table_insert(ext_table, "cab", (gpointer)application_vnd_ms_cab_compressed);
 g_hash_table_insert(ext_table, "xlb", (gpointer)application_vnd_ms_excel);
 g_hash_table_insert(ext_table, "xlc", (gpointer)application_vnd_ms_excel);
 g_hash_table_insert(ext_table, "xll", (gpointer)application_vnd_ms_excel);
@@ -921,12 +947,20 @@ g_hash_table_insert(ext_table, "mpp", (gpointer)application_vnd_ms_project);
 g_hash_table_insert(ext_table, "odb", (gpointer)application_vnd_oasis_opendocument_base);
 g_hash_table_insert(ext_table, "odf", (gpointer)application_vnd_oasis_opendocument_formula);
 g_hash_table_insert(ext_table, "odg", (gpointer)application_vnd_oasis_opendocument_graphics);
+g_hash_table_insert(ext_table, "odp", (gpointer)application_vnd_oasis_opendocument_presentation);
+g_hash_table_insert(ext_table, "ods", (gpointer)application_vnd_oasis_opendocument_spreadsheet);
 g_hash_table_insert(ext_table, "odt", (gpointer)application_vnd_oasis_opendocument_text);
+g_hash_table_insert(ext_table, "pptx", (gpointer)application_vnd_openxmlformats_officedocument_presentationml_presentation);
+g_hash_table_insert(ext_table, "xlsx", (gpointer)application_vnd_openxmlformats_officedocument_spreadsheetml_sheet);
+g_hash_table_insert(ext_table, "docx", (gpointer)application_vnd_openxmlformats_officedocument_wordprocessingml_document);
+g_hash_table_insert(ext_table, "pcap", (gpointer)application_vnd_tcpdump_pcap);
 g_hash_table_insert(ext_table, "wmlc", (gpointer)application_vnd_wap_wmlc);
 g_hash_table_insert(ext_table, "wmlsc", (gpointer)application_vnd_wap_wmlscriptc);
 g_hash_table_insert(ext_table, "web", (gpointer)application_vnd_xara);
 g_hash_table_insert(ext_table, "vmd", (gpointer)application_vocaltec_media_desc);
 g_hash_table_insert(ext_table, "vmf", (gpointer)application_vocaltec_media_file);
+g_hash_table_insert(ext_table, "warc", (gpointer)application_warc);
+g_hash_table_insert(ext_table, "hlp", (gpointer)application_winhelp);
 g_hash_table_insert(ext_table, "w60", (gpointer)application_wordperfect6_0);
 g_hash_table_insert(ext_table, "w61", (gpointer)application_wordperfect6_1);
 g_hash_table_insert(ext_table, "wp", (gpointer)application_wordperfect);
@@ -934,7 +968,10 @@ g_hash_table_insert(ext_table, "wp5", (gpointer)application_wordperfect);
 g_hash_table_insert(ext_table, "wp6", (gpointer)application_wordperfect);
 g_hash_table_insert(ext_table, "wpd", (gpointer)application_wordperfect);
 g_hash_table_insert(ext_table, "wk1", (gpointer)application_x_123);
+g_hash_table_insert(ext_table, "7z", (gpointer)application_x_7z_compressed);
 g_hash_table_insert(ext_table, "aim", (gpointer)application_x_aim);
+g_hash_table_insert(ext_table, "a", (gpointer)application_x_archive);
+g_hash_table_insert(ext_table, "a78", (gpointer)application_x_atari_7800_rom);
 g_hash_table_insert(ext_table, "aab", (gpointer)application_x_authorware_bin);
 g_hash_table_insert(ext_table, "aam", (gpointer)application_x_authorware_map);
 g_hash_table_insert(ext_table, "aas", (gpointer)application_x_authorware_seg);
@@ -945,6 +982,8 @@ g_hash_table_insert(ext_table, "pyc", (gpointer)application_x_bytecode_python);
 g_hash_table_insert(ext_table, "boz", (gpointer)application_x_bzip2);
 g_hash_table_insert(ext_table, "bz2", (gpointer)application_x_bzip2);
 g_hash_table_insert(ext_table, "bz", (gpointer)application_x_bzip);
+g_hash_table_insert(ext_table, "cbr", (gpointer)application_x_cbr);
+g_hash_table_insert(ext_table, "cbz", (gpointer)application_x_cbz);
 g_hash_table_insert(ext_table, "vcd", (gpointer)application_x_cdlink);
 g_hash_table_insert(ext_table, "cha", (gpointer)application_x_chat);
 g_hash_table_insert(ext_table, "chat", (gpointer)application_x_chat);
@@ -952,10 +991,12 @@ g_hash_table_insert(ext_table, "cco", (gpointer)application_x_cocoa);
 g_hash_table_insert(ext_table, "nsc", (gpointer)application_x_conference);
 g_hash_table_insert(ext_table, "cpio", (gpointer)application_x_cpio);
 g_hash_table_insert(ext_table, "dbf", (gpointer)application_x_dbf);
+g_hash_table_insert(ext_table, "deb", (gpointer)application_x_debian_package);
 g_hash_table_insert(ext_table, "deepv", (gpointer)application_x_deepv);
 g_hash_table_insert(ext_table, "dcr", (gpointer)application_x_director);
 g_hash_table_insert(ext_table, "dir", (gpointer)application_x_director);
 g_hash_table_insert(ext_table, "dxr", (gpointer)application_x_director);
+g_hash_table_insert(ext_table, "dmp", (gpointer)application_x_dmp);
 g_hash_table_insert(ext_table, "dll", (gpointer)application_x_dosexec);
 g_hash_table_insert(ext_table, "dvi", (gpointer)application_x_dvi);
 g_hash_table_insert(ext_table, "elc", (gpointer)application_x_elc);
@@ -968,6 +1009,8 @@ g_hash_table_insert(ext_table, "xlk", (gpointer)application_x_excel);
 g_hash_table_insert(ext_table, "xlt", (gpointer)application_x_excel);
 g_hash_table_insert(ext_table, "xlv", (gpointer)application_x_excel);
 g_hash_table_insert(ext_table, "exe", (gpointer)application_x_executable);
+g_hash_table_insert(ext_table, "pf2", (gpointer)application_x_font_pf2);
+g_hash_table_insert(ext_table, "pfm", (gpointer)application_x_font_pfm);
 g_hash_table_insert(ext_table, "ttf", (gpointer)application_x_font_ttf);
 g_hash_table_insert(ext_table, "ttc", (gpointer)application_x_font_ttf);
 g_hash_table_insert(ext_table, "pre", (gpointer)application_x_freelance);
@@ -983,6 +1026,7 @@ g_hash_table_insert(ext_table, "ins", (gpointer)application_x_internett_signup);
 g_hash_table_insert(ext_table, "iv", (gpointer)application_x_inventor);
 g_hash_table_insert(ext_table, "ip", (gpointer)application_x_ip2);
 g_hash_table_insert(ext_table, "jcm", (gpointer)application_x_java_commerce);
+g_hash_table_insert(ext_table, "jmod", (gpointer)application_x_java_jmod);
 g_hash_table_insert(ext_table, "skd", (gpointer)application_x_koan);
 g_hash_table_insert(ext_table, "skm", (gpointer)application_x_koan);
 g_hash_table_insert(ext_table, "skp", (gpointer)application_x_koan);
@@ -991,7 +1035,12 @@ g_hash_table_insert(ext_table, "latex", (gpointer)application_x_latex);
 g_hash_table_insert(ext_table, "ltx", (gpointer)application_x_latex);
 g_hash_table_insert(ext_table, "ivy", (gpointer)application_x_livescreen);
 g_hash_table_insert(ext_table, "wq1", (gpointer)application_x_lotus);
+g_hash_table_insert(ext_table, "jsonlz4", (gpointer)application_x_lz4_json);
+g_hash_table_insert(ext_table, "lz4", (gpointer)application_x_lz4);
 g_hash_table_insert(ext_table, "lzh", (gpointer)application_x_lzh);
+g_hash_table_insert(ext_table, "lz", (gpointer)application_x_lzip);
+g_hash_table_insert(ext_table, "lzma", (gpointer)application_x_lzma);
+g_hash_table_insert(ext_table, "lzo", (gpointer)application_x_lzop);
 g_hash_table_insert(ext_table, "lzx", (gpointer)application_x_lzx);
 g_hash_table_insert(ext_table, "jnilib", (gpointer)application_x_mach_binary);
 g_hash_table_insert(ext_table, "dylib", (gpointer)application_x_mach_binary);
@@ -1002,11 +1051,17 @@ g_hash_table_insert(ext_table, "midi", (gpointer)application_x_midi);
 g_hash_table_insert(ext_table, "mif", (gpointer)application_x_mif);
 g_hash_table_insert(ext_table, "nix", (gpointer)application_x_mix_transfer);
 g_hash_table_insert(ext_table, "opf", (gpointer)application_xml);
+g_hash_table_insert(ext_table, "mobi", (gpointer)application_x_mobipocket_ebook);
+g_hash_table_insert(ext_table, "accdb", (gpointer)application_x_msaccess);
+g_hash_table_insert(ext_table, "fon", (gpointer)application_x_ms_compress_szdd);
 g_hash_table_insert(ext_table, "pdb", (gpointer)application_x_ms_pdb);
+g_hash_table_insert(ext_table, "lit", (gpointer)application_x_ms_reader);
+g_hash_table_insert(ext_table, "z64", (gpointer)application_x_n64_rom);
 g_hash_table_insert(ext_table, "ani", (gpointer)application_x_navi_animation);
 g_hash_table_insert(ext_table, "nvd", (gpointer)application_x_navidoc);
 g_hash_table_insert(ext_table, "map", (gpointer)application_x_navimap);
 g_hash_table_insert(ext_table, "stl", (gpointer)application_x_navistyle);
+g_hash_table_insert(ext_table, "nes", (gpointer)application_x_nes_rom);
 g_hash_table_insert(ext_table, "cdf", (gpointer)application_x_netcdf);
 g_hash_table_insert(ext_table, "nc", (gpointer)application_x_netcdf);
 g_hash_table_insert(ext_table, "pkg", (gpointer)application_x_newton_compatible_pkg);
@@ -1025,6 +1080,8 @@ g_hash_table_insert(ext_table, "mpt", (gpointer)application_x_project);
 g_hash_table_insert(ext_table, "mpv", (gpointer)application_x_project);
 g_hash_table_insert(ext_table, "mpx", (gpointer)application_x_project);
 g_hash_table_insert(ext_table, "wb1", (gpointer)application_x_qpro);
+g_hash_table_insert(ext_table, "rar", (gpointer)application_x_rar);
+g_hash_table_insert(ext_table, "rpm", (gpointer)application_x_rpm);
 g_hash_table_insert(ext_table, "sdp", (gpointer)application_x_sdp);
 g_hash_table_insert(ext_table, "sea", (gpointer)application_x_sea);
 g_hash_table_insert(ext_table, "sl", (gpointer)application_x_seelogo);
@@ -1033,6 +1090,7 @@ g_hash_table_insert(ext_table, "shar", (gpointer)application_x_shar);
 g_hash_table_insert(ext_table, "swf", (gpointer)application_x_shockwave_flash);
 g_hash_table_insert(ext_table, "spr", (gpointer)application_x_sprite);
 g_hash_table_insert(ext_table, "sprite", (gpointer)application_x_sprite);
+g_hash_table_insert(ext_table, "sit", (gpointer)application_x_stuffit);
 g_hash_table_insert(ext_table, "sv4cpio", (gpointer)application_x_sv4cpio);
 g_hash_table_insert(ext_table, "sv4crc", (gpointer)application_x_sv4crc);
 g_hash_table_insert(ext_table, "tar", (gpointer)application_x_tar);
@@ -1055,13 +1113,17 @@ g_hash_table_insert(ext_table, "svr", (gpointer)application_x_world);
 g_hash_table_insert(ext_table, "wri", (gpointer)application_x_wri);
 g_hash_table_insert(ext_table, "der", (gpointer)application_x_x509_ca_cert);
 g_hash_table_insert(ext_table, "xz", (gpointer)application_x_xz);
+g_hash_table_insert(ext_table, "zst", (gpointer)application_x_zstd);
 g_hash_table_insert(ext_table, "zip", (gpointer)application_zip);
+g_hash_table_insert(ext_table, "z", (gpointer)application_zlib);
+g_hash_table_insert(ext_table, "au", (gpointer)audio_basic);
 g_hash_table_insert(ext_table, "it", (gpointer)audio_it);
 g_hash_table_insert(ext_table, "funk", (gpointer)audio_make);
 g_hash_table_insert(ext_table, "my", (gpointer)audio_make);
 g_hash_table_insert(ext_table, "pfunk", (gpointer)audio_make);
 g_hash_table_insert(ext_table, "kar", (gpointer)audio_midi);
 g_hash_table_insert(ext_table, "rmi", (gpointer)audio_mid);
+g_hash_table_insert(ext_table, "m4b", (gpointer)audio_mp4);
 g_hash_table_insert(ext_table, "m2a", (gpointer)audio_mpeg);
 g_hash_table_insert(ext_table, "mpa", (gpointer)audio_mpeg);
 g_hash_table_insert(ext_table, "ogg", (gpointer)audio_ogg);
@@ -1070,6 +1132,9 @@ g_hash_table_insert(ext_table, "tsi", (gpointer)audio_tsp_audio);
 g_hash_table_insert(ext_table, "tsp", (gpointer)audio_tsplayer);
 g_hash_table_insert(ext_table, "qcp", (gpointer)audio_vnd_qcelp);
 g_hash_table_insert(ext_table, "vox", (gpointer)audio_voxware);
+g_hash_table_insert(ext_table, "aiff", (gpointer)audio_x_aiff);
+g_hash_table_insert(ext_table, "aif", (gpointer)audio_x_aiff);
+g_hash_table_insert(ext_table, "flac", (gpointer)audio_x_flac);
 g_hash_table_insert(ext_table, "gsd", (gpointer)audio_x_gsm);
 g_hash_table_insert(ext_table, "gsm", (gpointer)audio_x_gsm);
 g_hash_table_insert(ext_table, "jam", (gpointer)audio_x_jam);
@@ -1090,12 +1155,17 @@ g_hash_table_insert(ext_table, "vql", (gpointer)audio_x_twinvq_plugin);
 g_hash_table_insert(ext_table, "vqf", (gpointer)audio_x_twinvq);
 g_hash_table_insert(ext_table, "voc", (gpointer)audio_x_voc);
 g_hash_table_insert(ext_table, "wav", (gpointer)audio_x_wav);
+g_hash_table_insert(ext_table, "xex", (gpointer)audio_x_xbox360_executable);
+g_hash_table_insert(ext_table, "xbe", (gpointer)audio_x_xbox_executable);
+g_hash_table_insert(ext_table, "woff2", (gpointer)font_woff2);
+g_hash_table_insert(ext_table, "woff", (gpointer)font_woff);
 g_hash_table_insert(ext_table, "rast", (gpointer)image_cmu_raster);
 g_hash_table_insert(ext_table, "fif", (gpointer)image_fif);
 g_hash_table_insert(ext_table, "flo", (gpointer)image_florian);
 g_hash_table_insert(ext_table, "turbot", (gpointer)image_florian);
 g_hash_table_insert(ext_table, "g3", (gpointer)image_g3fax);
 g_hash_table_insert(ext_table, "gif", (gpointer)image_gif);
+g_hash_table_insert(ext_table, "heic", (gpointer)image_heic);
 g_hash_table_insert(ext_table, "ief", (gpointer)image_ief);
 g_hash_table_insert(ext_table, "iefs", (gpointer)image_ief);
 g_hash_table_insert(ext_table, "jfif", (gpointer)image_jpeg);
@@ -1111,16 +1181,21 @@ g_hash_table_insert(ext_table, "pict", (gpointer)image_pict);
 g_hash_table_insert(ext_table, "png", (gpointer)image_png);
 g_hash_table_insert(ext_table, "x-png", (gpointer)image_png);
 g_hash_table_insert(ext_table, "svg", (gpointer)image_svg);
+g_hash_table_insert(ext_table, "psd", (gpointer)image_vnd_adobe_photoshop);
+g_hash_table_insert(ext_table, "djvu", (gpointer)image_vnd_djvu);
 g_hash_table_insert(ext_table, "fpx", (gpointer)image_vnd_fpx);
 g_hash_table_insert(ext_table, "rf", (gpointer)image_vnd_rn_realflash);
 g_hash_table_insert(ext_table, "rp", (gpointer)image_vnd_rn_realpix);
 g_hash_table_insert(ext_table, "wbmp", (gpointer)image_vnd_wap_wbmp);
 g_hash_table_insert(ext_table, "xif", (gpointer)image_vnd_xiff);
 g_hash_table_insert(ext_table, "webp", (gpointer)image_webp);
+g_hash_table_insert(ext_table, "3ds", (gpointer)image_x_3ds);
 g_hash_table_insert(ext_table, "ras", (gpointer)image_x_cmu_raster);
+g_hash_table_insert(ext_table, "tga", (gpointer)image_x_cur);
 g_hash_table_insert(ext_table, "dwg", (gpointer)image_x_dwg);
 g_hash_table_insert(ext_table, "dxf", (gpointer)image_x_dwg);
 g_hash_table_insert(ext_table, "svf", (gpointer)image_x_dwg);
+g_hash_table_insert(ext_table, "exr", (gpointer)image_x_exr);
 g_hash_table_insert(ext_table, "ico", (gpointer)image_x_icon);
 g_hash_table_insert(ext_table, "art", (gpointer)image_x_jg);
 g_hash_table_insert(ext_table, "jps", (gpointer)image_x_jps);
@@ -1141,16 +1216,17 @@ g_hash_table_insert(ext_table, "tif", (gpointer)image_x_tiff);
 g_hash_table_insert(ext_table, "tiff", (gpointer)image_x_tiff);
 g_hash_table_insert(ext_table, "xcf", (gpointer)image_x_xcf);
 g_hash_table_insert(ext_table, "xpm", (gpointer)image_x_xpixmap);
+g_hash_table_insert(ext_table, "xwd", (gpointer)image_x_xwindowdump);
 g_hash_table_insert(ext_table, "mht", (gpointer)message_rfc822);
 g_hash_table_insert(ext_table, "mhtml", (gpointer)message_rfc822);
 g_hash_table_insert(ext_table, "mime", (gpointer)message_rfc822);
 g_hash_table_insert(ext_table, "dwf", (gpointer)model_vnd_dwf);
+g_hash_table_insert(ext_table, "gdl", (gpointer)model_vnd_gdl);
+g_hash_table_insert(ext_table, "gdsl", (gpointer)model_vnd_gs_gdl);
 g_hash_table_insert(ext_table, "wrz", (gpointer)model_vrml);
 g_hash_table_insert(ext_table, "pov", (gpointer)model_x_pov);
 g_hash_table_insert(ext_table, "asp", (gpointer)text_asp);
 g_hash_table_insert(ext_table, "css", (gpointer)text_css);
-g_hash_table_insert(ext_table, "sass", (gpointer)text_x_sass);
-g_hash_table_insert(ext_table, "scss", (gpointer)text_x_scss);
 g_hash_table_insert(ext_table, "acgi", (gpointer)text_html);
 g_hash_table_insert(ext_table, "htm", (gpointer)text_html);
 g_hash_table_insert(ext_table, "html", (gpointer)text_html);
@@ -1199,12 +1275,6 @@ g_hash_table_insert(ext_table, "rt", (gpointer)text_richtext);
 g_hash_table_insert(ext_table, "rtf", (gpointer)text_richtext);
 g_hash_table_insert(ext_table, "rtx", (gpointer)text_richtext);
 g_hash_table_insert(ext_table, "wsc", (gpointer)text_scriplet);
-g_hash_table_insert(ext_table, "awk", (gpointer)text_x_awk);
-g_hash_table_insert(ext_table, "jng", (gpointer)video_x_jng);
-g_hash_table_insert(ext_table, "mng", (gpointer)video_x_mng);
-g_hash_table_insert(ext_table, "tga", (gpointer)image_x_cur);
-g_hash_table_insert(ext_table, "xwd", (gpointer)image_x_xwindowdump);
-g_hash_table_insert(ext_table, "psd", (gpointer)image_vnd_adobe_photoshop);
 g_hash_table_insert(ext_table, "tsv", (gpointer)text_tab_separated_values);
 g_hash_table_insert(ext_table, "man", (gpointer)text_troff);
 g_hash_table_insert(ext_table, "me", (gpointer)text_troff);
@@ -1224,6 +1294,7 @@ g_hash_table_insert(ext_table, "htt", (gpointer)text_webviewhtml);
 g_hash_table_insert(ext_table, "asm", (gpointer)text_x_asm);
 g_hash_table_insert(ext_table, "s", (gpointer)text_x_asm);
 g_hash_table_insert(ext_table, "aip", (gpointer)text_x_audiosoft_intra);
+g_hash_table_insert(ext_table, "awk", (gpointer)text_x_awk);
 g_hash_table_insert(ext_table, "c", (gpointer)text_x_c);
 g_hash_table_insert(ext_table, "cc", (gpointer)text_x_c);
 g_hash_table_insert(ext_table, "h", (gpointer)text_x_c);
@@ -1249,11 +1320,15 @@ g_hash_table_insert(ext_table, "iml", (gpointer)text_xml);
 g_hash_table_insert(ext_table, "plist", (gpointer)text_xml);
 g_hash_table_insert(ext_table, "m", (gpointer)text_x_m);
 g_hash_table_insert(ext_table, "bat", (gpointer)text_x_msdos_batch);
+g_hash_table_insert(ext_table, "reg", (gpointer)text_x_ms_regedit);
 g_hash_table_insert(ext_table, "p", (gpointer)text_x_pascal);
 g_hash_table_insert(ext_table, "pl", (gpointer)text_x_perl);
 g_hash_table_insert(ext_table, "php", (gpointer)text_x_php);
+g_hash_table_insert(ext_table, "po", (gpointer)text_x_po);
 g_hash_table_insert(ext_table, "py", (gpointer)text_x_python);
 g_hash_table_insert(ext_table, "rb", (gpointer)text_x_ruby);
+g_hash_table_insert(ext_table, "sass", (gpointer)text_x_sass);
+g_hash_table_insert(ext_table, "scss", (gpointer)text_x_scss);
 g_hash_table_insert(ext_table, "ssi", (gpointer)text_x_server_parsed_html);
 g_hash_table_insert(ext_table, "etx", (gpointer)text_x_setext);
 g_hash_table_insert(ext_table, "sgm", (gpointer)text_x_sgml);
@@ -1264,6 +1339,7 @@ g_hash_table_insert(ext_table, "tex", (gpointer)text_x_tex);
 g_hash_table_insert(ext_table, "uil", (gpointer)text_x_uil);
 g_hash_table_insert(ext_table, "uue", (gpointer)text_x_uuencode);
 g_hash_table_insert(ext_table, "vcs", (gpointer)text_x_vcalendar);
+g_hash_table_insert(ext_table, "vcf", (gpointer)text_x_vcard);
 g_hash_table_insert(ext_table, "afl", (gpointer)video_animaflex);
 g_hash_table_insert(ext_table, "avi", (gpointer)video_avi);
 g_hash_table_insert(ext_table, "avs", (gpointer)video_avs_video);
@@ -1289,79 +1365,34 @@ g_hash_table_insert(ext_table, "dl", (gpointer)video_x_dl);
 g_hash_table_insert(ext_table, "dif", (gpointer)video_x_dv);
 g_hash_table_insert(ext_table, "dv", (gpointer)video_x_dv);
 g_hash_table_insert(ext_table, "fli", (gpointer)video_x_fli);
+g_hash_table_insert(ext_table, "flv", (gpointer)video_x_flv);
 g_hash_table_insert(ext_table, "isu", (gpointer)video_x_isvideo);
+g_hash_table_insert(ext_table, "jng", (gpointer)video_x_jng);
+g_hash_table_insert(ext_table, "m4v", (gpointer)video_x_m4v);
+g_hash_table_insert(ext_table, "mkv", (gpointer)video_x_matroska);
+g_hash_table_insert(ext_table, "mng", (gpointer)video_x_mng);
 g_hash_table_insert(ext_table, "mjpg", (gpointer)video_x_motion_jpeg);
 g_hash_table_insert(ext_table, "asf", (gpointer)video_x_ms_asf);
 g_hash_table_insert(ext_table, "asx", (gpointer)video_x_ms_asf);
 g_hash_table_insert(ext_table, "wmv", (gpointer)video_x_ms_asf);
+g_hash_table_insert(ext_table, "divx", (gpointer)video_x_msvideo);
 g_hash_table_insert(ext_table, "qtc", (gpointer)video_x_qtc);
 g_hash_table_insert(ext_table, "movie", (gpointer)video_x_sgi_movie);
 g_hash_table_insert(ext_table, "mv", (gpointer)video_x_sgi_movie);
-g_hash_table_insert(ext_table, "7z", (gpointer)application_x_7z_compressed);
-g_hash_table_insert(ext_table, "docx", (gpointer)application_vnd_openxmlformats_officedocument_wordprocessingml_document);
-g_hash_table_insert(ext_table, "po", (gpointer)text_x_po);
-g_hash_table_insert(ext_table, "rpm", (gpointer)application_x_rpm);
-g_hash_table_insert(ext_table, "deb", (gpointer)application_x_debian_package);
-g_hash_table_insert(ext_table, "icm", (gpointer)application_vnd_iccprofile);
-g_hash_table_insert(ext_table, "dcm", (gpointer)application_dicom);
-g_hash_table_insert(ext_table, "exr", (gpointer)image_x_exr);
-g_hash_table_insert(ext_table, "mkv", (gpointer)video_x_matroska);
-g_hash_table_insert(ext_table, "gdl", (gpointer)model_vnd_gdl);
-g_hash_table_insert(ext_table, "gdsl", (gpointer)model_vnd_gs_gdl);
-g_hash_table_insert(ext_table, "woff", (gpointer)font_woff);
-g_hash_table_insert(ext_table, "woff2", (gpointer)font_woff2);
-g_hash_table_insert(ext_table, "epub", (gpointer)application_epub_zip);
-g_hash_table_insert(ext_table, "mobi", (gpointer)application_x_mobipocket_ebook);
-g_hash_table_insert(ext_table, "flac", (gpointer)audio_x_flac);
-g_hash_table_insert(ext_table, "rar", (gpointer)application_x_rar);
-g_hash_table_insert(ext_table, "divx", (gpointer)video_x_msvideo);
-g_hash_table_insert(ext_table, "flv", (gpointer)video_x_flv);
-g_hash_table_insert(ext_table, "ogv", (gpointer)application_ogg);
-g_hash_table_insert(ext_table, "xlsx", (gpointer)application_vnd_openxmlformats_officedocument_spreadsheetml_sheet);
-g_hash_table_insert(ext_table, "cab", (gpointer)application_vnd_ms_cab_compressed);
-g_hash_table_insert(ext_table, "m4b", (gpointer)audio_mp4);
-g_hash_table_insert(ext_table, "djvu", (gpointer)image_vnd_djvu);
-g_hash_table_insert(ext_table, "lit", (gpointer)application_x_ms_reader);
-g_hash_table_insert(ext_table, "vcf", (gpointer)text_x_vcard);
-g_hash_table_insert(ext_table, "hlp", (gpointer)application_winhelp);
-g_hash_table_insert(ext_table, "cbz", (gpointer)application_x_cbz);
-g_hash_table_insert(ext_table, "cbr", (gpointer)application_x_cbr);
-g_hash_table_insert(ext_table, "fon", (gpointer)application_x_ms_compress_szdd);
-g_hash_table_insert(ext_table, "a78", (gpointer)application_x_atari_7800_rom);
-g_hash_table_insert(ext_table, "nes", (gpointer)application_x_nes_rom);
-g_hash_table_insert(ext_table, "pfm", (gpointer)application_x_font_pfm);
-g_hash_table_insert(ext_table, "3ds", (gpointer)image_x_3ds);
-g_hash_table_insert(ext_table, "lz4", (gpointer)application_x_lz4);
-g_hash_table_insert(ext_table, "pptx", (gpointer)application_vnd_openxmlformats_officedocument_presentationml_presentation);
-g_hash_table_insert(ext_table, "odp", (gpointer)application_vnd_oasis_opendocument_presentation);
-g_hash_table_insert(ext_table, "accdb", (gpointer)application_x_msaccess);
-g_hash_table_insert(ext_table, "ods", (gpointer)application_vnd_oasis_opendocument_spreadsheet);
-g_hash_table_insert(ext_table, "aiff", (gpointer)audio_x_aiff);
-g_hash_table_insert(ext_table, "aif", (gpointer)audio_x_aiff);
-g_hash_table_insert(ext_table, "reg", (gpointer)text_x_ms_regedit);
-g_hash_table_insert(ext_table, "zst", (gpointer)application_x_zstd);
-g_hash_table_insert(ext_table, "m4v", (gpointer)video_x_m4v);
-g_hash_table_insert(ext_table, "pcap", (gpointer)application_vnd_tcpdump_pcap);
-g_hash_table_insert(ext_table, "jsonlz4", (gpointer)application_x_lz4_json);
-g_hash_table_insert(ext_table, "dmp", (gpointer)application_x_dmp);
-g_hash_table_insert(ext_table, "z", (gpointer)application_zlib);
-g_hash_table_insert(ext_table, "pf2", (gpointer)application_x_font_pf2);
-g_hash_table_insert(ext_table, "jmod", (gpointer)application_x_java_jmod);
-g_hash_table_insert(ext_table, "heic", (gpointer)image_heic);
-g_hash_table_insert(ext_table, "lzma", (gpointer)application_x_lzma);
-g_hash_table_insert(ext_table, "warc", (gpointer)application_warc);
-g_hash_table_insert(ext_table, "lz", (gpointer)application_x_lzip);
-g_hash_table_insert(ext_table, "lzo", (gpointer)application_x_lzop);
 return ext_table;}
 GHashTable *mime_get_mime_table() {GHashTable *mime_table = g_hash_table_new(g_str_hash, g_str_equal);
 g_hash_table_insert(mime_table, "application/arj", (gpointer)application_arj);
 g_hash_table_insert(mime_table, "application/base64", (gpointer)application_base64);
 g_hash_table_insert(mime_table, "application/binhex", (gpointer)application_binhex);
 g_hash_table_insert(mime_table, "application/book", (gpointer)application_book);
+g_hash_table_insert(mime_table, "application/CDFV2-corrupt", (gpointer)application_CDFV2_corrupt);
 g_hash_table_insert(mime_table, "application/CDFV2", (gpointer)application_CDFV2);
 g_hash_table_insert(mime_table, "application/clariscad", (gpointer)application_clariscad);
 g_hash_table_insert(mime_table, "application/commonground", (gpointer)application_commonground);
+g_hash_table_insert(mime_table, "application/csv", (gpointer)application_csv);
+g_hash_table_insert(mime_table, "application/dicom", (gpointer)application_dicom);
 g_hash_table_insert(mime_table, "application/drafting", (gpointer)application_drafting);
+g_hash_table_insert(mime_table, "application/epub+zip", (gpointer)application_epub_zip);
 g_hash_table_insert(mime_table, "application/freeloader", (gpointer)application_freeloader);
 g_hash_table_insert(mime_table, "application/futuresplash", (gpointer)application_futuresplash);
 g_hash_table_insert(mime_table, "application/groupwise", (gpointer)application_groupwise);
@@ -1373,7 +1404,6 @@ g_hash_table_insert(mime_table, "application/inf", (gpointer)application_inf);
 g_hash_table_insert(mime_table, "application/java-archive", (gpointer)application_java_archive);
 g_hash_table_insert(mime_table, "application/java", (gpointer)application_java);
 g_hash_table_insert(mime_table, "application/javascript", (gpointer)application_javascript);
-g_hash_table_insert(mime_table, "application/x-archive", (gpointer)application_x_archive);
 g_hash_table_insert(mime_table, "application/json", (gpointer)application_json);
 g_hash_table_insert(mime_table, "application/marc", (gpointer)application_marc);
 g_hash_table_insert(mime_table, "application/mbedlet", (gpointer)application_mbedlet);
@@ -1383,7 +1413,9 @@ g_hash_table_insert(mime_table, "application/msword", (gpointer)application_mswo
 g_hash_table_insert(mime_table, "application/netmc", (gpointer)application_netmc);
 g_hash_table_insert(mime_table, "application/octet-stream", (gpointer)application_octet_stream);
 g_hash_table_insert(mime_table, "application/oda", (gpointer)application_oda);
+g_hash_table_insert(mime_table, "application/ogg", (gpointer)application_ogg);
 g_hash_table_insert(mime_table, "application/pdf", (gpointer)application_pdf);
+g_hash_table_insert(mime_table, "application/pgp-keys", (gpointer)application_pgp_keys);
 g_hash_table_insert(mime_table, "application/pgp-signature", (gpointer)application_pgp_signature);
 g_hash_table_insert(mime_table, "application/pkcs7-signature", (gpointer)application_pkcs7_signature);
 g_hash_table_insert(mime_table, "application/pkix-cert", (gpointer)application_pkix_cert);
@@ -1399,6 +1431,9 @@ g_hash_table_insert(mime_table, "application/vda", (gpointer)application_vda);
 g_hash_table_insert(mime_table, "application/vnd.fdf", (gpointer)application_vnd_fdf);
 g_hash_table_insert(mime_table, "application/vnd.font-fontforge-sfd", (gpointer)application_vnd_font_fontforge_sfd);
 g_hash_table_insert(mime_table, "application/vnd.hp-hpgl", (gpointer)application_vnd_hp_hpgl);
+g_hash_table_insert(mime_table, "application/vnd.iccprofile", (gpointer)application_vnd_iccprofile);
+g_hash_table_insert(mime_table, "application/vnd.lotus-1-2-3", (gpointer)application_vnd_lotus_1_2_3);
+g_hash_table_insert(mime_table, "application/vnd.ms-cab-compressed", (gpointer)application_vnd_ms_cab_compressed);
 g_hash_table_insert(mime_table, "application/vnd.ms-excel", (gpointer)application_vnd_ms_excel);
 g_hash_table_insert(mime_table, "application/vnd.ms-fontobject", (gpointer)application_vnd_ms_fontobject);
 g_hash_table_insert(mime_table, "application/vnd.ms-opentype", (gpointer)application_vnd_ms_opentype);
@@ -1410,45 +1445,75 @@ g_hash_table_insert(mime_table, "application/vnd.ms-project", (gpointer)applicat
 g_hash_table_insert(mime_table, "application/vnd.oasis.opendocument.base", (gpointer)application_vnd_oasis_opendocument_base);
 g_hash_table_insert(mime_table, "application/vnd.oasis.opendocument.formula", (gpointer)application_vnd_oasis_opendocument_formula);
 g_hash_table_insert(mime_table, "application/vnd.oasis.opendocument.graphics", (gpointer)application_vnd_oasis_opendocument_graphics);
+g_hash_table_insert(mime_table, "application/vnd.oasis.opendocument.presentation", (gpointer)application_vnd_oasis_opendocument_presentation);
+g_hash_table_insert(mime_table, "application/vnd.oasis.opendocument.spreadsheet", (gpointer)application_vnd_oasis_opendocument_spreadsheet);
 g_hash_table_insert(mime_table, "application/vnd.oasis.opendocument.text", (gpointer)application_vnd_oasis_opendocument_text);
+g_hash_table_insert(mime_table, "application/vnd.openxmlformats-officedocument.presentationml.presentation", (gpointer)application_vnd_openxmlformats_officedocument_presentationml_presentation);
+g_hash_table_insert(mime_table, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", (gpointer)application_vnd_openxmlformats_officedocument_spreadsheetml_sheet);
+g_hash_table_insert(mime_table, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", (gpointer)application_vnd_openxmlformats_officedocument_wordprocessingml_document);
+g_hash_table_insert(mime_table, "application/vnd.symbian.install", (gpointer)application_vnd_symbian_install);
+g_hash_table_insert(mime_table, "application/vnd.tcpdump.pcap", (gpointer)application_vnd_tcpdump_pcap);
 g_hash_table_insert(mime_table, "application/vnd.wap.wmlc", (gpointer)application_vnd_wap_wmlc);
 g_hash_table_insert(mime_table, "application/vnd.wap.wmlscriptc", (gpointer)application_vnd_wap_wmlscriptc);
 g_hash_table_insert(mime_table, "application/vnd.xara", (gpointer)application_vnd_xara);
 g_hash_table_insert(mime_table, "application/vocaltec-media-desc", (gpointer)application_vocaltec_media_desc);
 g_hash_table_insert(mime_table, "application/vocaltec-media-file", (gpointer)application_vocaltec_media_file);
+g_hash_table_insert(mime_table, "application/warc", (gpointer)application_warc);
+g_hash_table_insert(mime_table, "application/winhelp", (gpointer)application_winhelp);
 g_hash_table_insert(mime_table, "application/wordperfect6.0", (gpointer)application_wordperfect6_0);
 g_hash_table_insert(mime_table, "application/wordperfect6.1", (gpointer)application_wordperfect6_1);
 g_hash_table_insert(mime_table, "application/wordperfect", (gpointer)application_wordperfect);
 g_hash_table_insert(mime_table, "application/x-123", (gpointer)application_x_123);
+g_hash_table_insert(mime_table, "application/x-7z-compressed", (gpointer)application_x_7z_compressed);
 g_hash_table_insert(mime_table, "application/x-aim", (gpointer)application_x_aim);
+g_hash_table_insert(mime_table, "application/x-apple-diskimage", (gpointer)application_x_apple_diskimage);
+g_hash_table_insert(mime_table, "application/x-arc", (gpointer)application_x_arc);
+g_hash_table_insert(mime_table, "application/x-archive", (gpointer)application_x_archive);
+g_hash_table_insert(mime_table, "application/x-atari-7800-rom", (gpointer)application_x_atari_7800_rom);
 g_hash_table_insert(mime_table, "application/x-authorware-bin", (gpointer)application_x_authorware_bin);
 g_hash_table_insert(mime_table, "application/x-authorware-map", (gpointer)application_x_authorware_map);
 g_hash_table_insert(mime_table, "application/x-authorware-seg", (gpointer)application_x_authorware_seg);
+g_hash_table_insert(mime_table, "application/x-avira-qua", (gpointer)application_x_avira_qua);
 g_hash_table_insert(mime_table, "application/x-bcpio", (gpointer)application_x_bcpio);
 g_hash_table_insert(mime_table, "application/x-bittorrent", (gpointer)application_x_bittorrent);
 g_hash_table_insert(mime_table, "application/x-bsh", (gpointer)application_x_bsh);
 g_hash_table_insert(mime_table, "application/x-bytecode.python", (gpointer)application_x_bytecode_python);
 g_hash_table_insert(mime_table, "application/x-bzip2", (gpointer)application_x_bzip2);
 g_hash_table_insert(mime_table, "application/x-bzip", (gpointer)application_x_bzip);
+g_hash_table_insert(mime_table, "application/x-cbr", (gpointer)application_x_cbr);
+g_hash_table_insert(mime_table, "application/x-cbz", (gpointer)application_x_cbz);
 g_hash_table_insert(mime_table, "application/x-cdlink", (gpointer)application_x_cdlink);
 g_hash_table_insert(mime_table, "application/x-chat", (gpointer)application_x_chat);
+g_hash_table_insert(mime_table, "application/x-chrome-extension", (gpointer)application_x_chrome_extension);
 g_hash_table_insert(mime_table, "application/x-cocoa", (gpointer)application_x_cocoa);
 g_hash_table_insert(mime_table, "application/x-conference", (gpointer)application_x_conference);
+g_hash_table_insert(mime_table, "application/x-coredump", (gpointer)application_x_coredump);
 g_hash_table_insert(mime_table, "application/x-cpio", (gpointer)application_x_cpio);
 g_hash_table_insert(mime_table, "application/x-dbf", (gpointer)application_x_dbf);
 g_hash_table_insert(mime_table, "application/x-dbt", (gpointer)application_x_dbt);
+g_hash_table_insert(mime_table, "application/x-debian-package", (gpointer)application_x_debian_package);
 g_hash_table_insert(mime_table, "application/x-deepv", (gpointer)application_x_deepv);
 g_hash_table_insert(mime_table, "application/x-director", (gpointer)application_x_director);
+g_hash_table_insert(mime_table, "application/x-dmp", (gpointer)application_x_dmp);
+g_hash_table_insert(mime_table, "application/x-dosdriver", (gpointer)application_x_dosdriver);
 g_hash_table_insert(mime_table, "application/x-dosexec", (gpointer)application_x_dosexec);
 g_hash_table_insert(mime_table, "application/x-dvi", (gpointer)application_x_dvi);
 g_hash_table_insert(mime_table, "application/x-elc", (gpointer)application_x_elc);
+g_hash_table_insert(mime_table, "application/x-empty", (gpointer)application_x_empty);
 g_hash_table_insert(mime_table, "application/x-envoy", (gpointer)application_x_envoy);
 g_hash_table_insert(mime_table, "application/x-esrehber", (gpointer)application_x_esrehber);
 g_hash_table_insert(mime_table, "application/x-excel", (gpointer)application_x_excel);
 g_hash_table_insert(mime_table, "application/x-executable", (gpointer)application_x_executable);
+g_hash_table_insert(mime_table, "application/x-font-gdos", (gpointer)application_x_font_gdos);
+g_hash_table_insert(mime_table, "application/x-font-pf2", (gpointer)application_x_font_pf2);
+g_hash_table_insert(mime_table, "application/x-font-pfm", (gpointer)application_x_font_pfm);
 g_hash_table_insert(mime_table, "application/x-font-sfn", (gpointer)application_x_font_sfn);
 g_hash_table_insert(mime_table, "application/x-font-ttf", (gpointer)application_x_font_ttf);
+g_hash_table_insert(mime_table, "application/x-fptapplication/x-dbt", (gpointer)application_x_fptapplication_x_dbt);
 g_hash_table_insert(mime_table, "application/x-freelance", (gpointer)application_x_freelance);
+g_hash_table_insert(mime_table, "application/x-gamecube-rom", (gpointer)application_x_gamecube_rom);
+g_hash_table_insert(mime_table, "application/x-gdbm", (gpointer)application_x_gdbm);
+g_hash_table_insert(mime_table, "application/x-gettext-translation", (gpointer)application_x_gettext_translation);
 g_hash_table_insert(mime_table, "application/x-git", (gpointer)application_x_git);
 g_hash_table_insert(mime_table, "application/x-gsp", (gpointer)application_x_gsp);
 g_hash_table_insert(mime_table, "application/x-gss", (gpointer)application_x_gss);
@@ -1458,46 +1523,66 @@ g_hash_table_insert(mime_table, "application/x-hdf", (gpointer)application_x_hdf
 g_hash_table_insert(mime_table, "application/x-helpfile", (gpointer)application_x_helpfile);
 g_hash_table_insert(mime_table, "application/x-httpd-imap", (gpointer)application_x_httpd_imap);
 g_hash_table_insert(mime_table, "application/x-ima", (gpointer)application_x_ima);
+g_hash_table_insert(mime_table, "application/x-innosetup", (gpointer)application_x_innosetup);
 g_hash_table_insert(mime_table, "application/x-internett-signup", (gpointer)application_x_internett_signup);
 g_hash_table_insert(mime_table, "application/x-inventor", (gpointer)application_x_inventor);
 g_hash_table_insert(mime_table, "application/x-ip2", (gpointer)application_x_ip2);
 g_hash_table_insert(mime_table, "application/x-java-applet", (gpointer)application_x_java_applet);
 g_hash_table_insert(mime_table, "application/x-java-commerce", (gpointer)application_x_java_commerce);
 g_hash_table_insert(mime_table, "application/x-java-image", (gpointer)application_x_java_image);
+g_hash_table_insert(mime_table, "application/x-java-jmod", (gpointer)application_x_java_jmod);
 g_hash_table_insert(mime_table, "application/x-java-keystore", (gpointer)application_x_java_keystore);
+g_hash_table_insert(mime_table, "application/x-kdelnk", (gpointer)application_x_kdelnk);
 g_hash_table_insert(mime_table, "application/x-koan", (gpointer)application_x_koan);
 g_hash_table_insert(mime_table, "application/x-latex", (gpointer)application_x_latex);
 g_hash_table_insert(mime_table, "application/x-livescreen", (gpointer)application_x_livescreen);
 g_hash_table_insert(mime_table, "application/x-lotus", (gpointer)application_x_lotus);
+g_hash_table_insert(mime_table, "application/x-lz4+json", (gpointer)application_x_lz4_json);
+g_hash_table_insert(mime_table, "application/x-lz4", (gpointer)application_x_lz4);
+g_hash_table_insert(mime_table, "application/x-lzh-compressed", (gpointer)application_x_lzh_compressed);
 g_hash_table_insert(mime_table, "application/x-lzh", (gpointer)application_x_lzh);
+g_hash_table_insert(mime_table, "application/x-lzip", (gpointer)application_x_lzip);
+g_hash_table_insert(mime_table, "application/x-lzma", (gpointer)application_x_lzma);
+g_hash_table_insert(mime_table, "application/x-lzop", (gpointer)application_x_lzop);
 g_hash_table_insert(mime_table, "application/x-lzx", (gpointer)application_x_lzx);
 g_hash_table_insert(mime_table, "application/x-mach-binary", (gpointer)application_x_mach_binary);
 g_hash_table_insert(mime_table, "application/x-mach-executable", (gpointer)application_x_mach_executable);
 g_hash_table_insert(mime_table, "application/x-magic-cap-package-1.0", (gpointer)application_x_magic_cap_package_1_0);
 g_hash_table_insert(mime_table, "application/x-mathcad", (gpointer)application_x_mathcad);
+g_hash_table_insert(mime_table, "application/x-maxis-dbpf", (gpointer)application_x_maxis_dbpf);
 g_hash_table_insert(mime_table, "application/x-meme", (gpointer)application_x_meme);
 g_hash_table_insert(mime_table, "application/x-midi", (gpointer)application_x_midi);
 g_hash_table_insert(mime_table, "application/x-mif", (gpointer)application_x_mif);
 g_hash_table_insert(mime_table, "application/x-mix-transfer", (gpointer)application_x_mix_transfer);
 g_hash_table_insert(mime_table, "application/xml", (gpointer)application_xml);
+g_hash_table_insert(mime_table, "application/x-mobipocket-ebook", (gpointer)application_x_mobipocket_ebook);
+g_hash_table_insert(mime_table, "application/x-msaccess", (gpointer)application_x_msaccess);
+g_hash_table_insert(mime_table, "application/x-ms-compress-szdd", (gpointer)application_x_ms_compress_szdd);
 g_hash_table_insert(mime_table, "application/x-ms-pdb", (gpointer)application_x_ms_pdb);
+g_hash_table_insert(mime_table, "application/x-ms-reader", (gpointer)application_x_ms_reader);
+g_hash_table_insert(mime_table, "application/x-n64-rom", (gpointer)application_x_n64_rom);
 g_hash_table_insert(mime_table, "application/x-navi-animation", (gpointer)application_x_navi_animation);
 g_hash_table_insert(mime_table, "application/x-navidoc", (gpointer)application_x_navidoc);
 g_hash_table_insert(mime_table, "application/x-navimap", (gpointer)application_x_navimap);
 g_hash_table_insert(mime_table, "application/x-navistyle", (gpointer)application_x_navistyle);
+g_hash_table_insert(mime_table, "application/x-nes-rom", (gpointer)application_x_nes_rom);
 g_hash_table_insert(mime_table, "application/x-netcdf", (gpointer)application_x_netcdf);
 g_hash_table_insert(mime_table, "application/x-newton-compatible-pkg", (gpointer)application_x_newton_compatible_pkg);
+g_hash_table_insert(mime_table, "application/x-nintendo-ds-rom", (gpointer)application_x_nintendo_ds_rom);
 g_hash_table_insert(mime_table, "application/x-object", (gpointer)application_x_object);
 g_hash_table_insert(mime_table, "application/x-omcdatamaker", (gpointer)application_x_omcdatamaker);
 g_hash_table_insert(mime_table, "application/x-omc", (gpointer)application_x_omc);
 g_hash_table_insert(mime_table, "application/x-omcregerator", (gpointer)application_x_omcregerator);
 g_hash_table_insert(mime_table, "application/x-pagemaker", (gpointer)application_x_pagemaker);
 g_hash_table_insert(mime_table, "application/x-pcl", (gpointer)application_x_pcl);
+g_hash_table_insert(mime_table, "application/x-pgp-keyring", (gpointer)application_x_pgp_keyring);
 g_hash_table_insert(mime_table, "application/x-pixclscript", (gpointer)application_x_pixclscript);
 g_hash_table_insert(mime_table, "application/x-pkcs7-certreqresp", (gpointer)application_x_pkcs7_certreqresp);
 g_hash_table_insert(mime_table, "application/x-pkcs7-signature", (gpointer)application_x_pkcs7_signature);
 g_hash_table_insert(mime_table, "application/x-project", (gpointer)application_x_project);
 g_hash_table_insert(mime_table, "application/x-qpro", (gpointer)application_x_qpro);
+g_hash_table_insert(mime_table, "application/x-rar", (gpointer)application_x_rar);
+g_hash_table_insert(mime_table, "application/x-rpm", (gpointer)application_x_rpm);
 g_hash_table_insert(mime_table, "application/x-sdp", (gpointer)application_x_sdp);
 g_hash_table_insert(mime_table, "application/x-sea", (gpointer)application_x_sea);
 g_hash_table_insert(mime_table, "application/x-seelogo", (gpointer)application_x_seelogo);
@@ -1505,12 +1590,17 @@ g_hash_table_insert(mime_table, "application/x-setupscript", (gpointer)applicati
 g_hash_table_insert(mime_table, "application/x-sharedlib", (gpointer)application_x_sharedlib);
 g_hash_table_insert(mime_table, "application/x-shar", (gpointer)application_x_shar);
 g_hash_table_insert(mime_table, "application/x-shockwave-flash", (gpointer)application_x_shockwave_flash);
+g_hash_table_insert(mime_table, "application/x-snappy-framed", (gpointer)application_x_snappy_framed);
 g_hash_table_insert(mime_table, "application/x-sprite", (gpointer)application_x_sprite);
 g_hash_table_insert(mime_table, "application/x-sqlite3", (gpointer)application_x_sqlite3);
+g_hash_table_insert(mime_table, "application/x-stargallery-thm", (gpointer)application_x_stargallery_thm);
+g_hash_table_insert(mime_table, "application/x-stuffit", (gpointer)application_x_stuffit);
 g_hash_table_insert(mime_table, "application/x-sv4cpio", (gpointer)application_x_sv4cpio);
 g_hash_table_insert(mime_table, "application/x-sv4crc", (gpointer)application_x_sv4crc);
 g_hash_table_insert(mime_table, "application/x-tar", (gpointer)application_x_tar);
 g_hash_table_insert(mime_table, "application/x-tbook", (gpointer)application_x_tbook);
+g_hash_table_insert(mime_table, "application/x-terminfo", (gpointer)application_x_terminfo);
+g_hash_table_insert(mime_table, "application/x-terminfo2", (gpointer)application_x_terminfo2);
 g_hash_table_insert(mime_table, "application/x-texinfo", (gpointer)application_x_texinfo);
 g_hash_table_insert(mime_table, "application/x-tex-tfm", (gpointer)application_x_tex_tfm);
 g_hash_table_insert(mime_table, "application/x-ustar", (gpointer)application_x_ustar);
@@ -1519,16 +1609,22 @@ g_hash_table_insert(mime_table, "application/x-vnd.audioexplosion.mzz", (gpointe
 g_hash_table_insert(mime_table, "application/x-vnd.ls-xpix", (gpointer)application_x_vnd_ls_xpix);
 g_hash_table_insert(mime_table, "application/x-vrml", (gpointer)application_x_vrml);
 g_hash_table_insert(mime_table, "application/x-wais-source", (gpointer)application_x_wais_source);
+g_hash_table_insert(mime_table, "application/x-wine-extension-ini", (gpointer)application_x_wine_extension_ini);
 g_hash_table_insert(mime_table, "application/x-wintalk", (gpointer)application_x_wintalk);
 g_hash_table_insert(mime_table, "application/x-world", (gpointer)application_x_world);
 g_hash_table_insert(mime_table, "application/x-wri", (gpointer)application_x_wri);
 g_hash_table_insert(mime_table, "application/x-x509-ca-cert", (gpointer)application_x_x509_ca_cert);
 g_hash_table_insert(mime_table, "application/x-xz", (gpointer)application_x_xz);
+g_hash_table_insert(mime_table, "application/x-zip", (gpointer)application_x_zip);
+g_hash_table_insert(mime_table, "application/x-zstd", (gpointer)application_x_zstd);
 g_hash_table_insert(mime_table, "application/zip", (gpointer)application_zip);
+g_hash_table_insert(mime_table, "application/zlib", (gpointer)application_zlib);
+g_hash_table_insert(mime_table, "audio/basic", (gpointer)audio_basic);
 g_hash_table_insert(mime_table, "audio/it", (gpointer)audio_it);
 g_hash_table_insert(mime_table, "audio/make", (gpointer)audio_make);
 g_hash_table_insert(mime_table, "audio/midi", (gpointer)audio_midi);
 g_hash_table_insert(mime_table, "audio/mid", (gpointer)audio_mid);
+g_hash_table_insert(mime_table, "audio/mp4", (gpointer)audio_mp4);
 g_hash_table_insert(mime_table, "audio/mpeg", (gpointer)audio_mpeg);
 g_hash_table_insert(mime_table, "audio/ogg", (gpointer)audio_ogg);
 g_hash_table_insert(mime_table, "audio/s3m", (gpointer)audio_s3m);
@@ -1536,7 +1632,10 @@ g_hash_table_insert(mime_table, "audio/tsp-audio", (gpointer)audio_tsp_audio);
 g_hash_table_insert(mime_table, "audio/tsplayer", (gpointer)audio_tsplayer);
 g_hash_table_insert(mime_table, "audio/vnd.qcelp", (gpointer)audio_vnd_qcelp);
 g_hash_table_insert(mime_table, "audio/voxware", (gpointer)audio_voxware);
+g_hash_table_insert(mime_table, "audio/x-aiff", (gpointer)audio_x_aiff);
+g_hash_table_insert(mime_table, "audio/x-flac", (gpointer)audio_x_flac);
 g_hash_table_insert(mime_table, "audio/x-gsm", (gpointer)audio_x_gsm);
+g_hash_table_insert(mime_table, "audio/x-hx-aac-adts", (gpointer)audio_x_hx_aac_adts);
 g_hash_table_insert(mime_table, "audio/x-jam", (gpointer)audio_x_jam);
 g_hash_table_insert(mime_table, "audio/x-liveaudio", (gpointer)audio_x_liveaudio);
 g_hash_table_insert(mime_table, "audio/x-m4a", (gpointer)audio_x_m4a);
@@ -1550,17 +1649,24 @@ g_hash_table_insert(mime_table, "audio/x-nspaudio", (gpointer)audio_x_nspaudio);
 g_hash_table_insert(mime_table, "audio/x-pn-realaudio", (gpointer)audio_x_pn_realaudio);
 g_hash_table_insert(mime_table, "audio/x-psid", (gpointer)audio_x_psid);
 g_hash_table_insert(mime_table, "audio/x-realaudio", (gpointer)audio_x_realaudio);
+g_hash_table_insert(mime_table, "audio/x-s3m", (gpointer)audio_x_s3m);
 g_hash_table_insert(mime_table, "audio/x-twinvq-plugin", (gpointer)audio_x_twinvq_plugin);
 g_hash_table_insert(mime_table, "audio/x-twinvq", (gpointer)audio_x_twinvq);
 g_hash_table_insert(mime_table, "audio/x-voc", (gpointer)audio_x_voc);
 g_hash_table_insert(mime_table, "audio/x-wav", (gpointer)audio_x_wav);
+g_hash_table_insert(mime_table, "audio/x-xbox360-executable", (gpointer)audio_x_xbox360_executable);
+g_hash_table_insert(mime_table, "audio/x-xbox-executable", (gpointer)audio_x_xbox_executable);
 g_hash_table_insert(mime_table, "font/otf", (gpointer)font_otf);
 g_hash_table_insert(mime_table, "font/sfnt", (gpointer)font_sfnt);
+g_hash_table_insert(mime_table, "font/woff2", (gpointer)font_woff2);
+g_hash_table_insert(mime_table, "font/woff", (gpointer)font_woff);
+g_hash_table_insert(mime_table, "image/bmp", (gpointer)image_bmp);
 g_hash_table_insert(mime_table, "image/cmu-raster", (gpointer)image_cmu_raster);
 g_hash_table_insert(mime_table, "image/fif", (gpointer)image_fif);
 g_hash_table_insert(mime_table, "image/florian", (gpointer)image_florian);
 g_hash_table_insert(mime_table, "image/g3fax", (gpointer)image_g3fax);
 g_hash_table_insert(mime_table, "image/gif", (gpointer)image_gif);
+g_hash_table_insert(mime_table, "image/heic", (gpointer)image_heic);
 g_hash_table_insert(mime_table, "image/ief", (gpointer)image_ief);
 g_hash_table_insert(mime_table, "image/jpeg", (gpointer)image_jpeg);
 g_hash_table_insert(mime_table, "image/jutvision", (gpointer)image_jutvision);
@@ -1569,6 +1675,9 @@ g_hash_table_insert(mime_table, "image/pict", (gpointer)image_pict);
 g_hash_table_insert(mime_table, "image/png", (gpointer)image_png);
 g_hash_table_insert(mime_table, "image/svg", (gpointer)image_svg);
 g_hash_table_insert(mime_table, "image/svg+xml", (gpointer)image_svg_xml);
+g_hash_table_insert(mime_table, "image/tiff", (gpointer)image_tiff);
+g_hash_table_insert(mime_table, "image/vnd.adobe.photoshop", (gpointer)image_vnd_adobe_photoshop);
+g_hash_table_insert(mime_table, "image/vnd.djvu", (gpointer)image_vnd_djvu);
 g_hash_table_insert(mime_table, "image/vnd.fpx", (gpointer)image_vnd_fpx);
 g_hash_table_insert(mime_table, "image/vnd.microsoft.icon", (gpointer)image_vnd_microsoft_icon);
 g_hash_table_insert(mime_table, "image/vnd.rn-realflash", (gpointer)image_vnd_rn_realflash);
@@ -1576,9 +1685,15 @@ g_hash_table_insert(mime_table, "image/vnd.rn-realpix", (gpointer)image_vnd_rn_r
 g_hash_table_insert(mime_table, "image/vnd.wap.wbmp", (gpointer)image_vnd_wap_wbmp);
 g_hash_table_insert(mime_table, "image/vnd.xiff", (gpointer)image_vnd_xiff);
 g_hash_table_insert(mime_table, "image/webp", (gpointer)image_webp);
+g_hash_table_insert(mime_table, "image/wmf", (gpointer)image_wmf);
+g_hash_table_insert(mime_table, "image/x-3ds", (gpointer)image_x_3ds);
+g_hash_table_insert(mime_table, "image/x-award-bioslogo", (gpointer)image_x_award_bioslogo);
 g_hash_table_insert(mime_table, "image/x-cmu-raster", (gpointer)image_x_cmu_raster);
+g_hash_table_insert(mime_table, "image/x-cur", (gpointer)image_x_cur);
 g_hash_table_insert(mime_table, "image/x-dwg", (gpointer)image_x_dwg);
 g_hash_table_insert(mime_table, "image/x-eps", (gpointer)image_x_eps);
+g_hash_table_insert(mime_table, "image/x-exr", (gpointer)image_x_exr);
+g_hash_table_insert(mime_table, "image/x-gem", (gpointer)image_x_gem);
 g_hash_table_insert(mime_table, "image/x-icns", (gpointer)image_x_icns);
 g_hash_table_insert(mime_table, "image/x-icon", (gpointer)image_x_icon);
 g_hash_table_insert(mime_table, "image/x-jg", (gpointer)image_x_jg);
@@ -1592,32 +1707,30 @@ g_hash_table_insert(mime_table, "image/x-portable-graymap", (gpointer)image_x_po
 g_hash_table_insert(mime_table, "image/x-portable-pixmap", (gpointer)image_x_portable_pixmap);
 g_hash_table_insert(mime_table, "image/x-quicktime", (gpointer)image_x_quicktime);
 g_hash_table_insert(mime_table, "image/x-rgb", (gpointer)image_x_rgb);
+g_hash_table_insert(mime_table, "image/x-tga", (gpointer)image_x_tga);
 g_hash_table_insert(mime_table, "image/x-tiff", (gpointer)image_x_tiff);
-g_hash_table_insert(mime_table, "image/tiff", (gpointer)image_tiff);
+g_hash_table_insert(mime_table, "image/x-win-bitmap", (gpointer)image_x_win_bitmap);
 g_hash_table_insert(mime_table, "image/x-xcf", (gpointer)image_x_xcf);
 g_hash_table_insert(mime_table, "image/x-xpixmap", (gpointer)image_x_xpixmap);
+g_hash_table_insert(mime_table, "image/x-xwindowdump", (gpointer)image_x_xwindowdump);
+g_hash_table_insert(mime_table, "message/news", (gpointer)message_news);
 g_hash_table_insert(mime_table, "message/rfc822", (gpointer)message_rfc822);
 g_hash_table_insert(mime_table, "model/vnd.dwf", (gpointer)model_vnd_dwf);
+g_hash_table_insert(mime_table, "model/vnd.gdl", (gpointer)model_vnd_gdl);
+g_hash_table_insert(mime_table, "model/vnd.gs.gdl", (gpointer)model_vnd_gs_gdl);
 g_hash_table_insert(mime_table, "model/vrml", (gpointer)model_vrml);
 g_hash_table_insert(mime_table, "model/x-pov", (gpointer)model_x_pov);
 g_hash_table_insert(mime_table, "text/asp", (gpointer)text_asp);
 g_hash_table_insert(mime_table, "text/css", (gpointer)text_css);
-g_hash_table_insert(mime_table, "text/x-sass", (gpointer)text_x_sass);
-g_hash_table_insert(mime_table, "text/x-scss", (gpointer)text_x_scss);
 g_hash_table_insert(mime_table, "text/html", (gpointer)text_html);
 g_hash_table_insert(mime_table, "text/javascript", (gpointer)text_javascript);
 g_hash_table_insert(mime_table, "text/mcf", (gpointer)text_mcf);
 g_hash_table_insert(mime_table, "text/pascal", (gpointer)text_pascal);
+g_hash_table_insert(mime_table, "text/PGP", (gpointer)text_PGP);
 g_hash_table_insert(mime_table, "text/plain", (gpointer)text_plain);
 g_hash_table_insert(mime_table, "text/richtext", (gpointer)text_richtext);
 g_hash_table_insert(mime_table, "text/rtf", (gpointer)text_rtf);
 g_hash_table_insert(mime_table, "text/scriplet", (gpointer)text_scriplet);
-g_hash_table_insert(mime_table, "text/x-awk", (gpointer)text_x_awk);
-g_hash_table_insert(mime_table, "video/x-jng", (gpointer)video_x_jng);
-g_hash_table_insert(mime_table, "video/x-mng", (gpointer)video_x_mng);
-g_hash_table_insert(mime_table, "image/x-cur", (gpointer)image_x_cur);
-g_hash_table_insert(mime_table, "image/x-xwindowdump", (gpointer)image_x_xwindowdump);
-g_hash_table_insert(mime_table, "image/vnd.adobe.photoshop", (gpointer)image_vnd_adobe_photoshop);
 g_hash_table_insert(mime_table, "text/tab-separated-values", (gpointer)text_tab_separated_values);
 g_hash_table_insert(mime_table, "text/troff", (gpointer)text_troff);
 g_hash_table_insert(mime_table, "text/uri-list", (gpointer)text_uri_list);
@@ -1629,6 +1742,7 @@ g_hash_table_insert(mime_table, "text/webviewhtml", (gpointer)text_webviewhtml);
 g_hash_table_insert(mime_table, "text/x-Algol68", (gpointer)text_x_Algol68);
 g_hash_table_insert(mime_table, "text/x-asm", (gpointer)text_x_asm);
 g_hash_table_insert(mime_table, "text/x-audiosoft-intra", (gpointer)text_x_audiosoft_intra);
+g_hash_table_insert(mime_table, "text/x-awk", (gpointer)text_x_awk);
 g_hash_table_insert(mime_table, "text/x-bcpl", (gpointer)text_x_bcpl);
 g_hash_table_insert(mime_table, "text/x-c", (gpointer)text_x_c);
 g_hash_table_insert(mime_table, "text/x-c++", (gpointer)text_x_c__);
@@ -1643,23 +1757,31 @@ g_hash_table_insert(mime_table, "text/x-makefile", (gpointer)text_x_makefile);
 g_hash_table_insert(mime_table, "text/xml", (gpointer)text_xml);
 g_hash_table_insert(mime_table, "text/x-m", (gpointer)text_x_m);
 g_hash_table_insert(mime_table, "text/x-msdos-batch", (gpointer)text_x_msdos_batch);
+g_hash_table_insert(mime_table, "text/x-ms-regedit", (gpointer)text_x_ms_regedit);
+g_hash_table_insert(mime_table, "text/x-objective-c", (gpointer)text_x_objective_c);
 g_hash_table_insert(mime_table, "text/x-pascal", (gpointer)text_x_pascal);
 g_hash_table_insert(mime_table, "text/x-perl", (gpointer)text_x_perl);
 g_hash_table_insert(mime_table, "text/x-php", (gpointer)text_x_php);
+g_hash_table_insert(mime_table, "text/x-po", (gpointer)text_x_po);
 g_hash_table_insert(mime_table, "text/x-python", (gpointer)text_x_python);
 g_hash_table_insert(mime_table, "text/x-ruby", (gpointer)text_x_ruby);
+g_hash_table_insert(mime_table, "text/x-sass", (gpointer)text_x_sass);
+g_hash_table_insert(mime_table, "text/x-scss", (gpointer)text_x_scss);
 g_hash_table_insert(mime_table, "text/x-server-parsed-html", (gpointer)text_x_server_parsed_html);
 g_hash_table_insert(mime_table, "text/x-setext", (gpointer)text_x_setext);
 g_hash_table_insert(mime_table, "text/x-sgml", (gpointer)text_x_sgml);
 g_hash_table_insert(mime_table, "text/x-shellscript", (gpointer)text_x_shellscript);
 g_hash_table_insert(mime_table, "text/x-speech", (gpointer)text_x_speech);
+g_hash_table_insert(mime_table, "text/x-tcl", (gpointer)text_x_tcl);
 g_hash_table_insert(mime_table, "text/x-tex", (gpointer)text_x_tex);
 g_hash_table_insert(mime_table, "text/x-uil", (gpointer)text_x_uil);
 g_hash_table_insert(mime_table, "text/x-uuencode", (gpointer)text_x_uuencode);
 g_hash_table_insert(mime_table, "text/x-vcalendar", (gpointer)text_x_vcalendar);
+g_hash_table_insert(mime_table, "text/x-vcard", (gpointer)text_x_vcard);
 g_hash_table_insert(mime_table, "video/animaflex", (gpointer)video_animaflex);
 g_hash_table_insert(mime_table, "video/avi", (gpointer)video_avi);
 g_hash_table_insert(mime_table, "video/avs-video", (gpointer)video_avs_video);
+g_hash_table_insert(mime_table, "video/MP2T", (gpointer)video_MP2T);
 g_hash_table_insert(mime_table, "video/mp4", (gpointer)video_mp4);
 g_hash_table_insert(mime_table, "video/mpeg", (gpointer)video_mpeg);
 g_hash_table_insert(mime_table, "video/quicktime", (gpointer)video_quicktime);
@@ -1674,101 +1796,17 @@ g_hash_table_insert(mime_table, "video/x-atomic3d-feature", (gpointer)video_x_at
 g_hash_table_insert(mime_table, "video/x-dl", (gpointer)video_x_dl);
 g_hash_table_insert(mime_table, "video/x-dv", (gpointer)video_x_dv);
 g_hash_table_insert(mime_table, "video/x-fli", (gpointer)video_x_fli);
+g_hash_table_insert(mime_table, "video/x-flv", (gpointer)video_x_flv);
 g_hash_table_insert(mime_table, "video/x-isvideo", (gpointer)video_x_isvideo);
+g_hash_table_insert(mime_table, "video/x-jng", (gpointer)video_x_jng);
+g_hash_table_insert(mime_table, "video/x-m4v", (gpointer)video_x_m4v);
+g_hash_table_insert(mime_table, "video/x-matroska", (gpointer)video_x_matroska);
+g_hash_table_insert(mime_table, "video/x-mng", (gpointer)video_x_mng);
 g_hash_table_insert(mime_table, "video/x-motion-jpeg", (gpointer)video_x_motion_jpeg);
 g_hash_table_insert(mime_table, "video/x-ms-asf", (gpointer)video_x_ms_asf);
+g_hash_table_insert(mime_table, "video/x-msvideo", (gpointer)video_x_msvideo);
 g_hash_table_insert(mime_table, "video/x-qtc", (gpointer)video_x_qtc);
 g_hash_table_insert(mime_table, "video/x-sgi-movie", (gpointer)video_x_sgi_movie);
-g_hash_table_insert(mime_table, "application/x-7z-compressed", (gpointer)application_x_7z_compressed);
-g_hash_table_insert(mime_table, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", (gpointer)application_vnd_openxmlformats_officedocument_wordprocessingml_document);
-g_hash_table_insert(mime_table, "text/x-po", (gpointer)text_x_po);
-g_hash_table_insert(mime_table, "application/x-rpm", (gpointer)application_x_rpm);
-g_hash_table_insert(mime_table, "application/x-debian-package", (gpointer)application_x_debian_package);
-g_hash_table_insert(mime_table, "application/vnd.iccprofile", (gpointer)application_vnd_iccprofile);
-g_hash_table_insert(mime_table, "application/dicom", (gpointer)application_dicom);
-g_hash_table_insert(mime_table, "image/x-exr", (gpointer)image_x_exr);
-g_hash_table_insert(mime_table, "video/x-matroska", (gpointer)video_x_matroska);
-g_hash_table_insert(mime_table, "application/x-empty", (gpointer)application_x_empty);
-g_hash_table_insert(mime_table, "model/vnd.gdl", (gpointer)model_vnd_gdl);
-g_hash_table_insert(mime_table, "model/vnd.gs.gdl", (gpointer)model_vnd_gs_gdl);
-g_hash_table_insert(mime_table, "font/woff", (gpointer)font_woff);
-g_hash_table_insert(mime_table, "font/woff2", (gpointer)font_woff2);
-g_hash_table_insert(mime_table, "application/epub+zip", (gpointer)application_epub_zip);
-g_hash_table_insert(mime_table, "application/x-mobipocket-ebook", (gpointer)application_x_mobipocket_ebook);
-g_hash_table_insert(mime_table, "audio/x-flac", (gpointer)audio_x_flac);
-g_hash_table_insert(mime_table, "application/x-rar", (gpointer)application_x_rar);
-g_hash_table_insert(mime_table, "video/x-msvideo", (gpointer)video_x_msvideo);
-g_hash_table_insert(mime_table, "video/x-flv", (gpointer)video_x_flv);
-g_hash_table_insert(mime_table, "application/x-kdelnk", (gpointer)application_x_kdelnk);
-g_hash_table_insert(mime_table, "text/x-tcl", (gpointer)text_x_tcl);
-g_hash_table_insert(mime_table, "application/ogg", (gpointer)application_ogg);
-g_hash_table_insert(mime_table, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", (gpointer)application_vnd_openxmlformats_officedocument_spreadsheetml_sheet);
-g_hash_table_insert(mime_table, "application/vnd.ms-cab-compressed", (gpointer)application_vnd_ms_cab_compressed);
-g_hash_table_insert(mime_table, "audio/mp4", (gpointer)audio_mp4);
-g_hash_table_insert(mime_table, "image/vnd.djvu", (gpointer)image_vnd_djvu);
-g_hash_table_insert(mime_table, "application/x-ms-reader", (gpointer)application_x_ms_reader);
-g_hash_table_insert(mime_table, "application/CDFV2-corrupt", (gpointer)application_CDFV2_corrupt);
-g_hash_table_insert(mime_table, "text/x-vcard", (gpointer)text_x_vcard);
-g_hash_table_insert(mime_table, "application/x-innosetup", (gpointer)application_x_innosetup);
-g_hash_table_insert(mime_table, "application/winhelp", (gpointer)application_winhelp);
-g_hash_table_insert(mime_table, "image/x-tga", (gpointer)image_x_tga);
-g_hash_table_insert(mime_table, "application/x-wine-extension-ini", (gpointer)application_x_wine_extension_ini);
-g_hash_table_insert(mime_table, "application/x-cbz", (gpointer)application_x_cbz);
-g_hash_table_insert(mime_table, "application/x-cbr", (gpointer)application_x_cbr);
-g_hash_table_insert(mime_table, "application/x-ms-compress-szdd", (gpointer)application_x_ms_compress_szdd);
-g_hash_table_insert(mime_table, "application/x-atari-7800-rom", (gpointer)application_x_atari_7800_rom);
-g_hash_table_insert(mime_table, "application/x-nes-rom", (gpointer)application_x_nes_rom);
-g_hash_table_insert(mime_table, "application/x-font-pfm", (gpointer)application_x_font_pfm);
-g_hash_table_insert(mime_table, "application/x-gettext-translation", (gpointer)application_x_gettext_translation);
-g_hash_table_insert(mime_table, "image/wmf", (gpointer)image_wmf);
-g_hash_table_insert(mime_table, "application/pgp-keys", (gpointer)application_pgp_keys);
-g_hash_table_insert(mime_table, "image/x-3ds", (gpointer)image_x_3ds);
-g_hash_table_insert(mime_table, "application/x-lz4", (gpointer)application_x_lz4);
-g_hash_table_insert(mime_table, "application/vnd.openxmlformats-officedocument.presentationml.presentation", (gpointer)application_vnd_openxmlformats_officedocument_presentationml_presentation);
-g_hash_table_insert(mime_table, "application/vnd.oasis.opendocument.presentation", (gpointer)application_vnd_oasis_opendocument_presentation);
-g_hash_table_insert(mime_table, "application/x-msaccess", (gpointer)application_x_msaccess);
-g_hash_table_insert(mime_table, "application/vnd.oasis.opendocument.spreadsheet", (gpointer)application_vnd_oasis_opendocument_spreadsheet);
-g_hash_table_insert(mime_table, "audio/x-aiff", (gpointer)audio_x_aiff);
-g_hash_table_insert(mime_table, "text/x-ms-regedit", (gpointer)text_x_ms_regedit);
-g_hash_table_insert(mime_table, "application/x-gamecube-rom", (gpointer)application_x_gamecube_rom);
-g_hash_table_insert(mime_table, "application/x-nintendo-ds-rom", (gpointer)application_x_nintendo_ds_rom);
-g_hash_table_insert(mime_table, "text/x-objective-c", (gpointer)text_x_objective_c);
-g_hash_table_insert(mime_table, "application/x-font-gdos", (gpointer)application_x_font_gdos);
-g_hash_table_insert(mime_table, "application/x-apple-diskimage", (gpointer)application_x_apple_diskimage);
-g_hash_table_insert(mime_table, "application/x-zstd", (gpointer)application_x_zstd);
-g_hash_table_insert(mime_table, "video/x-m4v", (gpointer)video_x_m4v);
-g_hash_table_insert(mime_table, "message/news", (gpointer)message_news);
-g_hash_table_insert(mime_table, "application/vnd.symbian.install", (gpointer)application_vnd_symbian_install);
-g_hash_table_insert(mime_table, "application/x-lzh-compressed", (gpointer)application_x_lzh_compressed);
-g_hash_table_insert(mime_table, "application/x-dosdriver", (gpointer)application_x_dosdriver);
-g_hash_table_insert(mime_table, "application/vnd.tcpdump.pcap", (gpointer)application_vnd_tcpdump_pcap);
 g_hash_table_insert(mime_table, "x-epoc/x-sisx-app", (gpointer)x_epoc_x_sisx_app);
-g_hash_table_insert(mime_table, "application/x-avira-qua", (gpointer)application_x_avira_qua);
-g_hash_table_insert(mime_table, "video/MP2T", (gpointer)video_MP2T);
-g_hash_table_insert(mime_table, "application/x-snappy-framed", (gpointer)application_x_snappy_framed);
-g_hash_table_insert(mime_table, "application/x-lz4+json", (gpointer)application_x_lz4_json);
-g_hash_table_insert(mime_table, "application/x-dmp", (gpointer)application_x_dmp);
-g_hash_table_insert(mime_table, "application/zlib", (gpointer)application_zlib);
-g_hash_table_insert(mime_table, "application/x-pgp-keyring", (gpointer)application_x_pgp_keyring);
-g_hash_table_insert(mime_table, "application/x-gdbm", (gpointer)application_x_gdbm);
-g_hash_table_insert(mime_table, "application/x-font-pf2", (gpointer)application_x_font_pf2);
-g_hash_table_insert(mime_table, "application/x-zip", (gpointer)application_x_zip);
-g_hash_table_insert(mime_table, "application/x-coredump", (gpointer)application_x_coredump);
-g_hash_table_insert(mime_table, "application/x-java-jmod", (gpointer)application_x_java_jmod);
-g_hash_table_insert(mime_table, "application/x-terminfo", (gpointer)application_x_terminfo);
-g_hash_table_insert(mime_table, "application/x-terminfo2", (gpointer)application_x_terminfo2);
-g_hash_table_insert(mime_table, "application/x-arc", (gpointer)application_x_arc);
-g_hash_table_insert(mime_table, "application/vnd.lotus-1-2-3", (gpointer)application_vnd_lotus_1_2_3);
-g_hash_table_insert(mime_table, "image/x-win-bitmap", (gpointer)image_x_win_bitmap);
-g_hash_table_insert(mime_table, "application/x-maxis-dbpf", (gpointer)application_x_maxis_dbpf);
-g_hash_table_insert(mime_table, "text/PGP", (gpointer)text_PGP);
-g_hash_table_insert(mime_table, "audio/x-hx-aac-adts", (gpointer)audio_x_hx_aac_adts);
-g_hash_table_insert(mime_table, "application/x-chrome-extension", (gpointer)application_x_chrome_extension);
-g_hash_table_insert(mime_table, "image/heic", (gpointer)image_heic);
-g_hash_table_insert(mime_table, "image/x-gem", (gpointer)image_x_gem);
-g_hash_table_insert(mime_table, "application/x-lzma", (gpointer)application_x_lzma);
-g_hash_table_insert(mime_table, "application/warc", (gpointer)application_warc);
-g_hash_table_insert(mime_table, "application/x-lzip", (gpointer)application_x_lzip);
-g_hash_table_insert(mime_table, "application/x-lzop", (gpointer)application_x_lzop);
 return mime_table;}
 #endif
