@@ -140,6 +140,7 @@ void parse_font(const char *buf, size_t buf_len, document_t *doc) {
     if (ft_lib == NULL) {
         FT_Init_FreeType(&ft_lib);
     }
+
     if (buf == NULL) {
         return;
     }
@@ -169,6 +170,7 @@ void parse_font(const char *buf, size_t buf_len, document_t *doc) {
     APPEND_META(doc, meta_name)
 
     if (ScanCtx.tn_size <= 0) {
+        FT_Done_Face(face);
         return;
     }
 
@@ -178,6 +180,7 @@ void parse_font(const char *buf, size_t buf_len, document_t *doc) {
     err = FT_Set_Pixel_Sizes(face, 0, pixel);
     if (err != 0) {
         LOG_WARNINGF(doc->filepath, "(font.c) FT_Set_Pixel_Sizes() returned error code [%d] %s", err, ft_error_string(err))
+        FT_Done_Face(face);
         return;
     }
 
@@ -223,4 +226,8 @@ void parse_font(const char *buf, size_t buf_len, document_t *doc) {
     free(bitmap);
 
     FT_Done_Face(face);
+}
+
+void cleanup_font() {
+    FT_Done_FreeType(ft_lib);
 }

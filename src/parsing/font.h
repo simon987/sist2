@@ -5,5 +5,6 @@
 
 
 void parse_font(const char * buf, size_t buf_len, document_t *doc);
+void cleanup_font();
 
 #endif
