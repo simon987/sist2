@@ -117,7 +117,11 @@ void *create_bulk_buffer(int max, int *count, size_t *buf_len) {
 }
 
 void *print_errors(response_t *r) {
-    cJSON *ret_json = cJSON_Parse(r->body);
+    char * tmp = malloc(r->size + 1);
+    memcpy(tmp, r->body, r->size);
+    *(tmp + r->size) = '\0';
+
+    cJSON *ret_json = cJSON_Parse(tmp);
     if (cJSON_GetObjectItem(ret_json, "errors")->valueint != 0) {
         cJSON *err;
         cJSON_ArrayForEach(err, cJSON_GetObjectItem(ret_json, "items")) {
@@ -129,6 +133,7 @@ void *print_errors(response_t *r) {
         }
     }
     cJSON_Delete(ret_json);
+    free(tmp);
 }
 
 void _elastic_flush(int max) {
