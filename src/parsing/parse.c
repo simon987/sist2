@@ -37,7 +37,13 @@ void *read_all(parse_job_t *job, const char *buf, int bytes_read) {
 
         int ret = job->vfile.read(&job->vfile, full_buf + bytes_read, job->info.st_size - bytes_read);
         if (ret < 0) {
-            LOG_ERRORF(job->filepath, "read(): [%d] %s", errno, strerror(errno))
+            free(full_buf);
+
+            if (job->vfile.is_fs_file) {
+                LOG_ERRORF(job->filepath, "read(): [%d] %s", errno, strerror(errno))
+            } else {
+                LOG_ERRORF(job->filepath, "(virtual) read(): [%d] %s", ret, archive_error_string(job->vfile.arc))
+            }
             return NULL;
         }
     }
@@ -92,7 +98,13 @@ void parse(void *arg) {
         // Get mime type with libmagic
         bytes_read = job->vfile.read(&job->vfile, buf, PARSE_BUF_SIZE);
         if (bytes_read < 0) {
-            LOG_WARNINGF(job->filepath, "read() Error: %s", strerror(errno))
+
+            if (job->vfile.is_fs_file) {
+                LOG_ERRORF(job->filepath, "read(): [%d] %s", errno, strerror(errno))
+            } else {
+                LOG_ERRORF(job->filepath, "(virtual) read(): [%d] %s", bytes_read, archive_error_string(job->vfile.arc))
+            }
+
             CLOSE_FILE(job->vfile)
             return;
         }
@@ -179,4 +191,10 @@ void parse(void *arg) {
     write_document(&doc);
 
     CLOSE_FILE(job->vfile)
+}
+
+void cleanup_parse() {
+    if (Magic != NULL) {
+        magic_close(Magic);
+    }
 }

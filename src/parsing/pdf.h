@@ -4,6 +4,6 @@
 #include "src/sist.h"
 
 
-void parse_pdf(void *buf, size_t buf_len, document_t *doc);
+void parse_pdf(const void *buf, size_t buf_len, document_t *doc);
 
 #endif

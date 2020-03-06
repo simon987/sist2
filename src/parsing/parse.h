@@ -10,4 +10,6 @@ void fs_close(struct vfile *f);
 
 void parse(void *arg);
 
+void cleanup_parse();
+
 #endif

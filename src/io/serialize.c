@@ -193,6 +193,8 @@ void write_document(document_t *doc) {
 
 void thread_cleanup() {
     close(index_fd);
+    cleanup_parse();
+    cleanup_font();
 }
 
 

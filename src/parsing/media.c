@@ -113,10 +113,13 @@ static AVFrame *read_frame(AVFormatContext *pFormatCtx, AVCodecContext *decoder,
         // Feed it to decoder
         int decode_ret = avcodec_send_packet(decoder, &avPacket);
         if (decode_ret != 0) {
-            LOG_WARNINGF(doc->filepath,
+            LOG_ERRORF(doc->filepath,
                          "(media.c) avcodec_send_packet() returned error code [%d] %s",
                          decode_ret, av_err2str(decode_ret)
             )
+            av_frame_free(&frame);
+            av_packet_unref(&avPacket);
+            return NULL;
         }
         av_packet_unref(&avPacket);
         receive_ret = avcodec_receive_frame(decoder, frame);
@@ -139,7 +142,7 @@ static void append_audio_meta(AVFormatContext *pFormatCtx, document_t *doc) {
 
     AVDictionaryEntry *tag = NULL;
     while ((tag = av_dict_get(pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
-        char key[32];
+        char key[256];
         strncpy(key, tag->key, sizeof(key));
 
         char *ptr = key;
@@ -160,7 +163,8 @@ static void append_audio_meta(AVFormatContext *pFormatCtx, document_t *doc) {
 }
 
 __always_inline
-static void append_video_meta(AVFormatContext *pFormatCtx, AVFrame *frame, document_t *doc, int include_audio_tags, int is_video) {
+static void
+append_video_meta(AVFormatContext *pFormatCtx, AVFrame *frame, document_t *doc, int include_audio_tags, int is_video) {
 
     if (is_video) {
         meta_line_t *meta_duration = malloc(sizeof(meta_line_t));
