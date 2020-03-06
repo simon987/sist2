@@ -119,11 +119,11 @@ void parse(void *arg) {
     } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) ||
                (mmime == MimeImage && doc.size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
 
-//        if (job->vfile.is_fs_file) {
-//            parse_media_filename(job->filepath, &doc);
-//        } else {
-//            parse_media_vfile(&job->vfile, &doc);
-//        }
+        if (job->vfile.is_fs_file) {
+            parse_media_filename(job->filepath, &doc);
+        } else {
+            parse_media_vfile(&job->vfile, &doc);
+        }
 
     } else if (IS_PDF(doc.mime)) {
         void *pdf_buf = read_all(job, (char *) buf, bytes_read);
