@@ -488,7 +488,7 @@ $.jsonPost("es", {
         force_edges: true,
         min: resp["aggregations"]["date_min"]["value"],
         max: resp["aggregations"]["date_max"]["value"],
-        from: 0,
+        from: resp["aggregations"]["date_min"]["value"],
         to: (Date.now() / 1000),
         min_interval: 3600 * 24 * 7,
         step: 3600 * 24,
