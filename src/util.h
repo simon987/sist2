@@ -19,7 +19,7 @@ typedef struct dyn_buffer {
 #include "sist.h"
 
 typedef struct text_buffer {
-    size_t max_size;
+    long max_size;
     int last_char_was_whitespace;
     dyn_buffer_t dyn_buffer;
 } text_buffer_t;
@@ -235,23 +235,42 @@ static void text_buffer_terminate_string(text_buffer_t *buf) {
     }
 }
 
-__always_inline
-static int text_buffer_append_string(text_buffer_t *buf, char *str, size_t len) {
+#define UTF8_END_OF_STRING \
+    (ptr - str >= len || *ptr == 0 || \
+    (0xc0 == (0xe0 & *ptr) && ptr - str > len - 2) || \
+    (0xe0 == (0xf0 & *ptr) && ptr - str > len - 3) || \
+    (0xf0 == (0xf8 & *ptr) && ptr - str > len - 4))
 
-    utf8_int32_t c;
-    if (str == NULL || len < 1 ||
-        (0xf0 == (0xf8 & str[0]) && len < 4) ||
-        (0xe0 == (0xf0 & str[0]) && len < 3) ||
-        (0xc0 == (0xe0 & str[0]) && len == 1) ||
-        *(str) == 0) {
+__always_inline
+static int text_buffer_append_string(text_buffer_t *buf, const char *str, size_t len) {
+
+    char *ptr = str;
+    char *oldPtr = ptr;
+
+    if (str == NULL || UTF8_END_OF_STRING) {
         return 0;
     }
 
-    for (void *v = utf8codepoint(str, &c); c != '\0' && ((char *) v - str + 4) < len; v = utf8codepoint(v, &c)) {
-        if (utf8_validchr2(v)) {
-            text_buffer_append_char(buf, c);
+    utf8_int32_t c;
+    char tmp[4];
+
+    do {
+        ptr = utf8codepoint(ptr, &c);
+        *(int *) tmp = 0x00000000;
+        memcpy(tmp, oldPtr, ptr - oldPtr);
+        oldPtr = ptr;
+
+        if (!utf8_validchr2(tmp)) {
+            continue;
         }
-    }
+
+        int ret = text_buffer_append_char(buf, c);
+
+        if (ret != 0) {
+            return ret;
+        }
+    } while (!UTF8_END_OF_STRING);
+
     return 0;
 }
 
