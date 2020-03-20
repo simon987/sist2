@@ -244,8 +244,8 @@ static void text_buffer_terminate_string(text_buffer_t *buf) {
 __always_inline
 static int text_buffer_append_string(text_buffer_t *buf, const char *str, size_t len) {
 
-    char *ptr = str;
-    char *oldPtr = ptr;
+    const char *ptr = str;
+    const char *oldPtr = ptr;
 
     if (str == NULL || UTF8_END_OF_STRING) {
         return 0;

@@ -70,6 +70,6 @@
 #include "web/serve.h"
 #include "web/auth_basic.h"
 
-;
+
 
 #endif

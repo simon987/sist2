@@ -87,6 +87,7 @@ target_compile_options(
         sist2
         PRIVATE
         -fPIC
+        -Werror
 )
 
 if (SIST_DEBUG)
