@@ -116,7 +116,7 @@ void *create_bulk_buffer(int max, int *count, size_t *buf_len) {
     return buf;
 }
 
-void *print_errors(response_t *r) {
+void print_errors(response_t *r) {
     char * tmp = malloc(r->size + 1);
     memcpy(tmp, r->body, r->size);
     *(tmp + r->size) = '\0';

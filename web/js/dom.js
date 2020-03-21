@@ -447,6 +447,7 @@ function createDocLine(hit) {
     let link = document.createElement("a");
     link.setAttribute("href", "f/" + hit["_id"]);
     link.setAttribute("target", "_blank");
+    link.style.maxWidth = "calc(100% - 1.2rem)";
     link.appendChild(title);
 
     const titleDiv = document.createElement("div");
@@ -463,6 +464,9 @@ function createDocLine(hit) {
     let thumbnail = makeThumbnail(mimeCategory, hit, imgWrapper, true);
     if (thumbnail) {
         media.appendChild(imgWrapper);
+        titleDiv.style.maxWidth = "calc(100% - 64px)";
+    } else {
+        titleDiv.style.maxWidth = "100%";
     }
     media.appendChild(titleDiv);
 
@@ -530,6 +534,14 @@ function makeStatsCard(searchResult) {
     let statsCardBody = document.createElement("div");
     statsCardBody.setAttribute("class", "card-body");
 
+    // Stats
+    let stat = document.createElement("span");
+    const totalHits = searchResult["aggregations"]["total_count"]["value"];
+    stat.appendChild(document.createTextNode(totalHits + " results in " + searchResult["took"] + "ms"));
+
+    statsCardBody.appendChild(stat);
+
+    // Display mode
     const resultMode = document.createElement("div");
     resultMode.setAttribute("class", "btn-group btn-group-toggle");
     resultMode.setAttribute("data-toggle", "buttons");
@@ -537,11 +549,13 @@ function makeStatsCard(searchResult) {
 
     const listMode = document.createElement("label");
     listMode.setAttribute("class", "btn btn-primary");
-    listMode.appendChild(document.createTextNode("List"));
+    listMode.setAttribute("title", "List mode");
+    listMode.innerHTML = '<svg width="20px" height="20px" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M80 368H16a16 16 0 0 0-16 16v64a16 16 0 0 0 16 16h64a16 16 0 0 0 16-16v-64a16 16 0 0 0-16-16zm0-320H16A16 16 0 0 0 0 64v64a16 16 0 0 0 16 16h64a16 16 0 0 0 16-16V64a16 16 0 0 0-16-16zm0 160H16a16 16 0 0 0-16 16v64a16 16 0 0 0 16 16h64a16 16 0 0 0 16-16v-64a16 16 0 0 0-16-16zm416 176H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16zm0-320H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16V80a16 16 0 0 0-16-16zm0 160H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16z"></path></svg>';
 
     const gridMode = document.createElement("label");
     gridMode.setAttribute("class", "btn btn-primary");
-    gridMode.appendChild(document.createTextNode("Grid"));
+    gridMode.setAttribute("title", "Grid mode");
+    gridMode.innerHTML = '<svg width="20px" height="20px" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M149.333 56v80c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V56c0-13.255 10.745-24 24-24h101.333c13.255 0 24 10.745 24 24zm181.334 240v-80c0-13.255-10.745-24-24-24H205.333c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24h101.333c13.256 0 24.001-10.745 24.001-24zm32-240v80c0 13.255 10.745 24 24 24H488c13.255 0 24-10.745 24-24V56c0-13.255-10.745-24-24-24H386.667c-13.255 0-24 10.745-24 24zm-32 80V56c0-13.255-10.745-24-24-24H205.333c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24h101.333c13.256 0 24.001-10.745 24.001-24zm-205.334 56H24c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24h101.333c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24zM0 376v80c0 13.255 10.745 24 24 24h101.333c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H24c-13.255 0-24 10.745-24 24zm386.667-56H488c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H386.667c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24zm0 160H488c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H386.667c-13.255 0-24 10.745-24 24v80c0 13.255 10.745 24 24 24zM181.333 376v80c0 13.255 10.745 24 24 24h101.333c13.255 0 24-10.745 24-24v-80c0-13.255-10.745-24-24-24H205.333c-13.255 0-24 10.745-24 24z"></path></svg>';
 
     resultMode.appendChild(gridMode);
     resultMode.appendChild(listMode);
@@ -553,12 +567,8 @@ function makeStatsCard(searchResult) {
     }
 
     gridMode.addEventListener("click", () => {
-        console.log("what");
-        console.log(CONF.options);
         CONF.options.display = "grid";
-        console.log(CONF.options);
         CONF.save();
-        console.log(CONF.options);
         searchDebounced();
     });
     listMode.addEventListener("click", () => {
@@ -567,12 +577,45 @@ function makeStatsCard(searchResult) {
         searchDebounced();
     });
 
-    let stat = document.createElement("span");
-    const totalHits = searchResult["aggregations"]["total_count"]["value"];
-    stat.appendChild(document.createTextNode(totalHits + " results in " + searchResult["took"] + "ms"));
-
-    statsCardBody.appendChild(stat);
     statsCardBody.appendChild(resultMode);
+
+    // Sort mode
+    const sortMode = document.createElement("div");
+    sortMode.setAttribute("class", "dropdown");
+    sortMode.style.cssFloat = "right";
+    sortMode.style.marginRight = "10px";
+
+    const sortModeBtn = document.createElement("button");
+    sortModeBtn.setAttribute("class", "btn btn-md btn-primary dropdown-toggle");
+    sortModeBtn.setAttribute("id", "sortModeBtn");
+    sortModeBtn.setAttribute("type", "button");
+    sortModeBtn.setAttribute("data-toggle", "dropdown");
+    sortModeBtn.setAttribute("aria-haspopup", "true");
+    sortModeBtn.setAttribute("aria-expanded", "false");
+    sortModeBtn.setAttribute("title", "Sort options");
+    sortModeBtn.innerHTML = '<svg aria-hidden="true" width="20px" height="20px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentColor" d="M41 288h238c21.4 0 32.1 25.9 17 41L177 448c-9.4 9.4-24.6 9.4-33.9 0L24 329c-15.1-15.1-4.4-41 17-41zm255-105L177 64c-9.4-9.4-24.6-9.4-33.9 0L24 183c-15.1 15.1-4.4 41 17 41h238c21.4 0 32.1-25.9 17-41z"></path></svg>';
+
+    const sortModeMenu = document.createElement("div");
+    sortModeMenu.setAttribute("class", "dropdown-menu");
+    sortModeMenu.setAttribute("aria-labelledby", "sortModeBtn");
+
+    Object.keys(SORT_MODES).forEach(mode => {
+        const item = document.createElement("div");
+        item.setAttribute("class", "dropdown-item");
+        item.appendChild(document.createTextNode(SORT_MODES[mode].text));
+        sortModeMenu.appendChild(item);
+
+        item.onclick = function() {
+            CONF.options.sort = mode;
+            CONF.save();
+            searchDebounced();
+        };
+    });
+
+    sortMode.appendChild(sortModeBtn);
+    sortMode.appendChild(sortModeMenu);
+
+    statsCardBody.appendChild(sortMode);
 
     if (totalHits !== 0) {
         let sizeStat = document.createElement("div");
@@ -589,7 +632,7 @@ function makeResultContainer() {
     let resultContainer = document.createElement("div");
 
     if (CONF.options.display === "grid") {
-        resultContainer.setAttribute("class", "card-columns");
+        resultContainer.setAttribute("class", "bricklayer");
     } else {
         resultContainer.setAttribute("class", "list-group");
     }

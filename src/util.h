@@ -114,7 +114,7 @@ static void grow_buffer_small(dyn_buffer_t *buf) {
 }
 
 __always_inline
-static void dyn_buffer_write(dyn_buffer_t *buf, void *data, size_t size) {
+static void dyn_buffer_write(dyn_buffer_t *buf, const void *data, size_t size) {
     grow_buffer(buf, size);
 
     memcpy(buf->buf + buf->cur, data, size);
@@ -251,8 +251,17 @@ static int text_buffer_append_string(text_buffer_t *buf, const char *str, size_t
         return 0;
     }
 
+    if (len <= 4) {
+        for (int i = 0; i < len; i++) {
+            if (((utf8_int32_t)0xffffff80 & str[i]) == 0) {
+                dyn_buffer_write_char(&buf->dyn_buffer, str[i]);
+            }
+        }
+        return 0;
+    }
+
     utf8_int32_t c;
-    char tmp[4];
+    char tmp[16];
 
     do {
         ptr = utf8codepoint(ptr, &c);

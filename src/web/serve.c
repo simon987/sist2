@@ -244,6 +244,16 @@ int search(UNUSED(void *p), onion_request *req, onion_response *res) {
         onion_response_write(res, r->body, r->size);
     } else {
         sist_log("serve.c", SIST_WARNING, "ElasticSearch error during query");
+        if (r->size != 0) {
+            char * tmp = malloc(r->size + 1);
+            memcpy(tmp, r->body, r->size);
+            *(tmp + r->size) = '\0';
+            cJSON *json = cJSON_Parse(tmp);
+            char *json_str = cJSON_Print(json);
+            sist_log("serve.c", SIST_WARNING, json_str);
+            free(json_str);
+            free(tmp);
+        }
         onion_response_set_code(res, HTTP_INTERNAL_ERROR);
     }
 

@@ -14,4 +14,5 @@ def clean(filepath):
 for file in files:
     with open(file, "r") as f:
         data = json.dumps(json.load(f), separators=(",", ":")).encode()
+    data += b'\0'
     print("char %s[%d] = {%s};" % (clean(file), len(data), ",".join(str(int(b)) for b in data)))

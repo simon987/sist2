@@ -37,6 +37,7 @@
     color: #BBB;
     text-overflow: ellipsis;
     overflow: hidden;
+    white-space: nowrap;
 }
 
 a {
@@ -221,23 +222,21 @@ body {
     width: 100%;
 }
 
-@media (min-width: 1200px) {
-    .card-columns {
-        column-count: 4;
-    }
-}
-
-@media (min-width: 1500px) {
+@media screen and (min-width: 1500px) {
     .container {
         max-width: 1440px;
     }
 
-    .card-columns {
-        column-count: 5;
+    .bricklayer-column-sizer {
+        width: 20% !important;
+    }
+
+    .bricklayer-column {
+        max-width: 20%;
     }
 }
 
-@media (min-width: 1800px) {
+@media screen and (min-width: 1800px) {
     .container {
         max-width: 1550px;
     }
@@ -411,7 +410,7 @@ option {
     max-height: 250px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 650px) {
     .media-expanded .fit {
         max-height: none;
     }

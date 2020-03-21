@@ -25,8 +25,48 @@ const CONF = new Settings();
 const _defaults = {
     display: "grid",
     fuzzy: true,
-    highlight: true
+    highlight: true,
+    sort: "score"
 };
+
+SORT_MODES = {
+    score: {
+        text: "Relevance",
+        mode: [
+            {_score: {order: "desc"}},
+            {_tie: {order: "asc"}}
+        ],
+        key: hit => hit["_score"]
+    },
+    date_asc: {
+        text: "Date (Ascending)", mode: [
+            {mtime: {order: "asc"}},
+            {_tie: {order: "asc"}}
+        ],
+        key: hit => hit["_source"]["mtime"]
+    },
+    date_desc: {
+        text: "Date (Descending)", mode: [
+            {mtime: {order: "desc"}},
+            {_tie: {order: "asc"}}
+        ],
+        key: hit => hit["_source"]["mtime"]
+    },
+    size_asc: {
+        text: "Size (Ascending)", mode: [
+            {size: {order: "asc"}},
+            {_tie: {order: "asc"}}
+        ],
+        key: hit => hit["_source"]["size"]
+    },
+    size_desc: {
+        text: "Size (Descending)", mode: [
+            {size: {order: "desc"}},
+            {_tie: {order: "asc"}}
+        ],
+        key: hit => hit["_source"]["size"]
+    },
+}
 
 function Settings() {
     this.options = {};
@@ -254,7 +294,8 @@ function insertHits(resultContainer, hits) {
     for (let i = 0; i < hits.length; i++) {
 
         if (CONF.options.display === "grid") {
-            resultContainer.appendChild(createDocCard(hits[i]));
+            console.log(resultContainer._brick)
+            resultContainer._brick.append(createDocCard(hits[i]));
         } else {
             resultContainer.appendChild(createDocLine(hits[i]));
         }
@@ -371,10 +412,7 @@ function search(after = null) {
                 filter: filters
             }
         },
-        "sort": [
-            {"_score": {"order": "desc"}},
-            {"_tie": {"order": "asc"}}
-        ],
+        "sort": SORT_MODES[CONF.options.sort].mode,
         aggs:
             {
                 total_size: {"sum": {"field": "size"}},
@@ -384,7 +422,7 @@ function search(after = null) {
     };
 
     if (after) {
-        q.search_after = [after["_score"], after["_id"]];
+        q.search_after = [SORT_MODES[CONF.options.sort].key(after), after["_id"]];
     }
 
     if (CONF.options.highlight) {
@@ -418,6 +456,10 @@ function search(after = null) {
         //Setup page
         let resultContainer = makeResultContainer();
         searchResults.appendChild(resultContainer);
+
+        if (CONF.options.display === "grid") {
+            resultContainer._brick = new Bricklayer(resultContainer);
+        }
 
         window.setTimeout(() => {
             $(".sp").SmartPhoto({animationSpeed: 0, swipeTopToClose: true, showAnimation: false, forceInterval: 50});
@@ -622,13 +664,6 @@ function createPathTree(target) {
     });
 
     pathTree.on("node.click", handlePathTreeClick(pathTree));
-
-    const button = document.querySelector("#pathBarHelper")
-    const tooltip = document.querySelector("#pathTreeTooltip")
-    Popper.createPopper(button, tooltip, {
-        trigger: "click",
-        placement: "right",
-    });
 }
 
 function updateSettings() {
