@@ -1,4 +1,4 @@
-rm ./sist2
+rm ./sist2 sist2_debug
 cp ../sist2 ../sist2_debug .
 strip sist2
 
@@ -10,4 +10,4 @@ docker build . -t simon987/sist2:${version} -t simon987/sist2:latest
 docker push simon987/sist2:${version}
 docker push simon987/sist2:latest
 
-docker run --rm -it simon987/sist2 -v
+docker run --rm simon987/sist2 -v

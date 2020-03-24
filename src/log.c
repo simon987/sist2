@@ -31,14 +31,14 @@ void sist_logf(char *filepath, int level, char *format, ...) {
     if (is_tty) {
         log_len = snprintf(
                 log_str, sizeof(log_str),
-                "\033[%dm[%04X]%s [%s] [%s %s] ",
+                "\033[%dm[%04llX]%s [%s] [%s %s] ",
                 31 + ((unsigned int) (pid)) % 7, pid, log_colors[level],
                 datetime, log_levels[level], filepath
         );
     } else {
         log_len = snprintf(
                 log_str, sizeof(log_str),
-                "[%04X] [%s] [%s %s] ",
+                "[%04llX] [%s] [%s %s] ",
                 pid, datetime, log_levels[level], filepath
         );
     }
@@ -56,7 +56,10 @@ void sist_logf(char *filepath, int level, char *format, ...) {
         log_len += 1;
     }
 
-    write(STDERR_FILENO, log_str, log_len);
+    int ret = write(STDERR_FILENO, log_str, log_len);
+    if (ret == -1) {
+        LOG_FATALF("serialize.c", "Could not write index descriptor: %s", strerror(errno));
+    }
 }
 
 void sist_log(char *filepath, int level, char *str) {
@@ -81,7 +84,7 @@ void sist_log(char *filepath, int level, char *str) {
     if (is_tty) {
         log_len = snprintf(
                 log_str, sizeof(log_str),
-                "\033[%dm[%04X]%s [%s] [%s %s] %s \033[0m\n",
+                "\033[%dm[%04llX]%s [%s] [%s %s] %s \033[0m\n",
                 31 + ((unsigned int) (pid)) % 7, pid, log_colors[level],
                 datetime, log_levels[level], filepath,
                 str
@@ -89,11 +92,14 @@ void sist_log(char *filepath, int level, char *str) {
     } else {
         log_len = snprintf(
                 log_str, sizeof(log_str),
-                "[%04X] [%s] [%s %s] %s \n",
+                "[%04llX] [%s] [%s %s] %s \n",
                 pid, datetime, log_levels[level], filepath,
                 str
         );
     }
 
-    write(STDERR_FILENO, log_str, log_len);
+    int ret = write(STDERR_FILENO, log_str, log_len);
+    if (ret == -1) {
+        LOG_FATALF("serialize.c", "Could not write index descriptor: %s", strerror(errno));
+    }
 }

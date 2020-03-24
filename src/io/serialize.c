@@ -40,10 +40,13 @@ void write_index_descriptor(char *path, index_descriptor_t *desc) {
 
     int fd = open(path, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
     if (fd < 0) {
-        LOG_FATALF("serialize.c", "Could not write index descriptor: %s", strerror(errno));
+        LOG_FATALF("serialize.c", "Could not open index descriptor: %s", strerror(errno));
     }
     char *str = cJSON_Print(json);
-    write(fd, str, strlen(str));
+    int ret = write(fd, str, strlen(str));
+    if (ret == -1) {
+        LOG_FATALF("serialize.c", "Could not write index descriptor: %s", strerror(errno));
+    }
     free(str);
     close(fd);
 
@@ -61,7 +64,10 @@ index_descriptor_t read_index_descriptor(char *path) {
     }
 
     char *buf = malloc(info.st_size + 1);
-    read(fd, buf, info.st_size);
+    int ret = read(fd, buf, info.st_size);
+    if (ret == -1) {
+        LOG_FATALF("serialize.c", "Could not read index descriptor: %s", strerror(errno));
+    }
     *(buf + info.st_size) = '\0';
     close(fd);
 
@@ -205,8 +211,8 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
     FILE *file = fopen(path, "rb");
     while (1) {
         buf.cur = 0;
-        fread((void *) &line, 1, sizeof(line_t), file);
-        if (feof(file)) {
+        size_t read = fread((void *) &line, 1, sizeof(line_t), file);
+        if (read != 1 || feof(file)) {
             break;
         }
 
@@ -246,26 +252,27 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
         }
 
         enum metakey key = getc(file);
+        size_t ret = 0;
         while (key != '\n') {
             switch (key) {
                 case MetaWidth:
                 case MetaHeight: {
                     int value;
-                    fread(&value, sizeof(int), 1, file);
+                    ret = fread(&value, sizeof(int), 1, file);
                     cJSON_AddNumberToObject(document, get_meta_key_text(key), value);
                     break;
                 }
                 case MetaMediaDuration:
                 case MetaMediaBitrate: {
                     long value;
-                    fread(&value, sizeof(long), 1, file);
+                    ret = fread(&value, sizeof(long), 1, file);
                     cJSON_AddNumberToObject(document, get_meta_key_text(key), (double) value);
                     break;
                 }
                 case MetaMediaAudioCodec:
                 case MetaMediaVideoCodec: {
                     int value;
-                    fread(&value, sizeof(int), 1, file);
+                    ret = fread(&value, sizeof(int), 1, file);
                     const AVCodecDescriptor *desc = avcodec_descriptor_get(value);
                     if (desc != NULL) {
                         cJSON_AddStringToObject(document, get_meta_key_text(key), desc->name);
@@ -302,6 +309,10 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
                 }
                 default:
                 LOG_FATALF("serialize.c", "Invalid meta key (corrupt index): %x", key)
+            }
+
+            if (ret != 1) {
+                break;
             }
 
             key = getc(file);
@@ -402,8 +413,8 @@ void incremental_read(GHashTable *table, const char *filepath) {
     line_t line;
 
     while (1) {
-        fread((void *) &line, 1, sizeof(line_t), file);
-        if (feof(file)) {
+        size_t ret = fread((void *) &line, 1, sizeof(line_t), file);
+        if (ret != 1 || feof(file)) {
             break;
         }
 
@@ -426,8 +437,8 @@ void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
     line_t line;
 
     while (1) {
-        fread((void *) &line, 1, sizeof(line_t), file);
-        if (feof(file)) {
+        size_t ret = fread((void *) &line, 1, sizeof(line_t), file);
+        if (ret != 1 || feof(file)) {
             break;
         }
 
@@ -455,17 +466,21 @@ void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
 
                 if (IS_META_INT(key)) {
                     int val;
-                    fread(&val, sizeof(val), 1, file);
+                    ret = fread(&val, sizeof(val), 1, file);
                     fwrite(&val, sizeof(val), 1, dst_file);
                 } else if (IS_META_LONG(key)) {
                     long val;
-                    fread(&val, sizeof(val), 1, file);
+                    ret = fread(&val, sizeof(val), 1, file);
                     fwrite(&val, sizeof(val), 1, dst_file);
                 } else {
                     while ((c = (char) getc(file))) {
                         fwrite(&c, sizeof(c), 1, dst_file);
                     }
                     fwrite("\0", sizeof(c), 1, dst_file);
+                }
+
+                if (ret != 1) {
+                    break;
                 }
             }
         } else {
