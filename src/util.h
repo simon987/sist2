@@ -304,7 +304,7 @@ static int incremental_get(GHashTable *table, unsigned long inode_no) {
 
 __always_inline
 static int incremental_mark_file_for_copy(GHashTable *table, unsigned long inode_no) {
-    g_hash_table_insert(table, GINT_TO_POINTER(inode_no), GINT_TO_POINTER(1));
+    return g_hash_table_insert(table, GINT_TO_POINTER(inode_no), GINT_TO_POINTER(1));
 }
 
 

@@ -58,6 +58,7 @@ int extract_text(xmlDoc *xml, xmlNode *node, text_buffer_t *buf) {
 
         extract_text(xml, child->children, buf);
     }
+    return 0;
 }
 
 int xml_io_read(void *context, char *buffer, int len) {
