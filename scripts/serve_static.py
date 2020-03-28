@@ -1,10 +1,10 @@
 files = [
-    "web/css/bundle.css",
-    "web/css/bundle_dark.css",
-    "web/js/bundle.js",
-    "web/img/sprite-skin-flat.png",
-    "web/img/sprite-skin-flat-dark.png",
-    "web/search.html",
+    "src/static/css/bundle.css",
+    "src/static/css/bundle_dark.css",
+    "src/static/js/bundle.js",
+    "src/static/img/sprite-skin-flat.png",
+    "src/static/img/sprite-skin-flat-dark.png",
+    "src/static/search.html",
 ]
 
 

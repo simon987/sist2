@@ -1,45 +1,15 @@
 [submodule "argparse"]
-	path = argparse
+	path = third-party/argparse
 	url = https://github.com/cofyc/argparse
 [submodule "cJSON"]
-	path = cJSON
+	path = third-party/cJSON
 	url = https://github.com/DaveGamble/cJSON
-[submodule "lmdb"]
-	path = lmdb
-	url = https://github.com/LMDB/lmdb
-[submodule "utf8.h"]
-	path = utf8.h
-	url = https://github.com/sheredom/utf8.h
-[submodule "lib/bzip2-1.0.6"]
-	path = lib/bzip2-1.0.6
-	url = https://github.com/enthought/bzip2-1.0.6
-[submodule "lib/libmagic"]
-	path = lib/libmagic
-	url = https://github.com/threatstack/libmagic
-[submodule "lib/harfbuzz"]
-	path = lib/harfbuzz
-	url = https://github.com/harfbuzz/harfbuzz
-[submodule "lib/openjpeg"]
-	path = lib/openjpeg
-	url = https://github.com/uclouvain/openjpeg
-[submodule "lib/ffmpeg"]
-	path = lib/ffmpeg
-	url = https://git.ffmpeg.org/ffmpeg.git
 [submodule "lib/onion"]
-	path = lib/onion
+	path = third-party/onion
 	url = https://github.com/davidmoreno/onion
-[submodule "lib/mupdf"]
-	path = lib/mupdf
-	url = git://git.ghostscript.com/mupdf.git
-[submodule "lib/tesseract"]
-	path = lib/tesseract
-	url = https://github.com/tesseract-ocr/tesseract
-[submodule "lib/leptonica"]
-	path = lib/leptonica
-	url = https://github.com/danbloomberg/leptonica
-[submodule "lib/libtiff"]
-	path = lib/libtiff
-	url = https://gitlab.com/libtiff/libtiff
-[submodule "lib/libpng"]
-	path = lib/libpng
-	url = https://github.com/glennrp/libpng
+[submodule "third-party/libscan"]
+	path = third-party/libscan
+	url = https://github.com/simon987/libscan
+[submodule "third-party/utf8.h"]
+	path = third-party/utf8.h
+	url = https://github.com/sheredom/utf8.h

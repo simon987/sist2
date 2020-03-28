@@ -1,5 +1,8 @@
 #include "walk.h"
 #include "src/ctx.h"
+#include "src/parsing/parse.h"
+
+#include <ftw.h>
 
 __always_inline
 parse_job_t *create_fs_parse_job(const char *filepath, const struct stat *info, int base) {

@@ -1,75 +1,51 @@
 #ifndef SIST_H
 #define SIST_H
 
+#ifndef	FALSE
+#define	FALSE	(0)
+#define BOOL int
+#endif
+
+#ifndef	TRUE
+#define	TRUE	(!FALSE)
+#endif
+
+#undef	MAX
+#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
+
+#undef	MIN
+#define MIN(a, b)  (((a) < (b)) ? (a) : (b))
+
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
+
+#undef ABS
+#define ABS(a)	   (((a) < 0) ? -(a) : (a))
+
 #define UUID_STR_LEN 37
 #define UNUSED(x) __attribute__((__unused__))  x
 
-#include <glib-2.0/glib.h>
-#include <unistd.h>
+#include "util.h"
+#include "log.h"
+#include "types.h"
+
+#include "libscan/scan.h"
+
+#include <cjson/cJSON.h>
+
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <stdarg.h>
+
+#include <unistd.h>
 #include <fcntl.h>
-#include <ftw.h>
-#include <uuid.h>
-#include <magic.h>
-#include "libavformat/avformat.h"
-#include "libswscale/swscale.h"
-#include "libswresample/swresample.h"
-#include "libavcodec/avcodec.h"
-#include "libavutil/imgutils.h"
-#include <ctype.h>
-#include <mupdf/fitz.h>
-#include <mupdf/pdf.h>
-#include "argparse/argparse.h"
-#include <time.h>
-#include <limits.h>
-#include <pthread.h>
+#include <dirent.h>
 #include <sys/stat.h>
-#include <wordexp.h>
-#include "ft2build.h"
-#include "freetype/freetype.h"
-#include <archive.h>
-#include <archive_entry.h>
-#include <libxml/xmlstring.h>
-#include <libxml/parser.h>
-#define BOOL int
-#include <tesseract/capi.h>
-#include <pcre.h>
-
-#include <onion/onion.h>
-#include <onion/handler.h>
-#include <onion/block.h>
-#include <onion/shortcuts.h>
-#include <onion/codecs.h>
-#include <curl/curl.h>
-
-#include "cJSON/cJSON.h"
-
-#include "types.h"
-#include "tpool.h"
-#include "utf8.h/utf8.h"
-#include "util.h"
-#include "io/store.h"
-#include "io/serialize.h"
-#include "io/walk.h"
-#include "parsing/parse.h"
-#include "parsing/mime.h"
-#include "parsing/text.h"
-#include "parsing/pdf.h"
-#include "parsing/media.h"
-#include "parsing/font.h"
-#include "parsing/arc.h"
-#include "parsing/doc.h"
-#include "parsing/cbr.h"
-#include "cli.h"
-#include "log.h"
-
-#include "src/index/elastic.h"
-#include "index/web.h"
-#include "web/serve.h"
-#include "web/auth_basic.h"
-
+#include <sys/types.h>
+#include <errno.h>
+#include <ctype.h>
 
 
 #endif

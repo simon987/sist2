@@ -2,7 +2,13 @@
 #define SIST2_CTX_H
 
 #include "sist.h"
+#include "tpool.h"
+#include "libscan/scan.h"
 
+#include <glib.h>
+#include <pcre.h>
+
+//TODO Move to individual scan ctx
 struct {
     struct index_t index;
 
@@ -34,17 +40,20 @@ struct {
     int fast;
 } ScanCtx;
 
+//TODO Move to log.h
 struct {
     int verbose;
     int very_verbose;
     int no_color;
 } LogCtx;
 
+//TODO Move to index.h ?
 struct {
     char *es_url;
     int batch_size;
 } IndexCtx;
 
+//TODO Move to serve.h ?
 struct {
     char *es_url;
     int index_count;

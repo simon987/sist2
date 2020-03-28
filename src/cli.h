@@ -3,6 +3,8 @@
 
 #include "sist.h"
 
+#include "libscan/scan.h"
+
 typedef struct scan_args {
     float quality;
     int size;

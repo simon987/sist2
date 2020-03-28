@@ -1,6 +1,20 @@
 #include "sist.h"
 #include "ctx.h"
 
+#include <third-party/argparse/argparse.h>
+#include <uuid/uuid.h>
+#include <glib.h>
+
+#include "cli.h"
+#include "io/serialize.h"
+#include "io/store.h"
+#include "tpool.h"
+#include "io/walk.h"
+#include "io/walk.h"
+#include "index/elastic.h"
+#include "web/serve.h"
+#include "parsing/mime.h"
+
 #define DESCRIPTION "Lightning-fast file system indexer and search tool."
 
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
@@ -15,8 +29,8 @@ static const char *const usage[] = {
 };
 
 void global_init() {
-    curl_global_init(CURL_GLOBAL_NOTHING);
-    av_log_set_level(AV_LOG_QUIET);
+    //TODO
+//    curl_global_init(CURL_GLOBAL_NOTHING);
 }
 
 void init_dir(const char *dirpath) {
@@ -58,8 +72,6 @@ void sist2_scan(scan_args_t *args) {
 
     ScanCtx.mime_table = mime_get_mime_table();
     ScanCtx.ext_table = mime_get_ext_table();
-
-    cbr_init();
 
     char store_path[PATH_MAX];
     snprintf(store_path, PATH_MAX, "%sthumbs", ScanCtx.index.path);

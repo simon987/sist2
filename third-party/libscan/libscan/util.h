@@ -1,13 +1,13 @@
-#ifndef SIST2_UTIL_H
-#define SIST2_UTIL_H
+#ifndef SCAN_UTIL_H
+#define SCAN_UTIL_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
+#include "../third-party/utf8.h/utf8.h"
+#include "macros.h"
 
-#include <glib.h>
-
-#include "third-party/utf8.h/utf8.h"
+#define STR_STARTS_WITH(x, y) (strncmp(y, x, sizeof(y) - 1) == 0)
 
 #define TEXT_BUF_FULL -1
 #define INITIAL_BUF_SIZE 1024 * 16
@@ -22,25 +22,12 @@ typedef struct dyn_buffer {
     size_t size;
 } dyn_buffer_t;
 
-#include "sist.h"
-
 typedef struct text_buffer {
     long max_size;
     int last_char_was_whitespace;
     dyn_buffer_t dyn_buffer;
 } text_buffer_t;
 
-char *abspath(const char *path);
-
-char *expandpath(const char *path);
-
-dyn_buffer_t url_escape(char *str);
-
-void progress_bar_print(double percentage, size_t tn_size, size_t index_size);
-
-GHashTable *incremental_get_table();
-
-__always_inline
 static int utf8_validchr2(const char *s) {
     if (0x00 == (0x80 & *s)) {
         return TRUE;
@@ -89,7 +76,6 @@ static int utf8_validchr2(const char *s) {
 }
 
 
-__always_inline
 static dyn_buffer_t dyn_buffer_create() {
     dyn_buffer_t buf;
 
@@ -100,7 +86,6 @@ static dyn_buffer_t dyn_buffer_create() {
     return buf;
 }
 
-__always_inline
 static void grow_buffer(dyn_buffer_t *buf, size_t size) {
     if (buf->cur + size > buf->size) {
         do {
@@ -111,7 +96,6 @@ static void grow_buffer(dyn_buffer_t *buf, size_t size) {
     }
 }
 
-__always_inline
 static void grow_buffer_small(dyn_buffer_t *buf) {
     if (buf->cur + sizeof(long) > buf->size) {
         buf->size *= 2;
@@ -119,7 +103,6 @@ static void grow_buffer_small(dyn_buffer_t *buf) {
     }
 }
 
-__always_inline
 static void dyn_buffer_write(dyn_buffer_t *buf, const void *data, size_t size) {
     grow_buffer(buf, size);
 
@@ -127,7 +110,6 @@ static void dyn_buffer_write(dyn_buffer_t *buf, const void *data, size_t size) {
     buf->cur += size;
 }
 
-__always_inline
 static void dyn_buffer_write_char(dyn_buffer_t *buf, char c) {
     grow_buffer_small(buf);
 
@@ -135,18 +117,15 @@ static void dyn_buffer_write_char(dyn_buffer_t *buf, char c) {
     buf->cur += sizeof(c);
 }
 
-__always_inline
 static void dyn_buffer_write_str(dyn_buffer_t *buf, char *str) {
     dyn_buffer_write(buf, str, strlen(str));
     dyn_buffer_write_char(buf, '\0');
 }
 
-__always_inline
 static void dyn_buffer_append_string(dyn_buffer_t *buf, char *str) {
     dyn_buffer_write(buf, str, strlen(str));
 }
 
-__always_inline
 static void dyn_buffer_write_int(dyn_buffer_t *buf, int d) {
     grow_buffer_small(buf);
 
@@ -154,7 +133,6 @@ static void dyn_buffer_write_int(dyn_buffer_t *buf, int d) {
     buf->cur += sizeof(int);
 }
 
-__always_inline
 static void dyn_buffer_write_short(dyn_buffer_t *buf, short s) {
     grow_buffer_small(buf);
 
@@ -162,7 +140,6 @@ static void dyn_buffer_write_short(dyn_buffer_t *buf, short s) {
     buf->cur += sizeof(short);
 }
 
-__always_inline
 static void dyn_buffer_write_long(dyn_buffer_t *buf, unsigned long l) {
     grow_buffer_small(buf);
 
@@ -170,18 +147,15 @@ static void dyn_buffer_write_long(dyn_buffer_t *buf, unsigned long l) {
     buf->cur += sizeof(unsigned long);
 }
 
-__always_inline
 static void dyn_buffer_destroy(dyn_buffer_t *buf) {
     free(buf->buf);
 }
 
-__always_inline
 static void text_buffer_destroy(text_buffer_t *buf) {
     dyn_buffer_destroy(&buf->dyn_buffer);
 }
 
-__always_inline
-static text_buffer_t text_buffer_create(int max_size) {
+static text_buffer_t text_buffer_create(long max_size) {
     text_buffer_t text_buf;
 
     text_buf.dyn_buffer = dyn_buffer_create();
@@ -191,7 +165,6 @@ static text_buffer_t text_buffer_create(int max_size) {
     return text_buf;
 }
 
-__always_inline
 static int text_buffer_append_char(text_buffer_t *buf, int c) {
 
     if (SHOULD_IGNORE_CHAR(c) || c == ' ') {
@@ -207,12 +180,12 @@ static int text_buffer_append_char(text_buffer_t *buf, int c) {
         buf->last_char_was_whitespace = FALSE;
         grow_buffer_small(&buf->dyn_buffer);
 
-        if (0 == ((utf8_int32_t) 0xffffff80 & c)) {
+        if (((utf8_int32_t) 0xffffff80 & c) == 0) {
             *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = (char) c;
-        } else if (0 == ((utf8_int32_t) 0xfffff800 & c)) {
+        } else if (((utf8_int32_t) 0xfffff800 & c) == 0) {
             *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0xc0 | (char) (c >> 6);
             *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0x80 | (char) (c & 0x3f);
-        } else if (0 == ((utf8_int32_t) 0xffff0000 & c)) {
+        } else if (((utf8_int32_t) 0xffff0000 & c) == 0) {
             *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0xe0 | (char) (c >> 12);
             *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0x80 | (char) ((c >> 6) & 0x3f);
             *(buf->dyn_buffer.buf + buf->dyn_buffer.cur++) = 0x80 | (char) (c & 0x3f);
@@ -232,7 +205,6 @@ static int text_buffer_append_char(text_buffer_t *buf, int c) {
 }
 
 
-__always_inline
 static void text_buffer_terminate_string(text_buffer_t *buf) {
     if (buf->dyn_buffer.cur > 0 && *(buf->dyn_buffer.buf + buf->dyn_buffer.cur - 1) == ' ') {
         *(buf->dyn_buffer.buf + buf->dyn_buffer.cur - 1) = '\0';
@@ -247,7 +219,6 @@ static void text_buffer_terminate_string(text_buffer_t *buf) {
     (0xe0 == (0xf0 & *ptr) && ptr - str > len - 3) || \
     (0xf0 == (0xf8 & *ptr) && ptr - str > len - 4))
 
-__always_inline
 static int text_buffer_append_string(text_buffer_t *buf, const char *str, size_t len) {
 
     const char *ptr = str;
@@ -289,31 +260,17 @@ static int text_buffer_append_string(text_buffer_t *buf, const char *str, size_t
     return 0;
 }
 
-__always_inline
 static int text_buffer_append_string0(text_buffer_t *buf, char *str) {
     return text_buffer_append_string(buf, str, strlen(str));
 }
 
-__always_inline
-static void incremental_put(GHashTable *table, unsigned long inode_no, int mtime) {
-    g_hash_table_insert(table, (gpointer) inode_no, GINT_TO_POINTER(mtime));
+static void* read_all(vfile_t *f, size_t *size) {
+    void* buf = malloc(f->info.st_size);
+    *size = f->read(f, buf, f->info.st_size);
+
+    //TODO: log
+
+    return buf;
 }
-
-__always_inline
-static int incremental_get(GHashTable *table, unsigned long inode_no) {
-    if (table != NULL) {
-        return GPOINTER_TO_INT(g_hash_table_lookup(table, (gpointer) inode_no));
-    } else {
-        return 0;
-    }
-}
-
-__always_inline
-static int incremental_mark_file_for_copy(GHashTable *table, unsigned long inode_no) {
-    return g_hash_table_insert(table, GINT_TO_POINTER(inode_no), GINT_TO_POINTER(1));
-}
-
-
-const char *find_file_in_paths(const char **paths, const char *filename);
 
 #endif

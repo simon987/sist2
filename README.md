@@ -8,7 +8,7 @@ sist2 (Simple incremental search tool)
 
 *Warning: sist2 is in early development*
 
-![sist2.png](sist2.png)
+![sist2.png](DOCS/sist2.png)
 
 ## Features
 
@@ -49,7 +49,7 @@ sist2 (Simple incremental search tool)
     1. *(or)* Download a [development snapshot](https://files.simon987.net/artifacts/Sist2/Build/) *(Not recommended!)*
     1. *(or)* `docker pull simon987/sist2:latest`
 
-1. See [Usage guide](USAGE.md)
+1. See [Usage guide](DOCS/USAGE.md)
    
 
 \* *Windows users*: **sist2** runs under [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux)    
@@ -57,7 +57,7 @@ sist2 (Simple incremental search tool)
 
 ## Example usage
 
-See [Usage guide](USAGE.md) for more details
+See [Usage guide](DOCS/USAGE.md) for more details
 
 1. Scan a directory: `sist2 scan ~/Documents -o ./docs_idx`
 1. Push index to Elasticsearch: `sist2 index ./docs_idx`
@@ -117,13 +117,8 @@ binaries.
 
 1. Install compile-time dependencies
 
-    *(Debian)*
-    ```bash
-    apt install git cmake pkg-config libglib2.0-dev \
-        libssl-dev uuid-dev python3 libmagic-dev libfreetype6-dev \
-        libcurl4-openssl-dev libbz2-dev yasm libharfbuzz-dev ragel \
-        libarchive-dev libtiff5 libpng16-16 libpango1.0-dev \
-        libxml2-dev libopenjp2-7-dev libleptonica-dev
+   ```bash
+   vcpkg install lmdb 
    ```
 
 2. Build

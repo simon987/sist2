@@ -1,7 +1,7 @@
 #ifndef SIST2_MIME_H
 #define SIST2_MIME_H
 
-#include "src/sist.h"
+#include "../sist.h"
 
 #define MAJOR_MIME(mime_id) (mime_id & 0x0FFF0000) >> 16
 

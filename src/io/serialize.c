@@ -1,5 +1,7 @@
 #include "src/ctx.h"
 #include "serialize.h"
+#include "src/parsing/parse.h"
+#include "src/parsing/mime.h"
 
 static __thread int index_fd = -1;
 
@@ -176,11 +178,11 @@ void write_document(document_t *doc) {
         dyn_buffer_write_char(&buf, meta->key);
 
         if (IS_META_INT(meta->key)) {
-            dyn_buffer_write_int(&buf, meta->intval);
+            dyn_buffer_write_int(&buf, meta->int_val);
         } else if (IS_META_LONG(meta->key)) {
-            dyn_buffer_write_long(&buf, meta->longval);
+            dyn_buffer_write_long(&buf, meta->long_val);
         } else {
-            dyn_buffer_write_str(&buf, meta->strval);
+            dyn_buffer_write_str(&buf, meta->str_val);
         }
 
         meta_line_t *tmp = meta;
@@ -200,7 +202,6 @@ void write_document(document_t *doc) {
 void thread_cleanup() {
     close(index_fd);
     cleanup_parse();
-    cleanup_font();
 }
 
 
@@ -270,16 +271,7 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
                     break;
                 }
                 case MetaMediaAudioCodec:
-                case MetaMediaVideoCodec: {
-                    int value;
-                    ret = fread(&value, sizeof(int), 1, file);
-                    const AVCodecDescriptor *desc = avcodec_descriptor_get(value);
-                    if (desc != NULL) {
-                        cJSON_AddStringToObject(document, get_meta_key_text(key), desc->name);
-                    }
-                    break;
-                }
-
+                case MetaMediaVideoCodec:
                 case MetaContent:
                 case MetaArtist:
                 case MetaAlbum:

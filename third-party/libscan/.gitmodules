@@ -1,0 +1,12 @@
+[submodule "third-party/uuid"]
+	path = third-party/uuid
+	url = https://github.com/certik/uuid
+[submodule "third-party/utf8.h"]
+	path = third-party/utf8.h
+	url = https://github.com/sheredom/utf8.h
+[submodule "third-party/libarchive"]
+	path = third-party/libarchive
+	url = https://github.com/libarchive/libarchive
+[submodule "third-party/zlib"]
+	path = third-party/zlib
+	url = https://github.com/madler/zlib
