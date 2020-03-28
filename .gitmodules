@@ -1,10 +1,4 @@
-[submodule "argparse"]
-	path = third-party/argparse
-	url = https://github.com/cofyc/argparse
-[submodule "cJSON"]
-	path = third-party/cJSON
-	url = https://github.com/DaveGamble/cJSON
-[submodule "lib/onion"]
+[submodule "third-party/onion"]
 	path = third-party/onion
 	url = https://github.com/davidmoreno/onion
 [submodule "third-party/libscan"]
@@ -13,3 +7,6 @@
 [submodule "third-party/utf8.h"]
 	path = third-party/utf8.h
 	url = https://github.com/sheredom/utf8.h
+[submodule "third-party/argparse"]
+	path = third-party/argparse
+	url = https://github.com/cofyc/argparse
