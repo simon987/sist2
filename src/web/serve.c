@@ -116,41 +116,45 @@ int img_sprite_skin_flat(struct mg_connection *nc, struct http_message *hm) {
     nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-int thumbnail(void *p, onion_request *req, onion_response *res) {
-    int flags = onion_request_get_flags(req);
-    if ((flags & OR_METHODS) != OR_GET) {
-        return OCS_NOT_PROCESSED;
-    }
-    const char *arg_index = onion_request_get_query(req, "1");
-    const char *arg_uuid = onion_request_get_query(req, "2");
+void thumbnail(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
-    if (arg_uuid == NULL || arg_index == NULL) {
-        return OCS_NOT_PROCESSED;
+    if (path->len != UUID_STR_LEN * 2 + 2) {
+        LOG_DEBUGF("serve.c", "Invalid thumnail path: %.*s", (int) path->len, path->p);
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
     }
+
+    char arg_uuid[UUID_STR_LEN];
+    char arg_index[UUID_STR_LEN];
+
+    memcpy(arg_index, hm->uri.p + 3, UUID_STR_LEN);
+    *(arg_index + UUID_STR_LEN - 1) = '\0';
+    memcpy(arg_uuid, hm->uri.p + 3 + UUID_STR_LEN, UUID_STR_LEN);
+    *(arg_uuid + UUID_STR_LEN - 1) = '\0';
 
     uuid_t uuid;
-    uuid_parse(arg_uuid, uuid);
-
-    store_t *store = get_store(arg_index);
-
-    if (store == NULL) {
-        return OCS_NOT_PROCESSED;
+    int ret = uuid_parse(arg_uuid, uuid);
+    if (ret != 0) {
+        LOG_DEBUGF("serve.c", "Invalid thumbnail UUID: %s", arg_uuid);
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
     }
 
-//    set_default_headers(res);
-    onion_response_set_header(res, "Content-Type", "image/jpeg");
+    store_t *store = get_store(arg_index);
+    if (store == NULL) {
+        LOG_DEBUGF("serve.c", "Could not get store for index: %s", arg_index);
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
+    }
 
     size_t data_len = 0;
     char *data = store_read(store, (char *) uuid, sizeof(uuid_t), &data_len);
-    onion_response_set_length(res, data_len);
-    int written = onion_response_write(res, data, data_len);
-    onion_response_flush(res);
-    if (written != data_len || data_len == 0) {
-        LOG_DEBUG("serve.c", "Couldn't write thumbnail");
+    if (data_len != 0) {
+        send_response_line(nc, 200, data_len, "Content-Type: image/jpeg");
+        mg_send(nc, data, data_len);
+        free(data);
     }
-    free(data);
-
-    return OCS_PROCESSED;
+    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
 /**
@@ -374,6 +378,7 @@ void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path
 
     if (path->len != UUID_STR_LEN + 2) {
         LOG_DEBUGF("serve.c", "Invalid file path: %.*s", (int) path->len, path->p);
+        nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
 
@@ -392,7 +397,7 @@ void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path
         index_id = cJSON_GetObjectItem(source, "index");
         if (index_id == NULL) {
             cJSON_Delete(doc);
-//            return OCS_NOT_PROCESSED;
+            nc->flags |= MG_F_SEND_AND_CLOSE;
             return;
         }
         cJSON *parent = cJSON_GetObjectItem(source, "parent");
@@ -406,21 +411,20 @@ void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path
 
     if (idx == NULL) {
         cJSON_Delete(doc);
-//        return OCS_NOT_PROCESSED;
+        nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
 
     if (strlen(idx->desc.rewrite_url) == 0) {
         serve_file_from_disk(source, idx, nc, hm);
     } else {
+        //TODO:
 //        serve_file_from_url(source, idx, nc, hm);
     }
     cJSON_Delete(doc);
 }
 
 int status(UNUSED(void *p), UNUSED(onion_request *req), onion_response *res) {
-//    set_default_headers(res);
-
     onion_response_set_header(res, "Content-Type", "application/x-empty");
 
     char *status = elastic_get_status();
@@ -470,10 +474,13 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
             index_info(nc);
         } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/f/")))) {
             file(nc, hm, &path);
+        } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/t/")))) {
+            thumbnail(nc, hm, &path);
+        } else {
+
             nc->flags |= MG_F_SEND_AND_CLOSE;
         }
 
-//        nc->flags |= MG_F_SEND_AND_CLOSE;
 
     } else if (ev == MG_EV_POLL) {
         if (nc->user_data != NULL) {

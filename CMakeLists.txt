@@ -96,6 +96,7 @@ add_dependencies(
 target_link_libraries(
         sist2
 
+        z
         lmdb
         cjson
         argparse
@@ -109,6 +110,13 @@ target_link_libraries(
         uuid
         pthread
         magic
+
+        # TODO: compile ffmpeg with those disabled?
+        va
+        va-drm
+        va-x11
+        X11
+        vdpau
 
         scan
 )

@@ -7,6 +7,7 @@
 #include "src/io/serialize.h"
 
 #include <magic.h>
+#include <src/ctx.h>
 
 __thread magic_t Magic = NULL;
 
@@ -111,7 +112,12 @@ void parse(void *arg) {
     } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) ||
                (mmime == MimeImage && doc.size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
 
-//        parse_media(&job->vfile, &doc);
+        scan_media_ctx_t media_ctx;
+        media_ctx.tn_qscale = ScanCtx.tn_qscale;
+        media_ctx.tn_size = ScanCtx.tn_size;
+        media_ctx.content_size = ScanCtx.content_size;
+
+        parse_media(&media_ctx, &job->vfile, &doc);
 
     } else if (IS_PDF(doc.mime)) {
 //        parse_ebook(pdf_buf, doc.size, &doc);
