@@ -118,7 +118,7 @@ binaries.
 1. Install compile-time dependencies
 
    ```bash
-   vcpkg install lmdb 
+   vcpkg install lmdb cjson glib
    ```
 
 2. Build

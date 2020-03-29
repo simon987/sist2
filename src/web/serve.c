@@ -1,8 +1,18 @@
 #include "serve.h"
-#include <src/ctx.h>
-#include <onion/types_internal.h>
 
+#include "src/sist.h"
+#include "src/io/store.h"
 #include "static_generated.c"
+#include "src/index/elastic.h"
+#include "src/index/web.h"
+#include "src/web/auth_basic.h"
+
+#include <src/ctx.h>
+
+#include <onion/onion.h>
+#include <onion/handler.h>
+#include <onion/block.h>
+#include <onion/shortcuts.h>
 
 #define CHUNK_SIZE 1024 * 1024 * 10
 

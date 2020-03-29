@@ -1,6 +1,8 @@
 #include "elastic.h"
 #include "src/ctx.h"
 
+#include "web.h"
+
 #include "static_generated.c"
 
 

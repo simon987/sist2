@@ -111,28 +111,28 @@ void parse(void *arg) {
     } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) ||
                (mmime == MimeImage && doc.size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
 
-        parse_media(&job->vfile, &doc);
+//        parse_media(&job->vfile, &doc);
 
     } else if (IS_PDF(doc.mime)) {
-        parse_ebook(pdf_buf, doc.size, &doc);
+//        parse_ebook(pdf_buf, doc.size, &doc);
 
     } else if (mmime == MimeText && ScanCtx.content_size > 0) {
-        parse_text(bytes_read, &job->vfile, (char *) buf, &doc);
+//        parse_text(bytes_read, &job->vfile, (char *) buf, &doc);
 
     } else if (IS_FONT(doc.mime)) {
-        parse_font(font_buf, doc.size, &doc);
+//        parse_font(font_buf, doc.size, &doc);
 
     } else if (
             ScanCtx.archive_mode != ARC_MODE_SKIP && (
                     IS_ARC(doc.mime) ||
                     (IS_ARC_FILTER(doc.mime) && should_parse_filtered_file(doc.filepath, doc.ext))
             )) {
-        parse_archive(&job->vfile, &doc);
+//        parse_archive(&job->vfile, &doc);
     } else if (ScanCtx.content_size > 0 && IS_DOC(doc.mime)) {
-        parse_doc(doc_buf, doc.size, &doc);
+//        parse_doc(doc_buf, doc.size, &doc);
 
     } else if (is_cbr(doc.mime)) {
-        parse_cbr(cbr_buf, doc.size, &doc);
+//        parse_cbr(cbr_buf, doc.size, &doc);
 
     }
 

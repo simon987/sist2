@@ -1,0 +1,429 @@
+application/arj, arj
+application/base64, mme
+application/binhex, hqx
+application/book, boo|book
+application/CDFV2-corrupt,
+application/CDFV2, sdv
+application/clariscad, ccad
+application/commonground, dp
+application/csv,
+application/dicom, dcm
+application/drafting, drw
+application/epub+zip, epub
+application/freeloader, frl
+application/futuresplash, spl
+application/groupwise, vew
+application/gzip, gz
+application/hta, hta
+application/i-deas, unv
+application/iges, iges|igs
+application/inf, inf
+application/java-archive, jar
+application/java, class
+application/javascript,
+application/json, json
+application/marc, mrc
+application/mbedlet, mbd
+application/mime, aps
+application/mspowerpoint, ppz
+application/msword, doc|dot|w6w|wiz|word
+application/netmc, mcp
+application/octet-stream, bin|dump|gpg
+application/oda, oda
+application/ogg, ogv
+application/pdf, pdf
+application/pgp-keys,
+application/pgp-signature, pgp
+application/pkcs7-signature, p7s
+application/pkix-cert, cer|crt
+application/postscript, ai|ps
+application/pro_eng, part|prt
+application/ringing-tones, rng
+application/smil, smi|smil
+application/solids, sol
+application/sounder, sdr
+application/step, step|stp
+application/streamingmedia, ssm
+application/vda, vda
+application/vnd.fdf, fdf
+application/vnd.font-fontforge-sfd, sfd
+application/vnd.hp-hpgl, hgl|hpg|hpgl
+application/vnd.iccprofile, icm
+application/vnd.iccprofile, icm
+application/vnd.lotus-1-2-3,
+application/vnd.ms-cab-compressed, cab
+application/vnd.ms-excel, xlb|xlc|xll|xlm|xls|xlw
+application/vnd.ms-fontobject, eot
+application/vnd.ms-opentype, otf
+application/vnd.ms-pki.certstore, sst
+application/vnd.ms-pki.pko, pko
+application/vnd.ms-pki.seccat, cat
+application/vnd.ms-powerpoint, pot|ppa|pps|ppt|pwz
+application/vnd.ms-project, mpp
+application/vnd.oasis.opendocument.base, odb
+application/vnd.oasis.opendocument.formula, odf
+application/vnd.oasis.opendocument.graphics, odg
+application/vnd.oasis.opendocument.presentation, odp
+application/vnd.oasis.opendocument.spreadsheet, ods
+application/vnd.oasis.opendocument.text, odt
+application/vnd.openxmlformats-officedocument.presentationml.presentation, pptx
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, xlsx
+application/vnd.openxmlformats-officedocument.wordprocessingml.document, docx
+application/vnd.symbian.install,
+application/vnd.tcpdump.pcap, pcap
+application/vnd.wap.wmlc, wmlc
+application/vnd.wap.wmlscriptc, wmlsc
+application/vnd.xara, web
+application/vocaltec-media-desc, vmd
+application/vocaltec-media-file, vmf
+application/warc, warc
+application/winhelp, hlp
+application/wordperfect6.0, w60
+application/wordperfect6.1, w61
+application/wordperfect, wp|wp5|wp6|wpd
+application/x-123, wk1
+application/x-7z-compressed, 7z
+application/x-aim, aim
+application/x-apple-diskimage,
+application/x-arc,
+application/x-archive, a
+application/x-atari-7800-rom, a78
+application/x-authorware-bin, aab
+application/x-authorware-map, aam
+application/x-authorware-seg, aas
+application/x-avira-qua,
+application/x-bcpio, bcpio
+application/x-bittorrent, torrent
+application/x-bsh, bsh
+application/x-bytecode.python, pyc
+application/x-bzip2, boz|bz2
+application/x-bzip, bz
+application/x-cbr, cbr
+application/x-cbz, cbz
+application/x-cdlink, vcd
+application/x-chat, cha|chat
+application/x-chrome-extension,
+application/x-cocoa, cco
+application/x-conference, nsc
+application/x-coredump,
+application/x-cpio, cpio
+application/x-dbf, dbf
+application/x-dbt,
+application/x-debian-package, deb
+application/x-deepv, deepv
+application/x-director, dcr|dir|dxr
+application/x-dmp, dmp
+application/x-dosdriver,
+application/x-dosexec, dll
+application/x-dvi, dvi
+application/x-elc, elc
+application/x-empty,
+application/x-envoy, env|evy
+application/x-esrehber, es
+application/x-excel, xla|xld|xlk|xlt|xlv
+application/x-executable, exe
+application/x-font-gdos,
+application/x-font-pf2, pf2
+application/x-font-pfm, pfm
+application/x-font-sfn,
+application/x-font-ttf, ttf|ttc
+application/x-fptapplication/x-dbt,
+application/x-freelance, pre
+application/x-gamecube-rom,
+application/x-gdbm,
+application/x-gettext-translation,
+application/x-git,
+application/x-gsp, gsp
+application/x-gss, gss
+application/x-gtar, gtar
+application/x-gzip, gzip
+application/x-hdf, hdf
+application/x-helpfile, help
+application/x-httpd-imap, imap
+application/x-ima, ima
+application/x-innosetup,
+application/x-internett-signup, ins
+application/x-inventor, iv
+application/x-ip2, ip
+application/x-java-applet,
+application/x-java-commerce, jcm
+application/x-java-image,
+application/x-java-jmod, jmod
+application/x-java-keystore,
+application/x-kdelnk,
+application/x-koan, skd|skm|skp|skt
+application/x-latex, latex|ltx
+application/x-livescreen, ivy
+application/x-lotus, wq1
+application/x-lz4+json, jsonlz4
+application/x-lz4, lz4
+application/x-lz4, lz4
+application/x-lzh-compressed,
+application/x-lzh, lzh
+application/x-lzip, lz
+application/x-lzma, lzma
+application/x-lzop, lzo
+application/x-lzx, lzx
+application/x-mach-binary, jnilib|dylib
+application/x-mach-executable,
+application/x-magic-cap-package-1.0, mc$
+application/x-mathcad, mcd
+application/x-maxis-dbpf,
+application/x-meme, mm
+application/x-midi, midi
+application/x-mif, mif
+application/x-mix-transfer, nix
+application/xml, opf
+application/x-mobipocket-ebook, mobi
+application/x-msaccess, accdb
+application/x-ms-compress-szdd, fon
+application/x-ms-pdb, pdb
+application/x-ms-reader, lit
+application/x-n64-rom, z64
+application/x-navi-animation, ani
+application/x-navidoc, nvd
+application/x-navimap, map
+application/x-navistyle, stl
+application/x-nes-rom, nes
+application/x-netcdf, cdf|nc
+application/x-newton-compatible-pkg, pkg
+application/x-nintendo-ds-rom,
+application/x-object, o
+application/x-omcdatamaker, omcd
+application/x-omc, omc
+application/x-omcregerator, omcr
+application/x-pagemaker, pm4|pm5
+application/x-pcl, pcl
+application/x-pgp-keyring,
+application/x-pixclscript, plx
+application/x-pkcs7-certreqresp, p7r
+application/x-pkcs7-signature, p7a
+application/x-project, mpc|mpt|mpv|mpx
+application/x-qpro, wb1
+application/x-rar, rar
+application/x-rpm, rpm
+application/x-sdp, sdp
+application/x-sea, sea
+application/x-seelogo, sl
+application/x-setupscript,
+application/x-sharedlib, so
+application/x-shar, shar
+application/x-shockwave-flash, swf
+application/x-snappy-framed,
+application/x-sprite, spr|sprite
+application/x-sqlite3,
+application/x-stargallery-thm,
+application/x-stuffit, sit
+application/x-sv4cpio, sv4cpio
+application/x-sv4crc, sv4crc
+application/x-tar, tar
+application/x-tbook, sbk|tbk
+application/x-terminfo,
+application/x-terminfo2,
+application/x-texinfo, texi|texinfo
+application/x-tex-tfm, tfm
+application/x-ustar, ustar
+application/x-visio, vsd|vst|vsw
+application/x-vnd.audioexplosion.mzz, mzz
+application/x-vnd.ls-xpix, xpix
+application/x-vrml, vrml
+application/x-wais-source, src|wsrc
+application/x-wine-extension-ini,
+application/x-wintalk, wtk
+application/x-world, svr
+application/x-wri, wri
+application/x-x509-ca-cert, der
+application/x-xz, xz
+application/x-zip,
+application/x-zstd, zst
+application/zip, zip
+application/zlib, z
+!audio/basic, au
+audio/it, it
+audio/make, funk|my|pfunk
+audio/midi, kar
+audio/mid, rmi
+audio/mp4, m4b
+audio/mpeg, m2a|mpa
+audio/ogg, ogg
+audio/s3m, s3m
+audio/tsp-audio, tsi
+audio/tsplayer, tsp
+audio/vnd.qcelp, qcp
+audio/voxware, vox
+audio/x-aiff, aiff|aif
+audio/x-flac, flac
+audio/x-gsm, gsd|gsm
+audio/x-hx-aac-adts,
+audio/x-jam, jam
+audio/x-liveaudio, lam
+audio/x-m4a, m4a
+audio/x-midi, mid
+audio/x-mod,
+audio/x-mp4a-latm,
+audio/x-mpeg-3, mp3
+audio/x-mpequrl,
+audio/xm, xm
+audio/x-nspaudio, lma
+audio/x-pn-realaudio, ram|rm|rmm|rmp
+audio/x-psid, sid
+audio/x-realaudio, ra
+audio/x-s3m,
+audio/x-twinvq-plugin, vqe|vql
+audio/x-twinvq, vqf
+audio/x-voc, voc
+audio/x-wav, wav
+!audio/x-xbox360-executable, xex
+!audio/x-xbox-executable, xbe
+font/otf,
+font/sfnt,
+font/woff2, woff2
+font/woff, woff
+image/bmp,
+image/cmu-raster, rast
+image/fif, fif
+image/florian, flo|turbot
+image/g3fax, g3
+image/gif, gif
+image/heic, heic
+image/ief, ief|iefs
+image/jpeg, jfif|jfif-tbnl|jpe|jpeg|jpg
+image/jutvision, jut
+image/naplps, nap|naplps
+image/pict, pic|pict
+image/png, png|x-png
+!image/svg, svg
+!image/svg+xml,
+image/tiff,
+!image/vnd.adobe.photoshop, psd
+!image/vnd.djvu, djvu
+image/vnd.fpx, fpx
+image/vnd.microsoft.icon,
+image/vnd.rn-realflash, rf
+image/vnd.rn-realpix, rp
+image/vnd.wap.wbmp, wbmp
+image/vnd.xiff, xif
+image/webp, webp
+image/wmf,
+image/x-3ds, 3ds
+image/x-award-bioslogo,
+image/x-cmu-raster, ras
+image/x-cur, tga
+image/x-dwg, dwg|dxf|svf
+image/x-eps,
+image/x-exr, exr
+image/x-gem,
+image/x-icns,
+!image/x-icon, ico
+image/x-jg, art
+image/x-jps, jps
+image/x-ms-bmp, bm|bmp
+image/x-niff, nif|niff
+image/x-pcx, pcx
+image/x-pict, pct
+image/x-portable-bitmap, pbm
+image/x-portable-graymap, pgm
+image/x-portable-pixmap, ppm
+image/x-quicktime, qif|qti|qtif
+image/x-rgb, rgb
+image/x-tga,
+image/x-tiff, tif|tiff
+image/x-win-bitmap,
+!image/x-xcf, xcf
+!image/x-xpixmap, xpm
+image/x-xwindowdump, xwd
+message/news,
+message/rfc822, mht|mhtml|mime
+model/vnd.dwf, dwf
+model/vnd.gdl, gdl
+model/vnd.gs.gdl, gdsl
+model/vrml, wrz
+model/x-pov, pov
+text/asp, asp
+text/css, css
+text/html, acgi|htm|html|htmls|htx|shtml
+text/javascript, js
+text/mcf, mcf
+text/pascal, pas
+text/PGP,
+text/plain, com|cmd|conf|def|g|idc|list|lst|mar|sdml|text|txt|md|groovy|license|properties|desktop|ini|rst|cmake|ipynb|readme|less|lo|go|yml|d|cs|hpp|srt|nfo|sfv|m3u|csv|eml
+text/richtext, rt|rtf|rtx
+text/rtf,
+text/scriplet, wsc
+text/tab-separated-values, tsv
+text/troff, man|me|ms|roff|t|tr
+text/uri-list, uji|unis|uri|uris
+text/vnd.abc, abc
+text/vnd.fmi.flexstor, flx
+text/vnd.wap.wmlscript, wmls
+text/vnd.wap.wml, wml
+text/webviewhtml, htt
+text/x-Algol68,
+text/x-asm, asm|s
+text/x-audiosoft-intra, aip
+text/x-awk, awk
+text/x-bcpl,
+text/x-c, c|cc|h
+text/x-c++, cpp|cxx|c++
+text/x-component, htc
+text/x-diff,
+text/x-fortran, f|f77|f90|for
+text/x-java, jav|java
+text/x-la-asf, lsx
+text/x-lisp, el
+text/x-m4, m4|ac
+text/x-makefile, am|mak
+text/xml, xml|pom|iml|plist
+text/x-m, m
+text/x-msdos-batch, bat
+text/x-ms-regedit, reg
+text/x-objective-c,
+text/x-pascal, p
+text/x-perl, pl
+text/x-php, php
+text/x-po, po
+text/x-python, py
+text/x-ruby, rb
+text/x-sass, sass
+text/x-scss, scss
+text/x-server-parsed-html, ssi
+text/x-setext, etx
+text/x-sgml, sgm|sgml
+text/x-shellscript, sh
+text/x-speech, talk
+text/x-tcl,
+text/x-tex, tex
+text/x-uil, uil
+text/x-uuencode, uue
+text/x-vcalendar, vcs
+text/x-vcard, vcf
+video/animaflex, afl
+video/avi, avi
+video/avs-video, avs
+video/MP2T,
+video/mp4, mp4
+video/mpeg, m1v|m2v|mpe|mpeg|mpg
+video/quicktime, moov|mov|qt
+video/vdo, vdo
+video/vivo, viv|vivo
+video/vnd.rn-realvideo, rv
+video/vosaic, vos
+video/webm, webm
+video/x-amt-demorun, xdr
+video/x-amt-showrun, xsr
+video/x-atomic3d-feature, fmf
+video/x-dl, dl
+video/x-dv, dif|dv
+video/x-fli, fli
+video/x-flv, flv
+video/x-isvideo, isu
+!video/x-jng, jng
+video/x-m4v, m4v
+video/x-matroska, mkv
+video/x-mng, mng
+video/x-motion-jpeg, mjpg
+video/x-ms-asf, asf|asx|wmv
+video/x-msvideo, divx
+video/x-qtc, qtc
+video/x-sgi-movie, movie|mv
+x-epoc/x-sisx-app,

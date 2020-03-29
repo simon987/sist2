@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.7)
 set(CMAKE_C_STANDARD 11)
 
 project(sist2 C)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/CMakeModules")
 
 option(SIST_DEBUG "Build a debug executable" on)
 
@@ -33,9 +32,14 @@ add_executable(
         src/cli.c src/cli.h
 )
 
+target_link_directories(sist2 PRIVATE BEFORE /usr/share/vcpkg/installed/x64-linux/lib/)
+set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
+
 find_package(lmdb CONFIG REQUIRED)
 find_package(cJSON CONFIG REQUIRED)
 find_package(unofficial-glib CONFIG REQUIRED)
+find_package(unofficial-mongoose CONFIG REQUIRED)
+#find_package(OpenSSL REQUIRED)
 
 
 target_include_directories(
@@ -66,6 +70,7 @@ if (SIST_DEBUG)
             sist2
             PRIVATE
             -fsanitize=address
+#            -static
     )
     set_target_properties(
             sist2
@@ -95,11 +100,15 @@ target_link_libraries(
         cjson
         argparse
         unofficial::glib::glib
+        unofficial::mongoose::mongoose
+#        OpenSSL::SSL OpenSSL::Crypto
 
         # onion
-        ${PROJECT_SOURCE_DIR}/lib/libonion_static.a
+        ${PROJECT_SOURCE_DIR}/third-party/onion/src/onion/libonion_static.a
 
+        uuid
         pthread
+        magic
 
         scan
 )

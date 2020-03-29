@@ -2,7 +2,6 @@
 #define SIST2_LOG_H
 
 
-
 #define LOG_MAX_LENGTH 8192
 
 #define SIST_DEBUG 0

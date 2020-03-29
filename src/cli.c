@@ -1,5 +1,7 @@
 #include "cli.h"
 #include "ctx.h"
+#include <onion/codecs.h>
+#include <tesseract/capi.h>
 
 #define DEFAULT_OUTPUT "index.sist2/"
 #define DEFAULT_CONTENT_SIZE 32768
