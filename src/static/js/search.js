@@ -294,7 +294,6 @@ function insertHits(resultContainer, hits) {
     for (let i = 0; i < hits.length; i++) {
 
         if (CONF.options.display === "grid") {
-            console.log(resultContainer._brick)
             resultContainer._brick.append(createDocCard(hits[i]));
         } else {
             resultContainer.appendChild(createDocLine(hits[i]));

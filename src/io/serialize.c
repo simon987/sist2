@@ -212,8 +212,8 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
     FILE *file = fopen(path, "rb");
     while (1) {
         buf.cur = 0;
-        size_t read = fread((void *) &line, 1, sizeof(line_t), file);
-        if (read != 1 || feof(file)) {
+        size_t _ = fread((void *) &line, 1, sizeof(line_t), file);
+        if (feof(file)) {
             break;
         }
 
@@ -301,10 +301,6 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
                 }
                 default:
                 LOG_FATALF("serialize.c", "Invalid meta key (corrupt index): %x", key)
-            }
-
-            if (ret != 1) {
-                break;
             }
 
             key = getc(file);
