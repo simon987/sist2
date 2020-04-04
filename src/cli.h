@@ -3,7 +3,7 @@
 
 #include "sist.h"
 
-#include "libscan/scan.h"
+#include "libscan/arc/arc.h"
 
 typedef struct scan_args {
     float quality;

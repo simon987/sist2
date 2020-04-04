@@ -11,6 +11,9 @@
 
 __thread magic_t Magic = NULL;
 
+#define MIN_VIDEO_SIZE 1024 * 64
+#define MIN_IMAGE_SIZE 1024 * 2
+
 int fs_read(struct vfile *f, void *buf, size_t size) {
 
     if (f->fd == -1) {
@@ -112,34 +115,28 @@ void parse(void *arg) {
     } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) ||
                (mmime == MimeImage && doc.size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
 
-        scan_media_ctx_t media_ctx;
-        media_ctx.tn_qscale = ScanCtx.tn_qscale;
-        media_ctx.tn_size = ScanCtx.tn_size;
-        media_ctx.content_size = ScanCtx.content_size;
-
-        parse_media(&media_ctx, &job->vfile, &doc);
+        parse_media(&ScanCtx.media_ctx, &job->vfile, &doc);
 
     } else if (IS_PDF(doc.mime)) {
-//        parse_ebook(pdf_buf, doc.size, &doc);
+        parse_ebook(&ScanCtx.ebook_ctx, &job->vfile, mime_get_mime_text(doc.mime), &doc);
 
-    } else if (mmime == MimeText && ScanCtx.content_size > 0) {
-//        parse_text(bytes_read, &job->vfile, (char *) buf, &doc);
+    } else if (mmime == MimeText && ScanCtx.text_ctx.content_size > 0) {
+        parse_text(&ScanCtx.text_ctx, &job->vfile, &doc);
 
     } else if (IS_FONT(doc.mime)) {
-//        parse_font(font_buf, doc.size, &doc);
+        parse_font(&ScanCtx.font_ctx, &job->vfile, &doc);
 
     } else if (
-            ScanCtx.archive_mode != ARC_MODE_SKIP && (
+            ScanCtx.arc_ctx.mode != ARC_MODE_SKIP && (
                     IS_ARC(doc.mime) ||
                     (IS_ARC_FILTER(doc.mime) && should_parse_filtered_file(doc.filepath, doc.ext))
             )) {
-//        parse_archive(&job->vfile, &doc);
-    } else if (ScanCtx.content_size > 0 && IS_DOC(doc.mime)) {
-//        parse_doc(doc_buf, doc.size, &doc);
+        parse_archive(&ScanCtx.arc_ctx, &job->vfile, &doc);
+    } else if (ScanCtx.ooxml_ctx.content_size > 0 && IS_DOC(doc.mime)) {
+        parse_ooxml(&ScanCtx.ooxml_ctx, &job->vfile, &doc);
 
-    } else if (is_cbr(doc.mime)) {
-//        parse_cbr(cbr_buf, doc.size, &doc);
-
+    } else if (is_cbr(&ScanCtx.cbr_ctx, doc.mime)) {
+        parse_cbr(&ScanCtx.cbr_ctx, &job->vfile, &doc);
     }
 
     //Parent meta

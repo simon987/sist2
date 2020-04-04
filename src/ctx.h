@@ -4,6 +4,13 @@
 #include "sist.h"
 #include "tpool.h"
 #include "libscan/scan.h"
+#include "libscan/arc/arc.h"
+#include "libscan/cbr/cbr.h"
+#include "libscan/ebook/ebook.h"
+#include "libscan/font/font.h"
+#include "libscan/media/media.h"
+#include "libscan/ooxml/ooxml.h"
+#include "libscan/text/text.h"
 
 #include <glib.h>
 #include <pcre.h>
@@ -17,12 +24,8 @@ struct {
 
     tpool_t *pool;
 
-    int tn_size;
     int threads;
-    int content_size;
-    float tn_qscale;
     int depth;
-    archive_mode_t archive_mode;
     int verbose;
     int very_verbose;
 
@@ -32,28 +35,30 @@ struct {
     GHashTable *original_table;
     GHashTable *copy_table;
 
-    pthread_mutex_t mupdf_mu;
-    char * tesseract_lang;
-    const char * tesseract_path;
     pcre *exclude;
     pcre_extra *exclude_extra;
     int fast;
+
+    scan_arc_ctx_t arc_ctx;
+    scan_cbr_ctx_t cbr_ctx;
+    scan_ebook_ctx_t ebook_ctx;
+    scan_font_ctx_t font_ctx;
+    scan_media_ctx_t media_ctx;
+    scan_ooxml_ctx_t ooxml_ctx;
+    scan_text_ctx_t text_ctx;
 } ScanCtx;
 
-//TODO Move to log.h
 struct {
     int verbose;
     int very_verbose;
     int no_color;
 } LogCtx;
 
-//TODO Move to index.h ?
 struct {
     char *es_url;
     int batch_size;
 } IndexCtx;
 
-//TODO Move to serve.h ?
 struct {
     char *es_url;
     int index_count;

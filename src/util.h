@@ -11,7 +11,6 @@
 #include "libscan/scan.h"
 
 
-
 char *abspath(const char *path);
 
 char *expandpath(const char *path);

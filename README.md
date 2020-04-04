@@ -113,18 +113,16 @@ sist2 scan --ocr eng ~/Books/Textbooks/
 ## Build from source
 
 You can compile **sist2** by yourself if you don't want to use the pre-compiled
-binaries.
+binaries (GCC 7+ required).
 
 1. Install compile-time dependencies
 
    ```bash
-   vcpkg install lmdb cjson glib
+   vcpkg install lmdb cjson glib libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 ffmpeg zstd
    ```
 
 2. Build
     ```bash
-    git clone --recurse-submodules https://github.com/simon987/sist2
-    ./scripts/get_static_libs.sh
-    cmake .
+    cmake -D <VCPKG_ROOT>/scripts/buildsystems/vcpkg.cmake .
     make
     ```
