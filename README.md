@@ -8,7 +8,7 @@ sist2 (Simple incremental search tool)
 
 *Warning: sist2 is in early development*
 
-![sist2.png](DOCS/sist2.png)
+![sist2.png](docs/sist2.png)
 
 ## Features
 
