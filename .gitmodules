@@ -1,9 +1,6 @@
 [submodule "third-party/libscan"]
 	path = third-party/libscan
 	url = https://github.com/simon987/libscan
-[submodule "third-party/utf8.h"]
-	path = third-party/utf8.h
-	url = https://github.com/sheredom/utf8.h
 [submodule "third-party/argparse"]
 	path = third-party/argparse
 	url = https://github.com/cofyc/argparse
