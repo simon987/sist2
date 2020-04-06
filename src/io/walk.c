@@ -18,7 +18,7 @@ parse_job_t *create_fs_parse_job(const char *filepath, const struct stat *info, 
         job->ext = len;
     }
 
-    job->info = *info;
+    job->vfile.info = *info;
 
     memset(job->parent, 0, 16);
 

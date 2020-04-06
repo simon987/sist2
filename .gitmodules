@@ -1,6 +1,3 @@
-[submodule "third-party/onion"]
-	path = third-party/onion
-	url = https://github.com/davidmoreno/onion
 [submodule "third-party/libscan"]
 	path = third-party/libscan
 	url = https://github.com/simon987/libscan

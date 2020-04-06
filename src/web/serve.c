@@ -5,14 +5,8 @@
 #include "static_generated.c"
 #include "src/index/elastic.h"
 #include "src/index/web.h"
-#include "src/web/auth_basic.h"
 
 #include <src/ctx.h>
-
-#include <onion/onion.h>
-#include <onion/handler.h>
-#include <onion/block.h>
-#include <onion/shortcuts.h>
 
 #include <mongoose.h>
 
@@ -119,7 +113,7 @@ int img_sprite_skin_flat(struct mg_connection *nc, struct http_message *hm) {
 void thumbnail(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
     if (path->len != UUID_STR_LEN * 2 + 2) {
-        LOG_DEBUGF("serve.c", "Invalid thumnail path: %.*s", (int) path->len, path->p);
+        LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) path->len, path->p);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -176,22 +170,23 @@ void search(struct mg_connection *nc, struct http_message *hm) {
     free(body);
 }
 
-int serve_file_from_url(cJSON *json, index_t *idx, onion_request *req, onion_response *res) {
-
-    const char *path = cJSON_GetObjectItem(json, "path")->valuestring;
-    const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
-    const char *ext = cJSON_GetObjectItem(json, "extension")->valuestring;
-
-    char url[8196];
-    snprintf(url, sizeof(url),
-             "%s%s/%s%s%s",
-             idx->desc.rewrite_url, path, name, strlen(ext) == 0 ? "" : ".", ext);
-
-    dyn_buffer_t encoded = url_escape(url);
-    int ret = onion_shortcut_redirect(encoded.buf, req, res);
-    dyn_buffer_destroy(&encoded);
-    return ret;
-}
+//TODO
+//int serve_file_from_url(cJSON *json, index_t *idx, onion_request *req, onion_response *res) {
+//
+//    const char *path = cJSON_GetObjectItem(json, "path")->valuestring;
+//    const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
+//    const char *ext = cJSON_GetObjectItem(json, "extension")->valuestring;
+//
+//    char url[8196];
+//    snprintf(url, sizeof(url),
+//             "%s%s/%s%s%s",
+//             idx->desc.rewrite_url, path, name, strlen(ext) == 0 ? "" : ".", ext);
+//
+//    dyn_buffer_t encoded = url_escape(url);
+//    int ret = onion_shortcut_redirect(encoded.buf, req, res);
+//    dyn_buffer_destroy(&encoded);
+//    return ret;
+//}
 
 void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, struct http_message *hm) {
 
@@ -240,12 +235,17 @@ int index_info(struct mg_connection *nc) {
 }
 
 
-int document_info(UNUSED(void *p), onion_request *req, onion_response *res) {
+void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
-    const char *arg_uuid = onion_request_get_query(req, "1");
-    if (arg_uuid == NULL) {
-        return OCS_PROCESSED;
+    if (path->len != UUID_STR_LEN + 2) {
+        LOG_DEBUGF("serve.c", "Invalid document_info path: %.*s", (int) path->len, path->p);
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
     }
+
+    char arg_uuid[UUID_STR_LEN];
+    memcpy(arg_uuid, hm->uri.p + 3, UUID_STR_LEN);
+    *(arg_uuid + UUID_STR_LEN - 1) = '\0';
 
     cJSON *doc = elastic_get_document(arg_uuid);
     cJSON *source = cJSON_GetObjectItem(doc, "_source");
@@ -253,23 +253,23 @@ int document_info(UNUSED(void *p), onion_request *req, onion_response *res) {
     cJSON *index_id = cJSON_GetObjectItem(source, "index");
     if (index_id == NULL) {
         cJSON_Delete(doc);
-        return OCS_NOT_PROCESSED;
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
     }
 
     index_t *idx = get_index_by_id(index_id->valuestring);
     if (idx == NULL) {
         cJSON_Delete(doc);
-        return OCS_NOT_PROCESSED;
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
     }
 
-    onion_response_set_header(res, "Content-Type", "application/json");
-
     char *json_str = cJSON_PrintUnformatted(source);
-    onion_response_write0(res, json_str);
+    send_response_line(nc, 200, (int)strlen(json_str), "Content-Type: application/json");
     free(json_str);
     cJSON_Delete(doc);
 
-    return OCS_PROCESSED;
+    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
 void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
@@ -322,19 +322,17 @@ void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path
     cJSON_Delete(doc);
 }
 
-int status(UNUSED(void *p), UNUSED(onion_request *req), onion_response *res) {
-    onion_response_set_header(res, "Content-Type", "application/x-empty");
-
+int status(struct mg_connection *nc) {
     char *status = elastic_get_status();
     if (strcmp(status, "open") == 0) {
-        onion_response_set_code(res, 204);
+        send_response_line(nc, 204, 0, "Content-Type: application/json");
     } else {
-        onion_response_set_code(res, 500);
+        send_response_line(nc, 500, 0, "Content-Type: application/json");
     }
 
     free(status);
 
-    return OCS_PROCESSED;
+    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
 typedef struct {
@@ -370,15 +368,17 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
             search(nc, hm);
         } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/i")))) {
             index_info(nc);
+        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/status")))) {
+            status(nc);
         } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/f/")))) {
             file(nc, hm, &path);
         } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/t/")))) {
             thumbnail(nc, hm, &path);
+        } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/d/")))) {
+            document_info(nc, hm, &path);
         } else {
-
             nc->flags |= MG_F_SEND_AND_CLOSE;
         }
-
 
     } else if (ev == MG_EV_POLL) {
         if (nc->user_data != NULL) {
@@ -419,6 +419,8 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
 
 void serve(const char *hostname, const char *port) {
 
+    printf("Starting web server @ http://%s:%s\n", hostname, port);
+
     struct mg_mgr mgr;
     mg_mgr_init(&mgr, NULL);
 
@@ -433,38 +435,5 @@ void serve(const char *hostname, const char *port) {
         mg_mgr_poll(&mgr, 10);
     }
 
-    onion *o = onion_new(O_POOL);
-    onion_set_timeout(o, 3500);
-
-    onion_set_hostname(o, hostname);
-    onion_set_port(o, port);
-
-    onion_url *urls = onion_url_new();
-
-    // Static paths
-    onion_set_root_handler(o, auth_basic(WebCtx.b64credentials, onion_url_to_handler(urls)));
-
-    onion_url_add(urls, "", search_index);
-    onion_url_add(urls, "css", style);
-    onion_url_add(urls, "js", javascript);
-    onion_url_add(urls, "img/sprite-skin-flat.png", img_sprite_skin_flat);
-
-    onion_url_add(urls, "es", search);
-    onion_url_add(urls, "status", status);
-    onion_url_add(
-            urls,
-            "^t/([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})/"
-            "([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})$",
-            thumbnail
-    );
-    onion_url_add(urls, "^f/([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})$", file);
-    onion_url_add(urls, "^d/([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})$",
-                  document_info);
-    onion_url_add(urls, "i", index_info);
-
-
-    printf("Starting web server @ http://%s:%s\n", hostname, port);
-
-    onion_listen(o);
-    onion_free(o);
+//    onion_set_root_handler(o, auth_basic(WebCtx.b64credentials, onion_url_to_handler(urls)));
 }

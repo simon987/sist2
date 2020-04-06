@@ -3,11 +3,9 @@
 #include "src/sist.h"
 #include "src/ctx.h"
 #include "mime.h"
-#include "libscan/scan.h"
 #include "src/io/serialize.h"
 
 #include <magic.h>
-#include <src/ctx.h>
 
 __thread magic_t Magic = NULL;
 
@@ -40,9 +38,9 @@ void parse(void *arg) {
     parse_job_t *job = arg;
     document_t doc;
 
-    int inc_ts = incremental_get(ScanCtx.original_table, job->info.st_ino);
-    if (inc_ts != 0 && inc_ts == job->info.st_mtim.tv_sec) {
-        incremental_mark_file_for_copy(ScanCtx.copy_table, job->info.st_ino);
+    int inc_ts = incremental_get(ScanCtx.original_table, job->vfile.info.st_ino);
+    if (inc_ts != 0 && inc_ts == job->vfile.info.st_mtim.tv_sec) {
+        incremental_mark_file_for_copy(ScanCtx.copy_table, job->vfile.info.st_ino);
         return;
     }
 
@@ -57,9 +55,9 @@ void parse(void *arg) {
     doc.meta_head = NULL;
     doc.meta_tail = NULL;
     doc.mime = 0;
-    doc.size = job->info.st_size;
-    doc.ino = job->info.st_ino;
-    doc.mtime = job->info.st_mtim.tv_sec;
+    doc.size = job->vfile.info.st_size;
+    doc.ino = job->vfile.info.st_ino;
+    doc.mtime = job->vfile.info.st_mtim.tv_sec;
 
     uuid_generate(doc.uuid);
     char *buf[PARSE_BUF_SIZE];
@@ -70,7 +68,7 @@ void parse(void *arg) {
         LOG_DEBUGF(job->filepath, "Starting parse job {%s}", uuid_str)
     }
 
-    if (job->info.st_size == 0) {
+    if (job->vfile.info.st_size == 0) {
         doc.mime = MIME_EMPTY;
     } else if (*(job->filepath + job->ext) != '\0' && (job->ext - job->base != 1)) {
         doc.mime = mime_get_mime_by_ext(ScanCtx.ext_table, job->filepath + job->ext);

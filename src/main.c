@@ -86,6 +86,7 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.media_ctx.log = sist_log;
     ScanCtx.media_ctx.logf = sist_logf;
     ScanCtx.media_ctx.store = _store;
+    init_media();
 
     // OOXML
     ScanCtx.ooxml_ctx.content_size = args->content_size;

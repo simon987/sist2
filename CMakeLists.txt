@@ -6,6 +6,7 @@ project(sist2 C)
 option(SIST_DEBUG "Build a debug executable" on)
 
 add_subdirectory(third-party/libscan)
+set(ARGPARSE_SHARED off)
 add_subdirectory(third-party/argparse)
 
 add_executable(
@@ -20,7 +21,6 @@ add_executable(
         src/parsing/mime.h src/parsing/mime.c src/parsing/mime_generated.c
         src/index/web.c src/index/web.h
         src/web/serve.c src/web/serve.h
-        src/web/auth_basic.h src/web/auth_basic.c
         src/index/elastic.c src/index/elastic.h
         src/util.c src/util.h
         src/ctx.h src/types.h
@@ -103,9 +103,6 @@ target_link_libraries(
         unofficial::glib::glib
         unofficial::mongoose::mongoose
 #        OpenSSL::SSL OpenSSL::Crypto
-
-        # onion
-        ${PROJECT_SOURCE_DIR}/third-party/onion/src/onion/libonion_static.a
 
         uuid
         pthread
