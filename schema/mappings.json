@@ -16,6 +16,10 @@
     "mime": {
       "type": "keyword"
     },
+    "thumbnail": {
+      "type": "keyword",
+      "index": false
+    },
     "videoc": {
       "type": "keyword",
       "index": false
@@ -132,6 +136,12 @@
       "type": "keyword"
     },
     "exif_user_comment": {
+      "type": "text"
+    },
+    "author": {
+      "type": "text"
+    },
+    "modified_by": {
       "type": "text"
     }
   }

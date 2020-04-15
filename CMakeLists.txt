@@ -108,13 +108,6 @@ target_link_libraries(
         pthread
         magic
 
-        # TODO: compile ffmpeg with those disabled?
-        va
-        va-drm
-        va-x11
-        X11
-        vdpau
-
         scan
 )
 

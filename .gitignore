@@ -16,3 +16,4 @@ bundle.js
 *.a
 vgcore.*
 build/
+third-party/

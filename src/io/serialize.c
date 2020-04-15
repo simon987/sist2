@@ -144,6 +144,12 @@ char *get_meta_key_text(enum metakey meta_key) {
             return "exif_model";
         case MetaExifDateTime:
             return "exif_datetime";
+        case MetaAuthor:
+            return "author";
+        case MetaModifiedBy:
+            return "modified_by";
+        case MetaThumbnail:
+            return "thumbnail";
         default:
             return NULL;
     }
