@@ -166,7 +166,11 @@ function getDocumentInfo(id) {
 }
 
 function handleTreeClick(tree) {
-    return (node) => {
+    return (node, e) => {
+        if (e !== "checked") {
+            return
+        }
+
         if (node.id === "any") {
             if (!node.itree.state.checked) {
                 tree.deselect();
@@ -460,10 +464,6 @@ function search(after = null) {
             resultContainer._brick = new Bricklayer(resultContainer);
         }
 
-        window.setTimeout(() => {
-            $(".sp").SmartPhoto({animationSpeed: 0, swipeTopToClose: true, showAnimation: false, forceInterval: 50});
-        }, 100);
-
         if (!after) {
             docCount = 0;
         }
@@ -632,8 +632,8 @@ function handlePathTreeClick(tree) {
     return (event, node, handler) => {
 
         if (node.depth !== 0) {
-            $("#pathBar").val(node.id)
-            $("#pathTreeModal").modal("hide")
+            $("#pathBar").val(node.id);
+            $("#pathTreeModal").modal("hide");
             searchDebounced();
         }
 

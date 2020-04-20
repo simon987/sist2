@@ -161,6 +161,11 @@ body {
     width: 100%;
 }
 
+@media screen and (max-width: 1200px) {
+    .bricklayer-column {
+        max-width: 100%;
+    }
+}
 
 @media screen and (min-width: 1500px) {
     .container {
@@ -295,6 +300,7 @@ mark {
     .small-btn {
         display: none;
     }
+
     .large-btn {
         display: inherit;
     }
@@ -304,6 +310,7 @@ mark {
     .small-btn {
         display: inherit;
     }
+
     .large-btn {
         display: none;
     }
@@ -316,3 +323,26 @@ mark {
 #pathTree .title {
     cursor: pointer;
 }
+
+.play {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.play svg {
+    fill: rgba(0, 0, 0, 0.7);
+}
+
+.img-wrapper:hover svg {
+    fill: rgba(0, 0, 0, 1);
+}
+
+.pointer {
+    cursor: pointer;
+}
+
