@@ -79,9 +79,6 @@ void parse(void *arg) {
 
     if (doc.mime == 0 && !ScanCtx.fast) {
         // Get mime type with libmagic
-        magic_t magic = magic_open(MAGIC_MIME_TYPE);
-        magic_load(magic, NULL);
-
         bytes_read = job->vfile.read(&job->vfile, buf, PARSE_BUF_SIZE);
         if (bytes_read < 0) {
 
@@ -94,6 +91,9 @@ void parse(void *arg) {
             CLOSE_FILE(job->vfile)
             return;
         }
+
+        magic_t magic = magic_open(MAGIC_MIME_TYPE);
+        magic_load(magic, NULL);
 
         const char *magic_mime_str = magic_buffer(magic, buf, bytes_read);
         if (magic_mime_str != NULL) {
