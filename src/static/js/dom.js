@@ -343,65 +343,55 @@ function createDocCard(hit) {
 }
 
 function makeThumbnail(mimeCategory, hit, imgWrapper, small) {
-    let thumbnail;
 
-    if (
-        //TODO: check tn field
-        mimeCategory === "video" ||
-        (hit["_source"].hasOwnProperty("width") && hit["_source"]["width"] > 32 && hit["_source"]["height"] > 32)
-        || hit["_source"]["mime"] === "application/pdf"
-        || hit["_source"]["mime"] === "application/epub+zip"
-        || hit["_source"]["mime"] === "application/x-cbz"
-        || hit["_source"]["mime"] === "application/x-cbr"
-        || hit["_source"].hasOwnProperty("font_name")
-    ) {
-        thumbnail = document.createElement("img");
-        if (small) {
-            thumbnail.setAttribute("class", "fit-sm");
-        } else {
-            thumbnail.setAttribute("class", "card-img-top fit");
-        }
-        thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
-
-        if (shouldDisplayRawImage(hit)) {
-            thumbnail.addEventListener("click", () => {
-                const l = lity(`f/${hit["_id"]}#.jpg`);
-                window.addEventListener("scroll", () => l.close());
-            });
-
-            imgWrapper.classList.add("pointer");
-        } else if (shouldPlayVideo(hit)) {
-            thumbnail.addEventListener("click", () => lity(`f/${hit["_id"]}#.mp4`));
-
-            imgWrapper.classList.add("pointer");
-
-            if (!small) {
-                const playOverlay = document.createElement("div");
-                playOverlay.innerHTML = '<svg viewBox="0 0 494.942 494.942" xmlns="http://www.w3.org/2000/svg"><path d="m35.353 0 424.236 247.471-424.236 247.471z"/></svg>';
-                playOverlay.classList.add("play");
-                imgWrapper.prepend(playOverlay);
-            }
-        }
-
-        const placeholder = makePlaceholder(hit["_source"]["width"], hit["_source"]["height"], small);
-        imgWrapper.appendChild(placeholder);
-
-        thumbnail.addEventListener("error", () => {
-            imgWrapper.remove();
-        });
-        thumbnail.addEventListener("load", () => {
-            placeholder.remove();
-            imgWrapper.appendChild(thumbnail);
-        });
-
+    if (!hit["_source"].hasOwnProperty("thumbnail")) {
+        return null;
     }
+
+    let thumbnail = document.createElement("img");
+    if (small) {
+        thumbnail.setAttribute("class", "fit-sm");
+    } else {
+        thumbnail.setAttribute("class", "card-img-top fit");
+    }
+    thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
+
+    if (shouldDisplayRawImage(hit)) {
+        thumbnail.addEventListener("click", () => {
+            const l = lity(`f/${hit["_id"]}#.jpg`);
+            window.addEventListener("scroll", () => l.close());
+        });
+
+        imgWrapper.classList.add("pointer");
+    } else if (shouldPlayVideo(hit)) {
+        thumbnail.addEventListener("click", () => lity(`f/${hit["_id"]}#.mp4`));
+
+        imgWrapper.classList.add("pointer");
+
+        if (!small) {
+            const playOverlay = document.createElement("div");
+            playOverlay.innerHTML = '<svg viewBox="0 0 494.942 494.942" xmlns="http://www.w3.org/2000/svg"><path d="m35.353 0 424.236 247.471-424.236 247.471z"/></svg>';
+            playOverlay.classList.add("play");
+            imgWrapper.prepend(playOverlay);
+        }
+    }
+
+    const placeholder = makePlaceholder(hit["_source"]["width"], hit["_source"]["height"], small);
+    imgWrapper.appendChild(placeholder);
+
+    thumbnail.addEventListener("error", () => {
+        imgWrapper.remove();
+    });
+    thumbnail.addEventListener("load", () => {
+        placeholder.remove();
+        imgWrapper.appendChild(thumbnail);
+    });
 
     return thumbnail;
 }
 
 function makeInfoButton(hit) {
     const infoButton = document.createElement("span");
-    infoButton.appendChild(document.createTextNode("🛈"));
     infoButton.setAttribute("class", "info-icon");
     infoButton.addEventListener("click", infoButtonCb(hit));
     return infoButton;
