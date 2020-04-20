@@ -7,7 +7,6 @@
 
 #include <magic.h>
 
-__thread magic_t Magic = NULL;
 
 #define MIN_VIDEO_SIZE 1024 * 64
 #define MIN_IMAGE_SIZE 1024 * 2
@@ -33,6 +32,12 @@ void fs_close(struct vfile *f) {
     }
 }
 
+void fs_reset(struct vfile *f) {
+    if (f->fd != -1) {
+        lseek(f->fd, 0, SEEK_SET);
+    }
+}
+
 void parse(void *arg) {
 
     parse_job_t *job = arg;
@@ -44,10 +49,6 @@ void parse(void *arg) {
         return;
     }
 
-    if (Magic == NULL) {
-        Magic = magic_open(MAGIC_MIME_TYPE);
-        magic_load(Magic, NULL);
-    }
 
     doc.filepath = job->filepath;
     doc.ext = (short) job->ext;
@@ -78,6 +79,9 @@ void parse(void *arg) {
 
     if (doc.mime == 0 && !ScanCtx.fast) {
         // Get mime type with libmagic
+        magic_t magic = magic_open(MAGIC_MIME_TYPE);
+        magic_load(magic, NULL);
+
         bytes_read = job->vfile.read(&job->vfile, buf, PARSE_BUF_SIZE);
         if (bytes_read < 0) {
 
@@ -91,7 +95,7 @@ void parse(void *arg) {
             return;
         }
 
-        const char *magic_mime_str = magic_buffer(Magic, buf, bytes_read);
+        const char *magic_mime_str = magic_buffer(magic, buf, bytes_read);
         if (magic_mime_str != NULL) {
             doc.mime = mime_get_mime_by_string(ScanCtx.mime_table, magic_mime_str);
 
@@ -102,8 +106,9 @@ void parse(void *arg) {
             }
         }
 
-        magic_close(Magic);
-        Magic = NULL;
+        job->vfile.reset(&job->vfile);
+
+        magic_close(magic);
     }
 
     int mmime = MAJOR_MIME(doc.mime);
@@ -154,7 +159,5 @@ void parse(void *arg) {
 }
 
 void cleanup_parse() {
-    if (Magic != NULL) {
-        magic_close(Magic);
-    }
+    // noop
 }

@@ -7,6 +7,7 @@
 
 int fs_read(struct vfile *f, void *buf, size_t size);
 void fs_close(struct vfile *f);
+void fs_reset(struct vfile *f);
 
 void parse(void *arg);
 
