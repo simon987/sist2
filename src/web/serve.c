@@ -269,6 +269,7 @@ void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_
 
     char *json_str = cJSON_PrintUnformatted(source);
     send_response_line(nc, 200, (int) strlen(json_str), "Content-Type: application/json");
+    mg_send(nc, json_str, (int) strlen(json_str));
     free(json_str);
     cJSON_Delete(doc);
 
@@ -392,7 +393,6 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
                     send_response_line(nc, 200, r->size, "Content-Type: application/json");
                     mg_send(nc, r->body, r->size);
                 } else {
-                    fprintf(stderr, "ERR \n%s", r->body);
                     sist_log("serve.c", SIST_WARNING, "ElasticSearch error during query");
                     if (r->size != 0) {
                         char *tmp = malloc(r->size + 1);

@@ -295,6 +295,9 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
                 case MetaExifIsoSpeedRatings:
                 case MetaExifDateTime:
                 case MetaExifModel:
+                case MetaAuthor:
+                case MetaModifiedBy:
+                case MetaThumbnail:
                 case MetaTitle: {
                     buf.cur = 0;
                     while ((c = getc(file)) != 0) {
