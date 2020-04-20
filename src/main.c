@@ -236,7 +236,9 @@ void sist2_web(web_args_t *args) {
 
     WebCtx.es_url = args->es_url;
     WebCtx.index_count = args->index_count;
-    WebCtx.b64credentials = args->b64credentials;
+    WebCtx.auth_user = args->auth_user;
+    WebCtx.auth_pass = args->auth_pass;
+    WebCtx.auth_enabled = args->auth_enabled;
 
     for (int i = 0; i < args->index_count; i++) {
         char *abs_path = abspath(args->indices[i]);

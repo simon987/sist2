@@ -355,6 +355,21 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
             return;
         }
 
+
+        if (WebCtx.auth_enabled == TRUE) {
+            char user[256] = {0,};
+            char pass[256] = {0,};
+
+            int ret = mg_get_http_basic_auth(hm, user, sizeof(user), pass, sizeof(pass));
+            if (ret == -1 || strcmp(user, WebCtx.auth_user) != 0 || strcmp(pass, WebCtx.auth_pass) != 0) {
+                mg_printf(nc, "HTTP/1.1 401 Unauthorized\r\n"
+                              "WWW-Authenticate: Basic realm=\"sist2\"\r\n"
+                              "Content-Length: 0\r\n\r\n");
+                nc->flags |= MG_F_SEND_AND_CLOSE;
+                return;
+            }
+        }
+
         if (is_equal(&path, &((struct mg_str) MG_MK_STR("/")))) {
             search_index(nc);
         } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/css")))) {
@@ -422,7 +437,7 @@ void serve(const char *hostname, const char *port) {
     struct mg_mgr mgr;
     mg_mgr_init(&mgr, NULL);
 
-    struct mg_connection *nc = mg_bind(&mgr, "8000", ev_router);
+    struct mg_connection *nc = mg_bind(&mgr, "0.0.0.0:8000", ev_router);
     if (nc == NULL) {
         printf("Failed to create listener\n");
         return;

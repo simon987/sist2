@@ -62,7 +62,9 @@ struct {
 struct {
     char *es_url;
     int index_count;
-    char *b64credentials;
+    char *auth_user;
+    char *auth_pass;
+    int auth_enabled;
     struct index_t indices[16];
 } WebCtx;
 

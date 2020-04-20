@@ -89,7 +89,8 @@ function shouldDisplayRawImage(hit) {
         mime.startsWith("image/") &&
         hit["_source"]["mime"] &&
         !hit["_source"]["parent"] &&
-        hit["_source"]["videoc"] !== "tiff";
+        hit["_source"]["videoc"] !== "tiff" &&
+        hit["_source"]["videoc"] !== "ppm";
 }
 
 function makePlaceholder(w, h, small) {
@@ -362,11 +363,11 @@ function makeThumbnail(mimeCategory, hit, imgWrapper, small) {
             window.addEventListener("scroll", () => l.close());
         });
 
-        imgWrapper.classList.add("pointer");
+        thumbnail.classList.add("pointer");
     } else if (shouldPlayVideo(hit)) {
         thumbnail.addEventListener("click", () => lity(`f/${hit["_id"]}#.mp4`));
 
-        imgWrapper.classList.add("pointer");
+        thumbnail.classList.add("pointer");
 
         if (!small) {
             const playOverlay = document.createElement("div");

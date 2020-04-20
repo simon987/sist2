@@ -45,7 +45,9 @@ typedef struct web_args {
     char *bind;
     char *port;
     char *credentials;
-    char *b64credentials;
+    char auth_user[256];
+    char auth_pass[256];
+    int auth_enabled;
     int index_count;
     const char **indices;
 } web_args_t;
