@@ -59,7 +59,7 @@ void search_index(struct mg_connection *nc) {
     nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-int javascript(struct mg_connection *nc) {
+void javascript(struct mg_connection *nc) {
     send_response_line(nc, 200, sizeof(bundle_js), "Content-Type: application/javascript");
     mg_send(nc, bundle_js, sizeof(bundle_js));
     nc->flags |= MG_F_SEND_AND_CLOSE;
@@ -85,7 +85,7 @@ int client_requested_dark_theme(struct http_message *hm) {
     return ret;
 }
 
-int style(struct mg_connection *nc, struct http_message *hm) {
+void style(struct mg_connection *nc, struct http_message *hm) {
 
     if (client_requested_dark_theme(hm)) {
         send_response_line(nc, 200, sizeof(bundle_dark_css), "Content-Type: text/css");
@@ -98,7 +98,7 @@ int style(struct mg_connection *nc, struct http_message *hm) {
     nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-int img_sprite_skin_flat(struct mg_connection *nc, struct http_message *hm) {
+void img_sprite_skin_flat(struct mg_connection *nc, struct http_message *hm) {
     if (client_requested_dark_theme(hm)) {
         send_response_line(nc, 200, sizeof(sprite_skin_flat_dark_png), "Content-Type: image/png");
         mg_send(nc, sprite_skin_flat_dark_png, sizeof(sprite_skin_flat_dark_png));
@@ -113,7 +113,7 @@ int img_sprite_skin_flat(struct mg_connection *nc, struct http_message *hm) {
 void thumbnail(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
     if (path->len != UUID_STR_LEN * 2 + 2) {
-        LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) path->len, path->p);
+        LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) path->len, path->p)
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -129,14 +129,14 @@ void thumbnail(struct mg_connection *nc, struct http_message *hm, struct mg_str 
     uuid_t uuid;
     int ret = uuid_parse(arg_uuid, uuid);
     if (ret != 0) {
-        LOG_DEBUGF("serve.c", "Invalid thumbnail UUID: %s", arg_uuid);
+        LOG_DEBUGF("serve.c", "Invalid thumbnail UUID: %s", arg_uuid)
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
 
     store_t *store = get_store(arg_index);
     if (store == NULL) {
-        LOG_DEBUGF("serve.c", "Could not get store for index: %s", arg_index);
+        LOG_DEBUGF("serve.c", "Could not get store for index: %s", arg_index)
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -159,7 +159,7 @@ void search(struct mg_connection *nc, struct http_message *hm) {
         return;
     }
 
-    char * body = malloc(hm->body.len + 1);
+    char *body = malloc(hm->body.len + 1);
     memcpy(body, hm->body.p, hm->body.len);
     *(body + hm->body.len) = '\0';
 
@@ -170,23 +170,26 @@ void search(struct mg_connection *nc, struct http_message *hm) {
     free(body);
 }
 
-//TODO
-//int serve_file_from_url(cJSON *json, index_t *idx, onion_request *req, onion_response *res) {
-//
-//    const char *path = cJSON_GetObjectItem(json, "path")->valuestring;
-//    const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
-//    const char *ext = cJSON_GetObjectItem(json, "extension")->valuestring;
-//
-//    char url[8196];
-//    snprintf(url, sizeof(url),
-//             "%s%s/%s%s%s",
-//             idx->desc.rewrite_url, path, name, strlen(ext) == 0 ? "" : ".", ext);
-//
-//    dyn_buffer_t encoded = url_escape(url);
-//    int ret = onion_shortcut_redirect(encoded.buf, req, res);
-//    dyn_buffer_destroy(&encoded);
-//    return ret;
-//}
+int serve_file_from_url(cJSON *json, index_t *idx, struct mg_connection *nc) {
+
+    const char *path = cJSON_GetObjectItem(json, "path")->valuestring;
+    const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
+    const char *ext = cJSON_GetObjectItem(json, "extension")->valuestring;
+
+    char url[8196];
+    snprintf(url, sizeof(url),
+             "%s%s/%s%s%s",
+             idx->desc.rewrite_url, path, name, strlen(ext) == 0 ? "" : ".", ext);
+
+    dyn_buffer_t encoded = url_escape(url);
+    mg_http_send_redirect(
+            nc, 308,
+            (struct mg_str) MG_MK_STR_N(encoded.buf, encoded.cur),
+            (struct mg_str) MG_NULL_STR
+    );
+    dyn_buffer_destroy(&encoded);
+    nc->flags |= MG_F_SEND_AND_CLOSE;
+}
 
 void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, struct http_message *hm) {
 
@@ -209,7 +212,7 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
     mg_http_serve_file(nc, hm, full_path, mg_mk_str(mime), mg_mk_str(disposition));
 }
 
-int index_info(struct mg_connection *nc) {
+void index_info(struct mg_connection *nc) {
     cJSON *json = cJSON_CreateObject();
     cJSON *arr = cJSON_AddArrayToObject(json, "indices");
 
@@ -238,7 +241,7 @@ int index_info(struct mg_connection *nc) {
 void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
     if (path->len != UUID_STR_LEN + 2) {
-        LOG_DEBUGF("serve.c", "Invalid document_info path: %.*s", (int) path->len, path->p);
+        LOG_DEBUGF("serve.c", "Invalid document_info path: %.*s", (int) path->len, path->p)
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -265,7 +268,7 @@ void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_
     }
 
     char *json_str = cJSON_PrintUnformatted(source);
-    send_response_line(nc, 200, (int)strlen(json_str), "Content-Type: application/json");
+    send_response_line(nc, 200, (int) strlen(json_str), "Content-Type: application/json");
     free(json_str);
     cJSON_Delete(doc);
 
@@ -275,7 +278,7 @@ void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_
 void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
     if (path->len != UUID_STR_LEN + 2) {
-        LOG_DEBUGF("serve.c", "Invalid file path: %.*s", (int) path->len, path->p);
+        LOG_DEBUGF("serve.c", "Invalid file path: %.*s", (int) path->len, path->p)
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -316,13 +319,12 @@ void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path
     if (strlen(idx->desc.rewrite_url) == 0) {
         serve_file_from_disk(source, idx, nc, hm);
     } else {
-        //TODO:
-//        serve_file_from_url(source, idx, nc, hm);
+        serve_file_from_url(source, idx, nc);
     }
     cJSON_Delete(doc);
 }
 
-int status(struct mg_connection *nc) {
+void status(struct mg_connection *nc) {
     char *status = elastic_get_status();
     if (strcmp(status, "open") == 0) {
         send_response_line(nc, 204, 0, "Content-Type: application/json");
@@ -334,10 +336,6 @@ int status(struct mg_connection *nc) {
 
     nc->flags |= MG_F_SEND_AND_CLOSE;
 }
-
-typedef struct {
-    void *resp;
-} req_ctx_t;
 
 static void ev_router(struct mg_connection *nc, int ev, void *p) {
     struct mg_str scheme;
@@ -383,7 +381,7 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
     } else if (ev == MG_EV_POLL) {
         if (nc->user_data != NULL) {
             //Waiting for ES reply
-            subreq_ctx_t *ctx = (subreq_ctx_t*) nc->user_data;
+            subreq_ctx_t *ctx = (subreq_ctx_t *) nc->user_data;
             mg_mgr_poll(&ctx->mgr, 0);
 
             if (ctx->ev_data.done == TRUE) {

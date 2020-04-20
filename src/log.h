@@ -39,8 +39,8 @@
 
 #include "sist.h"
 
-void sist_logf(char *filepath, int level, char *format, ...);
+void sist_logf(const char *filepath, int level, char *format, ...);
 
-void sist_log(char *filepath, int level, char *str);
+void sist_log(const char *filepath, int level, char *str);
 
 #endif

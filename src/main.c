@@ -82,7 +82,6 @@ void initialize_scan_context(scan_args_t *args) {
     // Media
     ScanCtx.media_ctx.tn_qscale = args->quality;
     ScanCtx.media_ctx.tn_size = args->size;
-    ScanCtx.media_ctx.content_size = args->content_size;
     ScanCtx.media_ctx.log = sist_log;
     ScanCtx.media_ctx.logf = sist_logf;
     ScanCtx.media_ctx.store = _store;
