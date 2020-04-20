@@ -11,6 +11,7 @@
 #include "libscan/media/media.h"
 #include "libscan/ooxml/ooxml.h"
 #include "libscan/text/text.h"
+#include "libscan/mobi/scan_mobi.h"
 
 #include <glib.h>
 #include <pcre.h>
@@ -46,6 +47,7 @@ struct {
     scan_media_ctx_t media_ctx;
     scan_ooxml_ctx_t ooxml_ctx;
     scan_text_ctx_t text_ctx;
+    scan_mobi_ctx_t mobi_ctx;
 } ScanCtx;
 
 struct {

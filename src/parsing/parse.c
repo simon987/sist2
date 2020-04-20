@@ -140,6 +140,8 @@ void parse(void *arg) {
 
     } else if (is_cbr(&ScanCtx.cbr_ctx, doc.mime)) {
         parse_cbr(&ScanCtx.cbr_ctx, &job->vfile, &doc);
+    } else if (IS_MOBI(doc.mime)) {
+        parse_mobi(&ScanCtx.mobi_ctx, &job->vfile, &doc);
     }
 
     //Parent meta

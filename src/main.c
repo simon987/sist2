@@ -49,17 +49,56 @@ void _store(char *key, size_t key_len, char *buf, size_t buf_len) {
     store_write(ScanCtx.index.store, key, key_len, buf, buf_len);
 }
 
+void _log(const char *filepath, int level, char *str) {
+    if (level == LEVEL_FATAL) {
+        sist_log(filepath, level, str);
+        exit(-1);
+    }
+
+    if (ScanCtx.verbose) {
+        if (level == LEVEL_DEBUG) {
+            if (ScanCtx.very_verbose) {
+                sist_log(filepath, level, str);
+            }
+        } else {
+            sist_log(filepath, level, str);
+        }
+    }
+}
+
+void _logf(const char *filepath, int level, char *format, ...) {
+
+    va_list args;
+
+    va_start(args, format);
+    if (level == LEVEL_FATAL) {
+        sist_logf(filepath, level, format, args);
+        exit(-1);
+    }
+
+    if (ScanCtx.verbose) {
+        if (level == LEVEL_DEBUG) {
+            if (ScanCtx.very_verbose) {
+                sist_logf(filepath, level, format, args);
+            }
+        } else {
+            sist_logf(filepath, level, format, args);
+        }
+    }
+    va_end(args);
+}
+
 void initialize_scan_context(scan_args_t *args) {
 
     // Arc
     ScanCtx.arc_ctx.mode = args->archive_mode;
-    ScanCtx.arc_ctx.log = sist_log;
-    ScanCtx.arc_ctx.logf = sist_logf;
+    ScanCtx.arc_ctx.log = _log;
+    ScanCtx.arc_ctx.logf = _logf;
     ScanCtx.arc_ctx.parse = (parse_callback_t) parse;
 
     // Cbr
-    ScanCtx.cbr_ctx.log = sist_log;
-    ScanCtx.cbr_ctx.logf = sist_logf;
+    ScanCtx.cbr_ctx.log = _log;
+    ScanCtx.cbr_ctx.logf = _logf;
     ScanCtx.cbr_ctx.store = _store;
     ScanCtx.cbr_ctx.cbr_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/x-cbr");
 
@@ -69,28 +108,33 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.ebook_ctx.tn_size = args->size;
     ScanCtx.ebook_ctx.tesseract_lang = args->tesseract_lang;
     ScanCtx.ebook_ctx.tesseract_path = args->tesseract_path;
-    ScanCtx.ebook_ctx.log = sist_log;
-    ScanCtx.ebook_ctx.logf = sist_logf;
+    ScanCtx.ebook_ctx.log = _log;
+    ScanCtx.ebook_ctx.logf = _logf;
     ScanCtx.ebook_ctx.store = _store;
 
     // Font
     ScanCtx.font_ctx.enable_tn = args->size > 0;
-    ScanCtx.font_ctx.log = sist_log;
-    ScanCtx.font_ctx.logf = sist_logf;
+    ScanCtx.font_ctx.log = _log;
+    ScanCtx.font_ctx.logf = _logf;
     ScanCtx.font_ctx.store = _store;
 
     // Media
     ScanCtx.media_ctx.tn_qscale = args->quality;
     ScanCtx.media_ctx.tn_size = args->size;
-    ScanCtx.media_ctx.log = sist_log;
-    ScanCtx.media_ctx.logf = sist_logf;
+    ScanCtx.media_ctx.log = _log;
+    ScanCtx.media_ctx.logf = _logf;
     ScanCtx.media_ctx.store = _store;
     init_media();
 
     // OOXML
     ScanCtx.ooxml_ctx.content_size = args->content_size;
-    ScanCtx.ooxml_ctx.log = sist_log;
-    ScanCtx.ooxml_ctx.logf = sist_logf;
+    ScanCtx.ooxml_ctx.log = _log;
+    ScanCtx.ooxml_ctx.logf = _logf;
+
+    // MOBI
+    ScanCtx.mobi_ctx.content_size = args->content_size;
+    ScanCtx.mobi_ctx.log = _log;
+    ScanCtx.mobi_ctx.logf = _logf;
 
     ScanCtx.threads = args->threads;
     ScanCtx.depth = args->depth;

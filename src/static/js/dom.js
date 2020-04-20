@@ -59,24 +59,14 @@ function applyNameToTitle(hit, title, extension) {
     title.appendChild(document.createTextNode(hit["_source"]["name"] + extension));
 }
 
-function addVidSrc(url, mime, video) {
-    let vidSource = document.createElement("source");
-    vidSource.setAttribute("src", url);
-    if (video.canPlayType(mime)) {
-        vidSource.setAttribute("type", mime);
-    } else {
-        vidSource.setAttribute("type", "video/webm");
-    }
-    video.appendChild(vidSource);
-}
-
 function shouldPlayVideo(hit) {
     const videoc = hit["_source"]["videoc"];
     const mime = hit["_source"]["mime"];
 
     return mime &&
-        hit["_source"]["extension"] !== "mkv" &&
         mime.startsWith("video/") &&
+        hit["_source"]["extension"] !== "mkv" &&
+        hit["_source"]["extension"] !== "avi" &&
         videoc !== "hevc" &&
         videoc !== "mpeg2video" &&
         videoc !== "wmv3";
