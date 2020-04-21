@@ -82,7 +82,7 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
     * list: Only get file names as text
     * shallow: Don't parse archives inside archives.
     * recurse: Scan archives recursively (default)
-* `--ocr` See [OCR](README.md#OCR)
+* `--ocr` See [OCR](../README.md#OCR)
 * `-e, --exclude` Regex pattern to exclude files. A file is excluded if the pattern matches any 
     part of the full absolute path.
     
@@ -189,7 +189,7 @@ my_index/
 }
 ```
 
-You can find the full list of supported fields [here](src/io/serialize.c#L90)
+You can find the full list of supported fields [here](../src/io/serialize.c#L90)
 
 The `_keyword.*` items will be indexed and searchable as **keyword** fields (only full matches allowed).
 The `_text.*` items will be indexed and searchable as **text** fields (fuzzy searching allowed)

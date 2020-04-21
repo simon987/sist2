@@ -2,85 +2,52 @@ cmake_minimum_required(VERSION 3.7)
 set(CMAKE_C_STANDARD 11)
 
 project(sist2 C)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/CMakeModules")
 
 option(SIST_DEBUG "Build a debug executable" on)
+
+add_subdirectory(third-party/libscan)
+set(ARGPARSE_SHARED off)
+add_subdirectory(third-party/argparse)
 
 add_executable(
         sist2
         src/main.c
         src/sist.h
         src/io/walk.h src/io/walk.c
-        src/parsing/media.h src/parsing/media.c
-        src/parsing/pdf.h src/parsing/pdf.c
         src/io/store.h src/io/store.c
         src/tpool.h src/tpool.c
         src/parsing/parse.h src/parsing/parse.c
         src/io/serialize.h src/io/serialize.c
         src/parsing/mime.h src/parsing/mime.c src/parsing/mime_generated.c
-        src/parsing/text.h src/parsing/text.c
         src/index/web.c src/index/web.h
         src/web/serve.c src/web/serve.h
-        src/web/auth_basic.h src/web/auth_basic.c
         src/index/elastic.c src/index/elastic.h
         src/util.c src/util.h
-        src/ctx.h src/types.h src/parsing/font.c src/parsing/font.h
-        src/parsing/arc.c src/parsing/arc.h
-        src/parsing/doc.c src/parsing/doc.h
+        src/ctx.h src/types.h
         src/log.c src/log.h
-        src/parsing/cbr.h src/parsing/cbr.c
 
         # argparse
-        argparse/argparse.h argparse/argparse.c
+        third-party/argparse/argparse.h third-party/argparse/argparse.c
 
-        # cJSON
-        cJSON/cJSON.h cJSON/cJSON.c
-
-        # LMDB
-        lmdb/libraries/liblmdb/lmdb.h lmdb/libraries/liblmdb/mdb.c
-        lmdb/libraries/liblmdb/midl.h lmdb/libraries/liblmdb/midl.c
         src/cli.c src/cli.h
-
-        # utf8.h
-        utf8.h/utf8.h
 )
 
-find_package(PkgConfig REQUIRED)
-set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig/")
+target_link_directories(sist2 PRIVATE BEFORE /usr/share/vcpkg/installed/x64-linux/lib/)
+set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
 
-find_package(Freetype REQUIRED)
+find_package(lmdb CONFIG REQUIRED)
+find_package(cJSON CONFIG REQUIRED)
+find_package(unofficial-glib CONFIG REQUIRED)
+find_package(unofficial-mongoose CONFIG REQUIRED)
+#find_package(OpenSSL REQUIRED)
 
-pkg_check_modules(GLIB REQUIRED glib-2.0)
-pkg_check_modules(GOBJECT REQUIRED gobject-2.0)
-pkg_check_modules(UUID REQUIRED uuid)
-
-add_definitions(${UUID_CFLAGS_OTHER})
-add_definitions(${GLIB_CFLAGS_OTHER})
-add_definitions(${GOBJECT_CFLAGS_OTHER})
-add_definitions(${FREETYPE_CFLAGS_OTHER})
-
-list(REMOVE_ITEM GLIB_LIBRARIES pcre)
-list(REMOVE_ITEM GOBJECT_LIBRARIES pcre)
-list(REMOVE_ITEM UUID_LIBRARIES pcre)
 
 target_include_directories(
         sist2 PUBLIC
-        ${GOBJECT_INCLUDE_DIRS}
-        ${GLIB_INCLUDE_DIRS}
-        ${PROJECT_SOURCE_DIR}/lib/ffmpeg/
-        ${FREETYPE_INCLUDE_DIRS}
-        ${UUID_INCLUDE_DIRS}
-        ${PROJECT_SOURCE_DIR}/
-        ${PROJECT_SOURCE_DIR}/lmdb/libraries/liblmdb/
-        ${PROJECT_SOURCE_DIR}/lib/onion/src/
-        ${PROJECT_SOURCE_DIR}/lib/mupdf/include/
-        ${PROJECT_SOURCE_DIR}/include/
-        /usr/include/libxml2/
-        ${PROJECT_SOURCE_DIR}/lib/tesseract/include/
-)
-target_link_directories(
-        sist2 PUBLIC
-        ${UUID_LIBRARY_DIRS}
+        ${CMAKE_SOURCE_DIR}/third-party/onion/src/
+        ${CMAKE_SOURCE_DIR}/third-party/utf8.h/
+        ${CMAKE_SOURCE_DIR}/third-party/libscan/
+        ${CMAKE_SOURCE_DIR}/
 )
 
 target_compile_options(
@@ -103,6 +70,7 @@ if (SIST_DEBUG)
             sist2
             PRIVATE
             -fsanitize=address
+#            -static
     )
     set_target_properties(
             sist2
@@ -119,53 +87,28 @@ else ()
     )
 endif ()
 
-TARGET_LINK_LIBRARIES(
+add_dependencies(
+        sist2
+        scan
+        argparse
+)
+
+target_link_libraries(
         sist2
 
-        ${GLIB_LIBRARIES}
-        ${GOBJECT_LIBRARIES}
-        ${UUID_LIBRARIES}
+        z
+        lmdb
+        cjson
+        argparse
+        unofficial::glib::glib
+        unofficial::mongoose::mongoose
+#        OpenSSL::SSL OpenSSL::Crypto
 
-        # ffmpeg
-        ${PROJECT_SOURCE_DIR}/lib/libavcodec.a
-        ${PROJECT_SOURCE_DIR}/lib/libavformat.a
-        ${PROJECT_SOURCE_DIR}/lib/libavutil.a
-        ${PROJECT_SOURCE_DIR}/lib/libswscale.a
-        ${PROJECT_SOURCE_DIR}/lib/libswresample.a
-
-        # mupdf
-        ${PROJECT_SOURCE_DIR}/lib/libmupdf.a
-        ${PROJECT_SOURCE_DIR}/lib/libmupdf-third.a
-
-        # onion
-        ${PROJECT_SOURCE_DIR}/lib/libonion_static.a
-
+        uuid
         pthread
-
-        m
-        bz2
-#        ${PROJECT_SOURCE_DIR}/lib/libmagic.a
         magic
-        ${PROJECT_SOURCE_DIR}/lib/libharfbuzz.a
-        ${PROJECT_SOURCE_DIR}/lib/libopenjp2.a
-        freetype
-        archive
 
-        xml2
-
-        ${PROJECT_SOURCE_DIR}/lib/libtesseract.a
-        ${PROJECT_SOURCE_DIR}/lib/liblept.a
-        ${PROJECT_SOURCE_DIR}/lib/libtiff.a
-        ${PROJECT_SOURCE_DIR}/lib/libpng16.a
-        stdc++
-
-        # curl
-        ${PROJECT_SOURCE_DIR}/lib/libcurl.a
-        ${PROJECT_SOURCE_DIR}/lib/libcrypto.a
-        ${PROJECT_SOURCE_DIR}/lib/libssl.a
-        dl
-
-        pcre
+        scan
 )
 
 add_custom_target(

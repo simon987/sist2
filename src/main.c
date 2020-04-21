@@ -1,23 +1,31 @@
 #include "sist.h"
 #include "ctx.h"
 
+#include <third-party/argparse/argparse.h>
+#include <glib.h>
+
+#include "cli.h"
+#include "io/serialize.h"
+#include "io/store.h"
+#include "tpool.h"
+#include "io/walk.h"
+#include "index/elastic.h"
+#include "web/serve.h"
+#include "parsing/mime.h"
+#include "parsing/parse.h"
+
 #define DESCRIPTION "Lightning-fast file system indexer and search tool."
 
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "1.3.4";
+static const char *const Version = "2.0.0";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
         "sist2 web [OPTION]... INDEX...",
         NULL,
 };
-
-void global_init() {
-    curl_global_init(CURL_GLOBAL_NOTHING);
-    av_log_set_level(AV_LOG_QUIET);
-}
 
 void init_dir(const char *dirpath) {
     char path[PATH_MAX];
@@ -37,29 +45,117 @@ void scan_print_header() {
     LOG_INFOF("main.c", "sist2 v%s", Version)
 }
 
-void sist2_scan(scan_args_t *args) {
+void _store(char *key, size_t key_len, char *buf, size_t buf_len) {
+    store_write(ScanCtx.index.store, key, key_len, buf, buf_len);
+}
 
-    ScanCtx.tn_qscale = args->quality;
-    ScanCtx.tn_size = args->size;
-    ScanCtx.content_size = args->content_size;
+void _log(const char *filepath, int level, char *str) {
+    if (level == LEVEL_FATAL) {
+        sist_log(filepath, level, str);
+        exit(-1);
+    }
+
+    if (ScanCtx.verbose) {
+        if (level == LEVEL_DEBUG) {
+            if (ScanCtx.very_verbose) {
+                sist_log(filepath, level, str);
+            }
+        } else {
+            sist_log(filepath, level, str);
+        }
+    }
+}
+
+void _logf(const char *filepath, int level, char *format, ...) {
+
+    va_list args;
+
+    va_start(args, format);
+    if (level == LEVEL_FATAL) {
+        sist_logf(filepath, level, format, args);
+        exit(-1);
+    }
+
+    if (ScanCtx.verbose) {
+        if (level == LEVEL_DEBUG) {
+            if (ScanCtx.very_verbose) {
+                sist_logf(filepath, level, format, args);
+            }
+        } else {
+            sist_logf(filepath, level, format, args);
+        }
+    }
+    va_end(args);
+}
+
+void initialize_scan_context(scan_args_t *args) {
+
+    // Arc
+    ScanCtx.arc_ctx.mode = args->archive_mode;
+    ScanCtx.arc_ctx.log = _log;
+    ScanCtx.arc_ctx.logf = _logf;
+    ScanCtx.arc_ctx.parse = (parse_callback_t) parse;
+
+    // Cbr
+    ScanCtx.cbr_ctx.log = _log;
+    ScanCtx.cbr_ctx.logf = _logf;
+    ScanCtx.cbr_ctx.store = _store;
+    ScanCtx.cbr_ctx.cbr_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/x-cbr");
+
+    // Ebook
+    pthread_mutex_init(&ScanCtx.ebook_ctx.mupdf_mutex, NULL);
+    ScanCtx.ebook_ctx.content_size = args->content_size;
+    ScanCtx.ebook_ctx.tn_size = args->size;
+    ScanCtx.ebook_ctx.tesseract_lang = args->tesseract_lang;
+    ScanCtx.ebook_ctx.tesseract_path = args->tesseract_path;
+    ScanCtx.ebook_ctx.log = _log;
+    ScanCtx.ebook_ctx.logf = _logf;
+    ScanCtx.ebook_ctx.store = _store;
+
+    // Font
+    ScanCtx.font_ctx.enable_tn = args->size > 0;
+    ScanCtx.font_ctx.log = _log;
+    ScanCtx.font_ctx.logf = _logf;
+    ScanCtx.font_ctx.store = _store;
+
+    // Media
+    ScanCtx.media_ctx.tn_qscale = args->quality;
+    ScanCtx.media_ctx.tn_size = args->size;
+    ScanCtx.media_ctx.log = _log;
+    ScanCtx.media_ctx.logf = _logf;
+    ScanCtx.media_ctx.store = _store;
+    init_media();
+
+    // OOXML
+    ScanCtx.ooxml_ctx.content_size = args->content_size;
+    ScanCtx.ooxml_ctx.log = _log;
+    ScanCtx.ooxml_ctx.logf = _logf;
+
+    // MOBI
+    ScanCtx.mobi_ctx.content_size = args->content_size;
+    ScanCtx.mobi_ctx.log = _log;
+    ScanCtx.mobi_ctx.logf = _logf;
+
     ScanCtx.threads = args->threads;
     ScanCtx.depth = args->depth;
-    ScanCtx.archive_mode = args->archive_mode;
+
     strncpy(ScanCtx.index.path, args->output, sizeof(ScanCtx.index.path));
     strncpy(ScanCtx.index.desc.name, args->name, sizeof(ScanCtx.index.desc.name));
     strncpy(ScanCtx.index.desc.root, args->path, sizeof(ScanCtx.index.desc.root));
     strncpy(ScanCtx.index.desc.rewrite_url, args->rewrite_url, sizeof(ScanCtx.index.desc.rewrite_url));
     ScanCtx.index.desc.root_len = (short) strlen(ScanCtx.index.desc.root);
-    ScanCtx.tesseract_lang = args->tesseract_lang;
-    ScanCtx.tesseract_path = args->tesseract_path;
     ScanCtx.fast = args->fast;
+}
 
-    init_dir(ScanCtx.index.path);
+
+void sist2_scan(scan_args_t *args) {
 
     ScanCtx.mime_table = mime_get_mime_table();
     ScanCtx.ext_table = mime_get_ext_table();
 
-    cbr_init();
+    initialize_scan_context(args);
+
+    init_dir(ScanCtx.index.path);
 
     char store_path[PATH_MAX];
     snprintf(store_path, PATH_MAX, "%sthumbs", ScanCtx.index.path);
@@ -184,7 +280,9 @@ void sist2_web(web_args_t *args) {
 
     WebCtx.es_url = args->es_url;
     WebCtx.index_count = args->index_count;
-    WebCtx.b64credentials = args->b64credentials;
+    WebCtx.auth_user = args->auth_user;
+    WebCtx.auth_pass = args->auth_pass;
+    WebCtx.auth_enabled = args->auth_enabled;
 
     for (int i = 0; i < args->index_count; i++) {
         char *abs_path = abspath(args->indices[i]);
@@ -209,8 +307,6 @@ void sist2_web(web_args_t *args) {
 
 
 int main(int argc, const char *argv[]) {
-
-    global_init();
 
     scan_args_t *scan_args = scan_args_create();
     index_args_t *index_args = index_args_create();

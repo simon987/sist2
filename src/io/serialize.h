@@ -2,7 +2,10 @@
 #define SIST2_SERIALIZE_H
 
 #include "src/sist.h"
+#include "store.h"
+
 #include <sys/syscall.h>
+#include <glib.h>
 
 typedef void(*index_func)(cJSON *, const char[UUID_STR_LEN]);
 

@@ -1,6 +1,9 @@
 #include "util.h"
 #include "src/ctx.h"
 
+#include <wordexp.h>
+#include <glib.h>
+
 #define PBSTR "========================================"
 #define PBWIDTH 40
 

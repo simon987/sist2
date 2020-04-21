@@ -166,7 +166,11 @@ function getDocumentInfo(id) {
 }
 
 function handleTreeClick(tree) {
-    return (node) => {
+    return (node, e) => {
+        if (e !== "checked") {
+            return
+        }
+
         if (node.id === "any") {
             if (!node.itree.state.checked) {
                 tree.deselect();
@@ -294,7 +298,6 @@ function insertHits(resultContainer, hits) {
     for (let i = 0; i < hits.length; i++) {
 
         if (CONF.options.display === "grid") {
-            console.log(resultContainer._brick)
             resultContainer._brick.append(createDocCard(hits[i]));
         } else {
             resultContainer.appendChild(createDocLine(hits[i]));
@@ -460,10 +463,6 @@ function search(after = null) {
         if (CONF.options.display === "grid") {
             resultContainer._brick = new Bricklayer(resultContainer);
         }
-
-        window.setTimeout(() => {
-            $(".sp").SmartPhoto({animationSpeed: 0, swipeTopToClose: true, showAnimation: false, forceInterval: 50});
-        }, 100);
 
         if (!after) {
             docCount = 0;
@@ -633,8 +632,8 @@ function handlePathTreeClick(tree) {
     return (event, node, handler) => {
 
         if (node.depth !== 0) {
-            $("#pathBar").val(node.id)
-            $("#pathTreeModal").modal("hide")
+            $("#pathBar").val(node.id);
+            $("#pathTreeModal").modal("hide");
             searchDebounced();
         }
 

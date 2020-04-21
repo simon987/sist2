@@ -1,6 +1,7 @@
 #ifndef SIST2_LOG_H
 #define SIST2_LOG_H
 
+
 #define LOG_MAX_LENGTH 8192
 
 #define SIST_DEBUG 0
@@ -36,10 +37,10 @@
     sist_log(filepath, SIST_FATAL, str);\
     exit(-1);
 
-#include "src/sist.h"
+#include "sist.h"
 
-void sist_logf(char *filepath, int level, char *format, ...);
+void sist_logf(const char *filepath, int level, char *format, ...);
 
-void sist_log(char *filepath, int level, char *str);
+void sist_log(const char *filepath, int level, char *str);
 
 #endif

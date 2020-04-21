@@ -1,5 +1,7 @@
 #include "tpool.h"
 #include "ctx.h"
+#include "sist.h"
+#include <pthread.h>
 
 typedef void (*thread_func_t)(void *arg);
 

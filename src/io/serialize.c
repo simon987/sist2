@@ -1,5 +1,7 @@
 #include "src/ctx.h"
 #include "serialize.h"
+#include "src/parsing/parse.h"
+#include "src/parsing/mime.h"
 
 static __thread int index_fd = -1;
 
@@ -142,6 +144,12 @@ char *get_meta_key_text(enum metakey meta_key) {
             return "exif_model";
         case MetaExifDateTime:
             return "exif_datetime";
+        case MetaAuthor:
+            return "author";
+        case MetaModifiedBy:
+            return "modified_by";
+        case MetaThumbnail:
+            return "thumbnail";
         default:
             return NULL;
     }
@@ -176,11 +184,11 @@ void write_document(document_t *doc) {
         dyn_buffer_write_char(&buf, meta->key);
 
         if (IS_META_INT(meta->key)) {
-            dyn_buffer_write_int(&buf, meta->intval);
+            dyn_buffer_write_int(&buf, meta->int_val);
         } else if (IS_META_LONG(meta->key)) {
-            dyn_buffer_write_long(&buf, meta->longval);
+            dyn_buffer_write_long(&buf, meta->long_val);
         } else {
-            dyn_buffer_write_str(&buf, meta->strval);
+            dyn_buffer_write_str(&buf, meta->str_val);
         }
 
         meta_line_t *tmp = meta;
@@ -211,8 +219,8 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
     FILE *file = fopen(path, "rb");
     while (1) {
         buf.cur = 0;
-        size_t read = fread((void *) &line, 1, sizeof(line_t), file);
-        if (read != 1 || feof(file)) {
+        size_t _ = fread((void *) &line, 1, sizeof(line_t), file);
+        if (feof(file)) {
             break;
         }
 
@@ -270,16 +278,7 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
                     break;
                 }
                 case MetaMediaAudioCodec:
-                case MetaMediaVideoCodec: {
-                    int value;
-                    ret = fread(&value, sizeof(int), 1, file);
-                    const AVCodecDescriptor *desc = avcodec_descriptor_get(value);
-                    if (desc != NULL) {
-                        cJSON_AddStringToObject(document, get_meta_key_text(key), desc->name);
-                    }
-                    break;
-                }
-
+                case MetaMediaVideoCodec:
                 case MetaContent:
                 case MetaArtist:
                 case MetaAlbum:
@@ -296,6 +295,9 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
                 case MetaExifIsoSpeedRatings:
                 case MetaExifDateTime:
                 case MetaExifModel:
+                case MetaAuthor:
+                case MetaModifiedBy:
+                case MetaThumbnail:
                 case MetaTitle: {
                     buf.cur = 0;
                     while ((c = getc(file)) != 0) {
@@ -309,10 +311,6 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
                 }
                 default:
                 LOG_FATALF("serialize.c", "Invalid meta key (corrupt index): %x", key)
-            }
-
-            if (ret != 1) {
-                break;
             }
 
             key = getc(file);

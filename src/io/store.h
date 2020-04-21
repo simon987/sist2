@@ -11,8 +11,6 @@ typedef struct store_t {
     pthread_rwlock_t lock;
 } store_t;
 
-#include "src/sist.h"
-
 store_t *store_create(char *path);
 
 void store_destroy(store_t *store);

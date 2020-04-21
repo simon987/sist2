@@ -1,5 +1,8 @@
 #include "walk.h"
 #include "src/ctx.h"
+#include "src/parsing/parse.h"
+
+#include <ftw.h>
 
 __always_inline
 parse_job_t *create_fs_parse_job(const char *filepath, const struct stat *info, int base) {
@@ -15,12 +18,13 @@ parse_job_t *create_fs_parse_job(const char *filepath, const struct stat *info, 
         job->ext = len;
     }
 
-    job->info = *info;
+    job->vfile.info = *info;
 
     memset(job->parent, 0, 16);
 
     job->vfile.filepath = job->filepath;
     job->vfile.read = fs_read;
+    job->vfile.reset = fs_reset;
     job->vfile.close = fs_close;
     job->vfile.fd = -1;
     job->vfile.is_fs_file = TRUE;

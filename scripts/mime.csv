@@ -175,6 +175,7 @@ application/x-mif, mif
 application/x-mix-transfer, nix
 application/xml, opf
 application/x-mobipocket-ebook, mobi
+application/vnd.amazon.mobi8-ebook, azw|azw3
 application/x-msaccess, accdb
 application/x-ms-compress-szdd, fon
 application/x-ms-pdb, pdb

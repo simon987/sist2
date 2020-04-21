@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
-./scripts/get_static_libs.sh
 
 rm -rf CMakeFiles CmakeCache.txt
-cmake -DSIST_DEBUG=off .
+cmake -DSIST_DEBUG=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake .
 make
 strip sist2
 
 rm -rf CMakeFiles CmakeCache.txt
-cmake -DSIST_DEBUG=on .
+cmake -DSIST_DEBUG=on -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake .
 make

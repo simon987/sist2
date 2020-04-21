@@ -1,7 +1,7 @@
 #ifndef SIST2_MIME_H
 #define SIST2_MIME_H
 
-#include "src/sist.h"
+#include "../sist.h"
 
 #define MAJOR_MIME(mime_id) (mime_id & 0x0FFF0000) >> 16
 
@@ -24,6 +24,9 @@
 
 #define DOC_MASK 0x04000000
 #define IS_DOC(mime_id) (mime_id & DOC_MASK) == DOC_MASK
+
+#define MOBI_MASK 0x02000000
+#define IS_MOBI(mime_id) (mime_id & MOBI_MASK) == MOBI_MASK
 
 enum major_mime {
     MimeInvalid = 0,

@@ -59,24 +59,28 @@ function applyNameToTitle(hit, title, extension) {
     title.appendChild(document.createTextNode(hit["_source"]["name"] + extension));
 }
 
-function addVidSrc(url, mime, video) {
-    let vidSource = document.createElement("source");
-    vidSource.setAttribute("src", url);
-    if (video.canPlayType(mime)) {
-        vidSource.setAttribute("type", mime);
-    } else {
-        vidSource.setAttribute("type", "video/webm");
-    }
-    video.appendChild(vidSource);
-}
-
 function shouldPlayVideo(hit) {
     const videoc = hit["_source"]["videoc"];
-    return videoc !== "hevc" && videoc !== "mpeg2video" && videoc !== "wmv3";
+    const mime = hit["_source"]["mime"];
+
+    return mime &&
+        mime.startsWith("video/") &&
+        hit["_source"]["extension"] !== "mkv" &&
+        hit["_source"]["extension"] !== "avi" &&
+        videoc !== "hevc" &&
+        videoc !== "mpeg2video" &&
+        videoc !== "wmv3";
 }
 
 function shouldDisplayRawImage(hit) {
-    return hit["_source"]["mime"] && hit["_source"]["mime"].startsWith("image/") && hit["_source"]["videoc"] !== "tiff";
+    const mime = hit["_source"]["mime"];
+
+    return mime &&
+        mime.startsWith("image/") &&
+        hit["_source"]["mime"] &&
+        !hit["_source"]["parent"] &&
+        hit["_source"]["videoc"] !== "tiff" &&
+        hit["_source"]["videoc"] !== "ppm";
 }
 
 function makePlaceholder(w, h, small) {
@@ -229,6 +233,7 @@ function createDocCard(hit) {
         let thumbnailOverlay = null;
         let imgWrapper = document.createElement("div");
         imgWrapper.setAttribute("style", "position: relative");
+        imgWrapper.setAttribute("class", "img-wrapper");
 
         let mimeCategory = hit["_source"]["mime"].split("/")[0];
 
@@ -237,7 +242,6 @@ function createDocCard(hit) {
 
         //Thumbnail overlay
         switch (mimeCategory) {
-
             case "image":
                 thumbnailOverlay = document.createElement("div");
                 thumbnailOverlay.setAttribute("class", "card-img-overlay");
@@ -330,91 +334,55 @@ function createDocCard(hit) {
 }
 
 function makeThumbnail(mimeCategory, hit, imgWrapper, small) {
-    let thumbnail;
-    let isSubDocument = hit["_source"].hasOwnProperty("parent");
 
-    if (mimeCategory === "video" && shouldPlayVideo(hit) && !isSubDocument) {
-        thumbnail = document.createElement("video");
-        addVidSrc("f/" + hit["_id"], hit["_source"]["mime"], thumbnail);
-
-        const placeholder = makePlaceholder(hit["_source"]["width"], hit["_source"]["height"], small);
-        imgWrapper.appendChild(placeholder);
-
-        if (small) {
-            thumbnail.setAttribute("class", "fit-sm");
-        } else {
-            thumbnail.setAttribute("class", "fit");
-        }
-        if (small) {
-            thumbnail.style.cursor = "pointer";
-            thumbnail.title = "Enlarge";
-            thumbnail.addEventListener("click", function () {
-                imgWrapper.classList.remove("wrapper-sm", "mr-1");
-                imgWrapper.parentElement.classList.add("media-expanded");
-                thumbnail.setAttribute("class", "fit");
-                thumbnail.setAttribute("controls", "");
-            });
-        } else {
-            thumbnail.setAttribute("controls", "");
-        }
-        thumbnail.setAttribute("preload", "none");
-        thumbnail.setAttribute("poster", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
-        thumbnail.addEventListener("dblclick", function () {
-            thumbnail.setAttribute("controls", "");
-            if (thumbnail.webkitRequestFullScreen) {
-                thumbnail.webkitRequestFullScreen();
-            } else {
-                thumbnail.requestFullscreen();
-            }
-        });
-        const poster = new Image();
-        poster.src = thumbnail.getAttribute('poster');
-        poster.addEventListener("load", function () {
-            placeholder.remove();
-            imgWrapper.appendChild(thumbnail);
-        });
-    } else if ((hit["_source"].hasOwnProperty("width") && hit["_source"]["width"] > 32 && hit["_source"]["height"] > 32)
-        || hit["_source"]["mime"] === "application/pdf"
-        || hit["_source"]["mime"] === "application/epub+zip"
-        || hit["_source"]["mime"] === "application/x-cbz"
-        || hit["_source"]["mime"] === "application/x-cbr"
-        || hit["_source"].hasOwnProperty("font_name")
-    ) {
-        thumbnail = document.createElement("img");
-        if (small) {
-            thumbnail.setAttribute("class", "fit-sm");
-        } else {
-            thumbnail.setAttribute("class", "card-img-top fit");
-        }
-        thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
-
-        if (!hit["_source"]["parent"] && shouldDisplayRawImage(hit)) {
-            imgWrapper.setAttribute("id", "sp" + hit["_id"]);
-            imgWrapper.setAttribute("data-src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
-            imgWrapper.setAttribute("href", `f/${hit["_id"]}`);
-            imgWrapper.setAttribute("data-caption", hit["_source"]["path"] + "/" + hit["_source"]["name"] + ext(hit));
-            imgWrapper.setAttribute("data-group", "p" + Math.floor(docCount / SIZE));
-            imgWrapper.classList.add("sp");
-        }
-
-        const placeholder = makePlaceholder(hit["_source"]["width"], hit["_source"]["height"], small);
-        imgWrapper.appendChild(placeholder);
-
-        thumbnail.addEventListener("error", () => {
-            imgWrapper.remove();
-        });
-        thumbnail.addEventListener("load", () => {
-            placeholder.remove();
-            imgWrapper.appendChild(thumbnail);
-        });
+    if (!hit["_source"].hasOwnProperty("thumbnail")) {
+        return null;
     }
+
+    let thumbnail = document.createElement("img");
+    if (small) {
+        thumbnail.setAttribute("class", "fit-sm");
+    } else {
+        thumbnail.setAttribute("class", "card-img-top fit");
+    }
+    thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
+
+    if (shouldDisplayRawImage(hit)) {
+        thumbnail.addEventListener("click", () => {
+            const l = lity(`f/${hit["_id"]}#.jpg`);
+            window.addEventListener("scroll", () => l.close());
+        });
+
+        thumbnail.classList.add("pointer");
+    } else if (shouldPlayVideo(hit)) {
+        thumbnail.addEventListener("click", () => lity(`f/${hit["_id"]}#.mp4`));
+
+        thumbnail.classList.add("pointer");
+
+        if (!small) {
+            const playOverlay = document.createElement("div");
+            playOverlay.innerHTML = '<svg viewBox="0 0 494.942 494.942" xmlns="http://www.w3.org/2000/svg"><path d="m35.353 0 424.236 247.471-424.236 247.471z"/></svg>';
+            playOverlay.classList.add("play");
+            imgWrapper.prepend(playOverlay);
+        }
+    }
+
+    const placeholder = makePlaceholder(hit["_source"]["width"], hit["_source"]["height"], small);
+    imgWrapper.appendChild(placeholder);
+
+    thumbnail.addEventListener("error", () => {
+        imgWrapper.remove();
+    });
+    thumbnail.addEventListener("load", () => {
+        placeholder.remove();
+        imgWrapper.appendChild(thumbnail);
+    });
 
     return thumbnail;
 }
 
 function makeInfoButton(hit) {
     const infoButton = document.createElement("span");
-    infoButton.appendChild(document.createTextNode("🛈"));
     infoButton.setAttribute("class", "info-icon");
     infoButton.addEventListener("click", infoButtonCb(hit));
     return infoButton;
@@ -605,7 +573,7 @@ function makeStatsCard(searchResult) {
         item.appendChild(document.createTextNode(SORT_MODES[mode].text));
         sortModeMenu.appendChild(item);
 
-        item.onclick = function() {
+        item.onclick = function () {
             CONF.options.sort = mode;
             CONF.save();
             searchDebounced();

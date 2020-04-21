@@ -1,15 +1,40 @@
 #include "serve.h"
-#include <src/ctx.h>
-#include <onion/types_internal.h>
 
+#include "src/sist.h"
+#include "src/io/store.h"
 #include "static_generated.c"
+#include "src/index/elastic.h"
+#include "src/index/web.h"
+
+#include <src/ctx.h>
+
+#include <mongoose.h>
 
 #define CHUNK_SIZE 1024 * 1024 * 10
 
-__always_inline
-void set_default_headers(onion_response *res) {
-    onion_response_set_header(res, "Server", "sist2");
+
+static int has_prefix(const struct mg_str *str, const struct mg_str *prefix) {
+    return str->len > prefix->len && memcmp(str->p, prefix->p, prefix->len) == 0;
 }
+
+static int is_equal(const struct mg_str *s1, const struct mg_str *s2) {
+    return s1->len == s2->len && memcmp(s1->p, s2->p, s2->len) == 0;
+}
+
+static void send_response_line(struct mg_connection *nc, int status_code, int length, char *extra_headers) {
+    mg_printf(
+            nc,
+            "HTTP/1.1 %d %s\r\n"
+            "Server: sist2\r\n"
+            "Content-Length: %d\r\n"
+            "Connection: close\r\n"
+            "%s\r\n\r\n",
+            status_code, "OK",
+            length,
+            extra_headers
+    );
+}
+
 
 index_t *get_index_by_id(const char *index_id) {
     for (int i = WebCtx.index_count; i >= 0; i--) {
@@ -28,241 +53,124 @@ store_t *get_store(const char *index_id) {
     return NULL;
 }
 
-int search_index(void *p, onion_request *req, onion_response *res) {
-    set_default_headers(res);
-    onion_response_set_header(res, "Content-Type", "text/html");
-    onion_response_set_length(res, sizeof(search_html));
-    onion_response_write(res, search_html, sizeof(search_html));
-    return OCS_PROCESSED;
+void search_index(struct mg_connection *nc) {
+    send_response_line(nc, 200, sizeof(search_html), "Content-Type: text/html");
+    mg_send(nc, search_html, sizeof(search_html));
+    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-int javascript(void *p, onion_request *req, onion_response *res) {
-    onion_response_set_header(res, "Content-Type", "text/javascript");
-    onion_response_set_length(res, sizeof(bundle_js));
-    onion_response_write(res, bundle_js, sizeof(bundle_js));
-    return OCS_PROCESSED;
+void javascript(struct mg_connection *nc) {
+    send_response_line(nc, 200, sizeof(bundle_js), "Content-Type: application/javascript");
+    mg_send(nc, bundle_js, sizeof(bundle_js));
+    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-int client_requested_dark_theme(onion_request *req) {
-    const char *cookie = onion_request_get_cookie(req, "sist");
-    if (cookie == NULL) {
+int client_requested_dark_theme(struct http_message *hm) {
+    struct mg_str *cookie_header = mg_get_http_header(hm, "cookie");
+    if (cookie_header == NULL) {
         return FALSE;
     }
 
-    return strcmp(cookie, "dark") == 0;
+    char buf[4096];
+    char *sist_cookie = buf;
+    if (mg_http_parse_header2(cookie_header, "sist", &sist_cookie, sizeof(buf)) == 0) {
+        return FALSE;
+    }
+
+    int ret = strcmp(sist_cookie, "dark") == 0;
+    if (sist_cookie != buf) {
+        free(sist_cookie);
+    }
+
+    return ret;
 }
 
-int style(void *p, onion_request *req, onion_response *res) {
-    set_default_headers(res);
+void style(struct mg_connection *nc, struct http_message *hm) {
 
-    onion_response_set_header(res, "Content-Type", "text/css");
-
-    if (client_requested_dark_theme(req)) {
-        onion_response_set_length(res, sizeof(bundle_dark_css));
-        onion_response_write(res, bundle_dark_css, sizeof(bundle_dark_css));
+    if (client_requested_dark_theme(hm)) {
+        send_response_line(nc, 200, sizeof(bundle_dark_css), "Content-Type: text/css");
+        mg_send(nc, bundle_dark_css, sizeof(bundle_dark_css));
     } else {
-        onion_response_set_length(res, sizeof(bundle_css));
-        onion_response_write(res, bundle_css, sizeof(bundle_css));
+        send_response_line(nc, 200, sizeof(bundle_css), "Content-Type: text/css");
+        mg_send(nc, bundle_css, sizeof(bundle_css));
     }
-    return OCS_PROCESSED;
+
+    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-int img_sprite_skin_flag(void *p, onion_request *req, onion_response *res) {
-    set_default_headers(res);
-    onion_response_set_header(res, "Content-Type", "image/png");
-    if (client_requested_dark_theme(req)) {
-        onion_response_set_length(res, sizeof(sprite_skin_flat_dark_png));
-        onion_response_write(res, sprite_skin_flat_dark_png, sizeof(sprite_skin_flat_dark_png));
+void img_sprite_skin_flat(struct mg_connection *nc, struct http_message *hm) {
+    if (client_requested_dark_theme(hm)) {
+        send_response_line(nc, 200, sizeof(sprite_skin_flat_dark_png), "Content-Type: image/png");
+        mg_send(nc, sprite_skin_flat_dark_png, sizeof(sprite_skin_flat_dark_png));
     } else {
-        onion_response_set_length(res, sizeof(sprite_skin_flat_png));
-        onion_response_write(res, sprite_skin_flat_png, sizeof(sprite_skin_flat_png));
+        send_response_line(nc, 200, sizeof(sprite_skin_flat_png), "Content-Type: image/png");
+        mg_send(nc, sprite_skin_flat_png, sizeof(sprite_skin_flat_png));
     }
-    return OCS_PROCESSED;
+
+    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-int thumbnail(void *p, onion_request *req, onion_response *res) {
-    int flags = onion_request_get_flags(req);
-    if ((flags & OR_METHODS) != OR_GET) {
-        return OCS_NOT_PROCESSED;
-    }
-    const char *arg_index = onion_request_get_query(req, "1");
-    const char *arg_uuid = onion_request_get_query(req, "2");
+void thumbnail(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
-    if (arg_uuid == NULL || arg_index == NULL) {
-        return OCS_NOT_PROCESSED;
+    if (path->len != UUID_STR_LEN * 2 + 2) {
+        LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) path->len, path->p)
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
     }
+
+    char arg_uuid[UUID_STR_LEN];
+    char arg_index[UUID_STR_LEN];
+
+    memcpy(arg_index, hm->uri.p + 3, UUID_STR_LEN);
+    *(arg_index + UUID_STR_LEN - 1) = '\0';
+    memcpy(arg_uuid, hm->uri.p + 3 + UUID_STR_LEN, UUID_STR_LEN);
+    *(arg_uuid + UUID_STR_LEN - 1) = '\0';
 
     uuid_t uuid;
-    uuid_parse(arg_uuid, uuid);
-
-    store_t *store = get_store(arg_index);
-
-    if (store == NULL) {
-        return OCS_NOT_PROCESSED;
+    int ret = uuid_parse(arg_uuid, uuid);
+    if (ret != 0) {
+        LOG_DEBUGF("serve.c", "Invalid thumbnail UUID: %s", arg_uuid)
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
     }
 
-    set_default_headers(res);
-    onion_response_set_header(res, "Content-Type", "image/jpeg");
+    store_t *store = get_store(arg_index);
+    if (store == NULL) {
+        LOG_DEBUGF("serve.c", "Could not get store for index: %s", arg_index)
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
+    }
 
     size_t data_len = 0;
     char *data = store_read(store, (char *) uuid, sizeof(uuid_t), &data_len);
-    onion_response_set_length(res, data_len);
-    int written = onion_response_write(res, data, data_len);
-    onion_response_flush(res);
-    if (written != data_len || data_len == 0) {
-        LOG_DEBUG("serve.c", "Couldn't write thumbnail");
+    if (data_len != 0) {
+        send_response_line(nc, 200, data_len, "Content-Type: image/jpeg");
+        mg_send(nc, data, data_len);
+        free(data);
     }
-    free(data);
-
-    return OCS_PROCESSED;
+    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-/**
- * Modified version of onion_shortcut_response_file that allows
- * browsers to seek media files.
- */
-int chunked_response_file(const char *filename, const char *mime,
-                          int partial, onion_request *request, onion_response *res) {
-    int fd = open(filename, O_RDONLY | O_CLOEXEC);
-    struct stat st;
+void search(struct mg_connection *nc, struct http_message *hm) {
 
-    if (fd < 0 || stat(filename, &st) != 0 || S_ISDIR(st.st_mode)) {
-        close(fd);
-        return OCS_NOT_PROCESSED;
+    if (hm->body.len == 0) {
+        LOG_DEBUG("serve.c", "Client sent empty body, ignoring request")
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
     }
 
-    size_t length = st.st_size;
-    size_t ends;
-
-    const char *range = onion_request_get_header(request, "Range");
-    if (partial && range && strncmp(range, "bytes=", 6) == 0) {
-        onion_response_set_header(res, "Accept-Ranges", "bytes");
-
-        onion_response_set_code(res, HTTP_PARTIAL_CONTENT);
-
-        char tmp[1024];
-        if (strlen(range + 6) >= sizeof(tmp)) {
-            close(fd);
-            return OCS_INTERNAL_ERROR;
-        }
-        strncpy(tmp, range + 6, sizeof(tmp) - 1);
-        char *start = tmp;
-        char *end = tmp;
-
-        while (*end != '-' && *end) {
-            end++;
-        }
-
-        if (*end == '-') {
-            *end = '\0';
-            end++;
-
-            size_t starts;
-            starts = atol(start);
-            if (*end) {
-                // %d-%d
-                ends = atol(end);
-            } else {
-                // %d-
-                ends = MIN(starts + CHUNK_SIZE, length);
-            }
-            if (ends > length || starts >= length || starts < 0) {
-                close(fd);
-                return OCS_INTERNAL_ERROR;
-            }
-            length = ends - starts;
-
-            if (starts != 0) {
-                lseek(fd, starts, SEEK_SET);
-            }
-            snprintf(tmp, sizeof(tmp), "bytes %ld-%ld/%ld",
-                     starts, ends - 1, st.st_size);
-            onion_response_set_header(res, "Content-Range", tmp);
-        }
-    }
-    onion_response_set_length(res, length);
-    if (mime != NULL) {
-        onion_response_set_header(res, "Content-Type", mime);
-    } else {
-        onion_response_set_header(res, "Content-Type", "application/octet-stream");
-    }
-
-    onion_response_write_headers(res);
-    if ((onion_request_get_flags(request) & OR_HEAD) == OR_HEAD) {
-        length = 0;
-    }
-
-    if (length) {
-        int bytes_read = 0, bytes_written;
-        size_t total_read = 0;
-        char buf[4046];
-        if (length > sizeof(buf)) {
-            size_t max = length - sizeof(buf);
-            while (total_read < max) {
-                bytes_read = read(fd, buf, sizeof(buf));
-                if (bytes_read < 0) {
-                    break;
-                }
-                total_read += bytes_read;
-                bytes_written = onion_response_write(res, buf, bytes_read);
-                if (bytes_written != bytes_read) {
-                    break;
-                }
-            }
-        }
-        if (sizeof(buf) >= (length - total_read)) {
-            bytes_read = read(fd, buf, length - total_read);
-            onion_response_write(res, buf, bytes_read);
-        }
-    }
-    close(fd);
-    return OCS_PROCESSED;
-}
-
-int search(UNUSED(void *p), onion_request *req, onion_response *res) {
-
-    int flags = onion_request_get_flags(req);
-    if ((flags & OR_METHODS) != OR_POST) {
-        return OCS_NOT_PROCESSED;
-    }
-
-    const struct onion_block_t *block = onion_request_get_data(req);
-
-    if (block == NULL) {
-        return OCS_NOT_PROCESSED;
-    }
+    char *body = malloc(hm->body.len + 1);
+    memcpy(body, hm->body.p, hm->body.len);
+    *(body + hm->body.len) = '\0';
 
     char url[4096];
     snprintf(url, 4096, "%s/sist2/_search", WebCtx.es_url);
-    response_t *r = web_post(url, onion_block_data(block), "Content-Type: application/json");
 
-    set_default_headers(res);
-    onion_response_set_header(res, "Content-Type", "application/json");
-    onion_response_set_length(res, r->size);
-
-    if (r->status_code == 200) {
-        onion_response_write(res, r->body, r->size);
-    } else {
-        sist_log("serve.c", SIST_WARNING, "ElasticSearch error during query");
-        if (r->size != 0) {
-            char * tmp = malloc(r->size + 1);
-            memcpy(tmp, r->body, r->size);
-            *(tmp + r->size) = '\0';
-            cJSON *json = cJSON_Parse(tmp);
-            char *json_str = cJSON_Print(json);
-            sist_log("serve.c", SIST_WARNING, json_str);
-            free(json_str);
-            free(tmp);
-        }
-        onion_response_set_code(res, HTTP_INTERNAL_ERROR);
-    }
-
-    free_response(r);
-
-    return OCS_PROCESSED;
+    nc->user_data = web_post_async(url, body);
+    free(body);
 }
 
-int serve_file_from_url(cJSON *json, index_t *idx, onion_request *req, onion_response *res) {
+int serve_file_from_url(cJSON *json, index_t *idx, struct mg_connection *nc) {
 
     const char *path = cJSON_GetObjectItem(json, "path")->valuestring;
     const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
@@ -274,12 +182,16 @@ int serve_file_from_url(cJSON *json, index_t *idx, onion_request *req, onion_res
              idx->desc.rewrite_url, path, name, strlen(ext) == 0 ? "" : ".", ext);
 
     dyn_buffer_t encoded = url_escape(url);
-    int ret = onion_shortcut_redirect(encoded.buf, req, res);
+    mg_http_send_redirect(
+            nc, 308,
+            (struct mg_str) MG_MK_STR_N(encoded.buf, encoded.cur),
+            (struct mg_str) MG_NULL_STR
+    );
     dyn_buffer_destroy(&encoded);
-    return ret;
+    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-int serve_file_from_disk(cJSON *json, index_t *idx, onion_request *req, onion_response *res) {
+void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, struct http_message *hm) {
 
     const char *path = cJSON_GetObjectItem(json, "path")->valuestring;
     const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
@@ -287,23 +199,22 @@ int serve_file_from_disk(cJSON *json, index_t *idx, onion_request *req, onion_re
     const char *mime = cJSON_GetObjectItem(json, "mime")->valuestring;
 
     char full_path[PATH_MAX];
-    snprintf(full_path, PATH_MAX, "%s%s/%s%s%s",
-             idx->desc.root, path, name, strlen(ext) == 0 ? "" : ".", ext);
+    snprintf(full_path, PATH_MAX, "%s%s%s%s%s%s",
+             idx->desc.root, path, strlen(path) == 0 ? "" : "/",
+             name, strlen(ext) == 0 ? "" : ".", ext);
+
+    LOG_DEBUGF("serve.c", "Serving file from disk: %s", full_path)
 
     char disposition[8196];
-    snprintf(disposition, sizeof(disposition), "inline; filename=\"%s%s%s\"",
+    snprintf(disposition, sizeof(disposition), "Content-Disposition: inline; filename=\"%s%s%s\"",
              name, strlen(ext) == 0 ? "" : ".", ext);
-    onion_response_set_header(res, "Content-Disposition", disposition);
 
-    return chunked_response_file(full_path, mime, 1, req, res);
+    mg_http_serve_file(nc, hm, full_path, mg_mk_str(mime), mg_mk_str(disposition));
 }
 
-int index_info(UNUSED(void *p), onion_request *req, onion_response *res) {
+void index_info(struct mg_connection *nc) {
     cJSON *json = cJSON_CreateObject();
     cJSON *arr = cJSON_AddArrayToObject(json, "indices");
-
-    set_default_headers(res);
-    onion_response_set_header(res, "Content-Type", "application/json");
 
     for (int i = 0; i < WebCtx.index_count; i++) {
         index_t *idx = &WebCtx.indices[i];
@@ -317,20 +228,27 @@ int index_info(UNUSED(void *p), onion_request *req, onion_response *res) {
     }
 
     char *json_str = cJSON_PrintUnformatted(json);
-    onion_response_write0(res, json_str);
+
+    send_response_line(nc, 200, strlen(json_str), "Content-Type: application/json");
+    mg_send(nc, json_str, strlen(json_str));
     free(json_str);
     cJSON_Delete(json);
 
-    return OCS_PROCESSED;
+    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
 
-int document_info(UNUSED(void *p), onion_request *req, onion_response *res) {
+void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
-    const char *arg_uuid = onion_request_get_query(req, "1");
-    if (arg_uuid == NULL) {
-        return OCS_PROCESSED;
+    if (path->len != UUID_STR_LEN + 2) {
+        LOG_DEBUGF("serve.c", "Invalid document_info path: %.*s", (int) path->len, path->p)
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
     }
+
+    char arg_uuid[UUID_STR_LEN];
+    memcpy(arg_uuid, hm->uri.p + 3, UUID_STR_LEN);
+    *(arg_uuid + UUID_STR_LEN - 1) = '\0';
 
     cJSON *doc = elastic_get_document(arg_uuid);
     cJSON *source = cJSON_GetObjectItem(doc, "_source");
@@ -338,31 +256,37 @@ int document_info(UNUSED(void *p), onion_request *req, onion_response *res) {
     cJSON *index_id = cJSON_GetObjectItem(source, "index");
     if (index_id == NULL) {
         cJSON_Delete(doc);
-        return OCS_NOT_PROCESSED;
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
     }
 
     index_t *idx = get_index_by_id(index_id->valuestring);
     if (idx == NULL) {
         cJSON_Delete(doc);
-        return OCS_NOT_PROCESSED;
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
     }
 
-    onion_response_set_header(res, "Content-Type", "application/json");
-
     char *json_str = cJSON_PrintUnformatted(source);
-    onion_response_write0(res, json_str);
+    send_response_line(nc, 200, (int) strlen(json_str), "Content-Type: application/json");
+    mg_send(nc, json_str, (int) strlen(json_str));
     free(json_str);
     cJSON_Delete(doc);
 
-    return OCS_PROCESSED;
+    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-int file(UNUSED(void *p), onion_request *req, onion_response *res) {
+void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
-    const char *arg_uuid = onion_request_get_query(req, "1");
-    if (arg_uuid == NULL) {
-        return OCS_PROCESSED;
+    if (path->len != UUID_STR_LEN + 2) {
+        LOG_DEBUGF("serve.c", "Invalid file path: %.*s", (int) path->len, path->p)
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
     }
+
+    char arg_uuid[UUID_STR_LEN];
+    memcpy(arg_uuid, hm->uri.p + 3, UUID_STR_LEN);
+    *(arg_uuid + UUID_STR_LEN - 1) = '\0';
 
     const char *next = arg_uuid;
     cJSON *doc = NULL;
@@ -375,7 +299,8 @@ int file(UNUSED(void *p), onion_request *req, onion_response *res) {
         index_id = cJSON_GetObjectItem(source, "index");
         if (index_id == NULL) {
             cJSON_Delete(doc);
-            return OCS_NOT_PROCESSED;
+            nc->flags |= MG_F_SEND_AND_CLOSE;
+            return;
         }
         cJSON *parent = cJSON_GetObjectItem(source, "parent");
         if (parent == NULL) {
@@ -388,69 +313,140 @@ int file(UNUSED(void *p), onion_request *req, onion_response *res) {
 
     if (idx == NULL) {
         cJSON_Delete(doc);
-        return OCS_NOT_PROCESSED;
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
     }
 
-    int ret;
     if (strlen(idx->desc.rewrite_url) == 0) {
-        ret = serve_file_from_disk(source, idx, req, res);
+        serve_file_from_disk(source, idx, nc, hm);
     } else {
-        ret = serve_file_from_url(source, idx, req, res);
+        serve_file_from_url(source, idx, nc);
     }
     cJSON_Delete(doc);
-
-    return ret;
 }
 
-int status(UNUSED(void *p), UNUSED(onion_request *req), onion_response *res) {
-    set_default_headers(res);
-
-    onion_response_set_header(res, "Content-Type", "application/x-empty");
-
+void status(struct mg_connection *nc) {
     char *status = elastic_get_status();
     if (strcmp(status, "open") == 0) {
-        onion_response_set_code(res, 204);
+        send_response_line(nc, 204, 0, "Content-Type: application/json");
     } else {
-        onion_response_set_code(res, 500);
+        send_response_line(nc, 500, 0, "Content-Type: application/json");
     }
 
     free(status);
 
-    return OCS_PROCESSED;
+    nc->flags |= MG_F_SEND_AND_CLOSE;
+}
+
+static void ev_router(struct mg_connection *nc, int ev, void *p) {
+    struct mg_str scheme;
+    struct mg_str user_info;
+    struct mg_str host;
+    unsigned int port;
+    struct mg_str path;
+    struct mg_str query;
+    struct mg_str fragment;
+
+    if (ev == MG_EV_HTTP_REQUEST) {
+        struct http_message *hm = (struct http_message *) p;
+
+        if (mg_parse_uri(hm->uri, &scheme, &user_info, &host, &port, &path, &query, &fragment) != 0) {
+            nc->flags |= MG_F_SEND_AND_CLOSE;
+            return;
+        }
+
+
+        if (WebCtx.auth_enabled == TRUE) {
+            char user[256] = {0,};
+            char pass[256] = {0,};
+
+            int ret = mg_get_http_basic_auth(hm, user, sizeof(user), pass, sizeof(pass));
+            if (ret == -1 || strcmp(user, WebCtx.auth_user) != 0 || strcmp(pass, WebCtx.auth_pass) != 0) {
+                mg_printf(nc, "HTTP/1.1 401 Unauthorized\r\n"
+                              "WWW-Authenticate: Basic realm=\"sist2\"\r\n"
+                              "Content-Length: 0\r\n\r\n");
+                nc->flags |= MG_F_SEND_AND_CLOSE;
+                return;
+            }
+        }
+
+        if (is_equal(&path, &((struct mg_str) MG_MK_STR("/")))) {
+            search_index(nc);
+        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/css")))) {
+            style(nc, hm);
+        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/js")))) {
+            javascript(nc);
+        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/img/sprite-skin-flat.png")))) {
+            img_sprite_skin_flat(nc, hm);
+        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/es")))) {
+            search(nc, hm);
+        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/i")))) {
+            index_info(nc);
+        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/status")))) {
+            status(nc);
+        } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/f/")))) {
+            file(nc, hm, &path);
+        } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/t/")))) {
+            thumbnail(nc, hm, &path);
+        } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/d/")))) {
+            document_info(nc, hm, &path);
+        } else {
+            nc->flags |= MG_F_SEND_AND_CLOSE;
+        }
+
+    } else if (ev == MG_EV_POLL) {
+        if (nc->user_data != NULL) {
+            //Waiting for ES reply
+            subreq_ctx_t *ctx = (subreq_ctx_t *) nc->user_data;
+            mg_mgr_poll(&ctx->mgr, 0);
+
+            if (ctx->ev_data.done == TRUE) {
+
+                response_t *r = ctx->ev_data.resp;
+
+                if (r->status_code == 200) {
+                    send_response_line(nc, 200, r->size, "Content-Type: application/json");
+                    mg_send(nc, r->body, r->size);
+                } else {
+                    sist_log("serve.c", SIST_WARNING, "ElasticSearch error during query");
+                    if (r->size != 0) {
+                        char *tmp = malloc(r->size + 1);
+                        memcpy(tmp, r->body, r->size);
+                        *(tmp + r->size) = '\0';
+                        cJSON *json = cJSON_Parse(tmp);
+                        char *json_str = cJSON_Print(json);
+                        sist_log("serve.c", SIST_WARNING, json_str);
+                        free(json_str);
+                        free(tmp);
+                    }
+                    //todo return error code
+                }
+
+                free_response(r);
+                nc->flags |= MG_F_SEND_AND_CLOSE;
+                nc->user_data = NULL;
+            }
+        }
+    }
 }
 
 void serve(const char *hostname, const char *port) {
-    onion *o = onion_new(O_POOL);
-    onion_set_timeout(o, 3500);
-
-    onion_set_hostname(o, hostname);
-    onion_set_port(o, port);
-
-    onion_url *urls = onion_url_new();
-
-    // Static paths
-    onion_set_root_handler(o, auth_basic(WebCtx.b64credentials, onion_url_to_handler(urls)));
-
-    onion_url_add(urls, "", search_index);
-    onion_url_add(urls, "css", style);
-    onion_url_add(urls, "js", javascript);
-    onion_url_add(urls, "img/sprite-skin-flat.png", img_sprite_skin_flag);
-
-    onion_url_add(urls, "es", search);
-    onion_url_add(urls, "status", status);
-    onion_url_add(
-            urls,
-            "^t/([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})/"
-            "([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})$",
-            thumbnail
-    );
-    onion_url_add(urls, "^f/([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})$", file);
-    onion_url_add(urls, "^d/([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})$", document_info);
-    onion_url_add(urls, "i", index_info);
-
 
     printf("Starting web server @ http://%s:%s\n", hostname, port);
 
-    onion_listen(o);
-    onion_free(o);
+    struct mg_mgr mgr;
+    mg_mgr_init(&mgr, NULL);
+
+    struct mg_connection *nc = mg_bind(&mgr, "0.0.0.0:8000", ev_router);
+    if (nc == NULL) {
+        printf("Failed to create listener\n");
+        return;
+    }
+    mg_set_protocol_http_websocket(nc);
+
+    for (;;) {
+        mg_mgr_poll(&mgr, 10);
+    }
+
+//    onion_set_root_handler(o, auth_basic(WebCtx.b64credentials, onion_url_to_handler(urls)));
 }

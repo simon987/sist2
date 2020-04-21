@@ -1,7 +1,15 @@
+#include "parse.h"
+
 #include "src/sist.h"
 #include "src/ctx.h"
+#include "mime.h"
+#include "src/io/serialize.h"
 
-__thread magic_t Magic = NULL;
+#include <magic.h>
+
+
+#define MIN_VIDEO_SIZE 1024 * 64
+#define MIN_IMAGE_SIZE 1024 * 2
 
 int fs_read(struct vfile *f, void *buf, size_t size) {
 
@@ -24,31 +32,10 @@ void fs_close(struct vfile *f) {
     }
 }
 
-void *read_all(parse_job_t *job, const char *buf, int bytes_read) {
-
-    void *full_buf;
-
-    if (job->info.st_size <= bytes_read) {
-        full_buf = malloc(job->info.st_size);
-        memcpy(full_buf, buf, job->info.st_size);
-    } else {
-        full_buf = malloc(job->info.st_size);
-        memcpy(full_buf, buf, bytes_read);
-
-        int ret = job->vfile.read(&job->vfile, full_buf + bytes_read, job->info.st_size - bytes_read);
-        if (ret < 0) {
-            free(full_buf);
-
-            if (job->vfile.is_fs_file) {
-                LOG_ERRORF(job->filepath, "read(): [%d] %s", errno, strerror(errno))
-            } else {
-                LOG_ERRORF(job->filepath, "(virtual) read(): [%d] %s", ret, archive_error_string(job->vfile.arc))
-            }
-            return NULL;
-        }
+void fs_reset(struct vfile *f) {
+    if (f->fd != -1) {
+        lseek(f->fd, 0, SEEK_SET);
     }
-
-    return full_buf;
 }
 
 void parse(void *arg) {
@@ -56,16 +43,12 @@ void parse(void *arg) {
     parse_job_t *job = arg;
     document_t doc;
 
-    int inc_ts = incremental_get(ScanCtx.original_table, job->info.st_ino);
-    if (inc_ts != 0 && inc_ts == job->info.st_mtim.tv_sec) {
-        incremental_mark_file_for_copy(ScanCtx.copy_table, job->info.st_ino);
+    int inc_ts = incremental_get(ScanCtx.original_table, job->vfile.info.st_ino);
+    if (inc_ts != 0 && inc_ts == job->vfile.info.st_mtim.tv_sec) {
+        incremental_mark_file_for_copy(ScanCtx.copy_table, job->vfile.info.st_ino);
         return;
     }
 
-    if (Magic == NULL) {
-        Magic = magic_open(MAGIC_MIME_TYPE);
-        magic_load(Magic, NULL);
-    }
 
     doc.filepath = job->filepath;
     doc.ext = (short) job->ext;
@@ -73,9 +56,9 @@ void parse(void *arg) {
     doc.meta_head = NULL;
     doc.meta_tail = NULL;
     doc.mime = 0;
-    doc.size = job->info.st_size;
-    doc.ino = job->info.st_ino;
-    doc.mtime = job->info.st_mtim.tv_sec;
+    doc.size = job->vfile.info.st_size;
+    doc.ino = job->vfile.info.st_ino;
+    doc.mtime = job->vfile.info.st_mtim.tv_sec;
 
     uuid_generate(doc.uuid);
     char *buf[PARSE_BUF_SIZE];
@@ -86,7 +69,7 @@ void parse(void *arg) {
         LOG_DEBUGF(job->filepath, "Starting parse job {%s}", uuid_str)
     }
 
-    if (job->info.st_size == 0) {
+    if (job->vfile.info.st_size == 0) {
         doc.mime = MIME_EMPTY;
     } else if (*(job->filepath + job->ext) != '\0' && (job->ext - job->base != 1)) {
         doc.mime = mime_get_mime_by_ext(ScanCtx.ext_table, job->filepath + job->ext);
@@ -109,7 +92,10 @@ void parse(void *arg) {
             return;
         }
 
-        const char *magic_mime_str = magic_buffer(Magic, buf, bytes_read);
+        magic_t magic = magic_open(MAGIC_MIME_TYPE);
+        magic_load(magic, NULL);
+
+        const char *magic_mime_str = magic_buffer(magic, buf, bytes_read);
         if (magic_mime_str != NULL) {
             doc.mime = mime_get_mime_by_string(ScanCtx.mime_table, magic_mime_str);
 
@@ -120,8 +106,9 @@ void parse(void *arg) {
             }
         }
 
-        magic_close(Magic);
-        Magic = NULL;
+        job->vfile.reset(&job->vfile);
+
+        magic_close(magic);
     }
 
     int mmime = MAJOR_MIME(doc.mime);
@@ -131,50 +118,30 @@ void parse(void *arg) {
     } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) ||
                (mmime == MimeImage && doc.size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
 
-        if (job->vfile.is_fs_file) {
-            parse_media_filename(job->filepath, &doc);
-        } else {
-            parse_media_vfile(&job->vfile, &doc);
-        }
+        parse_media(&ScanCtx.media_ctx, &job->vfile, &doc);
 
     } else if (IS_PDF(doc.mime)) {
-        void *pdf_buf = read_all(job, (char *) buf, bytes_read);
-        parse_pdf(pdf_buf, doc.size, &doc);
+        parse_ebook(&ScanCtx.ebook_ctx, &job->vfile, mime_get_mime_text(doc.mime), &doc);
 
-        if (pdf_buf != buf && pdf_buf != NULL) {
-            free(pdf_buf);
-        }
-
-    } else if (mmime == MimeText && ScanCtx.content_size > 0) {
-        parse_text(bytes_read, &job->vfile, (char *) buf, &doc);
+    } else if (mmime == MimeText && ScanCtx.text_ctx.content_size > 0) {
+        parse_text(&ScanCtx.text_ctx, &job->vfile, &doc);
 
     } else if (IS_FONT(doc.mime)) {
-        void *font_buf = read_all(job, (char *) buf, bytes_read);
-        parse_font(font_buf, doc.size, &doc);
+        parse_font(&ScanCtx.font_ctx, &job->vfile, &doc);
 
-        if (font_buf != buf && font_buf != NULL) {
-            free(font_buf);
-        }
     } else if (
-            ScanCtx.archive_mode != ARC_MODE_SKIP && (
+            ScanCtx.arc_ctx.mode != ARC_MODE_SKIP && (
                     IS_ARC(doc.mime) ||
                     (IS_ARC_FILTER(doc.mime) && should_parse_filtered_file(doc.filepath, doc.ext))
             )) {
-        parse_archive(&job->vfile, &doc);
-    } else if (ScanCtx.content_size > 0 && IS_DOC(doc.mime)) {
-        void *doc_buf = read_all(job, (char *) buf, bytes_read);
-        parse_doc(doc_buf, doc.size, &doc);
+        parse_archive(&ScanCtx.arc_ctx, &job->vfile, &doc);
+    } else if (ScanCtx.ooxml_ctx.content_size > 0 && IS_DOC(doc.mime)) {
+        parse_ooxml(&ScanCtx.ooxml_ctx, &job->vfile, &doc);
 
-        if (doc_buf != buf && doc_buf != NULL) {
-            free(doc_buf);
-        }
-    } else if (is_cbr(doc.mime)) {
-        void *cbr_buf = read_all(job, (char *) buf, bytes_read);
-        parse_cbr(cbr_buf, doc.size, &doc);
-
-        if (cbr_buf != buf && cbr_buf != NULL) {
-            free(cbr_buf);
-        }
+    } else if (is_cbr(&ScanCtx.cbr_ctx, doc.mime)) {
+        parse_cbr(&ScanCtx.cbr_ctx, &job->vfile, &doc);
+    } else if (IS_MOBI(doc.mime)) {
+        parse_mobi(&ScanCtx.mobi_ctx, &job->vfile, &doc);
     }
 
     //Parent meta
@@ -184,7 +151,7 @@ void parse(void *arg) {
 
         meta_line_t *meta_parent = malloc(sizeof(meta_line_t) + UUID_STR_LEN + 1);
         meta_parent->key = MetaParent;
-        strcpy(meta_parent->strval, tmp);
+        strcpy(meta_parent->str_val, tmp);
         APPEND_META((&doc), meta_parent)
     }
 
@@ -194,7 +161,5 @@ void parse(void *arg) {
 }
 
 void cleanup_parse() {
-    if (Magic != NULL) {
-        magic_close(Magic);
-    }
+    // noop
 }

@@ -1,5 +1,6 @@
 #include "cli.h"
 #include "ctx.h"
+#include <tesseract/capi.h>
 
 #define DEFAULT_OUTPUT "index.sist2/"
 #define DEFAULT_CONTENT_SIZE 32768
@@ -284,9 +285,23 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     }
 
     if (args->credentials != NULL) {
-        args->b64credentials = onion_base64_encode(args->credentials, (int) strlen(args->credentials));
-        //Remove trailing newline
-        *(args->b64credentials + strlen(args->b64credentials) - 1) = '\0';
+        char * ptr = strstr(args->credentials, ":");
+        if (ptr == NULL) {
+            fprintf(stderr, "Invalid --auth format, see usage\n");
+            return 1;
+        }
+
+        strncpy(args->auth_user, args->credentials, (ptr - args->credentials));
+        strncpy(args->auth_pass, ptr + 1, strlen(ptr + 1));
+
+        if (strlen(args->auth_user) == 0) {
+            fprintf(stderr, "--auth username must be at least one character long");
+            return 1;
+        }
+
+        args->auth_enabled = TRUE;
+    } else {
+        args->auth_enabled = FALSE;
     }
 
     args->index_count = argc - 1;
@@ -304,7 +319,8 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg bind=%s", args->bind)
     LOG_DEBUGF("cli.c", "arg port=%s", args->port)
     LOG_DEBUGF("cli.c", "arg credentials=%s", args->credentials)
-    LOG_DEBUGF("cli.c", "arg b64credentials=%s", args->b64credentials)
+    LOG_DEBUGF("cli.c", "arg auth_user=%s", args->auth_user)
+    LOG_DEBUGF("cli.c", "arg auth_pass=%s", args->auth_pass)
     LOG_DEBUGF("cli.c", "arg index_count=%d", args->index_count)
     for (int i = 0; i < args->index_count; i++) {
         LOG_DEBUGF("cli.c", "arg indices[%d]=%s", i, args->indices[i])

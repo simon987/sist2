@@ -1,5 +1,8 @@
 #include "log.h"
 
+#include <pthread.h>
+#include <stdarg.h>
+
 const char *log_colors[] = {
         "\033[34m", "\033[01;34m", "\033[0m",
         "\033[01;33m", "\033[31m", "\033[01;31m"
@@ -9,7 +12,7 @@ const char *log_levels[] = {
         "DEBUG", "INFO", "WARNING", "ERROR", "FATAL"
 };
 
-void sist_logf(char *filepath, int level, char *format, ...) {
+void sist_logf(const char *filepath, int level, char *format, ...) {
 
     static int is_tty = -1;
     if (is_tty == -1) {
@@ -58,11 +61,11 @@ void sist_logf(char *filepath, int level, char *format, ...) {
 
     int ret = write(STDERR_FILENO, log_str, log_len);
     if (ret == -1) {
-        LOG_FATALF("serialize.c", "Could not write index descriptor: %s", strerror(errno));
+        LOG_FATALF("serialize.c", "Could not write index descriptor: %s", strerror(errno))
     }
 }
 
-void sist_log(char *filepath, int level, char *str) {
+void sist_log(const char *filepath, int level, char *str) {
 
     static int is_tty = -1;
     if (is_tty == -1) {

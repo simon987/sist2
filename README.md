@@ -8,7 +8,7 @@ sist2 (Simple incremental search tool)
 
 *Warning: sist2 is in early development*
 
-![sist2.png](sist2.png)
+![sist2.png](docs/sist2.png)
 
 ## Features
 
@@ -49,7 +49,7 @@ sist2 (Simple incremental search tool)
     1. *(or)* Download a [development snapshot](https://files.simon987.net/artifacts/Sist2/Build/) *(Not recommended!)*
     1. *(or)* `docker pull simon987/sist2:latest`
 
-1. See [Usage guide](USAGE.md)
+1. See [Usage guide](DOCS/USAGE.md)
    
 
 \* *Windows users*: **sist2** runs under [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux)    
@@ -57,7 +57,7 @@ sist2 (Simple incremental search tool)
 
 ## Example usage
 
-See [Usage guide](USAGE.md) for more details
+See [Usage guide](DOCS/USAGE.md) for more details
 
 1. Scan a directory: `sist2 scan ~/Documents -o ./docs_idx`
 1. Push index to Elasticsearch: `sist2 index ./docs_idx`
@@ -75,7 +75,8 @@ pdf,xps,cbz,cbr,fb2,epub | MuPDF | text+ocr | yes, `png` | title |
 ttf,ttc,cff,woff,fnt,otf | Freetype2 | - | yes, `bmp` | Name & style |
 `text/plain` | *(none)* | yes | no | - |
 tar, zip, rar, 7z, ar ...  | Libarchive | yes\* | - | no |
-docx, xlsx, pptx | *(none)* | yes | no | no |
+docx, xlsx, pptx | *(none)* | yes | no | creator, modified_by, title |
+mobi, azw, azw3 | libmobi | yes | no | author, title |
 
 \* *See [Archive files](#archive-files)*
  
@@ -113,23 +114,17 @@ sist2 scan --ocr eng ~/Books/Textbooks/
 ## Build from source
 
 You can compile **sist2** by yourself if you don't want to use the pre-compiled
-binaries.
+binaries (GCC 7+ required).
 
 1. Install compile-time dependencies
 
-    *(Debian)*
-    ```bash
-    apt install git cmake pkg-config libglib2.0-dev \
-        libssl-dev uuid-dev python3 libmagic-dev libfreetype6-dev \
-        libcurl4-openssl-dev libbz2-dev yasm libharfbuzz-dev ragel \
-        libarchive-dev libtiff5 libpng16-16 libpango1.0-dev \
-        libxml2-dev libopenjp2-7-dev libleptonica-dev
+   ```bash
+   vcpkg install lmdb cjson glib libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 ffmpeg zstd
    ```
 
 2. Build
     ```bash
-    git clone --recurse-submodules https://github.com/simon987/sist2
-    ./scripts/get_static_libs.sh
-    cmake .
+    git clone --recursive https://github.com/simon987/sist2/
+    cmake -D <VCPKG_ROOT>/scripts/buildsystems/vcpkg.cmake .
     make
     ```
