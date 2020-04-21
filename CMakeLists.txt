@@ -32,13 +32,15 @@ add_executable(
         src/cli.c src/cli.h
 )
 
-target_link_directories(sist2 PRIVATE BEFORE /usr/share/vcpkg/installed/x64-linux/lib/)
+target_link_directories(sist2 PRIVATE BEFORE ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/)
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
 
 find_package(lmdb CONFIG REQUIRED)
 find_package(cJSON CONFIG REQUIRED)
 find_package(unofficial-glib CONFIG REQUIRED)
 find_package(unofficial-mongoose CONFIG REQUIRED)
+find_library(UUID_LIB NAMES uuid)
+
 #find_package(OpenSSL REQUIRED)
 
 
@@ -104,7 +106,7 @@ target_link_libraries(
         unofficial::mongoose::mongoose
 #        OpenSSL::SSL OpenSSL::Crypto
 
-        uuid
+        ${UUID_LIB}
         pthread
         magic
 

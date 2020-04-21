@@ -119,7 +119,7 @@ binaries (GCC 7+ required).
 1. Install compile-time dependencies
 
    ```bash
-   vcpkg install lmdb cjson glib libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 ffmpeg zstd gtest mongoose
+   vcpkg install lmdb cjson glib libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 ffmpeg zstd gtest mongoose libuuid libmagic
    ```
 
 2. Build
