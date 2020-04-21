@@ -7,7 +7,9 @@
 
 
 void free_response(response_t *resp) {
-    free(resp->body);
+    if (resp->body != NULL) {
+        free(resp->body);
+    }
     free(resp);
 }
 
@@ -23,7 +25,7 @@ void http_req_ev(struct mg_connection *nc, int ev, void *ptr) {
             int connect_status = *(int *) ptr;
             if (connect_status != 0) {
                 ev_data->done = TRUE;
-                //TODO: set error
+                ev_data->resp->status_code = 0;
             }
             break;
         }
@@ -79,7 +81,7 @@ subreq_ctx_t *http_req(const char *url, const char *extra_headers, const char *p
     nc->user_data = &ctx->ev_data;
     mg_set_protocol_http_websocket(nc);
 
-    ctx->ev_data.resp = malloc(sizeof(response_t));
+    ctx->ev_data.resp = calloc(1, sizeof(response_t));
     ctx->ev_data.done = FALSE;
 
     mg_printf(

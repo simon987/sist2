@@ -302,7 +302,7 @@ void sist2_web(web_args_t *args) {
         free(abs_path);
     }
 
-    serve(args->bind, args->port);
+    serve(args->listen_address);
 }
 
 
@@ -356,8 +356,7 @@ int main(int argc, const char *argv[]) {
 
             OPT_GROUP("Web options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
-            OPT_STRING(0, "bind", &web_args->bind, "Listen on this address. DEFAULT=localhost"),
-            OPT_STRING(0, "port", &web_args->port, "Listen on this port. DEFAULT=4090"),
+            OPT_STRING(0, "bind", &web_args->listen_address, "Listen on this address. DEFAULT=localhost:4090"),
             OPT_STRING(0, "auth", &web_args->credentials, "Basic auth in user:password format"),
 
             OPT_END(),

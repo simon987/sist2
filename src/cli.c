@@ -11,8 +11,7 @@
 #define DEFAULT_ES_URL "http://localhost:9200"
 #define DEFAULT_BATCH_SIZE 100
 
-#define DEFAULT_BIND_ADDR "localhost"
-#define DEFAULT_PORT "4090"
+#define DEFAULT_LISTEN_ADDRESS "localhost:4090"
 
 const char* TESS_DATAPATHS[] = {
         "/usr/share/tessdata/",
@@ -276,12 +275,8 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
         args->es_url = DEFAULT_ES_URL;
     }
 
-    if (args->bind == NULL) {
-        args->bind = DEFAULT_BIND_ADDR;
-    }
-
-    if (args->port == NULL) {
-        args->port = DEFAULT_PORT;
+    if (args->listen_address == NULL) {
+        args->listen_address = DEFAULT_LISTEN_ADDRESS;
     }
 
     if (args->credentials != NULL) {
@@ -316,8 +311,7 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     }
 
     LOG_DEBUGF("cli.c", "arg es_url=%s", args->es_url)
-    LOG_DEBUGF("cli.c", "arg bind=%s", args->bind)
-    LOG_DEBUGF("cli.c", "arg port=%s", args->port)
+    LOG_DEBUGF("cli.c", "arg listen=%s", args->listen_address)
     LOG_DEBUGF("cli.c", "arg credentials=%s", args->credentials)
     LOG_DEBUGF("cli.c", "arg auth_user=%s", args->auth_user)
     LOG_DEBUGF("cli.c", "arg auth_pass=%s", args->auth_pass)

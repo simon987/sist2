@@ -3,6 +3,6 @@
 
 #include "src/sist.h"
 
-void serve(const char *hostname, const char *port);
+void serve(const char *listen_address);
 
 #endif

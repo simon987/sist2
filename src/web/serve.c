@@ -407,8 +407,10 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
                 if (r->status_code == 200) {
                     send_response_line(nc, 200, r->size, "Content-Type: application/json");
                     mg_send(nc, r->body, r->size);
+                } else if (r->status_code == 0) {
+                    sist_log("serve.c", SIST_ERROR, "Could not connect to elasticsearch!");
                 } else {
-                    sist_log("serve.c", SIST_WARNING, "ElasticSearch error during query");
+                    sist_logf("serve.c", SIST_WARNING, "ElasticSearch error during query (%d)", r->status_code);
                     if (r->size != 0) {
                         char *tmp = malloc(r->size + 1);
                         memcpy(tmp, r->body, r->size);
@@ -430,23 +432,20 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
     }
 }
 
-void serve(const char *hostname, const char *port) {
+void serve(const char *listen_address) {
 
-    printf("Starting web server @ http://%s:%s\n", hostname, port);
+    printf("Starting web server @ http://%s\n", listen_address);
 
     struct mg_mgr mgr;
     mg_mgr_init(&mgr, NULL);
 
-    struct mg_connection *nc = mg_bind(&mgr, "0.0.0.0:8000", ev_router);
+    struct mg_connection *nc = mg_bind(&mgr, listen_address, ev_router);
     if (nc == NULL) {
-        printf("Failed to create listener\n");
-        return;
+        LOG_FATALF("serve.c", "Couldn't bind web server on address %s", listen_address)
     }
     mg_set_protocol_http_websocket(nc);
 
     for (;;) {
         mg_mgr_poll(&mgr, 10);
     }
-
-//    onion_set_root_handler(o, auth_basic(WebCtx.b64credentials, onion_url_to_handler(urls)));
 }
