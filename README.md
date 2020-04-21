@@ -75,7 +75,8 @@ pdf,xps,cbz,cbr,fb2,epub | MuPDF | text+ocr | yes, `png` | title |
 ttf,ttc,cff,woff,fnt,otf | Freetype2 | - | yes, `bmp` | Name & style |
 `text/plain` | *(none)* | yes | no | - |
 tar, zip, rar, 7z, ar ...  | Libarchive | yes\* | - | no |
-docx, xlsx, pptx | *(none)* | yes | no | no |
+docx, xlsx, pptx | *(none)* | yes | no | creator, modified_by, title |
+mobi, azw, azw3 | libmobi | yes | no | author, title |
 
 \* *See [Archive files](#archive-files)*
  
