@@ -19,7 +19,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.0.0";
+static const char *const Version = "2.1.0";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -135,6 +135,11 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.mobi_ctx.content_size = args->content_size;
     ScanCtx.mobi_ctx.log = _log;
     ScanCtx.mobi_ctx.logf = _logf;
+
+    // TEXT
+    ScanCtx.text_ctx.content_size = args->content_size;
+    ScanCtx.text_ctx.log = _log;
+    ScanCtx.text_ctx.logf = _logf;
 
     ScanCtx.threads = args->threads;
     ScanCtx.depth = args->depth;

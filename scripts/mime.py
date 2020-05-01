@@ -67,6 +67,12 @@ mobi = (
     "application/vnd.amazon.mobi8-ebook"
 )
 
+markup = (
+    "text/xml",
+    "text/html",
+    "text/x-sgml"
+)
+
 cnt = 1
 
 
@@ -89,6 +95,8 @@ def mime_id(mime):
         mime_id += " | 0x04000000"
     elif mime in mobi:
         mime_id += " | 0x02000000"
+    elif mime in markup:
+        mime_id += " | 0x01000000"
     elif mime == "application/x-empty":
         return "1"
     return mime_id

@@ -428,3 +428,4 @@ video/x-msvideo, divx
 video/x-qtc, qtc
 video/x-sgi-movie, movie|mv
 x-epoc/x-sisx-app,
+application/x-zstd-dictionary,

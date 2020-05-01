@@ -3,7 +3,7 @@
 
 #include "../sist.h"
 
-#define MAJOR_MIME(mime_id) (mime_id & 0x0FFF0000) >> 16
+#define MAJOR_MIME(mime_id) (mime_id & 0x00FF0000) >> 16
 
 #define MIME_EMPTY 1
 
@@ -27,6 +27,9 @@
 
 #define MOBI_MASK 0x02000000
 #define IS_MOBI(mime_id) (mime_id & MOBI_MASK) == MOBI_MASK
+
+#define MARKUP_MASK 0x01000000
+#define IS_MARKUP(mime_id) (mime_id & MARKUP_MASK) == MARKUP_MASK
 
 enum major_mime {
     MimeInvalid = 0,

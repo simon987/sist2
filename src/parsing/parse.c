@@ -124,7 +124,11 @@ void parse(void *arg) {
         parse_ebook(&ScanCtx.ebook_ctx, &job->vfile, mime_get_mime_text(doc.mime), &doc);
 
     } else if (mmime == MimeText && ScanCtx.text_ctx.content_size > 0) {
-        parse_text(&ScanCtx.text_ctx, &job->vfile, &doc);
+        if (IS_MARKUP(doc.mime)) {
+            parse_markup(&ScanCtx.text_ctx, &job->vfile, &doc);
+        } else {
+            parse_text(&ScanCtx.text_ctx, &job->vfile, &doc);
+        }
 
     } else if (IS_FONT(doc.mime)) {
         parse_font(&ScanCtx.font_ctx, &job->vfile, &doc);
