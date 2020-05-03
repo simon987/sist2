@@ -73,18 +73,23 @@ function Settings() {
 
     this._onUpdate = function () {
         $("#fuzzyToggle").prop("checked", this.options.fuzzy);
-    }
+    };
 
     this.load = function () {
         const raw = window.localStorage.getItem("options");
         if (raw === null) {
             this.options = _defaults;
         } else {
-            this.options = JSON.parse(raw);
+            const j = JSON.parse(raw);
+            if (!j || Object.keys(_defaults).some(k => !j.hasOwnProperty(k))) {
+                this.options = _defaults;
+            } else {
+                this.options = j;
+            }
         }
 
         this._onUpdate();
-    }
+    };
 
     this.save = function () {
         window.localStorage.setItem("options", JSON.stringify(this.options));
