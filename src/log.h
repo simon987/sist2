@@ -40,6 +40,7 @@
 #include "sist.h"
 
 void sist_logf(const char *filepath, int level, char *format, ...);
+void vsist_logf(const char *filepath, int level, char *format, va_list ap);
 
 void sist_log(const char *filepath, int level, char *str);
 

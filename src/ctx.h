@@ -27,8 +27,6 @@ struct {
 
     int threads;
     int depth;
-    int verbose;
-    int very_verbose;
 
     size_t stat_tn_size;
     size_t stat_index_size;

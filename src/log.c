@@ -12,7 +12,7 @@ const char *log_levels[] = {
         "DEBUG", "INFO", "WARNING", "ERROR", "FATAL"
 };
 
-void sist_logf(const char *filepath, int level, char *format, ...) {
+void vsist_logf(const char *filepath, int level, char *format, va_list ap) {
 
     static int is_tty = -1;
     if (is_tty == -1) {
@@ -46,11 +46,8 @@ void sist_logf(const char *filepath, int level, char *format, ...) {
         );
     }
 
-    va_list ap;
-    va_start(ap, format);
     size_t maxsize = sizeof(log_str) - log_len;
     log_len += vsnprintf(log_str + log_len, maxsize, format, ap);
-    va_end(ap);
 
     if (is_tty) {
         log_len += sprintf(log_str + log_len, "\033[0m\n");
@@ -63,6 +60,13 @@ void sist_logf(const char *filepath, int level, char *format, ...) {
     if (ret == -1) {
         LOG_FATALF("serialize.c", "Could not write index descriptor: %s", strerror(errno))
     }
+}
+
+void sist_logf(const char *filepath, int level, char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    vsist_logf(filepath, level, format, ap);
+    va_end(ap);
 }
 
 void sist_log(const char *filepath, int level, char *str) {

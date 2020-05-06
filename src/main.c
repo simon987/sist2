@@ -19,7 +19,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.1.1";
+static const char *const Version = "2.1.2";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -55,9 +55,9 @@ void _log(const char *filepath, int level, char *str) {
         exit(-1);
     }
 
-    if (ScanCtx.verbose) {
+    if (LogCtx.verbose) {
         if (level == LEVEL_DEBUG) {
-            if (ScanCtx.very_verbose) {
+            if (LogCtx.very_verbose) {
                 sist_log(filepath, level, str);
             }
         } else {
@@ -76,10 +76,10 @@ void _logf(const char *filepath, int level, char *format, ...) {
         exit(-1);
     }
 
-    if (ScanCtx.verbose) {
+    if (LogCtx.verbose) {
         if (level == LEVEL_DEBUG) {
-            if (ScanCtx.very_verbose) {
-                sist_logf(filepath, level, format, args);
+            if (LogCtx.very_verbose) {
+                vsist_logf(filepath, level, format, args);
             }
         } else {
             sist_logf(filepath, level, format, args);
