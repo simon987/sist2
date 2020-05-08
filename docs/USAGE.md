@@ -244,14 +244,13 @@ sist2 index --print ./my_index/ | jq | less
 ### Web options
  * `--es-url=<str>` Elasticsearch url.
  * `--bind=<str>` Listen on this address.
- * `--port=<str>` Listen on this port.
  * `--auth=<str>` Basic auth in user:password format
  
 ### Web examples
 
 **Single index**
 ```bash
-sist2 web --auth admin:hunter2 --bind 0.0.0.0 --port 8888 my_index
+sist2 web --auth admin:hunter2 --bind 0.0.0.0:8888 my_index
 ```
 
 **Multiple indices**
