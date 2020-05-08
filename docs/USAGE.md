@@ -48,10 +48,10 @@ Index options
     --batch-size=<int>    Index batch size. DEFAULT: 100
     -f, --force-reset     Reset Elasticsearch mappings and settings. (You must use this option the first time you use the index command)
 
+
 Web options
     --es-url=<str>        Elasticsearch url. DEFAULT=http://localhost:9200
-    --bind=<str>          Listen on this address. DEFAULT=localhost
-    --port=<str>          Listen on this port. DEFAULT=4090
+    --bind=<str>          Listen on this address. DEFAULT=localhost:4090
     --auth=<str>          Basic auth in user:password format
 Made by simon987 <me@simon987.net>. Released under GPL-3.0
 
