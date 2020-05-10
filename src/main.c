@@ -3,6 +3,7 @@
 
 #include <third-party/argparse/argparse.h>
 #include <glib.h>
+#include <locale.h>
 
 #include "cli.h"
 #include "io/serialize.h"
@@ -19,7 +20,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.2.0";
+static const char *const Version = "2.2.1";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -312,6 +313,7 @@ void sist2_web(web_args_t *args) {
 
 
 int main(int argc, const char *argv[]) {
+    setlocale(LC_ALL, "");
 
     scan_args_t *scan_args = scan_args_create();
     index_args_t *index_args = index_args_create();
