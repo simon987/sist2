@@ -11,7 +11,16 @@
       "type": "text",
       "analyzer": "path_analyzer",
       "fielddata": true,
-      "index_prefixes": {}
+      "fields": {
+        "nGram": {
+          "type": "text",
+          "analyzer": "my_nGram"
+        },
+        "text": {
+          "type": "text",
+          "analyzer": "content_analyzer"
+        }
+      }
     },
     "mime": {
       "type": "keyword"

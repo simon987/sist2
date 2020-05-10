@@ -26,7 +26,8 @@ const _defaults = {
     display: "grid",
     fuzzy: true,
     highlight: true,
-    sort: "score"
+    sort: "score",
+    searchInPath: false,
 };
 
 SORT_MODES = {
@@ -66,7 +67,7 @@ SORT_MODES = {
         ],
         key: hit => hit["_source"]["size"]
     },
-}
+};
 
 function Settings() {
     this.options = {};
@@ -377,8 +378,15 @@ function search(after = null) {
         "font_name^6"
     ];
 
+    if (CONF.options.searchInPath) {
+        fields.push("path.text^5");
+    }
+
     if ($("#fuzzyToggle").prop("checked")) {
         fields.push("content.nGram");
+        if (CONF.options.searchInPath) {
+            fields.push("path.nGram");
+        }
         fields.push("name.nGram^3");
     }
 
@@ -445,6 +453,10 @@ function search(after = null) {
                 font_name: {},
             }
         };
+        if (CONF.options.searchInPath) {
+            q.highlight.fields["path.text"] = {};
+            q.highlight.fields["path.nGram"] = {};
+        }
     }
 
     $.jsonPost("es", q).then(searchResult => {
@@ -661,7 +673,7 @@ function createPathTree(target) {
             depth: 0,
             children: true
         })
-    })
+    });
 
     new InspireTreeDOM(pathTree, {
         target: target
@@ -674,6 +686,7 @@ function updateSettings() {
     CONF.options.display = $("#settingDisplay").val();
     CONF.options.fuzzy = $("#settingFuzzy").prop("checked");
     CONF.options.highlight = $("#settingHighlight").prop("checked");
+    CONF.options.searchInPath = $("#settingSearchInPath").prop("checked");
     CONF.save();
 
     searchDebounced();
@@ -696,4 +709,5 @@ function loadSettings() {
     $("#settingDisplay").val(CONF.options.display);
     $("#settingFuzzy").prop("checked", CONF.options.fuzzy);
     $("#settingHighlight").prop("checked", CONF.options.highlight);
+    $("#settingSearchInPath").prop("checked", CONF.options.searchInPath);
 }

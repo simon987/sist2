@@ -45,6 +45,18 @@ function getContentHighlight(hit) {
     return undefined;
 }
 
+function getPathHighlight(hit) {
+    if (hit.hasOwnProperty("highlight")) {
+        if (hit["highlight"].hasOwnProperty("path.text")) {
+            return hit["highlight"]["path.text"][0];
+        } else if (hit["highlight"].hasOwnProperty("path.nGram")) {
+            return hit["highlight"]["path.nGram"][0];
+        }
+    }
+
+    return undefined;
+}
+
 function applyNameToTitle(hit, title, extension) {
     if (hit.hasOwnProperty("highlight")) {
         if (hit["highlight"].hasOwnProperty("name")) {
@@ -443,7 +455,7 @@ function createDocLine(hit) {
     if (contentHl !== undefined) {
         const contentDiv = document.createElement("div");
         contentDiv.setAttribute("class", "content-div");
-        contentDiv.insertAdjacentHTML('afterbegin', contentHl);
+        contentDiv.insertAdjacentHTML("afterbegin", contentHl);
         titleDiv.appendChild(contentDiv);
     }
 
@@ -453,7 +465,13 @@ function createDocLine(hit) {
     let path = document.createElement("div");
     path.setAttribute("class", "path-line");
     path.setAttribute("title", hit["_source"]["path"] + "/");
-    path.appendChild(document.createTextNode(hit["_source"]["path"] + "/"));
+
+    const pathHighlight = getPathHighlight(hit);
+    if (pathHighlight) {
+        path.insertAdjacentHTML("afterbegin", pathHighlight + "/");
+    } else {
+        path.appendChild(document.createTextNode(hit["_source"]["path"] + "/"));
+    }
 
     let tagContainer = document.createElement("div");
     tagContainer.setAttribute("class", "tag-container");
