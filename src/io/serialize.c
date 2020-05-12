@@ -251,10 +251,17 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
         } else {
             *(buf.buf + line.ext) = '\0';
         }
-        cJSON_AddStringToObject(document, "name", buf.buf + line.base);
+
+        char tmp[PATH_MAX * 3];
+
+        str_escape(tmp, buf.buf + line.base);
+        cJSON_AddStringToObject(document, "name", tmp);
+
         if (line.base > 0) {
             *(buf.buf + line.base - 1) = '\0';
-            cJSON_AddStringToObject(document, "path", buf.buf);
+
+            str_escape(tmp, buf.buf);
+            cJSON_AddStringToObject(document, "path", tmp);
         } else {
             cJSON_AddStringToObject(document, "path", "");
         }

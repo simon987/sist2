@@ -49,7 +49,6 @@ void parse(void *arg) {
         return;
     }
 
-
     doc.filepath = job->filepath;
     doc.ext = (short) job->ext;
     doc.base = (short) job->base;
@@ -61,7 +60,7 @@ void parse(void *arg) {
     doc.mtime = job->vfile.info.st_mtim.tv_sec;
 
     uuid_generate(doc.uuid);
-    char *buf[PARSE_BUF_SIZE];
+    char *buf[MAGIC_BUF_SIZE];
 
     if (LogCtx.very_verbose) {
         char uuid_str[UUID_STR_LEN];
@@ -79,7 +78,7 @@ void parse(void *arg) {
 
     if (doc.mime == 0 && !ScanCtx.fast) {
         // Get mime type with libmagic
-        bytes_read = job->vfile.read(&job->vfile, buf, PARSE_BUF_SIZE);
+        bytes_read = job->vfile.read(&job->vfile, buf, MAGIC_BUF_SIZE);
         if (bytes_read < 0) {
 
             if (job->vfile.is_fs_file) {

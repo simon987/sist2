@@ -43,4 +43,9 @@ static int incremental_mark_file_for_copy(GHashTable *table, unsigned long inode
 
 const char *find_file_in_paths(const char **paths, const char *filename);
 
+
+void str_escape(char *dst, const char *str);
+
+void str_unescape(char *dst, const char *str);
+
 #endif

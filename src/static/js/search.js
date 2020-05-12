@@ -465,6 +465,11 @@ function search(after = null) {
             lastDoc = hits[hits.length - 1];
         }
 
+        hits.forEach(hit => {
+            hit["_source"]["name"] = strUnescape(hit["_source"]["name"]);
+            hit["_source"]["path"] = strUnescape(hit["_source"]["path"]);
+        });
+
         if (!after) {
             preload.remove();
             searchResults.appendChild(makeStatsCard(searchResult));

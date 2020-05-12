@@ -123,4 +123,92 @@ const char *find_file_in_paths(const char *paths[], const char *filename) {
     return NULL;
 }
 
+#define ESCAPE_CHAR ']'
 
+void str_escape(char *dst, const char *str) {
+    const size_t len = strlen(str);
+
+    char buf[16384];
+    memset(buf + len, 0, 8);
+    strcpy(buf, str);
+
+    char *cur = dst;
+    const char *ptr = buf;
+    const char *oldPtr = ptr;
+
+    utf8_int32_t c;
+    char tmp[16];
+
+    do {
+        ptr = (char *) utf8codepoint(ptr, &c);
+        *(int *) tmp = 0x00000000;
+        size_t code_len = (ptr - oldPtr);
+        memcpy(tmp, oldPtr, code_len);
+        oldPtr = ptr;
+
+        if (!utf8_validchr2(tmp)) {
+            for (int i = 0; i < code_len; i++) {
+                if (tmp[i] == 0) {
+                    break;
+                }
+
+                cur += sprintf(cur, "%c%02X", ESCAPE_CHAR, (unsigned char)tmp[i]);
+            }
+            continue;
+        }
+
+        if (c == ESCAPE_CHAR) {
+            *cur++ = ESCAPE_CHAR;
+            *cur++ = ESCAPE_CHAR;
+            continue;
+        }
+
+        if (((utf8_int32_t) 0xffffff80 & c) == 0) {
+            *(cur++) = (char) c;
+        } else if (((utf8_int32_t) 0xfffff800 & c) == 0) {
+            *(cur++) = 0xc0 | (char) (c >> 6);
+            *(cur++) = 0x80 | (char) (c & 0x3f);
+        } else if (((utf8_int32_t) 0xffff0000 & c) == 0) {
+            *(cur++) = 0xe0 | (char) (c >> 12);
+            *(cur++) = 0x80 | (char) ((c >> 6) & 0x3f);
+            *(cur++) = 0x80 | (char) (c & 0x3f);
+        } else {
+            *(cur++) = 0xf0 | (char) (c >> 18);
+            *(cur++) = 0x80 | (char) ((c >> 12) & 0x3f);
+            *(cur++) = 0x80 | (char) ((c >> 6) & 0x3f);
+            *(cur++) = 0x80 | (char) (c & 0x3f);
+        }
+
+    } while (*ptr != '\0');
+
+    *cur = '\0';
+}
+
+void str_unescape(char *dst, const char *str) {
+    char *cur = dst;
+    const char *ptr = str;
+
+    char tmp[3];
+    tmp[2] = '\0';
+
+    while (*ptr != 0) {
+        char c = *ptr++;
+
+        if (c == ESCAPE_CHAR) {
+            char next = *ptr;
+
+            if (next == ESCAPE_CHAR) {
+                *cur++ = (char)c;
+                ptr += 1;
+            } else {
+                tmp[0] = *(ptr);
+                tmp[1] = *(ptr + 1);
+                *cur++ = (char)strtol(tmp, NULL, 16);
+                ptr += 2;
+            }
+        } else {
+            *cur++ = c;
+        }
+    }
+    *cur = '\0';
+}

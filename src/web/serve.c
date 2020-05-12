@@ -174,12 +174,19 @@ int serve_file_from_url(cJSON *json, index_t *idx, struct mg_connection *nc) {
 
     const char *path = cJSON_GetObjectItem(json, "path")->valuestring;
     const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
+
+    char name_unescaped[PATH_MAX * 3];
+    str_unescape(name_unescaped, name);
+
+    char path_unescaped[PATH_MAX * 3];
+    str_unescape(path_unescaped, path);
+
     const char *ext = cJSON_GetObjectItem(json, "extension")->valuestring;
 
     char url[8196];
     snprintf(url, sizeof(url),
              "%s%s/%s%s%s",
-             idx->desc.rewrite_url, path, name, strlen(ext) == 0 ? "" : ".", ext);
+             idx->desc.rewrite_url, path_unescaped, name_unescaped, strlen(ext) == 0 ? "" : ".", ext);
 
     dyn_buffer_t encoded = url_escape(url);
     mg_http_send_redirect(
@@ -198,10 +205,16 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
     const char *ext = cJSON_GetObjectItem(json, "extension")->valuestring;
     const char *mime = cJSON_GetObjectItem(json, "mime")->valuestring;
 
+    char name_unescaped[PATH_MAX * 3];
+    str_unescape(name_unescaped, name);
+
+    char path_unescaped[PATH_MAX * 3];
+    str_unescape(path_unescaped, path);
+
     char full_path[PATH_MAX];
     snprintf(full_path, PATH_MAX, "%s%s%s%s%s%s",
-             idx->desc.root, path, strlen(path) == 0 ? "" : "/",
-             name, strlen(ext) == 0 ? "" : ".", ext);
+             idx->desc.root, path_unescaped, strlen(path_unescaped) == 0 ? "" : "/",
+             name_unescaped, strlen(ext) == 0 ? "" : ".", ext);
 
     LOG_DEBUGF("serve.c", "Serving file from disk: %s", full_path)
 

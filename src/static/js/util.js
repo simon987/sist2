@@ -64,3 +64,25 @@ function lum(c) {
 
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
+
+function strUnescape(str) {
+    let result = "";
+
+    for (let i = 0; i < str.length; i++) {
+        const c = str[i];
+        const next = str[i+1];
+
+        if (c === ']') {
+            if (next === ']') {
+                result += c;
+                i += 1;
+            } else {
+                result += String.fromCharCode(parseInt(str.slice(i, i + 2), 16));
+                i += 2;
+            }
+        } else {
+            result += c;
+        }
+    }
+    return result;
+}
