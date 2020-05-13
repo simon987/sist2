@@ -2,7 +2,7 @@
 #define SIST2_WEB_H
 
 #include "src/sist.h"
-#include <mongoose.h>
+#include "third-party/mongoose/mongoose.h"
 
 typedef struct response {
     char *body;
