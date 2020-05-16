@@ -2,6 +2,9 @@
 #include "src/sist.h"
 #include "src/ctx.h"
 
+#include <mongoose.h>
+#include <pthread.h>
+
 
 void free_response(response_t *resp) {
     if (resp->body != NULL) {
@@ -74,19 +77,7 @@ subreq_ctx_t *http_req(const char *url, const char *extra_headers, const char *p
 
     char address[8196];
     snprintf(address, sizeof(address), "tcp://%.*s:%u", (int) host.len, host.p, port);
-    struct mg_connect_opts opts;
-    memset(&opts, 0, sizeof(opts));
-    opts.ssl_key = "./a.key";
-    opts.ssl_cert = "./cert.crt";
-    opts.ssl_ca_cert = "*";
-    opts.ssl_server_name = "dev2.simon987.net:443";
-    const char* tmp[256];
-    opts.error_string = tmp;
-
-    struct mg_connection *nc = mg_connect_opt(&ctx->mgr, address, http_req_ev, opts);
-    printf("%d\n", nc->err);
-
-
+    struct mg_connection *nc = mg_connect(&ctx->mgr, address, http_req_ev);
     nc->user_data = &ctx->ev_data;
     mg_set_protocol_http_websocket(nc);
 

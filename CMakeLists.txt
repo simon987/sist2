@@ -28,12 +28,9 @@ add_executable(
 
         # argparse
         third-party/argparse/argparse.h third-party/argparse/argparse.c
-        third-party/mongoose/mongoose.h third-party/mongoose/mongoose.c
 
         src/cli.c src/cli.h
 )
-
-target_compile_definitions(sist2 PUBLIC MG_ENABLE_SSL=1)
 
 target_link_directories(sist2 PRIVATE BEFORE ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/)
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
@@ -41,9 +38,10 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
 find_package(lmdb CONFIG REQUIRED)
 find_package(cJSON CONFIG REQUIRED)
 find_package(unofficial-glib CONFIG REQUIRED)
+find_package(unofficial-mongoose CONFIG REQUIRED)
 find_library(UUID_LIB NAMES uuid)
 
-find_package(OpenSSL REQUIRED)
+#find_package(OpenSSL REQUIRED)
 
 
 target_include_directories(
@@ -74,6 +72,7 @@ if (SIST_DEBUG)
             sist2
             PRIVATE
             -fsanitize=address
+#            -static
     )
     set_target_properties(
             sist2
@@ -104,7 +103,8 @@ target_link_libraries(
         cjson
         argparse
         unofficial::glib::glib
-        OpenSSL::SSL OpenSSL::Crypto
+        unofficial::mongoose::mongoose
+#        OpenSSL::SSL OpenSSL::Crypto
 
         ${UUID_LIB}
         pthread

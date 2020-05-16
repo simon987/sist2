@@ -4,6 +4,3 @@
 [submodule "third-party/argparse"]
 	path = third-party/argparse
 	url = https://github.com/cofyc/argparse
-[submodule "third-party/mongoose"]
-	path = third-party/mongoose
-	url = https://github.com/cesanta/mongoose/
