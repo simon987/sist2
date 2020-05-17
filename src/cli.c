@@ -12,6 +12,7 @@
 #define DEFAULT_BATCH_SIZE 100
 
 #define DEFAULT_LISTEN_ADDRESS "localhost:4090"
+#define DEFAULT_TREEMAP_THRESHOLD 0.0005
 
 const char* TESS_DATAPATHS[] = {
         "/usr/share/tessdata/",
@@ -180,6 +181,12 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         ScanCtx.exclude = NULL;
     }
 
+    if (args->treemap_threshold_str == 0) {
+        args->treemap_threshold = DEFAULT_TREEMAP_THRESHOLD;
+    } else {
+        args->treemap_threshold = atof(args->treemap_threshold_str);
+    }
+
     LOG_DEBUGF("cli.c", "arg quality=%f", args->quality)
     LOG_DEBUGF("cli.c", "arg size=%d", args->size)
     LOG_DEBUGF("cli.c", "arg content_size=%d", args->content_size)
@@ -195,6 +202,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg tesseract_path=%s", args->tesseract_path)
     LOG_DEBUGF("cli.c", "arg exclude=%s", args->exclude_regex)
     LOG_DEBUGF("cli.c", "arg fast=%d", args->fast)
+    LOG_DEBUGF("cli.c", "arg treemap_threshold=%f", args->treemap_threshold)
 
     return 0;
 }

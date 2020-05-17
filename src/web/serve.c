@@ -59,9 +59,68 @@ void search_index(struct mg_connection *nc) {
     nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-void javascript(struct mg_connection *nc) {
+void stats(struct mg_connection *nc) {
+    send_response_line(nc, 200, sizeof(stats_html), "Content-Type: text/html");
+    mg_send(nc, stats_html, sizeof(stats_html));
+    nc->flags |= MG_F_SEND_AND_CLOSE;
+}
+
+void stats_files(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
+
+    if (path->len != UUID_STR_LEN + 4) {
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
+    }
+
+    char arg_uuid[UUID_STR_LEN];
+    memcpy(arg_uuid, hm->uri.p + 3, UUID_STR_LEN);
+    *(arg_uuid + UUID_STR_LEN - 1) = '\0';
+
+    index_t *index = get_index_by_id(arg_uuid);
+    if (index == NULL) {
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
+    }
+
+    const char *file;
+    switch (atoi(hm->uri.p + 3 + UUID_STR_LEN)) {
+        case 1:
+            file = "treemap.csv";
+            break;
+        case 2:
+            file = "mime_agg.csv";
+            break;
+        case 3:
+            file = "size_agg.csv";
+            break;
+        case 4:
+            file = "date_agg.csv";
+            break;
+        default:
+            nc->flags |= MG_F_SEND_AND_CLOSE;
+            return;
+    }
+
+    char disposition[8196];
+    snprintf(disposition, sizeof(disposition), "Content-Disposition: inline; filename=\"%s\"", file);
+
+    char full_path[PATH_MAX];
+    strcpy(full_path, index->path);
+    strcat(full_path, file);
+
+    mg_http_serve_file(nc, hm, full_path, mg_mk_str("text/csv"), mg_mk_str(disposition));
+    nc->flags |= MG_F_SEND_AND_CLOSE;
+}
+
+void javascript_lib(struct mg_connection *nc) {
     send_response_line(nc, 200, sizeof(bundle_js), "Content-Type: application/javascript");
     mg_send(nc, bundle_js, sizeof(bundle_js));
+    nc->flags |= MG_F_SEND_AND_CLOSE;
+}
+
+void javascript_search(struct mg_connection *nc) {
+    send_response_line(nc, 200, sizeof(search_js), "Content-Type: application/javascript");
+    mg_send(nc, search_js, sizeof(search_js));
     nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
@@ -387,8 +446,12 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
             search_index(nc);
         } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/css")))) {
             style(nc, hm);
-        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/js")))) {
-            javascript(nc);
+        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/stats")))) {
+            stats(nc);
+        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/jslib")))) {
+            javascript_lib(nc);
+        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/jssearch")))) {
+            javascript_search(nc);
         } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/img/sprite-skin-flat.png")))) {
             img_sprite_skin_flat(nc, hm);
         } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/es")))) {
@@ -401,6 +464,8 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
             file(nc, hm, &path);
         } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/t/")))) {
             thumbnail(nc, hm, &path);
+        } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/s/")))) {
+            stats_files(nc, hm, &path);
         } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/d/")))) {
             document_info(nc, hm, &path);
         } else {

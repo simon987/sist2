@@ -20,16 +20,6 @@ let size_max = 10000000000000;
 let date_min = null;
 let date_max = null;
 
-const CONF = new Settings();
-
-const _defaults = {
-    display: "grid",
-    fuzzy: true,
-    highlight: true,
-    sort: "score",
-    searchInPath: false,
-};
-
 SORT_MODES = {
     score: {
         text: "Relevance",
@@ -69,36 +59,6 @@ SORT_MODES = {
     },
 };
 
-function Settings() {
-    this.options = {};
-
-    this._onUpdate = function () {
-        $("#fuzzyToggle").prop("checked", this.options.fuzzy);
-    };
-
-    this.load = function () {
-        const raw = window.localStorage.getItem("options");
-        if (raw === null) {
-            this.options = _defaults;
-        } else {
-            const j = JSON.parse(raw);
-            if (!j || Object.keys(_defaults).some(k => !j.hasOwnProperty(k))) {
-                this.options = _defaults;
-            } else {
-                this.options = j;
-            }
-        }
-
-        this._onUpdate();
-    };
-
-    this.save = function () {
-        window.localStorage.setItem("options", JSON.stringify(this.options));
-        this._onUpdate();
-    }
-}
-
-
 function showEsError() {
     $.toast({
         heading: "Elasticsearch connection error",
@@ -112,27 +72,7 @@ function showEsError() {
     });
 }
 
-jQuery["jsonPost"] = function (url, data) {
-    return jQuery.ajax({
-        url: url,
-        type: "post",
-        data: JSON.stringify(data),
-        contentType: "application/json"
-    }).fail(err => {
-        showEsError();
-        console.log(err);
-    });
-};
-
 window.onload = () => {
-    $("#theme").on("click", () => {
-        if (!document.cookie.includes("sist")) {
-            document.cookie = "sist=dark";
-        } else {
-            document.cookie = "sist=; Max-Age=-99999999;";
-        }
-        window.location.reload();
-    })
     CONF.load();
 };
 
@@ -608,7 +548,7 @@ function getNextDepth(node) {
             }
         },
         size: 0
-    }
+    };
 
     if (node.depth > 0) {
         q.query.bool.must = {
@@ -687,32 +627,3 @@ function createPathTree(target) {
     pathTree.on("node.click", handlePathTreeClick(pathTree));
 }
 
-function updateSettings() {
-    CONF.options.display = $("#settingDisplay").val();
-    CONF.options.fuzzy = $("#settingFuzzy").prop("checked");
-    CONF.options.highlight = $("#settingHighlight").prop("checked");
-    CONF.options.searchInPath = $("#settingSearchInPath").prop("checked");
-    CONF.save();
-
-    searchDebounced();
-
-    $.toast({
-        heading: "Settings updated",
-        text: "Settings saved to browser storage",
-        stack: 3,
-        bgColor: "#00a4bc",
-        textColor: "#fff",
-        position: 'bottom-right',
-        hideAfter: 3000,
-        loaderBg: "#08c7e8",
-    });
-}
-
-function loadSettings() {
-    CONF.load();
-
-    $("#settingDisplay").val(CONF.options.display);
-    $("#settingFuzzy").prop("checked", CONF.options.fuzzy);
-    $("#settingHighlight").prop("checked", CONF.options.highlight);
-    $("#settingSearchInPath").prop("checked", CONF.options.searchInPath);
-}

@@ -347,3 +347,30 @@ mark {
     cursor: pointer;
 }
 
+.stats-card {
+    text-align: center;
+    margin-top: 1em;
+    padding: 1em;
+
+    box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .08) !important;
+    border-radius: 0;
+    border: none;
+
+    background: #fff;
+}
+
+.graph {
+    display: inline-block;
+    width: 40%;
+}
+
+.full-screen {
+    position: absolute;
+    left: 0;
+    width: 100%;
+}
+
+.stats-btn {
+    float: right;
+    margin-bottom: 10px;
+}

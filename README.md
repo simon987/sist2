@@ -21,11 +21,15 @@ sist2 (Simple incremental search tool)
 * Automatic tagging from file attributes via [user scripts](scripting/README.md)
 * Recursive scan inside archive files \*\*
 * OCR support with tesseract \*\*\*
+* Stats page & disk utilisation visualization
 
 
 \* See [format support](#format-support)    
 \*\* See [Archive files](#archive-files)    
 \*\*\* See [OCR](#ocr)    
+
+![stats](docs/stats.png)
+
 
 ## Getting Started
 

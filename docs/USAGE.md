@@ -94,6 +94,13 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
     * `-e "(^/usr/)|(^/var/)|(^/media/DRIVE-A/tmp/)|(^/media/DRIVE-B/Trash/)"` Exclude the
      `/usr`, `/var`, `/media/DRIVE-A/tmp`, `/media/DRIVE-B/Trash` directories
 * `--fast` Only index file names and mime type
+* `--treemap-threshold` Directories smaller than (`treemap-threshold` * `<total size of the index>`)
+    will not be considered for the disk utilisation visualization; their size will be added to
+    the parent directory. If the parent directory is still smaller than the threshold, it will also be "merged upwards"
+    and so on.
+    
+    In effect, smaller `treemap-threshold` values will yield a more detailed 
+    (but also a more cluttered and harder to read) visualization. 
 
 ### Scan examples
 
@@ -122,6 +129,11 @@ documents.idx/
 ├── _index_139965425223424
 ├── _index_139965433616128
 ├── _index_139965442008832
+├── _index_139965442008832
+├── treemap.csv
+├── agg_mime.csv
+├── agg_date.csv
+├── add_size.csv
 └── thumbs
     ├── data.mdb
     └── lock.mdb
@@ -136,6 +148,8 @@ database containing the thumbnails.
 
 The `descriptor.json` file contains general information about the index. The 
 following fields are safe to modify manually: `root`, `name`, [rewrite_url](#rewrite_url) and `timestamp`.
+
+The `.csv` are pre-computed aggregations necessary for the stats page.
 
 
 *Advanced usage*
