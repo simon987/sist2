@@ -217,7 +217,10 @@ void write_treemap_csv(double thresh, const char *out_path) {
     long min_size = (long) (thresh * (double) TotalSize);
 
     int fd = open_or_exit(out_path);
-    write(fd, TREEMAP_CSV_HEADER, sizeof(TREEMAP_CSV_HEADER) - 1);
+    int ret = write(fd, TREEMAP_CSV_HEADER, sizeof(TREEMAP_CSV_HEADER) - 1);
+    if (ret == -1) {
+        LOG_FATALF("stats.c", "Write error: %s", strerror(errno))
+    }
 
     GHashTableIter iter;
     g_hash_table_iter_init(&iter, FlatTree);
@@ -230,7 +233,10 @@ void write_treemap_csv(double thresh, const char *out_path) {
 
             csv_escape(path_buf, key);
             size_t written = sprintf(buf, "\n%s,%ld", path_buf, (long) value);
-            write(fd, buf, written);
+            ret = write(fd, buf, written);
+            if (ret == -1) {
+                LOG_FATALF("stats.c", "Write error: %s", strerror(errno))
+            }
         }
     }
     close(fd);
@@ -242,15 +248,21 @@ void write_agg_csv_str(const char *out_path, const char *header, GHashTable *tab
     char buf[4096];
 
     int fd = open_or_exit(out_path);
-    write(fd, header, strlen(header));
+    int ret = write(fd, header, strlen(header));
+    if (ret == -1) {
+        LOG_FATALF("stats.c", "Write error: %s", strerror(errno))
+    }
 
     GHashTableIter iter;
     g_hash_table_iter_init(&iter, table);
     while (g_hash_table_iter_next(&iter, &key, &value)) {
         agg_t *agg = value;
 
-        size_t written = sprintf(buf, "\n%s,%ld,%ld", key, agg->size, agg->count);
-        write(fd, buf, written);
+        size_t written = sprintf(buf, "\n%s,%ld,%ld", (const char*)key, agg->size, agg->count);
+        ret = write(fd, buf, written);
+        if (ret == -1) {
+            LOG_FATALF("stats.c", "Write error: %s", strerror(errno))
+        }
     }
 
     close(fd);
@@ -262,14 +274,20 @@ void write_agg_csv_long(const char *out_path, const char *header, GHashTable *ta
     char buf[4096];
 
     int fd = open_or_exit(out_path);
-    write(fd, header, strlen(header));
+    int ret = write(fd, header, strlen(header));
+    if (ret == -1) {
+        LOG_FATALF("stats.c", "Write error: %s", strerror(errno))
+    }
 
     GHashTableIter iter;
     g_hash_table_iter_init(&iter, table);
     while (g_hash_table_iter_next(&iter, &key, &value)) {
         agg_t *agg = value;
         size_t written = sprintf(buf, "\n%ld,%ld,%ld", (long)key, agg->size, agg->count);
-        write(fd, buf, written);
+        ret = write(fd, buf, written);
+        if (ret == -1) {
+            LOG_FATALF("stats.c", "Write error: %s", strerror(errno))
+        }
     }
 
     close(fd);
