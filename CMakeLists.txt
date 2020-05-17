@@ -30,7 +30,7 @@ add_executable(
         third-party/argparse/argparse.h third-party/argparse/argparse.c
 
         src/cli.c src/cli.h
-)
+        src/stats.c src/stats.h)
 
 target_link_directories(sist2 PRIVATE BEFORE ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/)
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)

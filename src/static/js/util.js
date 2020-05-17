@@ -86,3 +86,114 @@ function strUnescape(str) {
     }
     return result;
 }
+
+const CONF = new Settings();
+
+const _defaults = {
+    display: "grid",
+    fuzzy: true,
+    highlight: true,
+    sort: "score",
+    searchInPath: false,
+    treemapType: "cascaded",
+    treemapTiling: "squarify",
+    treemapGroupingDepth: 3,
+    treemapColor: "PuBuGn",
+    treemapSize: "large",
+};
+
+function loadSettings() {
+    CONF.load();
+
+    $("#settingDisplay").val(CONF.options.display);
+    $("#settingFuzzy").prop("checked", CONF.options.fuzzy);
+    $("#settingHighlight").prop("checked", CONF.options.highlight);
+    $("#settingSearchInPath").prop("checked", CONF.options.searchInPath);
+    $("#settingTreemapTiling").val(CONF.options.treemapTiling);
+    $("#settingTreemapGroupingDepth").val(CONF.options.treemapGroupingDepth);
+    $("#settingTreemapColor").val(CONF.options.treemapColor);
+    $("#settingTreemapSize").val(CONF.options.treemapSize);
+    $("#settingTreemapType").val(CONF.options.treemapType);
+}
+
+function Settings() {
+    this.options = {};
+
+    this._onUpdate = function () {
+        $("#fuzzyToggle").prop("checked", this.options.fuzzy);
+    };
+
+    this.load = function () {
+        const raw = window.localStorage.getItem("options");
+        if (raw === null) {
+            this.options = _defaults;
+        } else {
+            const j = JSON.parse(raw);
+            if (!j || Object.keys(_defaults).some(k => !j.hasOwnProperty(k))) {
+                this.options = _defaults;
+            } else {
+                this.options = j;
+            }
+        }
+
+        this._onUpdate();
+    };
+
+    this.save = function () {
+        window.localStorage.setItem("options", JSON.stringify(this.options));
+        this._onUpdate();
+    }
+}
+
+function updateSettings() {
+    CONF.options.display = $("#settingDisplay").val();
+    CONF.options.fuzzy = $("#settingFuzzy").prop("checked");
+    CONF.options.highlight = $("#settingHighlight").prop("checked");
+    CONF.options.searchInPath = $("#settingSearchInPath").prop("checked");
+    CONF.options.treemapTiling = $("#settingTreemapTiling").val();
+    CONF.options.treemapGroupingDepth = $("#settingTreemapGroupingDepth").val();
+    CONF.options.treemapColor = $("#settingTreemapColor").val();
+    CONF.options.treemapSize = $("#settingTreemapSize").val();
+    CONF.options.treemapType = $("#settingTreemapType").val();
+    CONF.save();
+
+    if (typeof searchDebounced !== "undefined") {
+        searchDebounced();
+    }
+
+    if (typeof updateStats !== "undefined") {
+        updateStats();
+    }
+
+    $.toast({
+        heading: "Settings updated",
+        text: "Settings saved to browser storage",
+        stack: 3,
+        bgColor: "#00a4bc",
+        textColor: "#fff",
+        position: 'bottom-right',
+        hideAfter: 3000,
+        loaderBg: "#08c7e8",
+    });
+}
+
+jQuery["jsonPost"] = function (url, data) {
+    return jQuery.ajax({
+        url: url,
+        type: "post",
+        data: JSON.stringify(data),
+        contentType: "application/json"
+    }).fail(err => {
+        showEsError();
+        console.log(err);
+    });
+};
+
+function toggleTheme() {
+    if (!document.cookie.includes("sist")) {
+        document.cookie = "sist=dark;SameSite=Strict";
+    } else {
+        document.cookie = "sist=; Max-Age=-99999999;";
+    }
+    window.location.reload();
+}

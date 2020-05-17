@@ -4,7 +4,7 @@ rm -rf index.sist2/
 
 rm src/static/js/bundle.js 2> /dev/null
 cat `ls src/static/js/*.min.js` > src/static/js/bundle.js
-cat src/static/js/{util,dom,search}.js >> src/static/js/bundle.js
+cat src/static/js/{util,dom}.js >> src/static/js/bundle.js
 
 rm src/static/css/bundle*.css 2> /dev/null
 cat src/static/css/*.min.css > src/static/css/bundle.css

@@ -15,6 +15,8 @@
 #include "parsing/mime.h"
 #include "parsing/parse.h"
 
+#include "stats.h"
+
 #define DESCRIPTION "Lightning-fast file system indexer and search tool."
 
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
@@ -207,6 +209,8 @@ void sist2_scan(scan_args_t *args) {
     tpool_wait(ScanCtx.pool);
     tpool_destroy(ScanCtx.pool);
 
+    generate_stats(&ScanCtx.index, args->treemap_threshold, ScanCtx.index.path);
+
     if (args->incremental != NULL) {
         char dst_path[PATH_MAX];
         snprintf(store_path, PATH_MAX, "%sthumbs", args->incremental);
@@ -352,6 +356,8 @@ int main(int argc, const char *argv[]) {
                                                              "which are installed on your machine)"),
             OPT_STRING('e', "exclude", &scan_args->exclude_regex, "Files that match this regex will not be scanned"),
             OPT_BOOLEAN(0, "fast", &scan_args->fast, "Only index file names & mime type"),
+            OPT_STRING(0, "treemap-threshold", &scan_args->treemap_threshold_str, "Relative size threshold for treemap "
+                                                                             "(see USAGE.md). DEFAULT: 0.0005"),
 
             OPT_GROUP("Index options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT=http://localhost:9200"),

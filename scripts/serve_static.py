@@ -2,9 +2,11 @@ files = [
     "src/static/css/bundle.css",
     "src/static/css/bundle_dark.css",
     "src/static/js/bundle.js",
+    "src/static/js/search.js",
     "src/static/img/sprite-skin-flat.png",
     "src/static/img/sprite-skin-flat-dark.png",
     "src/static/search.html",
+    "src/static/stats.html",
 ]
 
 

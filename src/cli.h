@@ -22,6 +22,8 @@ typedef struct scan_args {
     const char *tesseract_path;
     char *exclude_regex;
     int fast;
+    const char* treemap_threshold_str;
+    double treemap_threshold;
 } scan_args_t;
 
 scan_args_t *scan_args_create();

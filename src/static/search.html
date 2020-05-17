@@ -13,8 +13,9 @@
     <a class="navbar-brand" href="/">sist2</a>
     <span class="badge badge-pill version">2.3.0</span>
     <span class="tagline">Lightning-fast file system indexer and search tool </span>
-    <button style="margin-left: auto" class="btn" type="button" data-toggle="modal" data-target="#settings" onclick="loadSettings()">Settings</button>
-    <a id="theme" class="btn" title="Toggle theme" href="/">Theme</a>
+    <a class="btn ml-auto" href="/stats">Stats</a>
+    <button class="btn" type="button" data-toggle="modal" data-target="#settings" onclick="loadSettings()">Settings</button>
+    <button class="btn" title="Toggle theme" onclick="toggleTheme()">Theme</button>
 </nav>
 
 <div class="container">
@@ -197,8 +198,64 @@
                         <option value="list">List</option>
                     </select>
 
+                    <hr/>
+                    <h4>Stats</h4>
+
+                    <div class="form-group">
+                        <label for="settingTreemapType">Treemap type</label>
+                        <select id="settingTreemapType" class="form-control form-control-sm">
+                            <option value="cascaded">Cascaded</option>
+                            <option value="flat">Flat (compact)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingTreemapTiling">Treemap tiling</label>
+                        <select id="settingTreemapTiling" class="form-control form-control-sm">
+                            <option value="binary">Binary</option>
+                            <option value="squarify">Squarify</option>
+                            <option value="slice">Slice</option>
+                            <option value="dice">Dice</option>
+                            <option value="sliceDice">Slide & Dice</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingTreemapGroupingDepth">Treemap color grouping depth (flat)</label>
+                        <input type="number" class="form-control" id="settingTreemapGroupingDepth" min="1" max="10">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingTreemapColor">Treemap color (cascaded)</label>
+                        <select id="settingTreemapColor" class="form-control form-control-sm">
+                            <option value="PuBuGn">Purple-Blue-Green</option>
+                            <option value="PuRd">Purple-Red</option>
+                            <option value="PuBu">Purple-Blue</option>
+                            <option value="YlOrBr">Yellow-Orange-Brown</option>
+                            <option value="YlOrRd">Yellow-Orange-Red</option>
+                            <option value="YlGn">Yellow-Green</option>
+                            <option value="YlGnBu">Yellow-Green-Blue</option>
+                            <option value="Plasma">Plasma</option>
+                            <option value="Magma">Magma</option>
+                            <option value="Inferno">Inferno</option>
+                            <option value="Viridis">Viridis</option>
+                            <option value="Turbo">Turbo</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingTreemapSize">Treemap size</label>
+                        <select id="settingTreemapSize" class="form-control form-control-sm">
+                            <option value="small">Small</option>
+                            <option value="medium">Medium</option>
+                            <option value="large">Large</option>
+                            <option value="x-large">X-Large</option>
+                            <option value="xx-large">XX-Large</option>
+                        </select>
+                    </div>
+
                     <br>
-                    <button style="float: right" class="btn btn-primary" onclick="updateSettings()">Update settings</button>
+                    <button class="btn btn-primary ml-auto" onclick="updateSettings()">Update settings</button>
                 </div>
             </div>
         </div>
@@ -223,6 +280,7 @@
     <div id="searchResults"></div>
 </div>
 
-<script src="js" type="text/javascript"></script>
+<script src="jslib" type="text/javascript"></script>
+<script src="jssearch" type="text/javascript"></script>
 </body>
 </html>
