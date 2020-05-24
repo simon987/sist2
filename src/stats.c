@@ -171,7 +171,7 @@ int merge_up(double thresh) {
 
     int size = g_hash_table_size(FlatTree);
 
-    LOG_DEBUGF("stats.h", "Merge up iteration (%d merged, %d in tree)", count, size)
+    LOG_DEBUGF("stats.c", "Merge up iteration (%d merged, %d in tree)", count, size)
     return count;
 }
 

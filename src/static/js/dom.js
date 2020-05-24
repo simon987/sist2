@@ -77,6 +77,7 @@ function shouldPlayVideo(hit) {
 
     return mime &&
         mime.startsWith("video/") &&
+        !("parent" in hit["_source"]) &&
         hit["_source"]["extension"] !== "mkv" &&
         hit["_source"]["extension"] !== "avi" &&
         videoc !== "hevc" &&

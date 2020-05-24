@@ -24,6 +24,7 @@ typedef struct scan_args {
     int fast;
     const char* treemap_threshold_str;
     double treemap_threshold;
+    int max_memory_buffer;
 } scan_args_t;
 
 scan_args_t *scan_args_create();

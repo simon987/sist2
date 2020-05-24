@@ -40,6 +40,9 @@ Scan options
     --ocr=<str>           Tesseract language (use tesseract --list-langs to see which are installed on your machine)
     -e, --exclude=<str>   Files that match this regex will not be scanned
     --fast                Only index file names & mime type
+    --treemap-threshold=<str>     Relative size threshold for treemap (see USAGE.md). DEFAULT: 0.0005
+    --mem-buffer=<int>            Maximum memory buffer size in MB for files inside archives (see USAGE.md). DEFAULT: 2000
+
 
 Index options
     --es-url=<str>        Elasticsearch url with port. DEFAULT=http://localhost:9200
@@ -101,6 +104,11 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
     
     In effect, smaller `treemap-threshold` values will yield a more detailed 
     (but also a more cluttered and harder to read) visualization. 
+    
+* `--mem-buffer` Maximum memory buffer size in MB (per thread) for files inside archives. Media files 
+    larger than this number will be read sequentially and no *seek* operations will be supported.
+
+    To check if a media file can be parsed without *seek*, execute `cat file.mp4 | ffprobe -`
 
 ### Scan examples
 

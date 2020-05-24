@@ -14,6 +14,8 @@
 #define DEFAULT_LISTEN_ADDRESS "localhost:4090"
 #define DEFAULT_TREEMAP_THRESHOLD 0.0005
 
+#define DEFAULT_MAX_MEM_BUFFER 2000
+
 const char* TESS_DATAPATHS[] = {
         "/usr/share/tessdata/",
         "/usr/share/tesseract-ocr/tessdata/",
@@ -187,6 +189,10 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->treemap_threshold = atof(args->treemap_threshold_str);
     }
 
+    if (args->max_memory_buffer == 0) {
+        args->max_memory_buffer = DEFAULT_MAX_MEM_BUFFER;
+    }
+
     LOG_DEBUGF("cli.c", "arg quality=%f", args->quality)
     LOG_DEBUGF("cli.c", "arg size=%d", args->size)
     LOG_DEBUGF("cli.c", "arg content_size=%d", args->content_size)
@@ -203,6 +209,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg exclude=%s", args->exclude_regex)
     LOG_DEBUGF("cli.c", "arg fast=%d", args->fast)
     LOG_DEBUGF("cli.c", "arg treemap_threshold=%f", args->treemap_threshold)
+    LOG_DEBUGF("cli.c", "arg max_memory_buffer=%d", args->max_memory_buffer)
 
     return 0;
 }

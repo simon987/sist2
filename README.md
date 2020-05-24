@@ -91,13 +91,11 @@ they were directly in the file system. Recursive (archives inside archives)
 scan is also supported.
 
 **Limitations**:
-* Parsing media files with formats that require
-*seek* (e.g. `.gif`, `.mp4` w/ fragmented metadata etc.) is not supported.
+* Support for parsing media files with formats that require *seek* (e.g. `.gif`, `.mp4` w/ fragmented metadata etc.) 
+  is limitted (see `--mem-buffer` option)
 * Archive files are scanned sequentially, by a single thread. On systems where
 **sist2** is not I/O bound, scans might be faster when larger archives are split
  into smaller parts.
-
-To check if a media file can be parsed without *seek*, execute `cat file.mp4 | ffprobe -`
  
  
 ### OCR

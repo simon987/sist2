@@ -22,7 +22,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.3.1";
+static const char *const Version = "2.3.2";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -127,6 +127,7 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.media_ctx.log = _log;
     ScanCtx.media_ctx.logf = _logf;
     ScanCtx.media_ctx.store = _store;
+    ScanCtx.media_ctx.max_media_buffer = (long) args->max_memory_buffer * 1024 * 1024;
     init_media();
 
     // OOXML
@@ -357,7 +358,10 @@ int main(int argc, const char *argv[]) {
             OPT_STRING('e', "exclude", &scan_args->exclude_regex, "Files that match this regex will not be scanned"),
             OPT_BOOLEAN(0, "fast", &scan_args->fast, "Only index file names & mime type"),
             OPT_STRING(0, "treemap-threshold", &scan_args->treemap_threshold_str, "Relative size threshold for treemap "
-                                                                             "(see USAGE.md). DEFAULT: 0.0005"),
+                                                                                  "(see USAGE.md). DEFAULT: 0.0005"),
+            OPT_INTEGER(0, "mem-buffer", &scan_args->max_memory_buffer,
+                        "Maximum memory buffer size per thread in MB for files inside archives "
+                        "(see USAGE.md). DEFAULT: 2000"),
 
             OPT_GROUP("Index options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT=http://localhost:9200"),
