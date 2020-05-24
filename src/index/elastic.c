@@ -202,9 +202,8 @@ void delete_queue(int max) {
         Indexer->line_head = tmp->next;
         if (Indexer->line_head == NULL) {
             Indexer->line_tail = NULL;
-        } else {
-            free(tmp);
         }
+        free(tmp);
         Indexer->queued -= 1;
     }
 }
