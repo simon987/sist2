@@ -78,6 +78,12 @@ void parse(void *arg) {
 
     if (doc.mime == 0 && !ScanCtx.fast) {
         // Get mime type with libmagic
+        if (!job->vfile.is_fs_file) {
+            LOG_WARNING(job->filepath,
+                    "Guessing mime type with libmagic inside archive files is not currently supported");
+            return;
+        }
+
         bytes_read = job->vfile.read(&job->vfile, buf, MAGIC_BUF_SIZE);
         if (bytes_read < 0) {
 
