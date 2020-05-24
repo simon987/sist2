@@ -13,7 +13,7 @@ application/epub+zip, epub
 application/freeloader, frl
 application/futuresplash, spl
 application/groupwise, vew
-application/gzip, gz
+application/gzip, gz|tgz
 application/hta, hta
 application/i-deas, unv
 application/iges, iges|igs

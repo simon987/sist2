@@ -885,6 +885,7 @@ g_hash_table_insert(ext_table, "frl", (gpointer)application_freeloader);
 g_hash_table_insert(ext_table, "spl", (gpointer)application_futuresplash);
 g_hash_table_insert(ext_table, "vew", (gpointer)application_groupwise);
 g_hash_table_insert(ext_table, "gz", (gpointer)application_gzip);
+g_hash_table_insert(ext_table, "tgz", (gpointer)application_gzip);
 g_hash_table_insert(ext_table, "hta", (gpointer)application_hta);
 g_hash_table_insert(ext_table, "unv", (gpointer)application_i_deas);
 g_hash_table_insert(ext_table, "iges", (gpointer)application_iges);

@@ -24,6 +24,10 @@ typedef struct {
 
 void fill_tables(cJSON *document, UNUSED(const char uuid_str[UUID_STR_LEN])) {
 
+    if (cJSON_GetObjectItem(document, "parent") != NULL) {
+        return;
+    }
+
     const char *json_path = cJSON_GetObjectItem(document, "path")->valuestring;
     char *path = malloc(strlen(json_path) + 1);
     strcpy(path, json_path);
