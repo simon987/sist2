@@ -1388,6 +1388,7 @@ g_hash_table_insert(ext_table, "divx", (gpointer)video_x_msvideo);
 g_hash_table_insert(ext_table, "qtc", (gpointer)video_x_qtc);
 g_hash_table_insert(ext_table, "movie", (gpointer)video_x_sgi_movie);
 g_hash_table_insert(ext_table, "mv", (gpointer)video_x_sgi_movie);
+g_hash_table_insert(ext_table, "msg", (gpointer)application_vnd_ms_outlook);
 return ext_table;}
 GHashTable *mime_get_mime_table() {GHashTable *mime_table = g_hash_table_new(g_str_hash, g_str_equal);
 g_hash_table_insert(mime_table, "application/arj", (gpointer)application_arj);

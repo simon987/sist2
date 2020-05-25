@@ -79,9 +79,8 @@ void parse(void *arg) {
     if (doc.mime == 0 && !ScanCtx.fast) {
         // Get mime type with libmagic
         if (!job->vfile.is_fs_file) {
-            LOG_WARNING(job->filepath,
-                    "Guessing mime type with libmagic inside archive files is not currently supported");
-            return;
+            LOG_WARNING(job->filepath, "Guessing mime type with libmagic inside archive files is not currently supported");
+            goto abort;
         }
 
         bytes_read = job->vfile.read(&job->vfile, buf, MAGIC_BUF_SIZE);
@@ -153,14 +152,13 @@ void parse(void *arg) {
         parse_mobi(&ScanCtx.mobi_ctx, &job->vfile, &doc);
     }
 
+    abort:
+
     //Parent meta
     if (!uuid_is_null(job->parent)) {
-        char tmp[UUID_STR_LEN];
-        uuid_unparse(job->parent, tmp);
-
         meta_line_t *meta_parent = malloc(sizeof(meta_line_t) + UUID_STR_LEN + 1);
         meta_parent->key = MetaParent;
-        strcpy(meta_parent->str_val, tmp);
+        uuid_unparse(job->parent, meta_parent->str_val);
         APPEND_META((&doc), meta_parent)
     }
 
