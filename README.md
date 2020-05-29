@@ -53,7 +53,7 @@ sist2 (Simple incremental search tool)
     1. *(or)* Download a [development snapshot](https://files.simon987.net/artifacts/Sist2/Build/) *(Not recommended!)*
     1. *(or)* `docker pull simon987/sist2:latest`
 
-1. See [Usage guide](DOCS/USAGE.md)
+1. See [Usage guide](docs/USAGE.md)
    
 
 \* *Windows users*: **sist2** runs under [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux)    
@@ -61,7 +61,7 @@ sist2 (Simple incremental search tool)
 
 ## Example usage
 
-See [Usage guide](DOCS/USAGE.md) for more details
+See [Usage guide](docs/USAGE.md) for more details
 
 1. Scan a directory: `sist2 scan ~/Documents -o ./docs_idx`
 1. Push index to Elasticsearch: `sist2 index ./docs_idx`
