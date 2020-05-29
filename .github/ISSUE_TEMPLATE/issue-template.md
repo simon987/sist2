@@ -9,7 +9,7 @@ assignees: ''
 
 sist2 version:
 
-Platform (please indicate if you're using Docker):
+Platform (Linux or Docker):
 
 Command with arguments:  `ex: "scan ~/Documents -o ./i2 --threads 3 -q 1.0`
 
