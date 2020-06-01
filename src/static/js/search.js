@@ -332,24 +332,24 @@ function search(after = null) {
 
     let path = pathBar.value.replace(/\/$/, "").toLowerCase(); //remove trailing slashes
     if (path !== "") {
-        filters.push([{term: {path: path}}])
+        filters.push({term: {path: path}})
     }
     let mimeTypes = getSelectedNodes(mimeTree);
     if (!mimeTypes.includes("any")) {
-        filters.push([{terms: {"mime": mimeTypes}}]);
+        filters.push({terms: {"mime": mimeTypes}});
     }
 
     let tags = getSelectedNodes(tagTree);
     if (!tags.includes("any")) {
-        filters.push([{terms: {"tag": tags}}]);
+        filters.push({terms: {"tag": tags}});
     }
 
     if (date_min && date_max) {
-        filters.push([{range: {mtime: {gte: date_min, lte: date_max}}}])
+        filters.push({range: {mtime: {gte: date_min, lte: date_max}}})
     } else if (date_min) {
-        filters.push([{range: {mtime: {gte: date_min}}}])
+        filters.push({range: {mtime: {gte: date_min}}})
     } else if (date_max) {
-        filters.push([{range: {mtime: {lte: date_max}}}])
+        filters.push({range: {mtime: {lte: date_max}}})
     }
 
     let q = {
@@ -398,6 +398,8 @@ function search(after = null) {
             q.highlight.fields["path.nGram"] = {};
         }
     }
+
+    console.log(q)
 
     $.jsonPost("es", q).then(searchResult => {
         let hits = searchResult["hits"]["hits"];
