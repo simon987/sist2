@@ -10,6 +10,7 @@
     "path": {
       "type": "text",
       "analyzer": "path_analyzer",
+      "copy_to": "suggest-path",
       "fielddata": true,
       "fields": {
         "nGram": {
@@ -21,6 +22,10 @@
           "analyzer": "content_analyzer"
         }
       }
+    },
+    "suggest-path": {
+      "type": "completion",
+      "analyzer": "case_insensitive_kw_analyzer"
     },
     "mime": {
       "type": "keyword"

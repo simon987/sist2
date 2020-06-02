@@ -100,6 +100,7 @@ const _defaults = {
     treemapGroupingDepth: 3,
     treemapColor: "PuBuGn",
     treemapSize: "large",
+    suggestPath: true
 };
 
 function loadSettings() {
@@ -114,6 +115,7 @@ function loadSettings() {
     $("#settingTreemapColor").val(CONF.options.treemapColor);
     $("#settingTreemapSize").val(CONF.options.treemapSize);
     $("#settingTreemapType").val(CONF.options.treemapType);
+    $("#settingSuggestPath").prop("checked", CONF.options.suggestPath);
 }
 
 function Settings() {
@@ -155,6 +157,7 @@ function updateSettings() {
     CONF.options.treemapColor = $("#settingTreemapColor").val();
     CONF.options.treemapSize = $("#settingTreemapSize").val();
     CONF.options.treemapType = $("#settingTreemapType").val();
+    CONF.options.suggestPath = $("#settingSuggestPath").prop("checked");
     CONF.save();
 
     if (typeof searchDebounced !== "undefined") {

@@ -74,6 +74,41 @@ function showEsError() {
 
 window.onload = () => {
     CONF.load();
+    new autoComplete({
+        selector: '#pathBar',
+        minChars: 1,
+        delay: 400,
+        renderItem: function (item) {
+            return '<div class="autocomplete-suggestion" data-val="' + item + '">' + item + '</div>';
+        },
+        source: async function (term, suggest) {
+
+            if (!CONF.options.suggestPath) {
+                return []
+            }
+
+            term = term.toLowerCase();
+
+            const choices = await getPathChoices();
+
+            let matches = [];
+            for (let i = 0; i < choices.length; i++) {
+                if (~choices[i].toLowerCase().indexOf(term)) {
+                    matches.push(choices[i]);
+                }
+            }
+            suggest(matches.sort());
+        },
+        onSelect: function () {
+            searchDebounced();
+        }
+    });
+    searchBar.addEventListener("keyup", searchDebounced);
+    pathBar.addEventListener("keyup", e => {
+        if (e.key === "Enter") {
+            searchDebounced();
+        }
+    });
 };
 
 function toggleFuzzy() {
@@ -105,10 +140,7 @@ $.jsonPost("i").then(resp => {
 });
 
 function getDocumentInfo(id) {
-    return $.getJSON("d/" + id).fail(e => {
-        console.log(e);
-        showEsError();
-    })
+    return $.getJSON("d/" + id).fail(showEsError)
 }
 
 function handleTreeClick(tree) {
@@ -399,8 +431,6 @@ function search(after = null) {
         }
     }
 
-    console.log(q)
-
     $.jsonPost("es", q).then(searchResult => {
         let hits = searchResult["hits"]["hits"];
         if (hits) {
@@ -443,8 +473,6 @@ let searchDebounced = _.debounce(function () {
     search()
 }, 500);
 
-searchBar.addEventListener("keyup", searchDebounced);
-pathBar.addEventListener("keyup", searchDebounced);
 
 //Size slider
 $("#sizeSlider").ionRangeSlider({
@@ -609,7 +637,8 @@ function createPathTree(target) {
     let pathTree = new InspireTree({
         data: function (node, resolve, reject) {
             return getNextDepth(node);
-        }
+        },
+        sort: "text"
     });
 
     selectedIndices.forEach(index => {
@@ -629,3 +658,19 @@ function createPathTree(target) {
     pathTree.on("node.click", handlePathTreeClick(pathTree));
 }
 
+function getPathChoices() {
+    return new Promise(getPaths => {
+        $.jsonPost("es", {
+            suggest: {
+                path: {
+                    prefix: pathBar.value,
+                    completion: {
+                        field: "suggest-path",
+                        skip_duplicates: true,
+                        size: 10000
+                    }
+                }
+            }
+        }).then(resp => getPaths(resp["suggest"]["path"][0]["options"].map(opt => opt["_source"]["path"])));
+    })
+}

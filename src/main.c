@@ -22,7 +22,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.3.3";
+static const char *const Version = "2.4.0";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
