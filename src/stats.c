@@ -188,9 +188,9 @@ void csv_escape(char *dst, const char *str) {
         return;
     }
 
-    while (*ptr++ != 0) {
-        char c = *ptr;
-
+    *out++ = '"';
+    char c;
+    while ((c = *ptr++) != 0) {
         if (c == '"') {
             *out++ = '"';
             *out++ = '"';
@@ -198,6 +198,8 @@ void csv_escape(char *dst, const char *str) {
             *out++ = c;
         }
     }
+    *out++ = '"';
+    *out = '\0';
 }
 
 int open_or_exit(const char *path) {
