@@ -26,10 +26,11 @@ dyn_buffer_t url_escape(char *str) {
 }
 
 char *abspath(const char *path) {
-    wordexp_t w;
-    wordexp(path, &w, 0);
 
-    char *abs = realpath(w.we_wordv[0], NULL);
+    char *expanded = expandpath(path);
+
+    char *abs = realpath(expanded, NULL);
+    free(expanded);
     if (abs == NULL) {
         return NULL;
     }
@@ -38,16 +39,28 @@ char *abspath(const char *path) {
         strcat(abs, "/");
     }
 
-    wordfree(&w);
     return abs;
 }
 
 char *expandpath(const char *path) {
+    char tmp[PATH_MAX * 2] = {0,};
+
     wordexp_t w;
     wordexp(path, &w, 0);
 
-    char *expanded = malloc(strlen(w.we_wordv[0]) + 2);
-    strcpy(expanded, w.we_wordv[0]);
+    if (w.we_wordv == NULL) {
+        return NULL;
+    }
+
+    for (int i = 0; i < w.we_wordc; i++) {
+        strcat(tmp, w.we_wordv[i]);
+        if (i != w.we_wordc - 1) {
+            strcat(tmp, " ");
+        }
+    }
+
+    char *expanded = malloc(strlen(tmp) + 2);
+    strcpy(expanded, tmp);
     strcat(expanded, "/");
 
     wordfree(&w);
@@ -152,7 +165,7 @@ void str_escape(char *dst, const char *str) {
                     break;
                 }
 
-                cur += sprintf(cur, "%c%02X", ESCAPE_CHAR, (unsigned char)tmp[i]);
+                cur += sprintf(cur, "%c%02X", ESCAPE_CHAR, (unsigned char) tmp[i]);
             }
             continue;
         }
@@ -198,12 +211,12 @@ void str_unescape(char *dst, const char *str) {
             char next = *ptr;
 
             if (next == ESCAPE_CHAR) {
-                *cur++ = (char)c;
+                *cur++ = (char) c;
                 ptr += 1;
             } else {
                 tmp[0] = *(ptr);
                 tmp[1] = *(ptr + 1);
-                *cur++ = (char)strtol(tmp, NULL, 16);
+                *cur++ = (char) strtol(tmp, NULL, 16);
                 ptr += 2;
             }
         } else {
