@@ -42,16 +42,34 @@ char *abspath(const char *path) {
     return abs;
 }
 
+void shell_escape(char *dst, const char *src) {
+    const char *ptr = src;
+    char *out = dst;
+    while ((*ptr)) {
+        char c = *ptr++;
+
+        if (c == '&' || c == '\n' || c == '|' || c == ';' || c == '<' ||
+            c == '>' || c == '(' || c == ')' || c == '{' || c == '}') {
+            *out++ = '\\';
+        }
+        *out++ = c;
+    }
+    *out = 0;
+}
+
 char *expandpath(const char *path) {
-    char tmp[PATH_MAX * 2] = {0,};
+    char tmp[PATH_MAX * 2];
+
+    shell_escape(tmp, path);
 
     wordexp_t w;
-    wordexp(path, &w, 0);
+    wordexp(tmp, &w, 0);
 
     if (w.we_wordv == NULL) {
         return NULL;
     }
 
+    *tmp = '\0';
     for (int i = 0; i < w.we_wordc; i++) {
         strcat(tmp, w.we_wordv[i]);
         if (i != w.we_wordc - 1) {
