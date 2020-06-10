@@ -417,6 +417,9 @@ function search(after = null) {
         q.highlight = {
             pre_tags: ["<mark>"],
             post_tags: ["</mark>"],
+            fragment_size: CONF.options.fragmentSize,
+            number_of_fragments: 1,
+            order: "score",
             fields: {
                 content: {},
                 // "content.nGram": {},

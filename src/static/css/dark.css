@@ -266,6 +266,7 @@ mark {
     margin: 3px;
     white-space: normal;
     color: rgb(224, 224, 224);
+    overflow: hidden;
 }
 
 .irs-single, .irs-from, .irs-to {

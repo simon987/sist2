@@ -27,18 +27,12 @@ function gifOver(thumbnail, hit) {
 }
 
 function getContentHighlight(hit) {
-    const re = RegExp(/<mark>/g);
-
-    const sortByMathCount = (a, b) => {
-        return b.match(re).length - a.match(re).length;
-    };
-
     if (hit.hasOwnProperty("highlight")) {
         if (hit["highlight"].hasOwnProperty("content")) {
-            return hit["highlight"]["content"].sort(sortByMathCount)[0];
+            return hit["highlight"]["content"][0];
 
         } else if (hit["highlight"].hasOwnProperty("content.nGram")) {
-            return hit["highlight"]["content.nGram"].sort(sortByMathCount)[0];
+            return hit["highlight"]["content.nGram"][0];
         }
     }
 

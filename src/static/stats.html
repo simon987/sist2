@@ -10,7 +10,7 @@
 
 <nav class="navbar navbar-expand-lg">
     <a class="navbar-brand" href="/">sist2</a>
-    <span class="badge badge-pill version">2.4.1</span>
+    <span class="badge badge-pill version">2.4.2</span>
     <span class="tagline">Lightning-fast file system indexer and search tool </span>
     <a style="margin-left: auto" class="btn" href="/">Back</a>
     <button class="btn" type="button" data-toggle="modal" data-target="#settings"
@@ -72,14 +72,20 @@
                 </div>
 
                 <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="settingSearchInPath">
+                    <label class="custom-control-label" for="settingSearchInPath">Enable matching query against document
+                        path</label>
+                </div>
+
+                <div class="custom-control custom-checkbox">
                     <input type="checkbox" class="custom-control-input" id="settingSuggestPath">
                     <label class="custom-control-label" for="settingSuggestPath">Enable auto-complete in path filter bar</label>
                 </div>
 
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" id="settingSearchInPath">
-                    <label class="custom-control-label" for="settingSearchInPath">Enable matching query against document
-                        path</label>
+                <br/>
+                <div class="form-group">
+                    <input type="number" class="form-control" id="settingFragmentSize">
+                    <label for="settingFragmentSize">Highlight context size in characters</label>
                 </div>
 
                 <label for="settingDisplay">Display</label>
