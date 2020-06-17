@@ -234,7 +234,7 @@ it is currently unsupported and has no guaranties of back/forward compatibility.
  * `-p, --print` 
     Print index in JSON format to stdout.
  * `--script-file` 
-    Path to user script. See [Scripting](scripting/README.md).
+    Path to user script. See [Scripting](scripting.md).
  * `--batch-size=<int>` 
     Index batch size. Indexing is generally faster with larger batches, but payloads that
     are too large will fail and additional overhead for retrying with smaller sizes may slow
