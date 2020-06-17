@@ -111,16 +111,6 @@ if (ctx._source.path != "") {
 }
 ```
 
-Set the name of the last folder (`/path/to/<studio>/file.mp4`) to `studio.<studio>` tag
-```Java
-ArrayList tags = ctx._source.tag = new ArrayList();
-
-if (ctx._source.path != "") {
-    String[] names = ctx._source.path.splitOnToken('/');
-    tags.add("studio." + names[names.length-1]);
-}
-```
-
 Parse `EXIF:F Number` tag
 ```Java
 if (ctx._source?.exif_fnumber != null) {
