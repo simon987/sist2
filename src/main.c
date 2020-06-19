@@ -2,7 +2,6 @@
 #include "ctx.h"
 
 #include <third-party/argparse/argparse.h>
-#include <glib.h>
 #include <locale.h>
 
 #include "cli.h"
@@ -22,11 +21,12 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.4.2";
+static const char *const Version = "2.4.3";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
         "sist2 web [OPTION]... INDEX...",
+        "sist2 exec-script [OPTION]... INDEX",
         NULL,
 };
 
@@ -287,6 +287,20 @@ void sist2_index(index_args_t *args) {
     }
 }
 
+void sist2_exec_script(exec_args_t *args) {
+
+    char descriptor_path[PATH_MAX];
+    snprintf(descriptor_path, PATH_MAX, "%s/descriptor.json", args->index_path);
+    index_descriptor_t desc = read_index_descriptor(descriptor_path);
+
+    IndexCtx.es_url = args->es_url;
+
+    LOG_DEBUGF("main.c", "descriptor version %s (%s)", desc.version, desc.type)
+
+    execute_update_script(args->script, desc.uuid);
+    free(args->script);
+}
+
 void sist2_web(web_args_t *args) {
 
     WebCtx.es_url = args->es_url;
@@ -323,10 +337,12 @@ int main(int argc, const char *argv[]) {
     scan_args_t *scan_args = scan_args_create();
     index_args_t *index_args = index_args_create();
     web_args_t *web_args = web_args_create();
+    exec_args_t *exec_args = exec_args_create();
 
     int arg_version = 0;
 
     char *common_es_url = NULL;
+    char *common_script_path = NULL;
 
     struct argparse_option options[] = {
             OPT_HELP(),
@@ -366,7 +382,7 @@ int main(int argc, const char *argv[]) {
             OPT_GROUP("Index options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT=http://localhost:9200"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
-            OPT_STRING(0, "script-file", &index_args->script_path, "Path to user script."),
+            OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
             OPT_INTEGER(0, "batch-size", &index_args->batch_size, "Index batch size. DEFAULT: 100"),
             OPT_BOOLEAN('f', "force-reset", &index_args->force_reset, "Reset Elasticsearch mappings and settings. "
                                                                       "(You must use this option the first time you use the index command)"),
@@ -375,6 +391,9 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
             OPT_STRING(0, "bind", &web_args->listen_address, "Listen on this address. DEFAULT=localhost:4090"),
             OPT_STRING(0, "auth", &web_args->credentials, "Basic auth in user:password format"),
+
+            OPT_GROUP("Exec-script options"),
+            OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
 
             OPT_END(),
     };
@@ -395,6 +414,8 @@ int main(int argc, const char *argv[]) {
 
     web_args->es_url = common_es_url;
     index_args->es_url = common_es_url;
+    index_args->script_path = common_script_path;
+    exec_args->script_path = common_script_path;
 
     if (argc == 0) {
         argparse_usage(&argparse);
@@ -423,6 +444,14 @@ int main(int argc, const char *argv[]) {
         }
         sist2_web(web_args);
 
+    }  else if (strcmp(argv[0], "exec-script") == 0) {
+
+        int err = exec_args_validate(exec_args, argc, argv);
+        if (err != 0) {
+            goto end;
+        }
+        sist2_exec_script(exec_args);
+
     } else {
         fprintf(stderr, "Invalid command: '%s'\n", argv[0]);
         argparse_usage(&argparse);
@@ -434,6 +463,7 @@ int main(int argc, const char *argv[]) {
     scan_args_destroy(scan_args);
     index_args_destroy(index_args);
     web_args_destroy(web_args);
+    exec_args_destroy(exec_args);
 
     return 0;
 }

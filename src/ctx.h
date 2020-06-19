@@ -16,8 +16,7 @@
 #include <glib.h>
 #include <pcre.h>
 
-//TODO Move to individual scan ctx
-struct {
+typedef struct {
     struct index_t index;
 
     GHashTable *mime_table;
@@ -46,27 +45,32 @@ struct {
     scan_ooxml_ctx_t ooxml_ctx;
     scan_text_ctx_t text_ctx;
     scan_mobi_ctx_t mobi_ctx;
-} ScanCtx;
+} ScanCtx_t;
 
-struct {
+typedef struct {
     int verbose;
     int very_verbose;
     int no_color;
-} LogCtx;
+} LogCtx_t;
 
-struct {
+typedef struct {
     char *es_url;
     int batch_size;
-} IndexCtx;
+} IndexCtx_t;
 
-struct {
+typedef struct {
     char *es_url;
     int index_count;
     char *auth_user;
     char *auth_pass;
     int auth_enabled;
-    struct index_t indices[16];
-} WebCtx;
+    struct index_t indices[64];
+} WebCtx_t;
+
+extern ScanCtx_t ScanCtx;
+extern WebCtx_t WebCtx;
+extern IndexCtx_t IndexCtx;
+extern LogCtx_t LogCtx;
 
 
 #endif

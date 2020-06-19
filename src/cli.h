@@ -54,6 +54,13 @@ typedef struct web_args {
     const char **indices;
 } web_args_t;
 
+typedef struct exec_args {
+    char *es_url;
+    const char *index_path;
+    const char *script_path;
+    char *script;
+} exec_args_t;
+
 index_args_t *index_args_create();
 
 void index_args_destroy(index_args_t *args);
@@ -65,5 +72,11 @@ void web_args_destroy(web_args_t *args);
 int index_args_validate(index_args_t *args, int argc, const char **argv);
 
 int web_args_validate(web_args_t *args, int argc, const char **argv);
+
+exec_args_t *exec_args_create();
+
+void exec_args_destroy(exec_args_t *args);
+
+int exec_args_validate(exec_args_t *args, int argc, const char **argv);
 
 #endif

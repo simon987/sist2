@@ -53,6 +53,10 @@ void index_json(cJSON *document, const char uuid_str[UUID_STR_LEN]) {
 
 void execute_update_script(const char *script, const char index_id[UUID_STR_LEN]) {
 
+    if (Indexer == NULL) {
+        Indexer = create_indexer(IndexCtx.es_url);
+    }
+
     cJSON *body = cJSON_CreateObject();
     cJSON *script_obj = cJSON_AddObjectToObject(body, "script");
     cJSON_AddStringToObject(script_obj, "lang", "painless");
@@ -264,6 +268,7 @@ void destroy_indexer(char *script, char index_id[UUID_STR_LEN]) {
 
     if (script != NULL) {
         execute_update_script(script, index_id);
+        free(script);
     }
 
     snprintf(url, sizeof(url), "%s/sist2/_refresh", IndexCtx.es_url);

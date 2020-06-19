@@ -16,7 +16,7 @@
 
 #define DEFAULT_MAX_MEM_BUFFER 2000
 
-const char* TESS_DATAPATHS[] = {
+const char *TESS_DATAPATHS[] = {
         "/usr/share/tessdata/",
         "/usr/share/tesseract-ocr/tessdata/",
         "./",
@@ -29,6 +29,11 @@ scan_args_t *scan_args_create() {
 
     args->depth = -1;
 
+    return args;
+}
+
+exec_args_t *exec_args_create() {
+    exec_args_t *args = calloc(sizeof(exec_args_t), 1);
     return args;
 }
 
@@ -52,6 +57,10 @@ void index_args_destroy(index_args_t *args) {
 
 void web_args_destroy(web_args_t *args) {
     //todo
+    free(args);
+}
+
+void exec_args_destroy(exec_args_t *args) {
     free(args);
 }
 
@@ -115,7 +124,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         return 1;
     }
 
-    if (args->depth < 0) {
+    if (args->depth <= 0) {
         args->depth = G_MAXINT32;
     } else {
         args->depth += 1;
@@ -147,7 +156,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
         char filename[128];
         sprintf(filename, "%s.traineddata", args->tesseract_lang);
-        const char * path = find_file_in_paths(TESS_DATAPATHS, filename);
+        const char *path = find_file_in_paths(TESS_DATAPATHS, filename);
         if (path == NULL) {
             LOG_FATAL("cli.c", "Could not find tesseract language file!");
         }
@@ -214,6 +223,34 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     return 0;
 }
 
+int load_script(const char *script_path, char **dst) {
+    struct stat info;
+    int res = stat(script_path, &info);
+
+    if (res == -1) {
+        fprintf(stderr, "Error opening script file '%s': %s\n", script_path, strerror(errno));
+        return 1;
+    }
+
+    int fd = open(script_path, O_RDONLY);
+    if (fd == -1) {
+        fprintf(stderr, "Error opening script file '%s': %s\n", script_path, strerror(errno));
+        return 1;
+    }
+
+    *dst = malloc(info.st_size + 1);
+    res = read(fd, *dst, info.st_size);
+    if (res < 0) {
+        fprintf(stderr, "Error reading script file '%s': %s\n", script_path, strerror(errno));
+        return 1;
+    }
+
+    *(*dst + info.st_size) = '\0';
+    close(fd);
+
+    return 0;
+}
+
 int index_args_validate(index_args_t *args, int argc, const char **argv) {
 
     LogCtx.verbose = 1;
@@ -237,29 +274,9 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
     }
 
     if (args->script_path != NULL) {
-        struct stat info;
-        int res = stat(args->script_path, &info);
-
-        if (res == -1) {
-            fprintf(stderr, "Error opening script file '%s': %s\n", args->script_path, strerror(errno));
+        if (load_script(args->script_path, &args->script) != 0) {
             return 1;
         }
-
-        int fd = open(args->script_path, O_RDONLY);
-        if (fd == -1) {
-            fprintf(stderr, "Error opening script file '%s': %s\n", args->script_path, strerror(errno));
-            return 1;
-        }
-
-        args->script = malloc(info.st_size + 1);
-        res = read(fd, args->script, info.st_size);
-        if (res < 0) {
-            fprintf(stderr, "Error reading script file '%s': %s\n", args->script_path, strerror(errno));
-            return 1;
-        }
-
-        *(args->script + info.st_size) = '\0';
-        close(fd);
     }
 
     if (args->batch_size == 0) {
@@ -295,7 +312,7 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     }
 
     if (args->credentials != NULL) {
-        char * ptr = strstr(args->credentials, ":");
+        char *ptr = strstr(args->credentials, ":");
         if (ptr == NULL) {
             fprintf(stderr, "Invalid --auth format, see usage\n");
             return 1;
@@ -348,3 +365,30 @@ web_args_t *web_args_create() {
     return args;
 }
 
+int exec_args_validate(exec_args_t *args, int argc, const char **argv) {
+
+    char *index_path = abspath(argv[1]);
+    if (index_path == NULL) {
+        fprintf(stderr, "File not found: %s\n", argv[1]);
+        return 1;
+    } else {
+        args->index_path = argv[1];
+        free(index_path);
+    }
+
+    if (args->es_url == NULL) {
+        args->es_url = DEFAULT_ES_URL;
+    }
+
+    if (args->script_path == NULL) {
+        LOG_FATAL("cli.c", "--script-file argument is required");
+    }
+
+    if (load_script(args->script_path, &args->script) != 0) {
+        return 1;
+    }
+
+    LOG_DEBUGF("cli.c", "arg script_path=%s", args->script_path)
+    LOG_DEBUGF("cli.c", "arg script=%s", args->script)
+    return 0;
+}

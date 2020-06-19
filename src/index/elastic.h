@@ -32,4 +32,6 @@ cJSON *elastic_get_document(const char *uuid_str);
 
 char *elastic_get_status();
 
+void execute_update_script(const char *script, const char index_id[UUID_STR_LEN]);
+
 #endif
