@@ -39,7 +39,7 @@ it adds the `genre.<genre>` tag.
 ArrayList tags = ctx._source.tag = new ArrayList();
 
 if (ctx._source?.genre != null) {
-    tags.add("genre." + ctx._source.genre.toLowerCase())
+    tags.add("genre." + ctx._source.genre.toLowerCase());
 }
 ```
 
@@ -67,7 +67,7 @@ ArrayList tags = ctx._source.tag = new ArrayList();
 
 Matcher m = /[\(\.+](20[0-9]{2})[\)\.+]/.matcher(ctx._source.name);
 if (m.find()) {
-    tags.add("year." + m.group(1))
+    tags.add("year." + m.group(1));
 }
 ```
 
