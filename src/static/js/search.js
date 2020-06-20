@@ -250,12 +250,13 @@ function addTag(map, tag, id, count) {
     let child = {
         id: id,
         text: tags.length !== 1 ? tags[0] : `${tags[0]} (${count})`,
+        name: tags[0],
         children: []
     };
 
     let found = false;
     map.forEach(node => {
-        if (node.text === child.text) {
+        if (node.name === child.name) {
             found = true;
             if (tags.length !== 1) {
                 addTag(node.children, tags.slice(1).join("."), id, count);

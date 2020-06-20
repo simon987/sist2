@@ -289,6 +289,8 @@ void sist2_index(index_args_t *args) {
 
 void sist2_exec_script(exec_args_t *args) {
 
+    LogCtx.verbose = TRUE;
+
     char descriptor_path[PATH_MAX];
     snprintf(descriptor_path, PATH_MAX, "%s/descriptor.json", args->index_path);
     index_descriptor_t desc = read_index_descriptor(descriptor_path);
