@@ -68,6 +68,7 @@ void stats(struct mg_connection *nc) {
 void stats_files(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
     if (path->len != UUID_STR_LEN + 4) {
+        mg_send_response_line(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -78,6 +79,7 @@ void stats_files(struct mg_connection *nc, struct http_message *hm, struct mg_st
 
     index_t *index = get_index_by_id(arg_uuid);
     if (index == NULL) {
+        mg_send_response_line(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -173,6 +175,7 @@ void thumbnail(struct mg_connection *nc, struct http_message *hm, struct mg_str 
 
     if (path->len != UUID_STR_LEN * 2 + 2) {
         LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) path->len, path->p)
+        mg_send_response_line(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -189,6 +192,7 @@ void thumbnail(struct mg_connection *nc, struct http_message *hm, struct mg_str 
     int ret = uuid_parse(arg_uuid, uuid);
     if (ret != 0) {
         LOG_DEBUGF("serve.c", "Invalid thumbnail UUID: %s", arg_uuid)
+        mg_send_response_line(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -214,6 +218,7 @@ void search(struct mg_connection *nc, struct http_message *hm) {
 
     if (hm->body.len == 0) {
         LOG_DEBUG("serve.c", "Client sent empty body, ignoring request")
+        mg_send_response_line(nc, 500, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -314,6 +319,7 @@ void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_
 
     if (path->len != UUID_STR_LEN + 2) {
         LOG_DEBUGF("serve.c", "Invalid document_info path: %.*s", (int) path->len, path->p)
+        mg_send_response_line(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -328,6 +334,7 @@ void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_
     cJSON *index_id = cJSON_GetObjectItem(source, "index");
     if (index_id == NULL) {
         cJSON_Delete(doc);
+        mg_send_response_line(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -335,6 +342,7 @@ void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_
     index_t *idx = get_index_by_id(index_id->valuestring);
     if (idx == NULL) {
         cJSON_Delete(doc);
+        mg_send_response_line(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -352,6 +360,7 @@ void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path
 
     if (path->len != UUID_STR_LEN + 2) {
         LOG_DEBUGF("serve.c", "Invalid file path: %.*s", (int) path->len, path->p)
+        mg_send_response_line(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
@@ -371,6 +380,7 @@ void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path
         index_id = cJSON_GetObjectItem(source, "index");
         if (index_id == NULL) {
             cJSON_Delete(doc);
+            mg_send_response_line(nc, 404, NULL);
             nc->flags |= MG_F_SEND_AND_CLOSE;
             return;
         }
@@ -386,6 +396,7 @@ void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path
     if (idx == NULL) {
         cJSON_Delete(doc);
         nc->flags |= MG_F_SEND_AND_CLOSE;
+        mg_send_response_line(nc, 404, NULL);
         return;
     }
 
@@ -423,6 +434,7 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
         struct http_message *hm = (struct http_message *) p;
 
         if (mg_parse_uri(hm->uri, &scheme, &user_info, &host, &port, &path, &query, &fragment) != 0) {
+            mg_send_response_line(nc, 400, NULL);
             nc->flags |= MG_F_SEND_AND_CLOSE;
             return;
         }
@@ -469,6 +481,7 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
         } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/d/")))) {
             document_info(nc, hm, &path);
         } else {
+            mg_send_response_line(nc, 404, NULL);
             nc->flags |= MG_F_SEND_AND_CLOSE;
         }
 
@@ -499,7 +512,7 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
                         free(json_str);
                         free(tmp);
                     }
-                    //todo return error code
+                    mg_send_response_line(nc, 500, NULL);
                 }
 
                 free_response(r);
