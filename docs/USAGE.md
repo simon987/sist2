@@ -14,50 +14,52 @@
     * [examples](#web-examples)
     * [rewrite_url](#rewrite_url)
     * [link to specific indices](#link-to-specific-indices)
+* [exec-script](#exec-script)
 
 ```
 Usage: sist2 scan [OPTION]... PATH
    or: sist2 index [OPTION]... INDEX
    or: sist2 web [OPTION]... INDEX...
+   or: sist2 exec-script [OPTION]... INDEX
 Lightning-fast file system indexer and search tool.
 
-    -h, --help            show this help message and exit
-    -v, --version         Show version and exit
-    --verbose             Turn on logging
-    --very-verbose        Turn on debug messages
+    -h, --help                    show this help message and exit
+    -v, --version                 Show version and exit
+    --verbose                     Turn on logging
+    --very-verbose                Turn on debug messages
 
 Scan options
-    -t, --threads=<int>   Number of threads. DEFAULT=1
-    -q, --quality=<flt>   Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=5
-    --size=<int>          Thumbnail size, in pixels. Use negative value to disable. DEFAULT=500
-    --content-size=<int>  Number of bytes to be extracted from text documents. Use negative value to disable. DEFAULT=32768
-    --incremental=<str>   Reuse an existing index and only scan modified files.
-    -o, --output=<str>    Output directory. DEFAULT=index.sist2/
-    --rewrite-url=<str>   Serve files from this url instead of from disk.
-    --name=<str>          Index display name. DEFAULT: (name of the directory)
-    --depth=<int>         Scan up to DEPTH subdirectories deep. Use 0 to only scan files in PATH. DEFAULT: -1
-    --archive=<str>       Archive file mode (skip|list|shallow|recurse). skip: Don't parse, list: only get file names as text, shallow: Don't parse archives inside archives. DEFAULT: recurse
-    --ocr=<str>           Tesseract language (use tesseract --list-langs to see which are installed on your machine)
-    -e, --exclude=<str>   Files that match this regex will not be scanned
-    --fast                Only index file names & mime type
+    -t, --threads=<int>           Number of threads. DEFAULT=1
+    -q, --quality=<flt>           Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=5
+    --size=<int>                  Thumbnail size, in pixels. Use negative value to disable. DEFAULT=500
+    --content-size=<int>          Number of bytes to be extracted from text documents. Use negative value to disable. DEFAULT=32768
+    --incremental=<str>           Reuse an existing index and only scan modified files.
+    -o, --output=<str>            Output directory. DEFAULT=index.sist2/
+    --rewrite-url=<str>           Serve files from this url instead of from disk.
+    --name=<str>                  Index display name. DEFAULT: (name of the directory)
+    --depth=<int>                 Scan up to DEPTH subdirectories deep. Use 0 to only scan files in PATH. DEFAULT: -1
+    --archive=<str>               Archive file mode (skip|list|shallow|recurse). skip: Don't parse, list: only get file names as text, shallow: Don't parse archives inside archives. DEFAULT: recurse
+    --ocr=<str>                   Tesseract language (use tesseract --list-langs to see which are installed on your machine)
+    -e, --exclude=<str>           Files that match this regex will not be scanned
+    --fast                        Only index file names & mime type
     --treemap-threshold=<str>     Relative size threshold for treemap (see USAGE.md). DEFAULT: 0.0005
-    --mem-buffer=<int>            Maximum memory buffer size in MB for files inside archives (see USAGE.md). DEFAULT: 2000
-
+    --mem-buffer=<int>            Maximum memory buffer size per thread in MB for files inside archives (see USAGE.md). DEFAULT: 2000
 
 Index options
-    --es-url=<str>        Elasticsearch url with port. DEFAULT=http://localhost:9200
-    -p, --print           Just print JSON documents to stdout.
-    --script-file=<str>   Path to user script.
-    --batch-size=<int>    Index batch size. DEFAULT: 100
-    -f, --force-reset     Reset Elasticsearch mappings and settings. (You must use this option the first time you use the index command)
-
+    --es-url=<str>                Elasticsearch url with port. DEFAULT=http://localhost:9200
+    -p, --print                   Just print JSON documents to stdout.
+    --script-file=<str>           Path to user script.
+    --batch-size=<int>            Index batch size. DEFAULT: 100
+    -f, --force-reset             Reset Elasticsearch mappings and settings. (You must use this option the first time you use the index command)
 
 Web options
-    --es-url=<str>        Elasticsearch url. DEFAULT=http://localhost:9200
-    --bind=<str>          Listen on this address. DEFAULT=localhost:4090
-    --auth=<str>          Basic auth in user:password format
-Made by simon987 <me@simon987.net>. Released under GPL-3.0
+    --es-url=<str>                Elasticsearch url. DEFAULT=http://localhost:9200
+    --bind=<str>                  Listen on this address. DEFAULT=localhost:4090
+    --auth=<str>                  Basic auth in user:password format
 
+Exec-script options
+    --script-file=<str>           Path to user script.
+Made by simon987 <me@simon987.net>. Released under GPL-3.0
 ```
 
 ## Scan
@@ -294,3 +296,7 @@ Both the `root` and `rewrite_url` fields are safe to manually modify from the
 To link to specific indices, you can add a list of comma-separated index name to 
 the URL: `?i=<name>,<name>`. By default, indices with `"(nsfw)"` in their name are
 not displayed.
+
+## exec-script
+
+The `exec-script` command is used to execute a user script for an index that has already been imported to Elasticsearch with the `index` command. Note that the documents will not be reset to their default state before each execution as the `index` command does: if you make undesired changes to the documents by accident, you will need to run `index` again to revert to the original state.
