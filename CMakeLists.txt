@@ -57,6 +57,7 @@ target_compile_options(
         PRIVATE
         -fPIC
         -Werror
+        -Wstringop-overflow=0
 )
 
 if (SIST_DEBUG)
@@ -80,6 +81,7 @@ if (SIST_DEBUG)
             OUTPUT_NAME sist2_debug
     )
 else ()
+#    set(VCPKG_BUILD_TYPE release)
     target_compile_options(
             sist2
             PRIVATE
