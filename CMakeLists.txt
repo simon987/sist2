@@ -57,7 +57,7 @@ target_compile_options(
         PRIVATE
         -fPIC
         -Werror
-        -Wstringop-overflow=0
+#        -Wstringop-overflow=0
 )
 
 if (SIST_DEBUG)
