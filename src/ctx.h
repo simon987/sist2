@@ -12,6 +12,7 @@
 #include "libscan/ooxml/ooxml.h"
 #include "libscan/text/text.h"
 #include "libscan/mobi/scan_mobi.h"
+#include "libscan/raw/raw.h"
 
 #include <glib.h>
 #include <pcre.h>
@@ -45,6 +46,7 @@ typedef struct {
     scan_ooxml_ctx_t ooxml_ctx;
     scan_text_ctx_t text_ctx;
     scan_mobi_ctx_t mobi_ctx;
+    scan_raw_ctx_t raw_ctx;
 } ScanCtx_t;
 
 typedef struct {

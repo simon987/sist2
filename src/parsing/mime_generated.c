@@ -315,127 +315,145 @@ enum mime {
     image_webp=524595,
     image_wmf=524596,
     image_x_3ds=524597,
-    image_x_award_bioslogo=524598,
-    image_x_cmu_raster=524599,
-    image_x_cur=524600,
-    image_x_dwg=524601,
-    image_x_eps=524602,
-    image_x_exr=524603,
-    image_x_gem=524604,
-    image_x_icns=524605,
-    image_x_icon=524606 | 0x80000000,
-    image_x_jg=524607,
-    image_x_jps=524608,
-    image_x_ms_bmp=524609,
-    image_x_niff=524610,
-    image_x_pcx=524611,
-    image_x_pict=524612,
-    image_x_portable_bitmap=524613,
-    image_x_portable_graymap=524614,
-    image_x_portable_pixmap=524615,
-    image_x_quicktime=524616,
-    image_x_rgb=524617,
-    image_x_tga=524618,
-    image_x_tiff=524619,
-    image_x_win_bitmap=524620,
-    image_x_xcf=524621 | 0x80000000,
-    image_x_xpixmap=524622 | 0x80000000,
-    image_x_xwindowdump=524623,
-    message_news=196944,
-    message_rfc822=196945,
-    model_vnd_dwf=65874,
-    model_vnd_gdl=65875,
-    model_vnd_gs_gdl=65876,
-    model_vrml=65877,
-    model_x_pov=65878,
-    text_PGP=590167,
-    text_asp=590168,
-    text_css=590169,
-    text_html=590170 | 0x01000000,
-    text_javascript=590171,
-    text_mcf=590172,
-    text_pascal=590173,
-    text_plain=590174,
-    text_richtext=590175,
-    text_rtf=590176,
-    text_scriplet=590177,
-    text_tab_separated_values=590178,
-    text_troff=590179,
-    text_uri_list=590180,
-    text_vnd_abc=590181,
-    text_vnd_fmi_flexstor=590182,
-    text_vnd_wap_wml=590183,
-    text_vnd_wap_wmlscript=590184,
-    text_webviewhtml=590185,
-    text_x_Algol68=590186,
-    text_x_asm=590187,
-    text_x_audiosoft_intra=590188,
-    text_x_awk=590189,
-    text_x_bcpl=590190,
-    text_x_c=590191,
-    text_x_c__=590192,
-    text_x_component=590193,
-    text_x_diff=590194,
-    text_x_fortran=590195,
-    text_x_java=590196,
-    text_x_la_asf=590197,
-    text_x_lisp=590198,
-    text_x_m=590199,
-    text_x_m4=590200,
-    text_x_makefile=590201,
-    text_x_ms_regedit=590202,
-    text_x_msdos_batch=590203,
-    text_x_objective_c=590204,
-    text_x_pascal=590205,
-    text_x_perl=590206,
-    text_x_php=590207,
-    text_x_po=590208,
-    text_x_python=590209,
-    text_x_ruby=590210,
-    text_x_sass=590211,
-    text_x_scss=590212,
-    text_x_server_parsed_html=590213,
-    text_x_setext=590214,
-    text_x_sgml=590215 | 0x01000000,
-    text_x_shellscript=590216,
-    text_x_speech=590217,
-    text_x_tcl=590218,
-    text_x_tex=590219,
-    text_x_uil=590220,
-    text_x_uuencode=590221,
-    text_x_vcalendar=590222,
-    text_x_vcard=590223,
-    text_xml=590224 | 0x01000000,
-    video_MP2T=393617,
-    video_animaflex=393618,
-    video_avi=393619,
-    video_avs_video=393620,
-    video_mp4=393621,
-    video_mpeg=393622,
-    video_quicktime=393623,
-    video_vdo=393624,
-    video_vivo=393625,
-    video_vnd_rn_realvideo=393626,
-    video_vosaic=393627,
-    video_webm=393628,
-    video_x_amt_demorun=393629,
-    video_x_amt_showrun=393630,
-    video_x_atomic3d_feature=393631,
-    video_x_dl=393632,
-    video_x_dv=393633,
-    video_x_fli=393634,
-    video_x_flv=393635,
-    video_x_isvideo=393636,
-    video_x_jng=393637 | 0x80000000,
-    video_x_m4v=393638,
-    video_x_matroska=393639,
-    video_x_mng=393640,
-    video_x_motion_jpeg=393641,
-    video_x_ms_asf=393642,
-    video_x_msvideo=393643,
-    video_x_qtc=393644,
-    video_x_sgi_movie=393645,
-    x_epoc_x_sisx_app=721326,
+    image_x_adobe_dng=524598 | 0x00800000,
+    image_x_award_bioslogo=524599,
+    image_x_canon_cr2=524600 | 0x00800000,
+    image_x_canon_crw=524601 | 0x00800000,
+    image_x_cmu_raster=524602,
+    image_x_cur=524603,
+    image_x_dcraw=524604 | 0x00800000,
+    image_x_dwg=524605,
+    image_x_eps=524606,
+    image_x_epson_erf=524607 | 0x00800000,
+    image_x_exr=524608,
+    image_x_fuji_raf=524609 | 0x00800000,
+    image_x_gem=524610,
+    image_x_icns=524611,
+    image_x_icon=524612 | 0x80000000,
+    image_x_jg=524613,
+    image_x_jps=524614,
+    image_x_kodak_dcr=524615 | 0x00800000,
+    image_x_kodak_k25=524616 | 0x00800000,
+    image_x_kodak_kdc=524617 | 0x00800000,
+    image_x_minolta_mrw=524618 | 0x00800000,
+    image_x_ms_bmp=524619,
+    image_x_niff=524620,
+    image_x_nikon_nef=524621 | 0x00800000,
+    image_x_olympus_orf=524622 | 0x00800000,
+    image_x_panasonic_raw=524623 | 0x00800000,
+    image_x_pcx=524624,
+    image_x_pentax_pef=524625 | 0x00800000,
+    image_x_pict=524626,
+    image_x_portable_bitmap=524627,
+    image_x_portable_graymap=524628,
+    image_x_portable_pixmap=524629,
+    image_x_quicktime=524630,
+    image_x_rgb=524631,
+    image_x_sigma_x3f=524632 | 0x00800000,
+    image_x_sony_arw=524633 | 0x00800000,
+    image_x_sony_sr2=524634 | 0x00800000,
+    image_x_sony_srf=524635 | 0x00800000,
+    image_x_tga=524636,
+    image_x_tiff=524637,
+    image_x_win_bitmap=524638,
+    image_x_xcf=524639 | 0x80000000,
+    image_x_xpixmap=524640 | 0x80000000,
+    image_x_xwindowdump=524641,
+    message_news=196962,
+    message_rfc822=196963,
+    model_vnd_dwf=65892,
+    model_vnd_gdl=65893,
+    model_vnd_gs_gdl=65894,
+    model_vrml=65895,
+    model_x_pov=65896,
+    text_PGP=590185,
+    text_asp=590186,
+    text_css=590187,
+    text_html=590188 | 0x01000000,
+    text_javascript=590189,
+    text_mcf=590190,
+    text_pascal=590191,
+    text_plain=590192,
+    text_richtext=590193,
+    text_rtf=590194,
+    text_scriplet=590195,
+    text_tab_separated_values=590196,
+    text_troff=590197,
+    text_uri_list=590198,
+    text_vnd_abc=590199,
+    text_vnd_fmi_flexstor=590200,
+    text_vnd_wap_wml=590201,
+    text_vnd_wap_wmlscript=590202,
+    text_webviewhtml=590203,
+    text_x_Algol68=590204,
+    text_x_asm=590205,
+    text_x_audiosoft_intra=590206,
+    text_x_awk=590207,
+    text_x_bcpl=590208,
+    text_x_c=590209,
+    text_x_c__=590210,
+    text_x_component=590211,
+    text_x_diff=590212,
+    text_x_fortran=590213,
+    text_x_java=590214,
+    text_x_la_asf=590215,
+    text_x_lisp=590216,
+    text_x_m=590217,
+    text_x_m4=590218,
+    text_x_makefile=590219,
+    text_x_ms_regedit=590220,
+    text_x_msdos_batch=590221,
+    text_x_objective_c=590222,
+    text_x_pascal=590223,
+    text_x_perl=590224,
+    text_x_php=590225,
+    text_x_po=590226,
+    text_x_python=590227,
+    text_x_ruby=590228,
+    text_x_sass=590229,
+    text_x_scss=590230,
+    text_x_server_parsed_html=590231,
+    text_x_setext=590232,
+    text_x_sgml=590233 | 0x01000000,
+    text_x_shellscript=590234,
+    text_x_speech=590235,
+    text_x_tcl=590236,
+    text_x_tex=590237,
+    text_x_uil=590238,
+    text_x_uuencode=590239,
+    text_x_vcalendar=590240,
+    text_x_vcard=590241,
+    text_xml=590242 | 0x01000000,
+    video_MP2T=393635,
+    video_animaflex=393636,
+    video_avi=393637,
+    video_avs_video=393638,
+    video_mp4=393639,
+    video_mpeg=393640,
+    video_quicktime=393641,
+    video_vdo=393642,
+    video_vivo=393643,
+    video_vnd_rn_realvideo=393644,
+    video_vosaic=393645,
+    video_webm=393646,
+    video_x_amt_demorun=393647,
+    video_x_amt_showrun=393648,
+    video_x_atomic3d_feature=393649,
+    video_x_dl=393650,
+    video_x_dv=393651,
+    video_x_fli=393652,
+    video_x_flv=393653,
+    video_x_isvideo=393654,
+    video_x_jng=393655 | 0x80000000,
+    video_x_m4v=393656,
+    video_x_matroska=393657,
+    video_x_mng=393658,
+    video_x_motion_jpeg=393659,
+    video_x_ms_asf=393660,
+    video_x_msvideo=393661,
+    video_x_qtc=393662,
+    video_x_sgi_movie=393663,
+    x_epoc_x_sisx_app=721344,
 };
 char *mime_get_mime_text(unsigned int mime_id) {switch (mime_id) {
 case application_arj: return "application/arj";
@@ -868,6 +886,24 @@ case video_x_sgi_movie: return "video/x-sgi-movie";
 case x_epoc_x_sisx_app: return "x-epoc/x-sisx-app";
 case application_x_zstd_dictionary: return "application/x-zstd-dictionary";
 case application_vnd_ms_outlook: return "application/vnd.ms-outlook";
+case image_x_olympus_orf: return "image/x-olympus-orf";
+case image_x_nikon_nef: return "image/x-nikon-nef";
+case image_x_fuji_raf: return "image/x-fuji-raf";
+case image_x_panasonic_raw: return "image/x-panasonic-raw";
+case image_x_adobe_dng: return "image/x-adobe-dng";
+case image_x_canon_cr2: return "image/x-canon-cr2";
+case image_x_canon_crw: return "image/x-canon-crw";
+case image_x_dcraw: return "image/x-dcraw";
+case image_x_kodak_dcr: return "image/x-kodak-dcr";
+case image_x_kodak_k25: return "image/x-kodak-k25";
+case image_x_kodak_kdc: return "image/x-kodak-kdc";
+case image_x_minolta_mrw: return "image/x-minolta-mrw";
+case image_x_pentax_pef: return "image/x-pentax-pef";
+case image_x_sigma_x3f: return "image/x-sigma-x3f";
+case image_x_sony_arw: return "image/x-sony-arw";
+case image_x_sony_sr2: return "image/x-sony-sr2";
+case image_x_sony_srf: return "image/x-sony-srf";
+case image_x_epson_erf: return "image/x-epson-erf";
 default: return NULL;}}
 GHashTable *mime_get_ext_table() {GHashTable *ext_table = g_hash_table_new(g_str_hash, g_str_equal);
 g_hash_table_insert(ext_table, "arj", (gpointer)application_arj);
@@ -1000,7 +1036,6 @@ g_hash_table_insert(ext_table, "cpio", (gpointer)application_x_cpio);
 g_hash_table_insert(ext_table, "dbf", (gpointer)application_x_dbf);
 g_hash_table_insert(ext_table, "deb", (gpointer)application_x_debian_package);
 g_hash_table_insert(ext_table, "deepv", (gpointer)application_x_deepv);
-g_hash_table_insert(ext_table, "dcr", (gpointer)application_x_director);
 g_hash_table_insert(ext_table, "dir", (gpointer)application_x_director);
 g_hash_table_insert(ext_table, "dxr", (gpointer)application_x_director);
 g_hash_table_insert(ext_table, "dmp", (gpointer)application_x_dmp);
@@ -1389,6 +1424,24 @@ g_hash_table_insert(ext_table, "qtc", (gpointer)video_x_qtc);
 g_hash_table_insert(ext_table, "movie", (gpointer)video_x_sgi_movie);
 g_hash_table_insert(ext_table, "mv", (gpointer)video_x_sgi_movie);
 g_hash_table_insert(ext_table, "msg", (gpointer)application_vnd_ms_outlook);
+g_hash_table_insert(ext_table, "orf", (gpointer)image_x_olympus_orf);
+g_hash_table_insert(ext_table, "nef", (gpointer)image_x_nikon_nef);
+g_hash_table_insert(ext_table, "raf", (gpointer)image_x_fuji_raf);
+g_hash_table_insert(ext_table, "rw2", (gpointer)image_x_panasonic_raw);
+g_hash_table_insert(ext_table, "raw", (gpointer)image_x_panasonic_raw);
+g_hash_table_insert(ext_table, "dng", (gpointer)image_x_adobe_dng);
+g_hash_table_insert(ext_table, "cr2", (gpointer)image_x_canon_cr2);
+g_hash_table_insert(ext_table, "crw", (gpointer)image_x_canon_crw);
+g_hash_table_insert(ext_table, "dcr", (gpointer)image_x_kodak_dcr);
+g_hash_table_insert(ext_table, "k25", (gpointer)image_x_kodak_k25);
+g_hash_table_insert(ext_table, "kdc", (gpointer)image_x_kodak_kdc);
+g_hash_table_insert(ext_table, "mrw", (gpointer)image_x_minolta_mrw);
+g_hash_table_insert(ext_table, "pef", (gpointer)image_x_pentax_pef);
+g_hash_table_insert(ext_table, "xf3", (gpointer)image_x_sigma_x3f);
+g_hash_table_insert(ext_table, "arw", (gpointer)image_x_sony_arw);
+g_hash_table_insert(ext_table, "sr2", (gpointer)image_x_sony_sr2);
+g_hash_table_insert(ext_table, "srf", (gpointer)image_x_sony_srf);
+g_hash_table_insert(ext_table, "erf", (gpointer)image_x_epson_erf);
 return ext_table;}
 GHashTable *mime_get_mime_table() {GHashTable *mime_table = g_hash_table_new(g_str_hash, g_str_equal);
 g_hash_table_insert(mime_table, "application/arj", (gpointer)application_arj);
@@ -1821,5 +1874,23 @@ g_hash_table_insert(mime_table, "video/x-sgi-movie", (gpointer)video_x_sgi_movie
 g_hash_table_insert(mime_table, "x-epoc/x-sisx-app", (gpointer)x_epoc_x_sisx_app);
 g_hash_table_insert(mime_table, "application/x-zstd-dictionary", (gpointer)application_x_zstd_dictionary);
 g_hash_table_insert(mime_table, "application/vnd.ms-outlook", (gpointer)application_vnd_ms_outlook);
+g_hash_table_insert(mime_table, "image/x-olympus-orf", (gpointer)image_x_olympus_orf);
+g_hash_table_insert(mime_table, "image/x-nikon-nef", (gpointer)image_x_nikon_nef);
+g_hash_table_insert(mime_table, "image/x-fuji-raf", (gpointer)image_x_fuji_raf);
+g_hash_table_insert(mime_table, "image/x-panasonic-raw", (gpointer)image_x_panasonic_raw);
+g_hash_table_insert(mime_table, "image/x-adobe-dng", (gpointer)image_x_adobe_dng);
+g_hash_table_insert(mime_table, "image/x-canon-cr2", (gpointer)image_x_canon_cr2);
+g_hash_table_insert(mime_table, "image/x-canon-crw", (gpointer)image_x_canon_crw);
+g_hash_table_insert(mime_table, "image/x-dcraw", (gpointer)image_x_dcraw);
+g_hash_table_insert(mime_table, "image/x-kodak-dcr", (gpointer)image_x_kodak_dcr);
+g_hash_table_insert(mime_table, "image/x-kodak-k25", (gpointer)image_x_kodak_k25);
+g_hash_table_insert(mime_table, "image/x-kodak-kdc", (gpointer)image_x_kodak_kdc);
+g_hash_table_insert(mime_table, "image/x-minolta-mrw", (gpointer)image_x_minolta_mrw);
+g_hash_table_insert(mime_table, "image/x-pentax-pef", (gpointer)image_x_pentax_pef);
+g_hash_table_insert(mime_table, "image/x-sigma-x3f", (gpointer)image_x_sigma_x3f);
+g_hash_table_insert(mime_table, "image/x-sony-arw", (gpointer)image_x_sony_arw);
+g_hash_table_insert(mime_table, "image/x-sony-sr2", (gpointer)image_x_sony_sr2);
+g_hash_table_insert(mime_table, "image/x-sony-srf", (gpointer)image_x_sony_srf);
+g_hash_table_insert(mime_table, "image/x-epson-erf", (gpointer)image_x_epson_erf);
 return mime_table;}
 #endif

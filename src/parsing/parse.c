@@ -119,6 +119,8 @@ void parse(void *arg) {
 
     if (!(SHOULD_PARSE(doc.mime))) {
 
+    } else if (IS_RAW(doc.mime)) {
+        parse_raw(&ScanCtx.raw_ctx, &job->vfile, &doc);
     } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) ||
                (mmime == MimeImage && doc.size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
 

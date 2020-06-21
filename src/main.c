@@ -21,7 +21,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.4.4";
+static const char *const Version = "2.5.0";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -154,6 +154,13 @@ void initialize_scan_context(scan_args_t *args) {
     strncpy(ScanCtx.index.desc.rewrite_url, args->rewrite_url, sizeof(ScanCtx.index.desc.rewrite_url));
     ScanCtx.index.desc.root_len = (short) strlen(ScanCtx.index.desc.root);
     ScanCtx.fast = args->fast;
+
+    // Raw
+    ScanCtx.raw_ctx.tn_qscale = args->quality;
+    ScanCtx.raw_ctx.tn_size = args->size;
+    ScanCtx.raw_ctx.log = _log;
+    ScanCtx.raw_ctx.logf = _logf;
+    ScanCtx.raw_ctx.store = _store;
 }
 
 

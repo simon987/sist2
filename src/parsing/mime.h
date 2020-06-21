@@ -3,7 +3,7 @@
 
 #include "../sist.h"
 
-#define MAJOR_MIME(mime_id) (mime_id & 0x00FF0000) >> 16
+#define MAJOR_MIME(mime_id) (mime_id & 0x000F0000) >> 16
 
 #define MIME_EMPTY 1
 
@@ -30,6 +30,9 @@
 
 #define MARKUP_MASK 0x01000000
 #define IS_MARKUP(mime_id) (mime_id & MARKUP_MASK) == MARKUP_MASK
+
+#define RAW_MASK 0x00800000
+#define IS_RAW(mime_id) (mime_id & RAW_MASK) == RAW_MASK
 
 enum major_mime {
     MimeInvalid = 0,

@@ -87,6 +87,7 @@ function shouldDisplayRawImage(hit) {
         hit["_source"]["mime"] &&
         !hit["_source"]["parent"] &&
         hit["_source"]["videoc"] !== "tiff" &&
+        hit["_source"]["videoc"] !== "raw" &&
         hit["_source"]["videoc"] !== "ppm";
 }
 

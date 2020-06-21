@@ -111,7 +111,7 @@ application/x-dbf, dbf
 application/x-dbt,
 application/x-debian-package, deb
 application/x-deepv, deepv
-application/x-director, dcr|dir|dxr
+application/x-director, dir|dxr
 application/x-dmp, dmp
 application/x-dosdriver,
 application/x-dosexec, dll
@@ -430,3 +430,21 @@ video/x-sgi-movie, movie|mv
 x-epoc/x-sisx-app,
 application/x-zstd-dictionary,
 application/vnd.ms-outlook, msg
+image/x-olympus-orf, orf
+image/x-nikon-nef, nef
+image/x-fuji-raf, raf
+image/x-panasonic-raw, rw2|raw
+image/x-adobe-dng, dng
+image/x-canon-cr2, cr2
+image/x-canon-crw, crw
+image/x-dcraw,
+image/x-kodak-dcr, dcr
+image/x-kodak-k25, k25
+image/x-kodak-kdc, kdc
+image/x-minolta-mrw, mrw
+image/x-pentax-pef, pef
+image/x-sigma-x3f, xf3
+image/x-sony-arw, arw
+image/x-sony-sr2, sr2
+image/x-sony-srf, srf
+image/x-epson-erf, erf

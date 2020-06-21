@@ -73,6 +73,29 @@ markup = (
     "text/x-sgml"
 )
 
+raw = (
+    "image/x-olympus-orf",
+    "image/x-nikon-nef",
+    "image/x-fuji-raf",
+    "image/x-panasonic-raw",
+    "image/x-adobe-dng",
+    "image/x-canon-cr2",
+    "image/x-canon-crw",
+    "image/x-dcraw",
+    "image/x-kodak-dcr",
+    "image/x-kodak-k25",
+    "image/x-kodak-kdc",
+    "image/x-minolta-mrw",
+    "image/x-pentax-pef",
+    "image/x-sigma-x3f",
+    "image/x-sony-arw",
+    "image/x-sony-sr2",
+    "image/x-sony-srf",
+    "image/x-minolta-mrw",
+    "image/x-pentax-pef",
+    "image/x-epson-erf",
+)
+
 cnt = 1
 
 
@@ -97,6 +120,8 @@ def mime_id(mime):
         mime_id += " | 0x02000000"
     elif mime in markup:
         mime_id += " | 0x01000000"
+    elif mime in raw:
+        mime_id += " | 0x00800000"
     elif mime == "application/x-empty":
         return "1"
     return mime_id
