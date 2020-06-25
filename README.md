@@ -15,7 +15,7 @@ sist2 (Simple incremental search tool)
 * Fast, low memory usage, multi-threaded
 * Mobile-friendly Web interface
 * Portable (all its features are packaged in a single executable)
-* Extracts text from common file types \*
+* Extracts text and metadata from common file types \*
 * Generates thumbnails \*
 * Incremental scanning
 * Automatic tagging from file attributes via [user scripts](docs/scripting.md)
@@ -123,7 +123,7 @@ binaries (GCC 7+ required).
 1. Install compile-time dependencies
 
    ```bash
-   vcpkg install lmdb cjson glib libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 ffmpeg zstd gtest mongoose libuuid libmagic
+   vcpkg install lmdb cjson glib libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 ffmpeg zstd gtest mongoose libuuid libmagic libraw
    ```
 
 2. Build
