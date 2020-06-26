@@ -367,6 +367,11 @@ web_args_t *web_args_create() {
 
 int exec_args_validate(exec_args_t *args, int argc, const char **argv) {
 
+    if (argc < 2) {
+        fprintf(stderr, "Required positional argument: PATH.\n");
+        return 1;
+    }
+
     char *index_path = abspath(argv[1]);
     if (index_path == NULL) {
         fprintf(stderr, "File not found: %s\n", argv[1]);

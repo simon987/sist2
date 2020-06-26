@@ -160,7 +160,7 @@ function getTags(hit, mimeCategory) {
 
             if (tokens.length > 1) {
                 const bg = "#" + tokens[1];
-                const fg = lum(tokens[1]) > 40 ? "#000" : "#fff";
+                const fg = lum(tokens[1]) > 50 ? "#000" : "#fff";
                 userTag.setAttribute("style", `background-color: ${bg}; color: ${fg}`);
             }
 

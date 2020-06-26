@@ -234,6 +234,9 @@ $.jsonPost("es", {
         selection: {
             mode: 'checkbox'
         },
+        checkbox: {
+            autoCheckChildren: false
+        },
         data: tagMap
     });
     new InspireTreeDOM(tagTree, {
@@ -251,7 +254,47 @@ function addTag(map, tag, id, count) {
         id: id,
         text: tags.length !== 1 ? tags[0] : `${tags[0]} (${count})`,
         name: tags[0],
-        children: []
+        children: [],
+        isLeaf: tags.length === 1,
+        //Overwrite base functions
+        blur: function() {},
+        select: function() {
+            this.state("selected", true);
+            return this.check()
+        },
+        deselect: function() {
+            this.state("selected", false);
+            return this.uncheck()
+        },
+        uncheck: function () {
+            if (!this.isLeaf) {
+                return;
+            }
+
+            baseStateChange('checked', false, 'unchecked', this, false);
+            this.state('indeterminate', false);
+
+            if (this.hasParent()) {
+                this.getParent().refreshIndeterminateState();
+            }
+
+            this._tree.end();
+            return this;
+        },
+        check: function () {
+            if (!this.isLeaf) {
+                return;
+            }
+
+            baseStateChange('checked', true, 'checked', this, false);
+
+            if (this.hasParent()) {
+                this.getParent().refreshIndeterminateState();
+            }
+
+            this._tree.end();
+            return this;
+        }
     };
 
     let found = false;
@@ -374,7 +417,7 @@ function search(after = null) {
 
     let tags = getSelectedNodes(tagTree);
     if (!tags.includes("any")) {
-        filters.push({terms: {"tag": tags}});
+        tags.forEach(term => filters.push({term: {"tag": term}}))
     }
 
     if (date_min && date_max) {

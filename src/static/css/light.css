@@ -375,3 +375,7 @@ mark {
     float: right;
     margin-bottom: 10px;
 }
+
+.wholerow {
+    outline: none !important;
+}

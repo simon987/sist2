@@ -512,3 +512,7 @@ svg {
 #graphs-card svg text {
     fill: #eee;
 }
+
+.wholerow {
+    outline: none !important;
+}
