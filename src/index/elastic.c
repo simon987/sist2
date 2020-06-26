@@ -261,15 +261,20 @@ void destroy_indexer(char *script, char index_id[UUID_STR_LEN]) {
 
     char url[4096];
 
-    if (script != NULL) {
-        execute_update_script(script, index_id);
-        free(script);
-    }
-
     snprintf(url, sizeof(url), "%s/sist2/_refresh", IndexCtx.es_url);
     response_t *r = web_post(url, "");
     LOG_INFOF("elastic.c", "Refresh index <%d>", r->status_code);
     free_response(r);
+
+    if (script != NULL) {
+        execute_update_script(script, index_id);
+        free(script);
+
+        snprintf(url, sizeof(url), "%s/sist2/_refresh", IndexCtx.es_url);
+        r = web_post(url, "");
+        LOG_INFOF("elastic.c", "Refresh index <%d>", r->status_code);
+        free_response(r);
+    }
 
     snprintf(url, sizeof(url), "%s/sist2/_forcemerge", IndexCtx.es_url);
     r = web_post(url, "");
