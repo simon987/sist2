@@ -423,6 +423,7 @@ int main(int argc, const char *argv[]) {
 
     web_args->es_url = common_es_url;
     index_args->es_url = common_es_url;
+    exec_args->es_url = common_es_url;
     index_args->script_path = common_script_path;
     exec_args->script_path = common_script_path;
 
