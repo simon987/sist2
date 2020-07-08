@@ -338,7 +338,25 @@ function createDocCard(hit) {
 
     docCardBody.appendChild(tagContainer);
 
+    attachTagContainerEventListener(tagContainer);
     return docCard;
+}
+
+function attachTagContainerEventListener(tagContainer) {
+    const sizeTag = Array.from(tagContainer.children).find(child => child.tagName === "SMALL");
+
+    const addTagButton = document.createElement("span");
+    addTagButton.setAttribute("class", "badge badge-pill add-tag-button");
+    addTagButton.appendChild(document.createTextNode("+Add"));
+
+    tagContainer.addEventListener("mouseenter", () => tagContainer.insertBefore(addTagButton, sizeTag));
+    tagContainer.addEventListener("mouseleave", () => addTagButton.remove());
+
+    addTagButton.addEventListener("click", () => {
+        tagBar.value = "";
+        $("#tagModal").modal("show");
+        tagBar.focus();
+    });
 }
 
 function makeThumbnail(mimeCategory, hit, imgWrapper, small) {

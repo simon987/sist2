@@ -6,6 +6,7 @@ let tagTree;
 
 let searchBar = document.getElementById("searchBar");
 let pathBar = document.getElementById("pathBar");
+let tagBar = document.getElementById("tagBar");
 let lastDoc = null;
 let reachedEnd = false;
 let docCount = 0;
@@ -107,6 +108,53 @@ window.onload = () => {
     pathBar.addEventListener("keyup", e => {
         if (e.key === "Enter") {
             searchDebounced();
+        }
+    });
+    new autoComplete({
+        selector: '#tagBar',
+        minChars: 1,
+        delay: 200,
+        renderItem: function (item) {
+            return '<div class="autocomplete-suggestion" data-val="' + item + '">' + item + '</div>';
+        },
+        source: async function (term, suggest) {
+            term = term.toLowerCase();
+
+            const choices = await getTagChoices();
+
+            let matches = [];
+            for (let i = 0; i < choices.length; i++) {
+                if (~choices[i].toLowerCase().indexOf(term)) {
+                    matches.push(choices[i]);
+                }
+            }
+            suggest(matches.sort());
+        },
+        onSelect: function () {
+        }
+    });
+    [tagBar, document.getElementById("tag-color")].forEach(elem => {
+        elem.addEventListener("keyup", e => {
+            if (e.key === "Enter") {
+                console.log("Add tag");
+                //TODO
+            }
+        });
+    })
+    $("#tag-color").colorpicker({
+        format: "hex",
+        sliders: {
+            saturation: {
+                selector: '.colorpicker-saturation',
+                callLeft: 'setSaturationRatio',
+                callTop: 'setValueRatio'
+            },
+            hue: {
+                selector: '.colorpicker-hue',
+                maxLeft: 0,
+                callLeft: false,
+                callTop: 'setHueRatio'
+            }
         }
     });
 };
@@ -257,12 +305,13 @@ function addTag(map, tag, id, count) {
         children: [],
         isLeaf: tags.length === 1,
         //Overwrite base functions
-        blur: function() {},
-        select: function() {
+        blur: function () {
+        },
+        select: function () {
             this.state("selected", true);
             return this.check()
         },
-        deselect: function() {
+        deselect: function () {
             this.state("selected", false);
             return this.uncheck()
         },
@@ -719,5 +768,34 @@ function getPathChoices() {
                 }
             }
         }).then(resp => getPaths(resp["suggest"]["path"][0]["options"].map(opt => opt["_source"]["path"])));
-    })
+    });
+}
+
+
+function getTagChoices() {
+    return new Promise(getPaths => {
+        $.jsonPost("es", {
+            suggest: {
+                tag: {
+                    prefix: tagBar.value,
+                    completion: {
+                        field: "suggest-tag",
+                        skip_duplicates: true,
+                        size: 10000
+                    }
+                }
+            }
+        }).then(resp => {
+            const result = [];
+            resp["suggest"]["tag"][0]["options"].map(opt => opt["_source"]["tag"]).forEach(tags => {
+                tags.forEach(tag => {
+                    const t = tag.split("#")[0];
+                    if (result.indexOf(t) === -1) {
+                        result.push(t);
+                    }
+                });
+            });
+            getPaths(result);
+        });
+    });
 }

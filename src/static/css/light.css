@@ -111,6 +111,12 @@ body {
     background-color: #FAAB3C;
 }
 
+.add-tag-button {
+    cursor: pointer;
+    color: #212529;
+    background-color: #e0e0e0;
+}
+
 .card-img-overlay {
     pointer-events: none;
     padding: 0.75rem;
@@ -378,4 +384,8 @@ mark {
 
 .wholerow {
     outline: none !important;
+}
+
+.stat > .card-body {
+    padding: 0.7em 1.25em;
 }

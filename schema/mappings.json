@@ -126,7 +126,12 @@
       }
     },
     "tag": {
-      "type": "keyword"
+      "type": "keyword",
+      "copy_to": "suggest-tag"
+    },
+    "suggest-tag": {
+      "type": "completion",
+      "analyzer": "case_insensitive_kw_analyzer"
     },
     "exif_make": {
       "type": "text"
