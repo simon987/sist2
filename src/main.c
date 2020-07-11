@@ -176,7 +176,7 @@ void sist2_scan(scan_args_t *args) {
     char store_path[PATH_MAX];
     snprintf(store_path, PATH_MAX, "%sthumbs", ScanCtx.index.path);
     mkdir(store_path, S_IWUSR | S_IRUSR | S_IXUSR);
-    ScanCtx.index.store = store_create(store_path);
+    ScanCtx.index.store = store_create(store_path, STORE_SIZE_TN);
 
     scan_print_header();
 
@@ -223,7 +223,7 @@ void sist2_scan(scan_args_t *args) {
         char dst_path[PATH_MAX];
         snprintf(store_path, PATH_MAX, "%sthumbs", args->incremental);
         snprintf(dst_path, PATH_MAX, "%s_index_original", ScanCtx.index.path);
-        store_t *source = store_create(store_path);
+        store_t *source = store_create(store_path, STORE_SIZE_TN);
 
         DIR *dir = opendir(args->incremental);
         if (dir == NULL) {
@@ -339,7 +339,11 @@ void sist2_web(web_args_t *args) {
         char path_tmp[PATH_MAX];
 
         snprintf(path_tmp, PATH_MAX, "%sthumbs", abs_path);
-        WebCtx.indices[i].store = store_create(path_tmp);
+        WebCtx.indices[i].store = store_create(path_tmp, STORE_SIZE_TN);
+
+        snprintf(path_tmp, PATH_MAX, "%stags", abs_path);
+        mkdir(path_tmp, S_IWUSR | S_IRUSR | S_IXUSR);
+        WebCtx.indices[i].tag_store = store_create(path_tmp, STORE_SIZE_TAG);
 
         snprintf(path_tmp, PATH_MAX, "%sdescriptor.json", abs_path);
         WebCtx.indices[i].desc = read_index_descriptor(path_tmp);

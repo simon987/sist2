@@ -326,7 +326,7 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
         }
 
         strncpy(args->auth_user, args->credentials, (ptr - args->credentials));
-        strncpy(args->auth_pass, ptr + 1, strlen(ptr + 1));
+        strcpy(args->auth_pass, ptr);
 
         if (strlen(args->auth_user) == 0) {
             fprintf(stderr, "--auth username must be at least one character long");

@@ -106,6 +106,21 @@ body {
     background-color: #e0e0e0;
 }
 
+.badge {
+    margin-right: 3px;
+}
+
+.badge-delete {
+    margin-right: -2px;
+    margin-left: 2px;
+    font-family: monospace;
+    font-size: 90%;
+    background: rgba(0,0,0,0.2);
+    padding: 0.1em 0.4em;
+    color: white;
+    cursor: pointer;
+}
+
 .badge-text {
     color: #FFFFFF;
     background-color: #FAAB3C;
@@ -137,9 +152,6 @@ body {
     overflow: hidden;
 }
 
-.badge {
-    margin-right: 3px;
-}
 
 .fit {
     display: block;

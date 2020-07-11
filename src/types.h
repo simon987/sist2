@@ -19,6 +19,7 @@ typedef struct index_descriptor {
 typedef struct index_t {
     struct index_descriptor desc;
     struct store_t *store;
+    struct store_t *tag_store;
     char path[PATH_MAX];
 } index_t;
 

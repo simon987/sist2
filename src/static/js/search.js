@@ -7,6 +7,8 @@ let tagTree;
 let searchBar = document.getElementById("searchBar");
 let pathBar = document.getElementById("pathBar");
 let tagBar = document.getElementById("tagBar");
+let currentDocToTag = null;
+let currentTagCallback = null;
 let lastDoc = null;
 let reachedEnd = false;
 let docCount = 0;
@@ -136,8 +138,8 @@ window.onload = () => {
     [tagBar, document.getElementById("tag-color")].forEach(elem => {
         elem.addEventListener("keyup", e => {
             if (e.key === "Enter") {
-                console.log("Add tag");
-                //TODO
+                const tag = tagBar.value + document.getElementById("tag-color").value;
+                saveTag(tag, currentDocToTag).then(() => currentTagCallback(tag));
             }
         });
     })
@@ -159,11 +161,57 @@ window.onload = () => {
     });
 };
 
+function saveTag(tag, hit) {
+    const relPath = hit["_source"]["path"] + "/" + hit["_source"] + ext(hit);
+
+    return $.jsonPost("/tag/" + hit["_source"]["index"], {
+        delete: false,
+        name: tag,
+        doc_id: hit["_id"],
+        relpath: relPath
+    }).then(() => {
+        tagBar.blur();
+        $("#tagModal").modal("hide");
+        $.toast({
+            heading: "Tag added",
+            text: "Tag saved to index storage and updated in ElasticSearch",
+            stack: 3,
+            bgColor: "#00a4bc",
+            textColor: "#fff",
+            position: 'bottom-right',
+            hideAfter: 3000,
+            loaderBg: "#08c7e8",
+        });
+    })
+}
+
+function deleteTag(tag, hit) {
+    const relPath = hit["_source"]["path"] + "/" + hit["_source"] + ext(hit);
+
+    return $.jsonPost("/tag/" + hit["_source"]["index"], {
+        delete: true,
+        name: tag,
+        doc_id: hit["_id"],
+        relpath: relPath
+    }).then(() => {
+        $.toast({
+            heading: "Tag deleted",
+            text: "Tag deleted index storage and updated in ElasticSearch",
+            stack: 3,
+            bgColor: "#00a4bc",
+            textColor: "#fff",
+            position: 'bottom-right',
+            hideAfter: 3000,
+            loaderBg: "#08c7e8",
+        });
+    })
+}
+
 function toggleFuzzy() {
     searchDebounced();
 }
 
-$.jsonPost("i").then(resp => {
+$.get("i").then(resp => {
 
     const urlIndices = (new URLSearchParams(location.search)).get("i");
     resp["indices"].forEach(idx => {

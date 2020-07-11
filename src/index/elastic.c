@@ -313,6 +313,11 @@ void finish_indexer(char *script, char *index_id) {
     r = web_post(url, "");
     LOG_INFOF("elastic.c", "Merge index <%d>", r->status_code);
     free_response(r);
+
+    snprintf(url, sizeof(url), "%s/sist2/_settings", IndexCtx.es_url);
+    r = web_put(url, "{\"index\":{\"refresh_interval\":\"1s\"}}");
+    LOG_INFOF("elastic.c", "Set refresh interval <%d>", r->status_code);
+    free_response(r);
 }
 
 void elastic_init(int force_reset) {

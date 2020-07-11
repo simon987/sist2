@@ -13,6 +13,7 @@
 #include "libscan/text/text.h"
 #include "libscan/mobi/scan_mobi.h"
 #include "libscan/raw/raw.h"
+#include "src/io/store.h"
 
 #include <glib.h>
 #include <pcre.h>
