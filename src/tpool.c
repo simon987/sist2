@@ -3,6 +3,8 @@
 #include "sist.h"
 #include <pthread.h>
 
+#define MAX_QUEUE_SIZE 10000
+
 typedef void (*thread_func_t)(void *arg);
 
 typedef struct tpool_work {
@@ -26,6 +28,7 @@ typedef struct tpool {
     int work_cnt;
     int done_cnt;
 
+    int free_arg;
     int stop;
 
     void (*cleanup_func)();
@@ -79,6 +82,10 @@ int tpool_add_work(tpool_t *pool, thread_func_t func, void *arg) {
         return 0;
     }
 
+    while ((pool->work_cnt - pool->done_cnt) >= MAX_QUEUE_SIZE) {
+        usleep(100000);
+    }
+
     pthread_mutex_lock(&(pool->work_mutex));
     if (pool->work_head == NULL) {
         pool->work_head = work;
@@ -121,7 +128,9 @@ static void *tpool_worker(void *arg) {
             }
 
             work->func(work->arg);
-            free(work->arg);
+            if (pool->free_arg) {
+                free(work->arg);
+            }
             free(work);
         }
 
@@ -138,8 +147,10 @@ static void *tpool_worker(void *arg) {
         pthread_mutex_unlock(&(pool->work_mutex));
     }
 
-    LOG_INFO("tpool.c", "Executing cleaup function")
-    pool->cleanup_func();
+    if (pool->cleanup_func != NULL) {
+        LOG_INFO("tpool.c", "Executing cleanup function")
+        pool->cleanup_func();
+    }
 
     pthread_cond_signal(&(pool->working_cond));
     pthread_mutex_unlock(&(pool->work_mutex));
@@ -207,13 +218,14 @@ void tpool_destroy(tpool_t *pool) {
  * Create a thread pool
  * @param thread_cnt Worker threads count
  */
-tpool_t *tpool_create(size_t thread_cnt, void cleanup_func()) {
+tpool_t *tpool_create(size_t thread_cnt, void cleanup_func(), int free_arg) {
 
     tpool_t *pool = malloc(sizeof(tpool_t));
     pool->thread_cnt = thread_cnt;
     pool->work_cnt = 0;
     pool->done_cnt = 0;
     pool->stop = 0;
+    pool->free_arg = free_arg;
     pool->cleanup_func = cleanup_func;
     pool->threads = calloc(sizeof(pthread_t), thread_cnt);
 

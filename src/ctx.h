@@ -58,6 +58,7 @@ typedef struct {
 typedef struct {
     char *es_url;
     int batch_size;
+    tpool_t *pool;
 } IndexCtx_t;
 
 typedef struct {

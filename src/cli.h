@@ -41,6 +41,7 @@ typedef struct index_args {
     int print;
     int batch_size;
     int force_reset;
+    int threads;
 } index_args_t;
 
 typedef struct web_args {

@@ -21,7 +21,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.5.1";
+static const char *const Version = "2.5.2";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -211,7 +211,7 @@ void sist2_scan(scan_args_t *args) {
         LOG_INFOF("main.c", "Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table))
     }
 
-    ScanCtx.pool = tpool_create(args->threads, thread_cleanup);
+    ScanCtx.pool = tpool_create(args->threads, thread_cleanup, TRUE);
     tpool_start(ScanCtx.pool);
     walk_directory_tree(ScanCtx.index.desc.root);
     tpool_wait(ScanCtx.pool);
@@ -278,6 +278,16 @@ void sist2_index(index_args_t *args) {
         f = index_json;
     }
 
+    void (*cleanup)();
+    if (args->print) {
+        cleanup = NULL;
+    } else {
+        cleanup = elastic_cleanup;
+    }
+
+    IndexCtx.pool = tpool_create(args->threads, cleanup, FALSE);
+    tpool_start(IndexCtx.pool);
+
     struct dirent *de;
     while ((de = readdir(dir)) != NULL) {
         if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
@@ -288,10 +298,13 @@ void sist2_index(index_args_t *args) {
     }
     closedir(dir);
 
+    tpool_wait(IndexCtx.pool);
+
     if (!args->print) {
-        elastic_flush();
-        destroy_indexer(args->script, desc.uuid);
+        finish_indexer(args->script, desc.uuid);
     }
+
+    tpool_destroy(IndexCtx.pool);
 }
 
 void sist2_exec_script(exec_args_t *args) {
@@ -352,6 +365,7 @@ int main(int argc, const char *argv[]) {
 
     char *common_es_url = NULL;
     char *common_script_path = NULL;
+    int common_threads = 0;
 
     struct argparse_option options[] = {
             OPT_HELP(),
@@ -361,7 +375,7 @@ int main(int argc, const char *argv[]) {
             OPT_BOOLEAN(0, "very-verbose", &LogCtx.very_verbose, "Turn on debug messages"),
 
             OPT_GROUP("Scan options"),
-            OPT_INTEGER('t', "threads", &scan_args->threads, "Number of threads. DEFAULT=1"),
+            OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
             OPT_FLOAT('q', "quality", &scan_args->quality,
                       "Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=5"),
             OPT_INTEGER(0, "size", &scan_args->size,
@@ -389,6 +403,7 @@ int main(int argc, const char *argv[]) {
                         "(see USAGE.md). DEFAULT: 2000"),
 
             OPT_GROUP("Index options"),
+            OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT=http://localhost:9200"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
@@ -426,6 +441,8 @@ int main(int argc, const char *argv[]) {
     exec_args->es_url = common_es_url;
     index_args->script_path = common_script_path;
     exec_args->script_path = common_script_path;
+    index_args->threads = common_threads;
+    scan_args->threads = common_threads;
 
     if (argc == 0) {
         argparse_usage(&argparse);

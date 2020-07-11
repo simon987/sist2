@@ -46,6 +46,7 @@ Scan options
     --mem-buffer=<int>            Maximum memory buffer size per thread in MB for files inside archives (see USAGE.md). DEFAULT: 2000
 
 Index options
+    -t, --threads=<int>           Number of threads. DEFAULT=1
     --es-url=<str>                Elasticsearch url with port. DEFAULT=http://localhost:9200
     -p, --print                   Just print JSON documents to stdout.
     --script-file=<str>           Path to user script.

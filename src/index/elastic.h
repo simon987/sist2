@@ -16,15 +16,14 @@ typedef struct es_indexer es_indexer_t;
 
 void elastic_index_line(es_bulk_line_t *line);
 
-void elastic_flush();
-
 void print_json(cJSON *document, const char uuid_str[UUID_STR_LEN]);
 
 void index_json(cJSON *document, const char uuid_str[UUID_STR_LEN]);
 
 es_indexer_t *create_indexer(const char* es_url);
 
-void destroy_indexer(char *script, char index_id[UUID_STR_LEN]);
+void elastic_cleanup();
+void finish_indexer(char *script, char *index_id);
 
 void elastic_init(int force_reset);
 

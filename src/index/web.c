@@ -1,10 +1,18 @@
 #include "web.h"
 #include "src/sist.h"
-#include "src/ctx.h"
 
 #include <mongoose.h>
 #include <pthread.h>
+#include <curl/curl.h>
 
+
+size_t write_cb(char *ptr, size_t size, size_t nmemb, void *user_data) {
+
+    size_t real_size = size * nmemb;
+    dyn_buffer_t *buf = user_data;
+    dyn_buffer_write(buf, ptr, real_size);
+    return real_size;
+}
 
 void free_response(response_t *resp) {
     if (resp->body != NULL) {
@@ -100,55 +108,124 @@ subreq_ctx_t *http_req(const char *url, const char *extra_headers, const char *p
     return ctx;
 }
 
-response_t *web_get(const char *url) {
-    subreq_ctx_t *ctx = http_req(url, SIST2_HEADERS, NULL, "GET");
-    while (ctx->ev_data.done == FALSE) {
-        mg_mgr_poll(&ctx->mgr, 50);
-    }
-    mg_mgr_free(&ctx->mgr);
-
-    response_t *ret = ctx->ev_data.resp;
-    free(ctx);
-    return ret;
-}
-
 subreq_ctx_t *web_post_async(const char *url, const char *data) {
     return http_req(url, SIST2_HEADERS, data, "POST");
 }
 
-response_t *web_post(const char *url, const char *data) {
-    subreq_ctx_t *ctx = http_req(url, SIST2_HEADERS, data, "POST");
+response_t *web_get(const char *url) {
+    response_t *resp = malloc(sizeof(response_t));
 
-    while (ctx->ev_data.done == FALSE) {
-        mg_mgr_poll(&ctx->mgr, 50);
-    }
-    mg_mgr_free(&ctx->mgr);
+    CURL *curl;
+    dyn_buffer_t buffer = dyn_buffer_create();
 
-    response_t *ret = ctx->ev_data.resp;
-    free(ctx);
-    return ret;
+    curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) (&buffer));
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
+
+    struct curl_slist *headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &resp->status_code);
+
+    curl_easy_cleanup(curl);
+
+    resp->body = buffer.buf;
+    resp->size = buffer.cur;
+    return resp;
 }
 
-response_t *web_put(const char *url, const char *data) {
-    subreq_ctx_t *ctx = http_req(url, SIST2_HEADERS, data, "PUT");
-    while (ctx->ev_data.done == FALSE) {
-        mg_mgr_poll(&ctx->mgr, 50);
-    }
-    mg_mgr_free(&ctx->mgr);
+response_t *web_post(const char *url, const char *data) {
 
-    response_t *ret = ctx->ev_data.resp;
-    free(ctx);
-    return ret;
+    response_t *resp = malloc(sizeof(response_t));
+
+    CURL *curl;
+    dyn_buffer_t buffer = dyn_buffer_create();
+
+    curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) (&buffer));
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
+    curl_easy_setopt(curl, CURLOPT_POST, 1);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
+
+    struct curl_slist *headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
+
+    curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &resp->status_code);
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+
+    resp->body = buffer.buf;
+    resp->size = buffer.cur;
+
+    return resp;
+}
+
+
+response_t *web_put(const char *url, const char *data) {
+
+    response_t *resp = malloc(sizeof(response_t));
+
+    CURL *curl;
+    dyn_buffer_t buffer = dyn_buffer_create();
+
+    curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) (&buffer));
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
+    curl_easy_setopt(curl, CURLOPT_DNS_USE_GLOBAL_CACHE, 0);
+    curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURLOPT_DNS_LOCAL_IP4 );
+
+    struct curl_slist *headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
+
+    curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &resp->status_code);
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+
+    resp->body = buffer.buf;
+    resp->size = buffer.cur;
+    return resp;
 }
 
 response_t *web_delete(const char *url) {
-    subreq_ctx_t *ctx = http_req(url, SIST2_HEADERS, NULL, "DELETE");
-    while (ctx->ev_data.done == FALSE) {
-        mg_mgr_poll(&ctx->mgr, 50);
-    }
-    mg_mgr_free(&ctx->mgr);
 
-    response_t *ret = ctx->ev_data.resp;
-    free(ctx);
-    return ret;
+    response_t *resp = malloc(sizeof(response_t));
+
+    CURL *curl;
+    dyn_buffer_t buffer = dyn_buffer_create();
+
+    curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) (&buffer));
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
+    struct curl_slist *headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    curl_easy_perform(curl);
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &resp->status_code);
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+
+    resp->body = buffer.buf;
+    resp->size = buffer.cur;
+    return resp;
 }

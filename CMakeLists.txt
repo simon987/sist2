@@ -40,6 +40,7 @@ find_package(cJSON CONFIG REQUIRED)
 find_package(unofficial-glib CONFIG REQUIRED)
 find_package(unofficial-mongoose CONFIG REQUIRED)
 find_library(UUID_LIB NAMES uuid)
+find_package(CURL CONFIG REQUIRED)
 
 #find_package(OpenSSL REQUIRED)
 
@@ -56,8 +57,6 @@ target_compile_options(
         sist2
         PRIVATE
         -fPIC
-        -Werror
-#        -Wstringop-overflow=0
 )
 
 if (SIST_DEBUG)
@@ -68,6 +67,7 @@ if (SIST_DEBUG)
             -fstack-protector
             -fno-omit-frame-pointer
             -fsanitize=address
+            -O2
     )
     target_link_options(
             sist2
@@ -107,6 +107,7 @@ target_link_libraries(
         unofficial::glib::glib
         unofficial::mongoose::mongoose
 #        OpenSSL::SSL OpenSSL::Crypto
+        CURL::libcurl
 
         ${UUID_LIB}
         pthread

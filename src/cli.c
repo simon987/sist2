@@ -260,6 +260,13 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
         return 1;
     }
 
+    if (args->threads == 0) {
+        args->threads = 1;
+    } else if (args->threads < 0) {
+        fprintf(stderr, "Invalid threads: %d\n", args->threads);
+        return 1;
+    }
+
     char *index_path = abspath(argv[1]);
     if (index_path == NULL) {
         fprintf(stderr, "File not found: %s\n", argv[1]);
