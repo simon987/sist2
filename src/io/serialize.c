@@ -62,7 +62,7 @@ index_descriptor_t read_index_descriptor(char *path) {
     int fd = open(path, O_RDONLY);
 
     if (fd == -1) {
-        LOG_FATALF("serialize.c", "Invalid/corrupt index (Could not find descriptor): %s: %s\n", path ,strerror(errno))
+        LOG_FATALF("serialize.c", "Invalid/corrupt index (Could not find descriptor): %s: %s\n", path, strerror(errno))
     }
 
     char *buf = malloc(info.st_size + 1);
@@ -172,8 +172,8 @@ void write_document(document_t *doc) {
     dyn_buffer_t buf = dyn_buffer_create();
 
     // Ignore root directory in the file path
-    doc->ext = doc->ext - ScanCtx.index.desc.root_len;
-    doc->base = doc->base - ScanCtx.index.desc.root_len;
+    doc->ext = (short) (doc->ext - ScanCtx.index.desc.root_len);
+    doc->base = (short) (doc->base - ScanCtx.index.desc.root_len);
     doc->filepath += ScanCtx.index.desc.root_len;
 
     dyn_buffer_write(&buf, doc, sizeof(line_t));
@@ -230,7 +230,7 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
         char uuid_str[UUID_STR_LEN];
         uuid_unparse(line.uuid, uuid_str);
 
-        const char* mime_text = mime_get_mime_text(line.mime);
+        const char *mime_text = mime_get_mime_text(line.mime);
         if (mime_text == NULL) {
             cJSON_AddNullToObject(document, "mime");
         } else {
@@ -239,11 +239,17 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
         cJSON_AddNumberToObject(document, "size", (double) line.size);
         cJSON_AddNumberToObject(document, "mtime", line.mtime);
 
-        int c;
+        int c = 0;
         while ((c = getc(file)) != 0) {
             dyn_buffer_write_char(&buf, (char) c);
         }
         dyn_buffer_write_char(&buf, '\0');
+
+        const char *tags_string = g_hash_table_lookup(IndexCtx.tags, buf.buf);
+        if (tags_string != NULL) {
+            cJSON *tags_arr = cJSON_Parse(tags_string);
+            cJSON_AddItemToObject(document, "tag", tags_arr);
+        }
 
         cJSON_AddStringToObject(document, "extension", buf.buf + line.ext);
         if (*(buf.buf + line.ext - 1) == '.') {

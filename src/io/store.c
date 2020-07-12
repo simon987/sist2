@@ -111,3 +111,35 @@ char *store_read(store_t *store, char *key, size_t key_len, size_t *ret_vallen) 
     return buf;
 }
 
+GHashTable *store_read_all(store_t *store) {
+
+    int count = 0;
+
+    GHashTable *table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+
+    MDB_txn *txn = NULL;
+    mdb_txn_begin(store->env, NULL, MDB_RDONLY, &txn);
+
+    MDB_cursor *cur = NULL;
+    mdb_cursor_open(txn, store->dbi, &cur);
+
+    MDB_val key;
+    MDB_val value;
+
+    while (mdb_cursor_get(cur, &key, &value, MDB_NEXT) == 0) {
+        char *key_str = malloc(key.mv_size);
+        memcpy(key_str, key.mv_data, key.mv_size);
+        char *val_str = malloc(value.mv_size);
+        memcpy(val_str, value.mv_data, value.mv_size);
+
+        g_hash_table_insert(table, key_str, val_str);
+        count += 1;
+    }
+
+    LOG_DEBUGF("store.c", "Read tags for %d documents", count);
+
+    mdb_cursor_close(cur);
+    mdb_txn_abort(txn);
+    return table;
+}
+

@@ -326,7 +326,7 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
         }
 
         strncpy(args->auth_user, args->credentials, (ptr - args->credentials));
-        strcpy(args->auth_pass, ptr);
+        strcpy(args->auth_pass, ptr + 1);
 
         if (strlen(args->auth_user) == 0) {
             fprintf(stderr, "--auth username must be at least one character long");
@@ -336,6 +336,31 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
         args->auth_enabled = TRUE;
     } else {
         args->auth_enabled = FALSE;
+    }
+
+    if (args->tag_credentials != NULL && args->credentials != NULL) {
+        fprintf(stderr, "--auth and --tag-auth are mutually exclusive");
+        return 1;
+    }
+
+    if (args->tag_credentials != NULL) {
+        char *ptr = strstr(args->tag_credentials, ":");
+        if (ptr == NULL) {
+            fprintf(stderr, "Invalid --tag-auth format, see usage\n");
+            return 1;
+        }
+
+        strncpy(args->auth_user, args->tag_credentials, (ptr - args->tag_credentials));
+        strcpy(args->auth_pass, ptr + 1);
+
+        if (strlen(args->auth_user) == 0) {
+            fprintf(stderr, "--tag-auth username must be at least one character long");
+            return 1;
+        }
+
+        args->tag_auth_enabled = TRUE;
+    } else {
+        args->tag_auth_enabled = FALSE;
     }
 
     args->index_count = argc - 1;
@@ -352,6 +377,7 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg es_url=%s", args->es_url)
     LOG_DEBUGF("cli.c", "arg listen=%s", args->listen_address)
     LOG_DEBUGF("cli.c", "arg credentials=%s", args->credentials)
+    LOG_DEBUGF("cli.c", "arg tag_credentials=%s", args->tag_credentials)
     LOG_DEBUGF("cli.c", "arg auth_user=%s", args->auth_user)
     LOG_DEBUGF("cli.c", "arg auth_pass=%s", args->auth_pass)
     LOG_DEBUGF("cli.c", "arg index_count=%d", args->index_count)

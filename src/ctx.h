@@ -60,6 +60,8 @@ typedef struct {
     char *es_url;
     int batch_size;
     tpool_t *pool;
+    store_t *tag_store;
+    GHashTable *tags;
 } IndexCtx_t;
 
 typedef struct {
@@ -68,6 +70,7 @@ typedef struct {
     char *auth_user;
     char *auth_pass;
     int auth_enabled;
+    int tag_auth_enabled;
     struct index_t indices[64];
 } WebCtx_t;
 

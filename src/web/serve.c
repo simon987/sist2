@@ -562,7 +562,7 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
         snprintf(buf, sizeof(buf),
                  "{"
                  "    \"script\" : {"
-                 "        \"source\": \"ctx._source.tag.add(params.tag)\","
+                 "        \"source\": \"if(ctx._source.tag == null) {ctx._source.tag = new ArrayList()} ctx._source.tag.add(params.tag)\","
                  "        \"lang\": \"painless\","
                  "        \"params\" : {"
                  "            \"tag\" : \"%s\""
@@ -577,13 +577,28 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
     }
 
     char *json_str = cJSON_PrintUnformatted(arr);
-    store_write(store, arg_req->relpath, strlen(arg_req->relpath), json_str, strlen(json_str) + 1);
+    store_write(store, arg_req->relpath, strlen(arg_req->relpath) + 1, json_str, strlen(json_str) + 1);
 
     free(arg_req);
     free(json_str);
     cJSON_Delete(json);
     cJSON_Delete(arr);
     free(body);
+}
+
+int validate_auth(struct mg_connection *nc, struct http_message *hm) {
+    char user[256] = {0,};
+    char pass[256] = {0,};
+
+    int ret = mg_get_http_basic_auth(hm, user, sizeof(user), pass, sizeof(pass));
+    if (ret == -1 || strcmp(user, WebCtx.auth_user) != 0 || strcmp(pass, WebCtx.auth_pass) != 0) {
+        mg_printf(nc, "HTTP/1.1 401 Unauthorized\r\n"
+                      "WWW-Authenticate: Basic realm=\"sist2\"\r\n"
+                      "Content-Length: 0\r\n\r\n");
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return FALSE;
+    }
+    return TRUE;
 }
 
 static void ev_router(struct mg_connection *nc, int ev, void *p) {
@@ -606,15 +621,7 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
 
 
         if (WebCtx.auth_enabled == TRUE) {
-            char user[256] = {0,};
-            char pass[256] = {0,};
-
-            int ret = mg_get_http_basic_auth(hm, user, sizeof(user), pass, sizeof(pass));
-            if (ret == -1 || strcmp(user, WebCtx.auth_user) != 0 || strcmp(pass, WebCtx.auth_pass) != 0) {
-                mg_printf(nc, "HTTP/1.1 401 Unauthorized\r\n"
-                              "WWW-Authenticate: Basic realm=\"sist2\"\r\n"
-                              "Content-Length: 0\r\n\r\n");
-                nc->flags |= MG_F_SEND_AND_CLOSE;
+            if (!validate_auth(nc, hm)) {
                 return;
             }
         }
@@ -644,6 +651,11 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
         } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/s/")))) {
             stats_files(nc, hm, &path);
         } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/tag/")))) {
+            if (WebCtx.tag_auth_enabled == TRUE) {
+                if (!validate_auth(nc, hm)) {
+                    return;
+                }
+            }
             tag(nc, hm, &path);
         } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/d/")))) {
             document_info(nc, hm, &path);

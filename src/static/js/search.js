@@ -117,7 +117,7 @@ window.onload = () => {
         minChars: 1,
         delay: 200,
         renderItem: function (item) {
-            return '<div class="autocomplete-suggestion" data-val="' + item + '">' + item + '</div>';
+            return '<div class="autocomplete-suggestion" data-val="' + item + '">' + item.split("#")[0] + '</div>';
         },
         source: async function (term, suggest) {
             term = term.toLowerCase();
@@ -132,12 +132,18 @@ window.onload = () => {
             }
             suggest(matches.sort());
         },
-        onSelect: function () {
+        onSelect: function (e, item) {
+            const name = item.split("#")[0];
+            const color = "#" + item.split("#")[1];
+            $("#tag-color").val(color);
+            $("#tag-color").trigger("keyup", color);
+            tagBar.value = name;
+            e.preventDefault();
         }
     });
     [tagBar, document.getElementById("tag-color")].forEach(elem => {
         elem.addEventListener("keyup", e => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && tagBar.value.length > 0) {
                 const tag = tagBar.value + document.getElementById("tag-color").value;
                 saveTag(tag, currentDocToTag).then(() => currentTagCallback(tag));
             }
@@ -162,7 +168,7 @@ window.onload = () => {
 };
 
 function saveTag(tag, hit) {
-    const relPath = hit["_source"]["path"] + "/" + hit["_source"] + ext(hit);
+    const relPath = hit["_source"]["path"] + "/" + hit["_source"]["name"] + ext(hit);
 
     return $.jsonPost("/tag/" + hit["_source"]["index"], {
         delete: false,
@@ -186,7 +192,7 @@ function saveTag(tag, hit) {
 }
 
 function deleteTag(tag, hit) {
-    const relPath = hit["_source"]["path"] + "/" + hit["_source"] + ext(hit);
+    const relPath = hit["_source"]["path"] + "/" + hit["_source"]["name"] + ext(hit);
 
     return $.jsonPost("/tag/" + hit["_source"]["index"], {
         delete: true,
@@ -344,11 +350,14 @@ $.jsonPost("es", {
 });
 
 function addTag(map, tag, id, count) {
-    let tags = tag.split("#")[0].split(".");
+    // let tags = tag.split("#")[0].split(".");
+    let tags = tag.split(".");
 
     let child = {
         id: id,
-        text: tags.length !== 1 ? tags[0] : `${tags[0]} (${count})`,
+        values: [id],
+        count: count,
+        text: tags.length !== 1 ? tags[0] : `${tags[0].split("#")[0]} (${count})`,
         name: tags[0],
         children: [],
         isLeaf: tags.length === 1,
@@ -396,10 +405,15 @@ function addTag(map, tag, id, count) {
 
     let found = false;
     map.forEach(node => {
-        if (node.name === child.name) {
+        if (node.name.split("#")[0] === child.name.split("#")[0]) {
             found = true;
             if (tags.length !== 1) {
                 addTag(node.children, tags.slice(1).join("."), id, count);
+            } else {
+                // Same name, different color
+                node.count += count;
+                node.text = `${tags[0].split("#")[0]} (${node.count})`;
+                node.values.push(id);
             }
         }
     });
@@ -451,7 +465,11 @@ function getSelectedNodes(tree) {
 
         //Only get children
         if (selected[i].text.indexOf("(") !== -1) {
-            selectedNodes.push(selected[i].id);
+            if (selected[i].values) {
+                selectedNodes.push(selected[i].values);
+            } else {
+                selectedNodes.push(selected[i].id);
+            }
         }
     }
 
@@ -514,7 +532,9 @@ function search(after = null) {
 
     let tags = getSelectedNodes(tagTree);
     if (!tags.includes("any")) {
-        tags.forEach(term => filters.push({term: {"tag": term}}))
+        tags.forEach(tagGroup => {
+            filters.push({terms: {"tag": tagGroup}})
+        })
     }
 
     if (date_min && date_max) {
@@ -758,6 +778,7 @@ function getNextDepth(node) {
                     text: `${name}/ (${bucket.doc_count})`,
                     depth: node.depth + 1,
                     index: node.index,
+                    values: [bucket.key],
                     children: true,
                 }
             }).filter(x => x !== null)
@@ -788,6 +809,7 @@ function createPathTree(target) {
     selectedIndices.forEach(index => {
         pathTree.addNode({
             id: "/" + index,
+            values: ["/" + index],
             text: `/[${indexMap[index]}]`,
             index: index,
             depth: 0,
@@ -838,8 +860,8 @@ function getTagChoices() {
             resp["suggest"]["tag"][0]["options"].map(opt => opt["_source"]["tag"]).forEach(tags => {
                 tags.forEach(tag => {
                     const t = tag.split("#")[0];
-                    if (result.indexOf(t) === -1) {
-                        result.push(t);
+                    if (!result.find(x => x.split("#")[0] === t)) {
+                        result.push(tag);
                     }
                 });
             });

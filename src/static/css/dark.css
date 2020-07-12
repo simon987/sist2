@@ -197,6 +197,18 @@ a:hover,.btn:hover {
     margin-right: 3px;
 }
 
+.badge-delete {
+    margin-right: -2px;
+    margin-left: 2px;
+    margin-top: -1px;
+    font-family: monospace;
+    font-size: 90%;
+    background: rgba(0,0,0,0.2);
+    padding: 0.1em 0.4em;
+    color: white;
+    cursor: pointer;
+}
+
 .badge-user {
     color: #212529;
     background-color: #e0e0e0;

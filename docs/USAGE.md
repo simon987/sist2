@@ -15,6 +15,7 @@
     * [rewrite_url](#rewrite_url)
     * [link to specific indices](#link-to-specific-indices)
 * [exec-script](#exec-script)
+* [tagging](#tagging)
 
 ```
 Usage: sist2 scan [OPTION]... PATH
@@ -57,6 +58,7 @@ Web options
     --es-url=<str>                Elasticsearch url. DEFAULT=http://localhost:9200
     --bind=<str>                  Listen on this address. DEFAULT=localhost:4090
     --auth=<str>                  Basic auth in user:password format
+    --tag-auth=<str>              Basic auth in user:password format for tagging
 
 Exec-script options
     --script-file=<str>           Path to user script.
@@ -145,7 +147,10 @@ documents.idx/
 ├── agg_mime.csv
 ├── agg_date.csv
 ├── add_size.csv
-└── thumbs
+├── thumbs
+|   ├── data.mdb
+|   └── lock.mdb
+└── tags
     ├── data.mdb
     └── lock.mdb
 ```
@@ -270,6 +275,8 @@ sist2 index --print ./my_index/ | jq | less
  * `--es-url=<str>` Elasticsearch url.
  * `--bind=<str>` Listen on this address.
  * `--auth=<str>` Basic auth in user:password format
+ * `--tag-auth=<str>` Basic auth in user:password format. Works the same way as the 
+    `--auth` argument, but authentication is only applied the `/tag/` endpoint.
  
 ### Web examples
 
@@ -301,3 +308,31 @@ not displayed.
 ## exec-script
 
 The `exec-script` command is used to execute a user script for an index that has already been imported to Elasticsearch with the `index` command. Note that the documents will not be reset to their default state before each execution as the `index` command does: if you make undesired changes to the documents by accident, you will need to run `index` again to revert to the original state.
+
+
+# Tagging
+
+### Manual tagging
+
+You can modify tags of individual documents directly from the 
+ `web` interface. Note that you can setup authentication for this feature
+ with the `--tag-auth` option (See [web options](#web-options))
+
+![manual_tag](docs/manual_tag.png)
+
+Tags that are manually added are saved both in the 
+ index folder (in `/tags/`) and in Elasticsearch*. When re-`index`ing, 
+ they are read from the index and automatically applied.
+ 
+You can safely copy the `/tags/` database to another index.
+
+See [Automatic tagging](#automatic-tagging) for information about tag 
+ hierarchies and tag colors.
+
+\* *It can take a few seconds to take effect in new search queries, and the page needs 
+    to be reloaded for the tag tab to update*
+
+
+### Automatic tagging
+
+See [scripting](docs/scripting.md) documentation.
