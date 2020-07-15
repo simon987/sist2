@@ -70,7 +70,7 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
 ### Scan options
 
 * `-t, --threads` 
-      Number of threads for file parsing. **Do not set a number higher than `$(nproc)`!**.
+      Number of threads for file parsing. **Do not set a number higher than `$(nproc)` or `$(Get-WmiObject Win32_ComputerSystem).NumberOfLogicalProcessors` in Windows!**
 * `-q, --quality` 
     Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. *Does not affect PDF thumbnails quality*
 * `--size` 
