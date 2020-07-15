@@ -166,6 +166,12 @@ a:hover,.btn:hover {
     background-color: #FAAB3C;
 }
 
+.add-tag-button {
+    cursor: pointer;
+    color: #212529;
+    background-color: #e0e0e0;
+}
+
 .card-img-overlay {
     pointer-events: none;
     padding: 0.75rem;
@@ -189,6 +195,18 @@ a:hover,.btn:hover {
 
 .badge {
     margin-right: 3px;
+}
+
+.badge-delete {
+    margin-right: -2px;
+    margin-left: 2px;
+    margin-top: -1px;
+    font-family: monospace;
+    font-size: 90%;
+    background: rgba(0,0,0,0.2);
+    padding: 0.1em 0.4em;
+    color: white;
+    cursor: pointer;
 }
 
 .badge-user {
@@ -515,4 +533,8 @@ svg {
 
 .wholerow {
     outline: none !important;
+}
+
+.stat > .card-body {
+    padding: 0.7em 1.25em;
 }

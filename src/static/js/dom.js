@@ -153,24 +153,41 @@ function getTags(hit, mimeCategory) {
     // User tags
     if (hit["_source"].hasOwnProperty("tag")) {
         hit["_source"]["tag"].forEach(tag => {
-            const userTag = document.createElement("span");
-            userTag.setAttribute("class", "badge badge-pill badge-user");
-
-            const tokens = tag.split("#");
-
-            if (tokens.length > 1) {
-                const bg = "#" + tokens[1];
-                const fg = lum(tokens[1]) > 50 ? "#000" : "#fff";
-                userTag.setAttribute("style", `background-color: ${bg}; color: ${fg}`);
-            }
-
-            const name = tokens[0].split(".")[tokens[0].split(".").length - 1];
-            userTag.appendChild(document.createTextNode(name));
-            tags.push(userTag);
+            tags.push(makeUserTag(tag, hit));
         })
     }
 
     return tags
+}
+
+function makeUserTag(tag, hit) {
+    const userTag = document.createElement("span");
+    userTag.setAttribute("class", "badge badge-pill badge-user");
+
+    const tokens = tag.split("#");
+
+    if (tokens.length > 1) {
+        const bg = "#" + tokens[1];
+        const fg = lum(tokens[1]) > 50 ? "#000" : "#fff";
+        userTag.setAttribute("style", `background-color: ${bg}; color: ${fg}`);
+    }
+
+    const deleteButton = document.createElement("span");
+    deleteButton.setAttribute("class", "badge badge-pill badge-delete")
+    deleteButton.setAttribute("title", "Delete tag")
+    deleteButton.appendChild(document.createTextNode("X"));
+    deleteButton.addEventListener("click", () => {
+        deleteTag(tag, hit).then(() => {
+            userTag.remove();
+        });
+    });
+    userTag.addEventListener("mouseenter", () => userTag.appendChild(deleteButton));
+    userTag.addEventListener("mouseleave", () => deleteButton.remove());
+
+    const name = tokens[0].split(".")[tokens[0].split(".").length - 1];
+    userTag.appendChild(document.createTextNode(name));
+
+    return userTag;
 }
 
 function infoButtonCb(hit) {
@@ -338,7 +355,29 @@ function createDocCard(hit) {
 
     docCardBody.appendChild(tagContainer);
 
+    attachTagContainerEventListener(tagContainer, hit);
     return docCard;
+}
+
+function attachTagContainerEventListener(tagContainer, hit) {
+    const sizeTag = Array.from(tagContainer.children).find(child => child.tagName === "SMALL");
+
+    const addTagButton = document.createElement("span");
+    addTagButton.setAttribute("class", "badge badge-pill add-tag-button");
+    addTagButton.appendChild(document.createTextNode("+Add"));
+
+    tagContainer.addEventListener("mouseenter", () => tagContainer.insertBefore(addTagButton, sizeTag));
+    tagContainer.addEventListener("mouseleave", () => addTagButton.remove());
+
+    addTagButton.addEventListener("click", () => {
+        tagBar.value = "";
+        currentDocToTag = hit;
+        currentTagCallback = tag => {
+            tagContainer.insertBefore(makeUserTag(tag, hit), sizeTag);
+        }
+        $("#tagModal").modal("show");
+        tagBar.focus();
+    });
 }
 
 function makeThumbnail(mimeCategory, hit, imgWrapper, small) {
@@ -413,7 +452,6 @@ function createDocLine(hit) {
 
     if (hit["_source"].hasOwnProperty("parent")) {
         line.classList.add("sub-document");
-        isSubDocument = true;
     }
 
     const infoButton = makeInfoButton(hit);
@@ -485,6 +523,8 @@ function createDocLine(hit) {
     titleDiv.appendChild(pathLine);
     pathLine.appendChild(path);
     pathLine.appendChild(tagContainer);
+
+    attachTagContainerEventListener(tagContainer, hit);
 
     return line;
 }

@@ -1,9 +1,10 @@
 #include "store.h"
 #include "src/ctx.h"
 
-store_t *store_create(char *path) {
+store_t *store_create(char *path, size_t chunk_size) {
 
     store_t *store = malloc(sizeof(struct store_t));
+    store->chunk_size = chunk_size;
     pthread_rwlock_init(&store->lock, NULL);
 
     mdb_env_create(&store->env);
@@ -18,7 +19,7 @@ store_t *store_create(char *path) {
         LOG_FATALF("store.c", "Error while opening store: %s (%s)\n", mdb_strerror(open_ret), path)
     }
 
-    store->size = (size_t) 1024 * 1024 * 5;
+    store->size = (size_t) store->chunk_size;
     ScanCtx.stat_tn_size = 0;
     mdb_env_set_mapsize(store->env, store->size);
 
@@ -69,7 +70,7 @@ void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t bu
         // Cannot resize when there is a opened transaction.
         //  Resize take effect on the next commit.
         pthread_rwlock_wrlock(&store->lock);
-        store->size += 1024 * 1024 * 50;
+        store->size += store->chunk_size;
         mdb_env_set_mapsize(store->env, store->size);
         mdb_txn_begin(store->env, NULL, 0, &txn);
         put_ret = mdb_put(txn, store->dbi, &mdb_key, &mdb_value, 0);
@@ -108,5 +109,37 @@ char *store_read(store_t *store, char *key, size_t key_len, size_t *ret_vallen) 
 
     mdb_txn_abort(txn);
     return buf;
+}
+
+GHashTable *store_read_all(store_t *store) {
+
+    int count = 0;
+
+    GHashTable *table = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+
+    MDB_txn *txn = NULL;
+    mdb_txn_begin(store->env, NULL, MDB_RDONLY, &txn);
+
+    MDB_cursor *cur = NULL;
+    mdb_cursor_open(txn, store->dbi, &cur);
+
+    MDB_val key;
+    MDB_val value;
+
+    while (mdb_cursor_get(cur, &key, &value, MDB_NEXT) == 0) {
+        char *key_str = malloc(key.mv_size);
+        memcpy(key_str, key.mv_data, key.mv_size);
+        char *val_str = malloc(value.mv_size);
+        memcpy(val_str, value.mv_data, value.mv_size);
+
+        g_hash_table_insert(table, key_str, val_str);
+        count += 1;
+    }
+
+    LOG_DEBUGF("store.c", "Read tags for %d documents", count);
+
+    mdb_cursor_close(cur);
+    mdb_txn_abort(txn);
+    return table;
 }
 

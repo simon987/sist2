@@ -21,7 +21,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.5.2";
+static const char *const Version = "2.6.0";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -176,7 +176,7 @@ void sist2_scan(scan_args_t *args) {
     char store_path[PATH_MAX];
     snprintf(store_path, PATH_MAX, "%sthumbs", ScanCtx.index.path);
     mkdir(store_path, S_IWUSR | S_IRUSR | S_IXUSR);
-    ScanCtx.index.store = store_create(store_path);
+    ScanCtx.index.store = store_create(store_path, STORE_SIZE_TN);
 
     scan_print_header();
 
@@ -223,7 +223,7 @@ void sist2_scan(scan_args_t *args) {
         char dst_path[PATH_MAX];
         snprintf(store_path, PATH_MAX, "%sthumbs", args->incremental);
         snprintf(dst_path, PATH_MAX, "%s_index_original", ScanCtx.index.path);
-        store_t *source = store_create(store_path);
+        store_t *source = store_create(store_path, STORE_SIZE_TN);
 
         DIR *dir = opendir(args->incremental);
         if (dir == NULL) {
@@ -271,6 +271,12 @@ void sist2_index(index_args_t *args) {
         LOG_FATALF("main.c", "Could not open index %s: %s", args->index_path, strerror(errno))
     }
 
+    char path_tmp[PATH_MAX];
+    snprintf(path_tmp, sizeof(path_tmp), "%s/tags", args->index_path);
+    mkdir(path_tmp, S_IWUSR | S_IRUSR | S_IXUSR);
+    IndexCtx.tag_store = store_create(path_tmp, STORE_SIZE_TAG);
+    IndexCtx.tags = store_read_all(IndexCtx.tag_store);
+
     index_func f;
     if (args->print) {
         f = print_json;
@@ -303,8 +309,11 @@ void sist2_index(index_args_t *args) {
     if (!args->print) {
         finish_indexer(args->script, desc.uuid);
     }
-
     tpool_destroy(IndexCtx.pool);
+
+    store_destroy(IndexCtx.tag_store);
+    g_hash_table_remove_all(IndexCtx.tags);
+    g_hash_table_destroy(IndexCtx.tags);
 }
 
 void sist2_exec_script(exec_args_t *args) {
@@ -330,6 +339,7 @@ void sist2_web(web_args_t *args) {
     WebCtx.auth_user = args->auth_user;
     WebCtx.auth_pass = args->auth_pass;
     WebCtx.auth_enabled = args->auth_enabled;
+    WebCtx.tag_auth_enabled = args->tag_auth_enabled;
 
     for (int i = 0; i < args->index_count; i++) {
         char *abs_path = abspath(args->indices[i]);
@@ -339,7 +349,11 @@ void sist2_web(web_args_t *args) {
         char path_tmp[PATH_MAX];
 
         snprintf(path_tmp, PATH_MAX, "%sthumbs", abs_path);
-        WebCtx.indices[i].store = store_create(path_tmp);
+        WebCtx.indices[i].store = store_create(path_tmp, STORE_SIZE_TN);
+
+        snprintf(path_tmp, PATH_MAX, "%stags", abs_path);
+        mkdir(path_tmp, S_IWUSR | S_IRUSR | S_IXUSR);
+        WebCtx.indices[i].tag_store = store_create(path_tmp, STORE_SIZE_TAG);
 
         snprintf(path_tmp, PATH_MAX, "%sdescriptor.json", abs_path);
         WebCtx.indices[i].desc = read_index_descriptor(path_tmp);
@@ -415,6 +429,7 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
             OPT_STRING(0, "bind", &web_args->listen_address, "Listen on this address. DEFAULT=localhost:4090"),
             OPT_STRING(0, "auth", &web_args->credentials, "Basic auth in user:password format"),
+            OPT_STRING(0, "tag-auth", &web_args->tag_credentials, "Basic auth in user:password format for tagging"),
 
             OPT_GROUP("Exec-script options"),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),

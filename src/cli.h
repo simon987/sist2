@@ -48,9 +48,11 @@ typedef struct web_args {
     char *es_url;
     char *listen_address;
     char *credentials;
+    char *tag_credentials;
     char auth_user[256];
     char auth_pass[256];
     int auth_enabled;
+    int tag_auth_enabled;
     int index_count;
     const char **indices;
 } web_args_t;

@@ -11,10 +11,11 @@
 
 <nav class="navbar navbar-expand-lg">
     <a class="navbar-brand" href="/">sist2</a>
-    <span class="badge badge-pill version">2.5.2</span>
+    <span class="badge badge-pill version">2.6.0</span>
     <span class="tagline">Lightning-fast file system indexer and search tool </span>
     <a class="btn ml-auto" href="/stats">Stats</a>
-    <button class="btn" type="button" data-toggle="modal" data-target="#settings" onclick="loadSettings()">Settings</button>
+    <button class="btn" type="button" data-toggle="modal" data-target="#settings" onclick="loadSettings()">Settings
+    </button>
     <button class="btn" title="Toggle theme" onclick="toggleTheme()">Theme</button>
 </nav>
 
@@ -48,8 +49,11 @@
                 <div class="col">
                     <div class="input-group" style="margin-bottom: 0.5em; margin-top: 1em">
                         <div class="input-group-prepend">
-                            <button id="pathBarHelper" class="btn btn-outline-secondary" data-toggle="modal" data-target="#pathTreeModal">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="20px"><path d="M288 224h224a32 32 0 0 0 32-32V64a32 32 0 0 0-32-32H400L368 0h-80a32 32 0 0 0-32 32v64H64V8a8 8 0 0 0-8-8H40a8 8 0 0 0-8 8v392a16 16 0 0 0 16 16h208v64a32 32 0 0 0 32 32h224a32 32 0 0 0 32-32V352a32 32 0 0 0-32-32H400l-32-32h-80a32 32 0 0 0-32 32v64H64V128h192v64a32 32 0 0 0 32 32zm0 96h66.74l32 32H512v128H288zm0-288h66.74l32 32H512v128H288z"/></svg>
+                            <button id="pathBarHelper" class="btn btn-outline-secondary" data-toggle="modal"
+                                    data-target="#pathTreeModal">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="20px">
+                                    <path d="M288 224h224a32 32 0 0 0 32-32V64a32 32 0 0 0-32-32H400L368 0h-80a32 32 0 0 0-32 32v64H64V8a8 8 0 0 0-8-8H40a8 8 0 0 0-8 8v392a16 16 0 0 0 16 16h208v64a32 32 0 0 0 32 32h224a32 32 0 0 0 32-32V352a32 32 0 0 0-32-32H400l-32-32h-80a32 32 0 0 0-32 32v64H64V128h192v64a32 32 0 0 0 32 32zm0 96h66.74l32 32H512v128H288zm0-288h66.74l32 32H512v128H288z"/>
+                                </svg>
                             </button>
                         </div>
                         <input id="pathBar" type="search" class="form-control" placeholder="Filter path">
@@ -156,7 +160,8 @@
                         <i>fried eggs</i> and either <i>eggplant</i> or <i>potato</i>, but will ignore results
                         containing <i>frittata</i>.</p>
 
-                    <p>When neither <code>+</code> or <code>|</code> is specified, the default operator is <code>+</code> (and).</p>
+                    <p>When neither <code>+</code> or <code>|</code> is specified, the default operator is
+                        <code>+</code> (and).</p>
                     <p>When the <b>Fuzzy</b> option is checked, partial matches are also returned.</p>
                     <br>
                     <p>For more information, see <a target="_blank"
@@ -189,12 +194,14 @@
 
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input" id="settingSearchInPath">
-                        <label class="custom-control-label" for="settingSearchInPath">Enable matching query against document path</label>
+                        <label class="custom-control-label" for="settingSearchInPath">Enable matching query against
+                            document path</label>
                     </div>
 
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input" id="settingSuggestPath">
-                        <label class="custom-control-label" for="settingSuggestPath">Enable auto-complete in path filter bar</label>
+                        <label class="custom-control-label" for="settingSuggestPath">Enable auto-complete in path filter
+                            bar</label>
                     </div>
 
                     <br/>
@@ -283,6 +290,32 @@
                 </div>
                 <div class="modal-body">
                     <div id="pathTree" class="tree"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="tagModal" tabindex="-1" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add tag</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col col-8">
+                                <input type="text" id="tagBar" class="form-control">
+                            </div>
+                            <div class="col col-4">
+                                <input type="text" id="tag-color" value="" class="form-control"/>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

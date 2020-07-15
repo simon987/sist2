@@ -18,7 +18,7 @@ sist2 (Simple incremental search tool)
 * Extracts text and metadata from common file types \*
 * Generates thumbnails \*
 * Incremental scanning
-* Automatic tagging from file attributes via [user scripts](docs/scripting.md)
+* Manual tagging from the UI and automatic tagging based on file attributes via [user scripts](docs/scripting.md)
 * Recursive scan inside archive files \*\*
 * OCR support with tesseract \*\*\*
 * Stats page & disk utilisation visualization

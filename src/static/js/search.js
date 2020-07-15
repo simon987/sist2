@@ -6,6 +6,9 @@ let tagTree;
 
 let searchBar = document.getElementById("searchBar");
 let pathBar = document.getElementById("pathBar");
+let tagBar = document.getElementById("tagBar");
+let currentDocToTag = null;
+let currentTagCallback = null;
 let lastDoc = null;
 let reachedEnd = false;
 let docCount = 0;
@@ -109,13 +112,112 @@ window.onload = () => {
             searchDebounced();
         }
     });
+    new autoComplete({
+        selector: '#tagBar',
+        minChars: 1,
+        delay: 200,
+        renderItem: function (item) {
+            return '<div class="autocomplete-suggestion" data-val="' + item + '">' + item.split("#")[0] + '</div>';
+        },
+        source: async function (term, suggest) {
+            term = term.toLowerCase();
+
+            const choices = await getTagChoices();
+
+            let matches = [];
+            for (let i = 0; i < choices.length; i++) {
+                if (~choices[i].toLowerCase().indexOf(term)) {
+                    matches.push(choices[i]);
+                }
+            }
+            suggest(matches.sort());
+        },
+        onSelect: function (e, item) {
+            const name = item.split("#")[0];
+            const color = "#" + item.split("#")[1];
+            $("#tag-color").val(color);
+            $("#tag-color").trigger("keyup", color);
+            tagBar.value = name;
+            e.preventDefault();
+        }
+    });
+    [tagBar, document.getElementById("tag-color")].forEach(elem => {
+        elem.addEventListener("keyup", e => {
+            if (e.key === "Enter" && tagBar.value.length > 0) {
+                const tag = tagBar.value + document.getElementById("tag-color").value;
+                saveTag(tag, currentDocToTag).then(() => currentTagCallback(tag));
+            }
+        });
+    })
+    $("#tag-color").colorpicker({
+        format: "hex",
+        sliders: {
+            saturation: {
+                selector: '.colorpicker-saturation',
+                callLeft: 'setSaturationRatio',
+                callTop: 'setValueRatio'
+            },
+            hue: {
+                selector: '.colorpicker-hue',
+                maxLeft: 0,
+                callLeft: false,
+                callTop: 'setHueRatio'
+            }
+        }
+    });
 };
+
+function saveTag(tag, hit) {
+    const relPath = hit["_source"]["path"] + "/" + hit["_source"]["name"] + ext(hit);
+
+    return $.jsonPost("/tag/" + hit["_source"]["index"], {
+        delete: false,
+        name: tag,
+        doc_id: hit["_id"],
+        relpath: relPath
+    }).then(() => {
+        tagBar.blur();
+        $("#tagModal").modal("hide");
+        $.toast({
+            heading: "Tag added",
+            text: "Tag saved to index storage and updated in ElasticSearch",
+            stack: 3,
+            bgColor: "#00a4bc",
+            textColor: "#fff",
+            position: 'bottom-right',
+            hideAfter: 3000,
+            loaderBg: "#08c7e8",
+        });
+    })
+}
+
+function deleteTag(tag, hit) {
+    const relPath = hit["_source"]["path"] + "/" + hit["_source"]["name"] + ext(hit);
+
+    return $.jsonPost("/tag/" + hit["_source"]["index"], {
+        delete: true,
+        name: tag,
+        doc_id: hit["_id"],
+        relpath: relPath
+    }).then(() => {
+        $.toast({
+            heading: "Tag deleted",
+            text: "Tag deleted index storage and updated in ElasticSearch",
+            stack: 3,
+            bgColor: "#00a4bc",
+            textColor: "#fff",
+            position: 'bottom-right',
+            hideAfter: 3000,
+            loaderBg: "#08c7e8",
+        });
+    })
+}
 
 function toggleFuzzy() {
     searchDebounced();
 }
 
-$.jsonPost("i").then(resp => {
+$.get("i").then(resp => {
 
     const urlIndices = (new URLSearchParams(location.search)).get("i");
     resp["indices"].forEach(idx => {
@@ -248,21 +350,25 @@ $.jsonPost("es", {
 });
 
 function addTag(map, tag, id, count) {
-    let tags = tag.split("#")[0].split(".");
+    // let tags = tag.split("#")[0].split(".");
+    let tags = tag.split(".");
 
     let child = {
         id: id,
-        text: tags.length !== 1 ? tags[0] : `${tags[0]} (${count})`,
+        values: [id],
+        count: count,
+        text: tags.length !== 1 ? tags[0] : `${tags[0].split("#")[0]} (${count})`,
         name: tags[0],
         children: [],
         isLeaf: tags.length === 1,
         //Overwrite base functions
-        blur: function() {},
-        select: function() {
+        blur: function () {
+        },
+        select: function () {
             this.state("selected", true);
             return this.check()
         },
-        deselect: function() {
+        deselect: function () {
             this.state("selected", false);
             return this.uncheck()
         },
@@ -299,10 +405,15 @@ function addTag(map, tag, id, count) {
 
     let found = false;
     map.forEach(node => {
-        if (node.name === child.name) {
+        if (node.name.split("#")[0] === child.name.split("#")[0]) {
             found = true;
             if (tags.length !== 1) {
                 addTag(node.children, tags.slice(1).join("."), id, count);
+            } else {
+                // Same name, different color
+                node.count += count;
+                node.text = `${tags[0].split("#")[0]} (${node.count})`;
+                node.values.push(id);
             }
         }
     });
@@ -354,7 +465,11 @@ function getSelectedNodes(tree) {
 
         //Only get children
         if (selected[i].text.indexOf("(") !== -1) {
-            selectedNodes.push(selected[i].id);
+            if (selected[i].values) {
+                selectedNodes.push(selected[i].values);
+            } else {
+                selectedNodes.push(selected[i].id);
+            }
         }
     }
 
@@ -417,7 +532,9 @@ function search(after = null) {
 
     let tags = getSelectedNodes(tagTree);
     if (!tags.includes("any")) {
-        tags.forEach(term => filters.push({term: {"tag": term}}))
+        tags.forEach(tagGroup => {
+            filters.push({terms: {"tag": tagGroup}})
+        })
     }
 
     if (date_min && date_max) {
@@ -661,6 +778,7 @@ function getNextDepth(node) {
                     text: `${name}/ (${bucket.doc_count})`,
                     depth: node.depth + 1,
                     index: node.index,
+                    values: [bucket.key],
                     children: true,
                 }
             }).filter(x => x !== null)
@@ -691,6 +809,7 @@ function createPathTree(target) {
     selectedIndices.forEach(index => {
         pathTree.addNode({
             id: "/" + index,
+            values: ["/" + index],
             text: `/[${indexMap[index]}]`,
             index: index,
             depth: 0,
@@ -719,5 +838,34 @@ function getPathChoices() {
                 }
             }
         }).then(resp => getPaths(resp["suggest"]["path"][0]["options"].map(opt => opt["_source"]["path"])));
-    })
+    });
+}
+
+
+function getTagChoices() {
+    return new Promise(getPaths => {
+        $.jsonPost("es", {
+            suggest: {
+                tag: {
+                    prefix: tagBar.value,
+                    completion: {
+                        field: "suggest-tag",
+                        skip_duplicates: true,
+                        size: 10000
+                    }
+                }
+            }
+        }).then(resp => {
+            const result = [];
+            resp["suggest"]["tag"][0]["options"].map(opt => opt["_source"]["tag"]).forEach(tags => {
+                tags.forEach(tag => {
+                    const t = tag.split("#")[0];
+                    if (!result.find(x => x.split("#")[0] === t)) {
+                        result.push(tag);
+                    }
+                });
+            });
+            getPaths(result);
+        });
+    });
 }

@@ -53,6 +53,14 @@ store_t *get_store(const char *index_id) {
     return NULL;
 }
 
+store_t *get_tag_store(const char *index_id) {
+    index_t *idx = get_index_by_id(index_id);
+    if (idx != NULL) {
+        return idx->tag_store;
+    }
+    return NULL;
+}
+
 void search_index(struct mg_connection *nc) {
     send_response_line(nc, 200, sizeof(search_html), "Content-Type: text/html");
     mg_send(nc, search_html, sizeof(search_html));
@@ -422,6 +430,177 @@ void status(struct mg_connection *nc) {
     nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
+typedef struct {
+    char *name;
+    int delete;
+    char *relpath;
+    char *doc_id;
+} tag_req_t;
+
+tag_req_t *parse_tag_request(cJSON *json) {
+
+    if (!cJSON_IsObject(json)) {
+        return NULL;
+    }
+
+    cJSON *arg_name = cJSON_GetObjectItem(json, "name");
+    if (arg_name == NULL || !cJSON_IsString(arg_name)) {
+        return NULL;
+    }
+
+    cJSON *arg_delete = cJSON_GetObjectItem(json, "delete");
+    if (arg_delete == NULL || !cJSON_IsBool(arg_delete)) {
+        return NULL;
+    }
+
+    cJSON *arg_relpath = cJSON_GetObjectItem(json, "relpath");
+    if (arg_relpath == NULL || !cJSON_IsString(arg_relpath)) {
+        return NULL;
+    }
+
+    cJSON *arg_doc_id = cJSON_GetObjectItem(json, "doc_id");
+    if (arg_doc_id == NULL || !cJSON_IsString(arg_doc_id)) {
+        return NULL;
+    }
+
+    tag_req_t *req = malloc(sizeof(tag_req_t));
+    req->delete = arg_delete->valueint;
+    req->name = arg_name->valuestring;
+    req->relpath = arg_relpath->valuestring;
+    req->doc_id = arg_doc_id->valuestring;
+
+    return req;
+}
+
+void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
+    if (path->len != UUID_STR_LEN + 4) {
+        LOG_DEBUGF("serve.c", "Invalid tag path: %.*s", (int) path->len, path->p)
+        mg_http_send_error(nc, 404, NULL);
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
+    }
+
+    char arg_index[UUID_STR_LEN];
+    memcpy(arg_index, hm->uri.p + 5, UUID_STR_LEN);
+    *(arg_index + UUID_STR_LEN - 1) = '\0';
+
+    if (hm->body.len < 2 || hm->method.len != 4 || memcmp(&hm->method, "POST", 4) == 0) {
+        LOG_DEBUG("serve.c", "Invalid tag request")
+        mg_http_send_error(nc, 400, NULL);
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
+    }
+
+    store_t *store = get_tag_store(arg_index);
+    if (store == NULL) {
+        LOG_DEBUGF("serve.c", "Could not get tag store for index: %s", arg_index)
+        mg_http_send_error(nc, 404, NULL);
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
+    }
+
+    char *body = malloc(hm->body.len + 1);
+    memcpy(body, hm->body.p, hm->body.len);
+    *(body + hm->body.len) = '\0';
+    cJSON *json = cJSON_Parse(body);
+
+    tag_req_t *arg_req = parse_tag_request(json);
+    if (arg_req == NULL) {
+        LOG_DEBUGF("serve.c", "Could not parse tag request", arg_index)
+        cJSON_Delete(json);
+        free(body);
+        mg_http_send_error(nc, 400, NULL);
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return;
+    }
+
+    cJSON *arr = NULL;
+
+    size_t data_len = 0;
+    const char *data = store_read(store, arg_req->relpath, strlen(arg_req->relpath), &data_len);
+    if (data_len == 0) {
+        arr = cJSON_CreateArray();
+    } else {
+        arr = cJSON_Parse(data);
+    }
+
+    if (arg_req->delete) {
+
+        if (data_len > 0) {
+            cJSON *element = NULL;
+            int i = 0;
+            cJSON_ArrayForEach(element, arr) {
+                if (strcmp(element->valuestring, arg_req->name) == 0) {
+                    cJSON_DeleteItemFromArray(arr, i);
+                    break;
+                }
+                i++;
+            }
+        }
+
+        char buf[8196];
+        snprintf(buf, sizeof(buf),
+                 "{"
+                 "    \"script\" : {"
+                 "        \"source\": \"if (ctx._source.tag.contains(params.tag)) { ctx._source.tag.remove(ctx._source.tag.indexOf(params.tag)) }\","
+                 "        \"lang\": \"painless\","
+                 "        \"params\" : {"
+                 "            \"tag\" : \"%s\""
+                 "        }"
+                 "    }"
+                 "}", arg_req->name
+        );
+
+        char url[4096];
+        snprintf(url, sizeof(url), "%s/sist2/_update/%s", WebCtx.es_url, arg_req->doc_id);
+        nc->user_data = web_post_async(url, buf);
+
+    } else {
+        cJSON_AddItemToArray(arr, cJSON_CreateString(arg_req->name));
+
+        char buf[8196];
+        snprintf(buf, sizeof(buf),
+                 "{"
+                 "    \"script\" : {"
+                 "        \"source\": \"if(ctx._source.tag == null) {ctx._source.tag = new ArrayList()} ctx._source.tag.add(params.tag)\","
+                 "        \"lang\": \"painless\","
+                 "        \"params\" : {"
+                 "            \"tag\" : \"%s\""
+                 "        }"
+                 "    }"
+                 "}", arg_req->name
+        );
+
+        char url[4096];
+        snprintf(url, sizeof(url), "%s/sist2/_update/%s", WebCtx.es_url, arg_req->doc_id);
+        nc->user_data = web_post_async(url, buf);
+    }
+
+    char *json_str = cJSON_PrintUnformatted(arr);
+    store_write(store, arg_req->relpath, strlen(arg_req->relpath) + 1, json_str, strlen(json_str) + 1);
+
+    free(arg_req);
+    free(json_str);
+    cJSON_Delete(json);
+    cJSON_Delete(arr);
+    free(body);
+}
+
+int validate_auth(struct mg_connection *nc, struct http_message *hm) {
+    char user[256] = {0,};
+    char pass[256] = {0,};
+
+    int ret = mg_get_http_basic_auth(hm, user, sizeof(user), pass, sizeof(pass));
+    if (ret == -1 || strcmp(user, WebCtx.auth_user) != 0 || strcmp(pass, WebCtx.auth_pass) != 0) {
+        mg_printf(nc, "HTTP/1.1 401 Unauthorized\r\n"
+                      "WWW-Authenticate: Basic realm=\"sist2\"\r\n"
+                      "Content-Length: 0\r\n\r\n");
+        nc->flags |= MG_F_SEND_AND_CLOSE;
+        return FALSE;
+    }
+    return TRUE;
+}
+
 static void ev_router(struct mg_connection *nc, int ev, void *p) {
     struct mg_str scheme;
     struct mg_str user_info;
@@ -442,15 +621,7 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
 
 
         if (WebCtx.auth_enabled == TRUE) {
-            char user[256] = {0,};
-            char pass[256] = {0,};
-
-            int ret = mg_get_http_basic_auth(hm, user, sizeof(user), pass, sizeof(pass));
-            if (ret == -1 || strcmp(user, WebCtx.auth_user) != 0 || strcmp(pass, WebCtx.auth_pass) != 0) {
-                mg_printf(nc, "HTTP/1.1 401 Unauthorized\r\n"
-                              "WWW-Authenticate: Basic realm=\"sist2\"\r\n"
-                              "Content-Length: 0\r\n\r\n");
-                nc->flags |= MG_F_SEND_AND_CLOSE;
+            if (!validate_auth(nc, hm)) {
                 return;
             }
         }
@@ -479,6 +650,13 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
             thumbnail(nc, hm, &path);
         } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/s/")))) {
             stats_files(nc, hm, &path);
+        } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/tag/")))) {
+            if (WebCtx.tag_auth_enabled == TRUE) {
+                if (!validate_auth(nc, hm)) {
+                    return;
+                }
+            }
+            tag(nc, hm, &path);
         } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/d/")))) {
             document_info(nc, hm, &path);
         } else {

@@ -13,6 +13,7 @@
 #include "libscan/text/text.h"
 #include "libscan/mobi/scan_mobi.h"
 #include "libscan/raw/raw.h"
+#include "src/io/store.h"
 
 #include <glib.h>
 #include <pcre.h>
@@ -59,6 +60,8 @@ typedef struct {
     char *es_url;
     int batch_size;
     tpool_t *pool;
+    store_t *tag_store;
+    GHashTable *tags;
 } IndexCtx_t;
 
 typedef struct {
@@ -67,6 +70,7 @@ typedef struct {
     char *auth_user;
     char *auth_pass;
     int auth_enabled;
+    int tag_auth_enabled;
     struct index_t indices[64];
 } WebCtx_t;
 
