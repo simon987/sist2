@@ -318,7 +318,7 @@ You can modify tags of individual documents directly from the
  `web` interface. Note that you can setup authentication for this feature
  with the `--tag-auth` option (See [web options](#web-options))
 
-![manual_tag](docs/manual_tag.png)
+![manual_tag](manual_tag.png)
 
 Tags that are manually added are saved both in the 
  index folder (in `/tags/`) and in Elasticsearch*. When re-`index`ing, 
