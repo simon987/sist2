@@ -209,7 +209,8 @@ function infoButtonCb(hit) {
 
             const displayFields = new Set([
                 "mime", "size", "mtime", "path", "title", "width", "height", "duration", "audioc", "videoc",
-                "bitrate", "artist", "album", "album_artist", "genre", "title", "font_name", "tag"
+                "bitrate", "artist", "album", "album_artist", "genre", "title", "font_name", "tag", "author",
+                "modified_by"
             ]);
             Object.keys(doc)
                 .filter(key => key.startsWith("_keyword.") || key.startsWith("_text.") || displayFields.has(key) || key.startsWith("exif_"))
