@@ -251,6 +251,14 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
             cJSON_AddItemToObject(document, "tag", tags_arr);
         }
 
+        if (IndexCtx.tags != NULL) {
+            const char *tags_string = g_hash_table_lookup(IndexCtx.tags, buf.buf);
+            if (tags_string != NULL) {
+                cJSON *tags_arr = cJSON_Parse(tags_string);
+                cJSON_AddItemToObject(document, "tag", tags_arr);
+            }
+        }
+
         cJSON_AddStringToObject(document, "extension", buf.buf + line.ext);
         if (*(buf.buf + line.ext - 1) == '.') {
             *(buf.buf + line.ext - 1) = '\0';
