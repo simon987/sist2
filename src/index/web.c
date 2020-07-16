@@ -131,6 +131,7 @@ response_t *web_get(const char *url) {
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &resp->status_code);
 
     curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
 
     resp->body = buffer.buf;
     resp->size = buffer.cur;
