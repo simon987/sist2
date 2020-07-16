@@ -75,7 +75,7 @@ void _logf(const char *filepath, int level, char *format, ...) {
 
     va_start(args, format);
     if (level == LEVEL_FATAL) {
-        sist_logf(filepath, level, format, args);
+        vsist_logf(filepath, level, format, args);
         exit(-1);
     }
 
@@ -85,7 +85,7 @@ void _logf(const char *filepath, int level, char *format, ...) {
                 vsist_logf(filepath, level, format, args);
             }
         } else {
-            sist_logf(filepath, level, format, args);
+            vsist_logf(filepath, level, format, args);
         }
     }
     va_end(args);
