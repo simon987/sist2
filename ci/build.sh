@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VCPKG_ROOT="/usr/share/vcpkg"
+VCPKG_ROOT="/vcpkg"
 
 rm *.gz
 
