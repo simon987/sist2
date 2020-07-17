@@ -21,7 +21,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.6.1";
+static const char *const Version = "2.7.0";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -99,11 +99,14 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.arc_ctx.logf = _logf;
     ScanCtx.arc_ctx.parse = (parse_callback_t) parse;
 
-    // Cbr
-    ScanCtx.cbr_ctx.log = _log;
-    ScanCtx.cbr_ctx.logf = _logf;
-    ScanCtx.cbr_ctx.store = _store;
-    ScanCtx.cbr_ctx.cbr_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/x-cbr");
+    // Comic
+    ScanCtx.comic_ctx.log = _log;
+    ScanCtx.comic_ctx.logf = _logf;
+    ScanCtx.comic_ctx.store = _store;
+    ScanCtx.comic_ctx.tn_size = args->size;
+    ScanCtx.comic_ctx.tn_qscale = args->quality;
+    ScanCtx.comic_ctx.cbr_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/x-cbr");
+    ScanCtx.comic_ctx.cbz_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/x-cbz");
 
     // Ebook
     pthread_mutex_init(&ScanCtx.ebook_ctx.mupdf_mutex, NULL);

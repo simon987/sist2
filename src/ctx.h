@@ -5,7 +5,7 @@
 #include "tpool.h"
 #include "libscan/scan.h"
 #include "libscan/arc/arc.h"
-#include "libscan/cbr/cbr.h"
+#include "libscan/comic/comic.h"
 #include "libscan/ebook/ebook.h"
 #include "libscan/font/font.h"
 #include "libscan/media/media.h"
@@ -40,7 +40,7 @@ typedef struct {
     int fast;
 
     scan_arc_ctx_t arc_ctx;
-    scan_cbr_ctx_t cbr_ctx;
+    scan_comic_ctx_t comic_ctx;
     scan_ebook_ctx_t ebook_ctx;
     scan_font_ctx_t font_ctx;
     scan_media_ctx_t media_ctx;

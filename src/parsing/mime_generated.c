@@ -108,7 +108,7 @@ enum mime {
     application_x_bzip=655460,
     application_x_bzip2=655461 | 0x08000000,
     application_x_cbr=655462,
-    application_x_cbz=655463 | 0x40000000,
+    application_x_cbz=655463,
     application_x_cdlink=655464,
     application_x_chat=655465,
     application_x_chrome_extension=655466,

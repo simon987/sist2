@@ -18,7 +18,6 @@ major_mime = {
 
 pdf = (
     "application/pdf",
-    "application/x-cbz",
     "application/epub+zip",
     "application/vnd.ms-xpsdocument",
 )
