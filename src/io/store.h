@@ -27,4 +27,6 @@ char *store_read(store_t *store, char *key, size_t key_len, size_t *ret_vallen);
 
 GHashTable *store_read_all(store_t *store);
 
+void store_copy(store_t *store, const char *destination);
+
 #endif

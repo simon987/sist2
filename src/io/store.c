@@ -143,3 +143,8 @@ GHashTable *store_read_all(store_t *store) {
     return table;
 }
 
+
+void store_copy(store_t *store, const char *destination) {
+    mkdir(destination, S_IWUSR | S_IRUSR | S_IXUSR);
+    mdb_env_copy(store->env, destination);
+}

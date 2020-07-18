@@ -21,7 +21,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.7.2";
+static const char *const Version = "2.7.3";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -244,6 +244,13 @@ void sist2_scan(scan_args_t *args) {
         }
         closedir(dir);
         store_destroy(source);
+
+        snprintf(store_path, PATH_MAX, "%stags", args->incremental);
+        snprintf(dst_path, PATH_MAX, "%stags", ScanCtx.index.path);
+        mkdir(store_path, S_IWUSR | S_IRUSR | S_IXUSR);
+        store_t *source_tags = store_create(store_path, STORE_SIZE_TAG);
+        store_copy(source_tags, dst_path);
+        store_destroy(source_tags);
     }
 
     store_destroy(ScanCtx.index.store);

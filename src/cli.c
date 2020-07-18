@@ -41,6 +41,9 @@ void scan_args_destroy(scan_args_t *args) {
     if (args->name != NULL) {
         free(args->name);
     }
+    if (args->incremental != NULL) {
+        free(args->incremental);
+    }
     if (args->path != NULL) {
         free(args->path);
     }
@@ -79,7 +82,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     }
 
     if (args->incremental != NULL) {
-        abs_path = abspath(args->incremental);
+        args->incremental = abspath(args->incremental);
         if (abs_path == NULL) {
             sist_log("main.c", SIST_WARNING, "Could not open original index! Disabled incremental scan feature.");
             args->incremental = NULL;
