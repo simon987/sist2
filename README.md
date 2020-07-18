@@ -72,11 +72,12 @@ See [Usage guide](docs/USAGE.md) for more details
 
 File type | Library | Content | Thumbnail | Metadata
 :---|:---|:---|:---|:---
-pdf,xps,cbz,cbr,fb2,epub | MuPDF | text+ocr | yes, `png` | title |
-`audio/*` | ffmpeg | - | yes, `jpeg` | ID3 tags |
-`video/*` | ffmpeg | - | yes, `jpeg` | title, comment, artist |
-`image/*` | ffmpeg | - | yes, `jpeg` | [Common EXIF tags](https://github.com/simon987/sist2/blob/efdde2734eca9b14a54f84568863b7ffd59bdba3/src/parsing/media.c#L190) |
-raw, rw2, dng, cr2, crw, dcr, k25, kdc, mrw, pef, xf3, arw, sr2, srf, erf  | LibRaw | - | yes, `jpeg` | Common EXIF tags |
+pdf,xps,fb2,epub | MuPDF | text+ocr | yes | title |
+cbz,cbr | *(none)* | - | yes | - |
+`audio/*` | ffmpeg | - | yes | ID3 tags |
+`video/*` | ffmpeg | - | yes | title, comment, artist |
+`image/*` | ffmpeg | - | yes | [Common EXIF tags](https://github.com/simon987/sist2/blob/efdde2734eca9b14a54f84568863b7ffd59bdba3/src/parsing/media.c#L190) |
+raw, rw2, dng, cr2, crw, dcr, k25, kdc, mrw, pef, xf3, arw, sr2, srf, erf  | LibRaw | - | yes | Common EXIF tags |
 ttf,ttc,cff,woff,fnt,otf | Freetype2 | - | yes, `bmp` | Name & style |
 `text/plain` | *(none)* | yes | no | - |
 html, xml | *(none)* | yes | no | - |
