@@ -163,6 +163,7 @@ function getTags(hit, mimeCategory) {
 function makeUserTag(tag, hit) {
     const userTag = document.createElement("span");
     userTag.setAttribute("class", "badge badge-pill badge-user");
+    userTag.setAttribute("title", tag.split("#")[0])
 
     const tokens = tag.split("#");
 
