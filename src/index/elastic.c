@@ -82,7 +82,7 @@ void execute_update_script(const char *script, const char index_id[UUID_STR_LEN]
     char *str = cJSON_Print(body);
 
     char bulk_url[4096];
-    snprintf(bulk_url, 4096, "%s/sist2/_update_by_query?pretty", Indexer->es_url);
+    snprintf(bulk_url, 4096, "%s/sist2/_update_by_query?wait_for_completion=false", Indexer->es_url);
     response_t *r = web_post(bulk_url, str);
     LOG_INFOF("elastic.c", "Executed user script <%d>", r->status_code);
     cJSON *resp = cJSON_Parse(r->body);
