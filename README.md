@@ -102,7 +102,7 @@ scan is also supported.
  
 ### OCR
 
-You can enable OCR support for pdf,xps,cbz,cbr,fb2,epub file types with the
+You can enable OCR support for pdf,xps,fb2,epub file types with the
 `--ocr <lang>` option. Download the language data files with your
 package manager (`apt install tesseract-ocr-eng`) or directly [from Github](https://github.com/tesseract-ocr/tesseract/wiki/Data-Files).
 
