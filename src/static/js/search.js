@@ -253,7 +253,7 @@ function handleTreeClick(tree) {
 
         if (node.id === "any") {
             if (!node.itree.state.checked) {
-                tree.deselect();
+                tree.deselectDeep();
             }
         } else {
             tree.node("any").deselect();
