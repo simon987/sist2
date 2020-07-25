@@ -325,7 +325,7 @@ void elastic_init(int force_reset) {
     // Check if index exists
     char url[4096];
     snprintf(url, 4096, "%s/sist2", IndexCtx.es_url);
-    response_t *r = web_get(url);
+    response_t *r = web_get(url, 30);
     int index_exists = r->status_code == 200;
     free_response(r);
 
@@ -370,7 +370,7 @@ cJSON *elastic_get_document(const char *uuid_str) {
     char url[4096];
     snprintf(url, 4096, "%s/sist2/_doc/%s", WebCtx.es_url, uuid_str);
 
-    response_t *r = web_get(url);
+    response_t *r = web_get(url, 3);
     cJSON *json = NULL;
     if (r->status_code == 200) {
         json = cJSON_Parse(r->body);
@@ -384,7 +384,7 @@ char *elastic_get_status() {
     snprintf(url, 4096,
              "%s/_cluster/state/metadata/sist2?filter_path=metadata.indices.*.state", WebCtx.es_url);
 
-    response_t *r = web_get(url);
+    response_t *r = web_get(url, 30);
     cJSON *json = NULL;
     char *status = malloc(128 * sizeof(char));
     status[0] = '\0';

@@ -112,7 +112,7 @@ subreq_ctx_t *web_post_async(const char *url, const char *data) {
     return http_req(url, SIST2_HEADERS, data, "POST");
 }
 
-response_t *web_get(const char *url) {
+response_t *web_get(const char *url, int timeout) {
     response_t *resp = malloc(sizeof(response_t));
 
     CURL *curl;
@@ -123,6 +123,7 @@ response_t *web_get(const char *url) {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) (&buffer));
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
 
     struct curl_slist *headers = curl_slist_append(headers, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);

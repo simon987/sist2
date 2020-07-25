@@ -20,7 +20,7 @@ typedef struct {
     struct mg_mgr mgr;
 } subreq_ctx_t;
 
-response_t *web_get(const char *url);
+response_t *web_get(const char *url, int timeout);
 response_t *web_post(const char * url, const char * data);
 subreq_ctx_t *web_post_async(const char *url, const char *data);
 response_t *web_put(const char *url, const char *data);
