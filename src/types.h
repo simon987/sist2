@@ -10,7 +10,7 @@ typedef struct index_descriptor {
     char version[64];
     long timestamp;
     char root[PATH_MAX];
-    char rewrite_url[8196];
+    char rewrite_url[8192];
     short root_len;
     char name[1024];
     char type[64];

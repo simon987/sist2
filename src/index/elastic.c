@@ -110,8 +110,8 @@ void *create_bulk_buffer(int max, int *count, size_t *buf_len) {
 
     size_t buf_size = 0;
     size_t buf_cur = 0;
-    char *buf = malloc(8196);
-    size_t buf_capacity = 8196;
+    char *buf = malloc(8192);
+    size_t buf_capacity = 8192;
 
     while (line != NULL && *count < max) {
         char action_str[256];

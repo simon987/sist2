@@ -111,7 +111,7 @@ void stats_files(struct mg_connection *nc, struct http_message *hm, struct mg_st
             return;
     }
 
-    char disposition[8196];
+    char disposition[8192];
     snprintf(disposition, sizeof(disposition), "Content-Disposition: inline; filename=\"%s\"", file);
 
     char full_path[PATH_MAX];
@@ -256,7 +256,7 @@ int serve_file_from_url(cJSON *json, index_t *idx, struct mg_connection *nc) {
 
     const char *ext = cJSON_GetObjectItem(json, "extension")->valuestring;
 
-    char url[8196];
+    char url[8192];
     snprintf(url, sizeof(url),
              "%s%s/%s%s%s",
              idx->desc.rewrite_url, path_unescaped, name_unescaped, strlen(ext) == 0 ? "" : ".", ext);
@@ -291,7 +291,7 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
 
     LOG_DEBUGF("serve.c", "Serving file from disk: %s", full_path)
 
-    char disposition[8196];
+    char disposition[8192];
     snprintf(disposition, sizeof(disposition), "Content-Disposition: inline; filename=\"%s%s%s\"",
              name, strlen(ext) == 0 ? "" : ".", ext);
 
@@ -538,7 +538,7 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
             }
         }
 
-        char buf[8196];
+        char buf[8192];
         snprintf(buf, sizeof(buf),
                  "{"
                  "    \"script\" : {"
@@ -558,7 +558,7 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
     } else {
         cJSON_AddItemToArray(arr, cJSON_CreateString(arg_req->name));
 
-        char buf[8196];
+        char buf[8192];
         snprintf(buf, sizeof(buf),
                  "{"
                  "    \"script\" : {"

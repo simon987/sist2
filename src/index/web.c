@@ -83,7 +83,7 @@ subreq_ctx_t *http_req(const char *url, const char *extra_headers, const char *p
     subreq_ctx_t *ctx = malloc(sizeof(subreq_ctx_t));
     mg_mgr_init(&ctx->mgr, NULL);
 
-    char address[8196];
+    char address[8192];
     snprintf(address, sizeof(address), "tcp://%.*s:%u", (int) host.len, host.p, port);
     struct mg_connection *nc = mg_connect(&ctx->mgr, address, http_req_ev);
     nc->user_data = &ctx->ev_data;
