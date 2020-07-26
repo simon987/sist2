@@ -70,7 +70,11 @@ body {
 }
 
 .document {
-    padding: 0.5rem;
+   padding: 0.3rem;
+}
+
+.card-text:last-child {
+    margin-top: -1px;
 }
 
 .document p {
@@ -179,6 +183,10 @@ body {
     vertical-align: bottom;
     display: inline;
     width: 100%;
+}
+
+.bricklayer {
+    /*max-width: 100%;*/
 }
 
 @media screen and (max-width: 1200px) {

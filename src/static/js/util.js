@@ -101,7 +101,8 @@ const _defaults = {
     treemapColor: "PuBuGn",
     treemapSize: "large",
     suggestPath: true,
-    fragmentSize: 100
+    fragmentSize: 100,
+    columns: 5
 };
 
 function loadSettings() {
@@ -118,6 +119,7 @@ function loadSettings() {
     $("#settingTreemapType").val(CONF.options.treemapType);
     $("#settingSuggestPath").prop("checked", CONF.options.suggestPath);
     $("#settingFragmentSize").val(CONF.options.fragmentSize);
+    $("#settingColumns").val(CONF.options.columns);
 }
 
 function Settings() {
@@ -125,6 +127,7 @@ function Settings() {
 
     this._onUpdate = function () {
         $("#fuzzyToggle").prop("checked", this.options.fuzzy);
+        updateColumnStyle();
     };
 
     this.load = function () {
@@ -161,6 +164,7 @@ function updateSettings() {
     CONF.options.treemapType = $("#settingTreemapType").val();
     CONF.options.suggestPath = $("#settingSuggestPath").prop("checked");
     CONF.options.fragmentSize = $("#settingFragmentSize").val();
+    CONF.options.columns = $("#settingColumns").val();
     CONF.save();
 
     if (typeof searchDebounced !== "undefined") {
@@ -202,4 +206,27 @@ function toggleTheme() {
         document.cookie = "sist=; Max-Age=-99999999;";
     }
     window.location.reload();
+}
+
+function updateColumnStyle() {
+    const style = document.getElementById("style");
+    if (style) {
+        style.innerHTML =
+        `
+@media screen and (min-width: 1500px) {
+    .container {
+            max-width: 1440px;
+        }
+
+    .bricklayer-column-sizer {
+            width: ${100 / CONF.options.columns}% !important;
+        }
+
+    .bricklayer-column {
+            max-width: ${100 / CONF.options.columns}%;
+        }
+    }
+}
+        `
+    }
 }

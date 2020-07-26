@@ -121,7 +121,7 @@ body {
     background: #546b7a;
 }
 
-a:hover,.btn:hover {
+a:hover, .btn:hover {
     color: #fff;
 }
 
@@ -130,7 +130,11 @@ a:hover,.btn:hover {
 }
 
 .document {
-    padding: 0.5rem;
+    padding: 0.3rem;
+}
+
+.card-text:last-child {
+    margin-top: -1px;
 }
 
 .document p {
@@ -203,7 +207,7 @@ a:hover,.btn:hover {
     margin-top: -1px;
     font-family: monospace;
     font-size: 90%;
-    background: rgba(0,0,0,0.2);
+    background: rgba(0, 0, 0, 0.2);
     padding: 0.1em 0.4em;
     color: white;
     cursor: pointer;
@@ -239,20 +243,6 @@ a:hover,.btn:hover {
     vertical-align: bottom;
     display: inline;
     width: 100%;
-}
-
-@media screen and (min-width: 1500px) {
-    .container {
-        max-width: 1440px;
-    }
-
-    .bricklayer-column-sizer {
-        width: 20% !important;
-    }
-
-    .bricklayer-column {
-        max-width: 20%;
-    }
 }
 
 @media screen and (min-width: 1800px) {
@@ -451,6 +441,7 @@ option {
     .small-btn {
         display: none;
     }
+
     .large-btn {
         display: inherit;
     }
@@ -460,6 +451,7 @@ option {
     .small-btn {
         display: inherit;
     }
+
     .large-btn {
         display: none;
     }

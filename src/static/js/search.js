@@ -1,4 +1,4 @@
-const SIZE = 40;
+const SIZE = 60;
 let mimeMap = [];
 let tagMap = [];
 let mimeTree;
