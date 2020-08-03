@@ -218,15 +218,22 @@ a:hover, .btn:hover {
     background-color: #e0e0e0;
 }
 
+.card-img-top {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
 .fit {
     display: block;
     min-width: 64px;
     max-width: 100%;
-    max-height: 240px;
+    max-height: 400px;
     margin: 0 auto 0;
-    padding: 3px 3px 0;
-    width: auto;
     height: auto;
+}
+
+.img-padding {
+    padding: 4px 4px 0 4px;
 }
 
 .fit-sm {

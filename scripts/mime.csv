@@ -347,7 +347,8 @@ text/javascript, js
 text/mcf, mcf
 text/pascal, pas
 text/PGP,
-text/plain, com|cmd|conf|def|g|idc|list|lst|mar|sdml|text|txt|md|groovy|license|properties|desktop|ini|rst|cmake|ipynb|readme|less|lo|go|yml|d|cs|hpp|srt|nfo|sfv|m3u|csv|eml
+text/plain, com|cmd|conf|def|g|idc|list|lst|mar|sdml|text|txt|md|groovy|license|properties|desktop|ini|rst|cmake|ipynb|readme|less|lo|go|yml|d|cs|hpp|srt|nfo|sfv|m3u|csv|eml|make|log|markdown|yaml
+application/vnd.coffeescript, coffee
 text/richtext, rt|rtf|rtx
 text/rtf,
 text/scriplet, wsc

@@ -392,7 +392,11 @@ function makeThumbnail(mimeCategory, hit, imgWrapper, small) {
     if (small) {
         thumbnail.setAttribute("class", "fit-sm");
     } else {
-        thumbnail.setAttribute("class", "card-img-top fit");
+        if (hit["_source"].hasOwnProperty("parent")) {
+            thumbnail.setAttribute("class", "card-img-top fit img-padding");
+        } else {
+            thumbnail.setAttribute("class", "card-img-top fit");
+        }
     }
     thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
 

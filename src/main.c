@@ -21,7 +21,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.7.4";
+static const char *const Version = "2.8.0";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -317,10 +317,11 @@ void sist2_index(index_args_t *args) {
 
     tpool_wait(IndexCtx.pool);
 
+    tpool_destroy(IndexCtx.pool);
+
     if (!args->print) {
         finish_indexer(args->script, desc.uuid);
     }
-    tpool_destroy(IndexCtx.pool);
 
     store_destroy(IndexCtx.tag_store);
     g_hash_table_remove_all(IndexCtx.tags);

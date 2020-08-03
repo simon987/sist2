@@ -38,6 +38,8 @@ void fs_reset(struct vfile *f) {
     }
 }
 
+#define IS_GIT_OBJ (strlen(doc.filepath + doc.base) == 38 && (strstr(doc.filepath, "objects") != NULL))
+
 void parse(void *arg) {
 
     parse_job_t *job = arg;
@@ -77,6 +79,10 @@ void parse(void *arg) {
     int bytes_read = 0;
 
     if (doc.mime == 0 && !ScanCtx.fast) {
+        if (IS_GIT_OBJ) {
+            goto abort;
+        }
+
         // Get mime type with libmagic
         if (!job->vfile.is_fs_file) {
             LOG_WARNING(job->filepath, "Guessing mime type with libmagic inside archive files is not currently supported");
