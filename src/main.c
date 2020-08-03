@@ -320,7 +320,7 @@ void sist2_index(index_args_t *args) {
     tpool_destroy(IndexCtx.pool);
 
     if (!args->print) {
-        finish_indexer(args->script, desc.uuid);
+        finish_indexer(args->script, args->async_script, desc.uuid);
     }
 
     store_destroy(IndexCtx.tag_store);
@@ -340,7 +340,7 @@ void sist2_exec_script(exec_args_t *args) {
 
     LOG_DEBUGF("main.c", "descriptor version %s (%s)", desc.version, desc.type)
 
-    execute_update_script(args->script, desc.uuid);
+    execute_update_script(args->script, args->async_script, desc.uuid);
     free(args->script);
 }
 
@@ -391,6 +391,7 @@ int main(int argc, const char *argv[]) {
 
     char *common_es_url = NULL;
     char *common_script_path = NULL;
+    int common_async_script = 0;
     int common_threads = 0;
 
     struct argparse_option options[] = {
@@ -433,6 +434,7 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT=http://localhost:9200"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
+            OPT_BOOLEAN(0, "async-script", &common_async_script, "Execute user script asynchronously."),
             OPT_INTEGER(0, "batch-size", &index_args->batch_size, "Index batch size. DEFAULT: 100"),
             OPT_BOOLEAN('f', "force-reset", &index_args->force_reset, "Reset Elasticsearch mappings and settings. "
                                                                       "(You must use this option the first time you use the index command)"),
@@ -445,6 +447,7 @@ int main(int argc, const char *argv[]) {
 
             OPT_GROUP("Exec-script options"),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
+            OPT_BOOLEAN(0, "async-script", &common_async_script, "Execute user script asynchronously."),
 
             OPT_END(),
     };
@@ -470,6 +473,8 @@ int main(int argc, const char *argv[]) {
     exec_args->script_path = common_script_path;
     index_args->threads = common_threads;
     scan_args->threads = common_threads;
+    exec_args->async_script = common_async_script;
+    index_args->async_script = common_async_script;
 
     if (argc == 0) {
         argparse_usage(&argparse);

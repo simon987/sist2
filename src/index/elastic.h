@@ -23,7 +23,7 @@ void index_json(cJSON *document, const char uuid_str[UUID_STR_LEN]);
 es_indexer_t *create_indexer(const char* es_url);
 
 void elastic_cleanup();
-void finish_indexer(char *script, char *index_id);
+void finish_indexer(char *script, int async_script, char *index_id);
 
 void elastic_init(int force_reset);
 
@@ -31,6 +31,6 @@ cJSON *elastic_get_document(const char *uuid_str);
 
 char *elastic_get_status();
 
-void execute_update_script(const char *script, const char index_id[UUID_STR_LEN]);
+void execute_update_script(const char *script, int async, const char index_id[UUID_STR_LEN]);
 
 #endif

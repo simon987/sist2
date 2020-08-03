@@ -296,6 +296,7 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg es_url=%s", args->es_url)
     LOG_DEBUGF("cli.c", "arg index_path=%s", args->index_path)
     LOG_DEBUGF("cli.c", "arg script_path=%s", args->script_path)
+    LOG_DEBUGF("cli.c", "arg async_script=%s", args->async_script)
     LOG_DEBUGF("cli.c", "arg script=%s", args->script)
     LOG_DEBUGF("cli.c", "arg print=%d", args->print)
     LOG_DEBUGF("cli.c", "arg batch_size=%d", args->batch_size)

@@ -64,7 +64,7 @@ void index_json(cJSON *document, const char uuid_str[UUID_STR_LEN]) {
     tpool_add_work(IndexCtx.pool, index_json_func, bulk_line);
 }
 
-void execute_update_script(const char *script, const char index_id[UUID_STR_LEN]) {
+void execute_update_script(const char *script, int async, const char index_id[UUID_STR_LEN]) {
 
     if (Indexer == NULL) {
         Indexer = create_indexer(IndexCtx.es_url);
@@ -82,9 +82,15 @@ void execute_update_script(const char *script, const char index_id[UUID_STR_LEN]
     char *str = cJSON_Print(body);
 
     char bulk_url[4096];
-    snprintf(bulk_url, 4096, "%s/sist2/_update_by_query?wait_for_completion=false", Indexer->es_url);
+    if (async) {
+        snprintf(bulk_url, sizeof(bulk_url), "%s/sist2/_update_by_query?wait_for_completion=false", Indexer->es_url);
+    } else {
+        snprintf(bulk_url, sizeof(bulk_url), "%s/sist2/_update_by_query", Indexer->es_url);
+    }
     response_t *r = web_post(bulk_url, str);
-    LOG_INFOF("elastic.c", "Executed user script <%d>", r->status_code);
+    if (!async) {
+        LOG_INFOF("elastic.c", "Executed user script <%d>", r->status_code);
+    }
     cJSON *resp = cJSON_Parse(r->body);
 
     cJSON_free(str);
@@ -97,6 +103,11 @@ void execute_update_script(const char *script, const char index_id[UUID_STR_LEN]
 
         LOG_ERRORF("elastic.c", "User script error: \n%s", error_str);
         cJSON_free(error_str);
+    }
+
+    if (async) {
+        cJSON *task = cJSON_GetObjectItem(resp, "task");
+        LOG_INFOF("elastic.c", "User script queued: %s/_tasks/%s", Indexer->es_url, task->valuestring);
     }
 
     cJSON_Delete(resp);
@@ -290,7 +301,7 @@ es_indexer_t *create_indexer(const char *url) {
     return indexer;
 }
 
-void finish_indexer(char *script, char *index_id) {
+void finish_indexer(char *script, int async_script, char *index_id) {
 
     char url[4096];
 
@@ -300,7 +311,7 @@ void finish_indexer(char *script, char *index_id) {
     free_response(r);
 
     if (script != NULL) {
-        execute_update_script(script, index_id);
+        execute_update_script(script, async_script, index_id);
         free(script);
 
         snprintf(url, sizeof(url), "%s/sist2/_refresh", IndexCtx.es_url);

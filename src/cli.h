@@ -40,6 +40,7 @@ typedef struct index_args {
     char *script;
     int print;
     int batch_size;
+    int async_script;
     int force_reset;
     int threads;
 } index_args_t;
@@ -61,6 +62,7 @@ typedef struct exec_args {
     char *es_url;
     const char *index_path;
     const char *script_path;
+    int async_script;
     char *script;
 } exec_args_t;
 
