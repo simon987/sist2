@@ -51,6 +51,7 @@ Index options
     --es-url=<str>                Elasticsearch url with port. DEFAULT=http://localhost:9200
     -p, --print                   Just print JSON documents to stdout.
     --script-file=<str>           Path to user script.
+    --async-script                Execute user script asynchronously.
     --batch-size=<int>            Index batch size. DEFAULT: 100
     -f, --force-reset             Reset Elasticsearch mappings and settings. (You must use this option the first time you use the index command)
 
@@ -62,6 +63,7 @@ Web options
 
 Exec-script options
     --script-file=<str>           Path to user script.
+    --async-script                Execute user script asynchronously.
 Made by simon987 <me@simon987.net>. Released under GPL-3.0
 ```
 
@@ -243,6 +245,9 @@ it is currently unsupported and has no guaranties of back/forward compatibility.
     Print index in JSON format to stdout.
  * `--script-file` 
     Path to user script. See [Scripting](scripting.md).
+ * `--async-script` 
+    Use `wait_for_completion=false` elasticsearch option while executing user script.
+     (See [Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/tasks.html))
  * `--batch-size=<int>` 
     Index batch size. Indexing is generally faster with larger batches, but payloads that
     are too large will fail and additional overhead for retrying with smaller sizes may slow
