@@ -135,6 +135,10 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
     if (args->name == NULL) {
         args->name = g_path_get_basename(args->output);
+    } else {
+        char* tmp = malloc(strlen(args->name) + 1);
+        strcpy(tmp, args->name);
+        args->name = tmp;
     }
 
     if (args->rewrite_url == NULL) {
