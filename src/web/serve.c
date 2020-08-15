@@ -243,7 +243,7 @@ void search(struct mg_connection *nc, struct http_message *hm) {
     free(body);
 }
 
-int serve_file_from_url(cJSON *json, index_t *idx, struct mg_connection *nc) {
+void serve_file_from_url(cJSON *json, index_t *idx, struct mg_connection *nc) {
 
     const char *path = cJSON_GetObjectItem(json, "path")->valuestring;
     const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
