@@ -208,6 +208,10 @@ function infoButtonCb(hit) {
                     .append(tbody)
                 );
 
+            tbody.append($("<tr>")
+                .append($("<td>").text("index"))
+                .append($("<td>").text(`[${indexMap[doc["index"]]}]`))
+            );
             const displayFields = new Set([
                 "mime", "size", "mtime", "path", "title", "width", "height", "duration", "audioc", "videoc",
                 "bitrate", "artist", "album", "album_artist", "genre", "title", "font_name", "tag", "author",
