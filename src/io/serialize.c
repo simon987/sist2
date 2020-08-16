@@ -150,6 +150,8 @@ char *get_meta_key_text(enum metakey meta_key) {
             return "modified_by";
         case MetaThumbnail:
             return "thumbnail";
+        case MetaPages:
+            return "pages";
         default:
             return NULL;
     }
@@ -278,6 +280,7 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
         size_t ret = 0;
         while (key != '\n') {
             switch (key) {
+                case MetaPages:
                 case MetaWidth:
                 case MetaHeight: {
                     int value;
