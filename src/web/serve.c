@@ -237,7 +237,7 @@ void search(struct mg_connection *nc, struct http_message *hm) {
     *(body + hm->body.len) = '\0';
 
     char url[4096];
-    snprintf(url, 4096, "%s/sist2/_search", WebCtx.es_url);
+    snprintf(url, 4096, "%s/%s/_search", WebCtx.es_url, WebCtx.es_index);
 
     nc->user_data = web_post_async(url, body);
     free(body);
@@ -552,7 +552,7 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
         );
 
         char url[4096];
-        snprintf(url, sizeof(url), "%s/sist2/_update/%s", WebCtx.es_url, arg_req->doc_id);
+        snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, arg_req->doc_id);
         nc->user_data = web_post_async(url, buf);
 
     } else {
@@ -572,7 +572,7 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
         );
 
         char url[4096];
-        snprintf(url, sizeof(url), "%s/sist2/_update/%s", WebCtx.es_url, arg_req->doc_id);
+        snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, arg_req->doc_id);
         nc->user_data = web_post_async(url, buf);
     }
 

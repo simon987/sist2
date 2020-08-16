@@ -20,7 +20,7 @@ void print_json(cJSON *document, const char uuid_str[UUID_STR_LEN]);
 
 void index_json(cJSON *document, const char uuid_str[UUID_STR_LEN]);
 
-es_indexer_t *create_indexer(const char* es_url);
+es_indexer_t *create_indexer(const char *url, const char *index);
 
 void elastic_cleanup();
 void finish_indexer(char *script, int async_script, char *index_id);

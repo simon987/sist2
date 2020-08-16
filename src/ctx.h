@@ -58,6 +58,7 @@ typedef struct {
 
 typedef struct {
     char *es_url;
+    char *es_index;
     int batch_size;
     tpool_t *pool;
     store_t *tag_store;
@@ -66,6 +67,7 @@ typedef struct {
 
 typedef struct {
     char *es_url;
+    char *es_index;
     int index_count;
     char *auth_user;
     char *auth_pass;

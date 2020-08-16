@@ -259,6 +259,7 @@ void sist2_scan(scan_args_t *args) {
 void sist2_index(index_args_t *args) {
 
     IndexCtx.es_url = args->es_url;
+    IndexCtx.es_index = args->es_index;
     IndexCtx.batch_size = args->batch_size;
 
     if (!args->print) {
@@ -347,6 +348,7 @@ void sist2_exec_script(exec_args_t *args) {
 void sist2_web(web_args_t *args) {
 
     WebCtx.es_url = args->es_url;
+    WebCtx.es_index = args->es_index;
     WebCtx.index_count = args->index_count;
     WebCtx.auth_user = args->auth_user;
     WebCtx.auth_pass = args->auth_pass;
@@ -390,6 +392,7 @@ int main(int argc, const char *argv[]) {
     int arg_version = 0;
 
     char *common_es_url = NULL;
+    char *common_es_index = NULL;
     char *common_script_path = NULL;
     int common_async_script = 0;
     int common_threads = 0;
@@ -432,6 +435,7 @@ int main(int argc, const char *argv[]) {
             OPT_GROUP("Index options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT=http://localhost:9200"),
+            OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT=sist2"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
             OPT_BOOLEAN(0, "async-script", &common_async_script, "Execute user script asynchronously."),
@@ -441,11 +445,14 @@ int main(int argc, const char *argv[]) {
 
             OPT_GROUP("Web options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
+            OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT=sist2"),
             OPT_STRING(0, "bind", &web_args->listen_address, "Listen on this address. DEFAULT=localhost:4090"),
             OPT_STRING(0, "auth", &web_args->credentials, "Basic auth in user:password format"),
             OPT_STRING(0, "tag-auth", &web_args->tag_credentials, "Basic auth in user:password format for tagging"),
 
             OPT_GROUP("Exec-script options"),
+            OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
+            OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT=sist2"),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
             OPT_BOOLEAN(0, "async-script", &common_async_script, "Execute user script asynchronously."),
 
@@ -469,6 +476,11 @@ int main(int argc, const char *argv[]) {
     web_args->es_url = common_es_url;
     index_args->es_url = common_es_url;
     exec_args->es_url = common_es_url;
+
+    web_args->es_index = common_es_index;
+    index_args->es_index = common_es_index;
+    exec_args->es_index = common_es_index;
+
     index_args->script_path = common_script_path;
     exec_args->script_path = common_script_path;
     index_args->threads = common_threads;
