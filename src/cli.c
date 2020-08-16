@@ -9,6 +9,7 @@
 #define DEFAULT_REWRITE_URL ""
 
 #define DEFAULT_ES_URL "http://localhost:9200"
+#define DEFAULT_ES_INDEX "sist2"
 #define DEFAULT_BATCH_SIZE 100
 
 #define DEFAULT_LISTEN_ADDRESS "localhost:4090"
@@ -285,6 +286,10 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
 
     if (args->es_url == NULL) {
         args->es_url = DEFAULT_ES_URL;
+    }
+
+    if (args->es_index == NULL) {
+        args->es_index = DEFAULT_ES_INDEX;
     }
 
     if (args->script_path != NULL) {

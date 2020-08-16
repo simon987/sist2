@@ -125,7 +125,8 @@ response_t *web_get(const char *url, int timeout) {
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
 
-    struct curl_slist *headers = curl_slist_append(headers, "Content-Type: application/json");
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     curl_easy_perform(curl);
@@ -153,7 +154,8 @@ response_t *web_post(const char *url, const char *data) {
     curl_easy_setopt(curl, CURLOPT_POST, 1);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
 
-    struct curl_slist *headers = curl_slist_append(headers, "Content-Type: application/json");
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
@@ -187,7 +189,8 @@ response_t *web_put(const char *url, const char *data) {
     curl_easy_setopt(curl, CURLOPT_DNS_USE_GLOBAL_CACHE, 0);
     curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURLOPT_DNS_LOCAL_IP4 );
 
-    struct curl_slist *headers = curl_slist_append(headers, "Content-Type: application/json");
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
@@ -218,7 +221,8 @@ response_t *web_delete(const char *url) {
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
 
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
-    struct curl_slist *headers = curl_slist_append(headers, "Content-Type: application/json");
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     curl_easy_perform(curl);
