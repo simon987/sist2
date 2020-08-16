@@ -75,6 +75,7 @@ function shouldPlayVideo(hit) {
         hit["_source"]["extension"] !== "mkv" &&
         hit["_source"]["extension"] !== "avi" &&
         videoc !== "hevc" &&
+        videoc !== "mpeg1video" &&
         videoc !== "mpeg2video" &&
         videoc !== "wmv3";
 }
