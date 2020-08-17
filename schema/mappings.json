@@ -54,6 +54,10 @@
       "type": "integer",
       "index": false
     },
+    "pages": {
+      "type": "integer",
+      "index": false
+    },
     "mtime": {
       "type": "integer"
     },
