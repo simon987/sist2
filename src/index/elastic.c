@@ -415,7 +415,11 @@ cJSON *elastic_get_document(const char *uuid_str) {
     response_t *r = web_get(url, 3);
     cJSON *json = NULL;
     if (r->status_code == 200) {
-        json = cJSON_Parse(r->body);
+        char *tmp = malloc(r->size + 1);
+        memcpy(tmp, r->body, r->size);
+        *(tmp + r->size) = '\0';
+        json = cJSON_Parse(tmp);
+        free(tmp);
     }
     free_response(r);
     return json;
