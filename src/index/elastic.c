@@ -436,7 +436,11 @@ char *elastic_get_status() {
     status[0] = '\0';
 
     if (r->status_code == 200) {
-        json = cJSON_Parse(r->body);
+        char *tmp = malloc(r->size + 1);
+        memcpy(tmp, r->body, r->size);
+        *(tmp + r->size) = '\0';
+        json = cJSON_Parse(tmp);
+        free(tmp);
         const cJSON *metadata = cJSON_GetObjectItem(json, "metadata");
         if (metadata != NULL) {
             const cJSON *indices = cJSON_GetObjectItem(metadata, "indices");
