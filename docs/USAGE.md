@@ -340,4 +340,4 @@ See [Automatic tagging](#automatic-tagging) for information about tag
 
 ### Automatic tagging
 
-See [scripting](docs/scripting.md) documentation.
+See [scripting](scripting.md) documentation.
