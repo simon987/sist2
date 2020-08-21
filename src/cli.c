@@ -331,6 +331,10 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
         args->listen_address = DEFAULT_LISTEN_ADDRESS;
     }
 
+    if (args->es_index == NULL) {
+        args->es_index = DEFAULT_ES_INDEX;
+    }
+
     if (args->credentials != NULL) {
         char *ptr = strstr(args->credentials, ":");
         if (ptr == NULL) {
@@ -429,6 +433,10 @@ int exec_args_validate(exec_args_t *args, int argc, const char **argv) {
 
     if (args->es_url == NULL) {
         args->es_url = DEFAULT_ES_URL;
+    }
+
+    if (args->es_index == NULL) {
+        args->es_index = DEFAULT_ES_INDEX;
     }
 
     if (args->script_path == NULL) {
