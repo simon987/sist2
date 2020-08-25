@@ -417,3 +417,7 @@ mark {
 .stat > .card-body {
     padding: 0.7em 1.25em;
 }
+
+#modal-body > .img-wrapper {
+    margin-bottom: 1em;
+}
