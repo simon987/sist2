@@ -49,6 +49,7 @@ Scan options
 Index options
     -t, --threads=<int>           Number of threads. DEFAULT=1
     --es-url=<str>                Elasticsearch url with port. DEFAULT=http://localhost:9200
+    --es-index=<str>              Elasticsearch index name. DEFAULT=sist2
     -p, --print                   Just print JSON documents to stdout.
     --script-file=<str>           Path to user script.
     --async-script                Execute user script asynchronously.
@@ -57,11 +58,14 @@ Index options
 
 Web options
     --es-url=<str>                Elasticsearch url. DEFAULT=http://localhost:9200
+    --es-index=<str>              Elasticsearch index name. DEFAULT=sist2
     --bind=<str>                  Listen on this address. DEFAULT=localhost:4090
     --auth=<str>                  Basic auth in user:password format
     --tag-auth=<str>              Basic auth in user:password format for tagging
 
 Exec-script options
+    --es-url=<str>                Elasticsearch url. DEFAULT=http://localhost:9200
+    --es-index=<str>              Elasticsearch index name. DEFAULT=sist2
     --script-file=<str>           Path to user script.
     --async-script                Execute user script asynchronously.
 Made by simon987 <me@simon987.net>. Released under GPL-3.0
@@ -241,6 +245,8 @@ it is currently unsupported and has no guaranties of back/forward compatibility.
  * `--es-url` 
  Elasticsearch url and port. If you are using docker, make sure that both containers are on the
  same network.
+ * `--es-index` 
+    Elasticsearch index name. DEFAULT=sist2
  * `-p, --print` 
     Print index in JSON format to stdout.
  * `--script-file` 
@@ -278,6 +284,8 @@ sist2 index --print ./my_index/ | jq | less
 
 ### Web options
  * `--es-url=<str>` Elasticsearch url.
+ * `--es-index` 
+    Elasticsearch index name. DEFAULT=sist2
  * `--bind=<str>` Listen on this address.
  * `--auth=<str>` Basic auth in user:password format
  * `--tag-auth=<str>` Basic auth in user:password format. Works the same way as the 
