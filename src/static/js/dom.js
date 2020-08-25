@@ -197,8 +197,15 @@ function infoButtonCb(hit) {
         getDocumentInfo(hit["_id"]).then(doc => {
             $("#modal-title").text(doc["name"] + ext(hit));
 
+            const mimeCategory = doc["mime"].split("/")[0];
+            const imgWrapper = document.createElement("div");
+            imgWrapper.setAttribute("style", "position: relative");
+            imgWrapper.setAttribute("class", "img-wrapper");
+            makeThumbnail(mimeCategory, hit, imgWrapper, false);
+
             const tbody = $("<tbody>");
             $("#modal-body").empty()
+                .append(imgWrapper)
                 .append($("<table class='table table-sm'>")
                     .append($("<thead>")
                         .append($("<tr>")
