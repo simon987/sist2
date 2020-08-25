@@ -303,6 +303,7 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
     }
 
     LOG_DEBUGF("cli.c", "arg es_url=%s", args->es_url)
+    LOG_DEBUGF("cli.c", "arg es_index=%s", args->es_index)
     LOG_DEBUGF("cli.c", "arg index_path=%s", args->index_path)
     LOG_DEBUGF("cli.c", "arg script_path=%s", args->script_path)
     LOG_DEBUGF("cli.c", "arg async_script=%s", args->async_script)
@@ -392,6 +393,7 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     }
 
     LOG_DEBUGF("cli.c", "arg es_url=%s", args->es_url)
+    LOG_DEBUGF("cli.c", "arg es_index=%s", args->es_index)
     LOG_DEBUGF("cli.c", "arg listen=%s", args->listen_address)
     LOG_DEBUGF("cli.c", "arg credentials=%s", args->credentials)
     LOG_DEBUGF("cli.c", "arg tag_credentials=%s", args->tag_credentials)
