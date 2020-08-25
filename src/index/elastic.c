@@ -410,7 +410,7 @@ void elastic_init(int force_reset) {
 
 cJSON *elastic_get_document(const char *uuid_str) {
     char url[4096];
-    snprintf(url, sizeof(url), "%s/%s/_doc/%s", WebCtx.es_url, IndexCtx.es_index, uuid_str);
+    snprintf(url, sizeof(url), "%s/%s/_doc/%s", WebCtx.es_url, WebCtx.es_index, uuid_str);
 
     response_t *r = web_get(url, 3);
     cJSON *json = NULL;
