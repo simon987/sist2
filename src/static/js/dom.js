@@ -212,11 +212,16 @@ function infoButtonCb(hit) {
             tbody.append($("<tr>")
                 .append($("<td>").text("index"))
                 .append($("<td>").text(`[${indexMap[doc["index"]]}]`))
+            ).append($("<tr>")
+                .append($("<td>").text("mtime"))
+                .append($("<td>")
+                    .text(new Date(doc["mtime"] * 1000).toISOString().split(".")[0].replace("T", " "))
+                    .attr("title", doc["mtime"]))
             );
             const displayFields = new Set([
-                "mime", "size", "mtime", "path", "title", "width", "height", "duration", "audioc", "videoc",
+                "mime", "size", "path", "title", "width", "height", "duration", "audioc", "videoc",
                 "bitrate", "artist", "album", "album_artist", "genre", "title", "font_name", "tag", "author",
-                "modified_by"
+                "modified_by", "pages"
             ]);
             Object.keys(doc)
                 .filter(key => key.startsWith("_keyword.") || key.startsWith("_text.") || displayFields.has(key) || key.startsWith("exif_"))
