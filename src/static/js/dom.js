@@ -195,17 +195,21 @@ function makeUserTag(tag, hit) {
 function infoButtonCb(hit) {
     return () => {
         getDocumentInfo(hit["_id"]).then(doc => {
+            $("#modal-body").empty()
+
             $("#modal-title").text(doc["name"] + ext(hit));
 
-            const mimeCategory = doc["mime"].split("/")[0];
-            const imgWrapper = document.createElement("div");
-            imgWrapper.setAttribute("style", "position: relative");
-            imgWrapper.setAttribute("class", "img-wrapper");
-            makeThumbnail(mimeCategory, hit, imgWrapper, false);
+            if (doc["mime"]) {
+                const mimeCategory = doc["mime"].split("/")[0];
+                const imgWrapper = document.createElement("div");
+                imgWrapper.setAttribute("style", "position: relative");
+                imgWrapper.setAttribute("class", "img-wrapper");
+                makeThumbnail(mimeCategory, hit, imgWrapper, false);
+                $("#modal-body").append(imgWrapper);
+            }
 
             const tbody = $("<tbody>");
-            $("#modal-body").empty()
-                .append(imgWrapper)
+            $("#modal-body")
                 .append($("<table class='table table-sm'>")
                     .append($("<thead>")
                         .append($("<tr>")
