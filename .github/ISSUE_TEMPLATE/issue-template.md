@@ -9,7 +9,7 @@ assignees: ''
 
 sist2 version:
 
-Platform (Linux or Docker):
+Platform (Linux or Docker, x86-64 or arm64):
 
 Elasticsearch version:
 
