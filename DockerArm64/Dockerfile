@@ -14,7 +14,7 @@ RUN mkdir -p /usr/share/tessdata && \
     curl -o /usr/share/tessdata/rus.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/rus.traineddata &&\
     curl -o /usr/share/tessdata/spa.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/spa.traineddata && ls -lh
 
-ADD sist2 /root/sist2
+ADD sist2_arm64 /root/sist2
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
