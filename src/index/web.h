@@ -3,6 +3,7 @@
 
 #include "src/sist.h"
 #include <mongoose.h>
+#include <curl/curl.h>
 
 typedef struct response {
     char *body;
@@ -16,13 +17,20 @@ typedef struct {
 } http_ev_data_t;
 
 typedef struct {
-    http_ev_data_t ev_data;
-    struct mg_mgr mgr;
+    char* data;
+    dyn_buffer_t response_buf;
+    struct curl_slist *headers;
+    CURL *handle;
+    CURLM *multi;
+    response_t *response;
+    int running_handles;
+    int done;
 } subreq_ctx_t;
 
 response_t *web_get(const char *url, int timeout);
 response_t *web_post(const char * url, const char * data);
-subreq_ctx_t *web_post_async(const char *url, const char *data);
+void web_post_async_poll(subreq_ctx_t* req);
+subreq_ctx_t *web_post_async(const char *url, char *data);
 response_t *web_put(const char *url, const char *data);
 response_t *web_delete(const char *url);
 

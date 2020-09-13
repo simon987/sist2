@@ -10,8 +10,6 @@
 
 #include <mongoose.h>
 
-#define CHUNK_SIZE 1024 * 1024 * 10
-
 
 static int has_prefix(const struct mg_str *str, const struct mg_str *prefix) {
     return str->len > prefix->len && memcmp(str->p, prefix->p, prefix->len) == 0;
@@ -240,7 +238,6 @@ void search(struct mg_connection *nc, struct http_message *hm) {
     snprintf(url, 4096, "%s/%s/_search", WebCtx.es_url, WebCtx.es_index);
 
     nc->user_data = web_post_async(url, body);
-    free(body);
 }
 
 void serve_file_from_url(cJSON *json, index_t *idx, struct mg_connection *nc) {
@@ -668,11 +665,11 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
         if (nc->user_data != NULL) {
             //Waiting for ES reply
             subreq_ctx_t *ctx = (subreq_ctx_t *) nc->user_data;
-            mg_mgr_poll(&ctx->mgr, 0);
+            web_post_async_poll(ctx);
 
-            if (ctx->ev_data.done == TRUE) {
+            if (ctx->done == TRUE) {
 
-                response_t *r = ctx->ev_data.resp;
+                response_t *r = ctx->response;
 
                 if (r->status_code == 200) {
                     send_response_line(nc, 200, r->size, "Content-Type: application/json");
@@ -695,6 +692,8 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
                 }
 
                 free_response(r);
+                free(ctx->data);
+                free(ctx);
                 nc->flags |= MG_F_SEND_AND_CLOSE;
                 nc->user_data = NULL;
             }
