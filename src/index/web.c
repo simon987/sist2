@@ -1,5 +1,6 @@
 #include "web.h"
 #include "src/sist.h"
+#include "src/ctx.h"
 
 #include <mongoose.h>
 #include <pthread.h>
@@ -21,95 +22,82 @@ void free_response(response_t *resp) {
     free(resp);
 }
 
-#define SIST2_HEADERS "User-Agent: sist2\r\nContent-Type: application/json\r\n"
+void web_post_async_poll(subreq_ctx_t* req) {
+    fd_set fdread;
+    fd_set fdwrite;
+    fd_set fdexcep;
+    int maxfd = -1;
 
+    FD_ZERO(&fdread);
+    FD_ZERO(&fdwrite);
+    FD_ZERO(&fdexcep);
 
-void http_req_ev(struct mg_connection *nc, int ev, void *ptr) {
+    CURLMcode mc = curl_multi_fdset(req->multi, &fdread, &fdwrite, &fdexcep, &maxfd);
 
-    http_ev_data_t *ev_data = (http_ev_data_t *) nc->user_data;
+    if(mc != CURLM_OK) {
+        req->done = TRUE;
+        return;
+    }
 
-    switch (ev) {
-        case MG_EV_CONNECT: {
-            int connect_status = *(int *) ptr;
-            if (connect_status != 0) {
-                ev_data->done = TRUE;
-                ev_data->resp->status_code = 0;
-            }
+    if (maxfd == -1) {
+        // no fds ready yet
+        return;
+    }
+
+    struct timeval timeout = {1, 0};
+    int rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
+
+    switch(rc) {
+        case -1:
+            req->done = TRUE;
             break;
-        }
-        case MG_EV_HTTP_REPLY: {
-            struct http_message *hm = (struct http_message *) ptr;
-
-            //TODO: Check errors?
-
-            ev_data->resp->size = hm->body.len;
-            ev_data->resp->status_code = hm->resp_code;
-            ev_data->resp->body = malloc(hm->body.len + 1);
-            memcpy(ev_data->resp->body, hm->body.p, hm->body.len);
-            *(ev_data->resp->body + hm->body.len) = '\0';
-
-            ev_data->done = TRUE;
+        case 0:
             break;
-        }
-        case MG_EV_CLOSE: {
-            ev_data->done = TRUE;
-            break;
-        }
         default:
+            curl_multi_perform(req->multi, &req->running_handles);
             break;
+    }
+
+    if (req->running_handles == 0) {
+        req->done = TRUE;
+        req->response->body = req->response_buf.buf;
+        req->response->size = req->response_buf.cur;
+        curl_easy_getinfo(req->handle, CURLINFO_RESPONSE_CODE, &req->response->status_code);
+
+        curl_multi_cleanup(req->multi);
+        curl_easy_cleanup(req->handle);
+        curl_slist_free_all(req->headers);
+        return;
     }
 }
 
-subreq_ctx_t *http_req(const char *url, const char *extra_headers, const char *post_data, const char *method) {
+subreq_ctx_t *web_post_async(const char *url, char *data) {
+    subreq_ctx_t *req = calloc(1, sizeof(subreq_ctx_t));
+    req->response = calloc(1, sizeof(response_t));
+    req->data = data;
+    req->response_buf = dyn_buffer_create();
 
-    struct mg_str scheme;
-    struct mg_str user_info;
-    struct mg_str host;
-    unsigned int port;
-    struct mg_str path;
-    struct mg_str query;
-    struct mg_str fragment;
+    req->handle = curl_easy_init();
+    CURL *curl = req->handle;
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) (&req->response_buf));
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
+    curl_easy_setopt(curl, CURLOPT_POST, 1);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
 
-    if (post_data == NULL) post_data = "";
-    if (extra_headers == NULL) extra_headers = "";
-    if (path.len == 0) path = mg_mk_str("/");
-    if (host.len == 0) host = mg_mk_str("");
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-    // [scheme://[user_info@]]host[:port][/path][?query][#fragment]
-    mg_parse_uri(mg_mk_str(url), &scheme, &user_info, &host, &port, &path, &query, &fragment);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
 
-    if (query.len > 0) path.len += query.len + 1;
+    req->multi = curl_multi_init();
+    curl_multi_add_handle(req->multi, curl);
+    curl_multi_perform(req->multi, &req->running_handles);
 
-    subreq_ctx_t *ctx = malloc(sizeof(subreq_ctx_t));
-    mg_mgr_init(&ctx->mgr, NULL);
+    LOG_DEBUGF("web.c", "async request POST %s", url)
 
-    char address[8192];
-    snprintf(address, sizeof(address), "tcp://%.*s:%u", (int) host.len, host.p, port);
-    struct mg_connection *nc = mg_connect(&ctx->mgr, address, http_req_ev);
-    nc->user_data = &ctx->ev_data;
-    mg_set_protocol_http_websocket(nc);
-
-    ctx->ev_data.resp = calloc(1, sizeof(response_t));
-    ctx->ev_data.done = FALSE;
-
-    mg_printf(
-            nc, "%s %.*s HTTP/1.1\r\n"
-                  "Host: %.*s\r\n"
-                  "Content-Length: %zu\r\n"
-                  "%s\r\n"
-                  "%s",
-            method, (int) path.len, path.p,
-            (int) (path.p - host.p), host.p,
-            strlen(post_data),
-            extra_headers,
-            post_data
-    );
-
-    return ctx;
-}
-
-subreq_ctx_t *web_post_async(const char *url, const char *data) {
-    return http_req(url, SIST2_HEADERS, data, "POST");
+    return req;
 }
 
 response_t *web_get(const char *url, int timeout) {
