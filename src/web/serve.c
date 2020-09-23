@@ -535,8 +535,8 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
             }
         }
 
-        char buf[8192];
-        snprintf(buf, sizeof(buf),
+        char *buf = malloc(sizeof(char) * 8192);
+        snprintf(buf, 8192,
                  "{"
                  "    \"script\" : {"
                  "        \"source\": \"if (ctx._source.tag.contains(params.tag)) { ctx._source.tag.remove(ctx._source.tag.indexOf(params.tag)) }\","
@@ -555,8 +555,8 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
     } else {
         cJSON_AddItemToArray(arr, cJSON_CreateString(arg_req->name));
 
-        char buf[8192];
-        snprintf(buf, sizeof(buf),
+        char *buf = malloc(sizeof(char) * 8192);
+        snprintf(buf, 8192,
                  "{"
                  "    \"script\" : {"
                  "        \"source\": \"if(ctx._source.tag == null) {ctx._source.tag = new ArrayList()} ctx._source.tag.add(params.tag)\","
