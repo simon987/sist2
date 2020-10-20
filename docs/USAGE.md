@@ -343,7 +343,7 @@ See [Automatic tagging](#automatic-tagging) for information about tag
  hierarchies and tag colors.
 
 \* *It can take a few seconds to take effect in new search queries, and the page needs 
-    to be reloaded for the tag tab to update*
+    to be reloaded for the tags tab to update*
 
 
 ### Automatic tagging
