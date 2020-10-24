@@ -247,13 +247,8 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
         }
         dyn_buffer_write_char(&buf, '\0');
 
-        if (IndexCtx.tags != NULL) {
-            const char *tags_string = g_hash_table_lookup(IndexCtx.tags, buf.buf);
-            if (tags_string != NULL) {
-                cJSON *tags_arr = cJSON_Parse(tags_string);
-                cJSON_AddItemToObject(document, "tag", tags_arr);
-            }
-        }
+        char full_filename[PATH_MAX];
+        strcpy(full_filename, buf.buf);
 
         cJSON_AddStringToObject(document, "extension", buf.buf + line.ext);
         if (*(buf.buf + line.ext - 1) == '.') {
@@ -334,8 +329,36 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
             key = getc(file);
         }
 
+        cJSON *meta_obj = NULL;
+        if (IndexCtx.meta != NULL) {
+            const char *meta_string = g_hash_table_lookup(IndexCtx.meta, full_filename);
+            if (meta_string != NULL) {
+                meta_obj = cJSON_Parse(meta_string);
+
+                cJSON *child;
+                for (child = meta_obj->child; child != NULL; child = child->next) {
+                    char meta_key[4096];
+                    strcpy(meta_key, child->string);
+                    cJSON_DeleteItemFromObject(document, meta_key);
+                    cJSON_AddItemReferenceToObject(document, meta_key, child);
+                }
+            }
+        }
+
+        if (IndexCtx.tags != NULL) {
+            const char *tags_string = g_hash_table_lookup(IndexCtx.tags, full_filename);
+            if (tags_string != NULL) {
+                cJSON *tags_arr = cJSON_Parse(tags_string);
+                cJSON_DeleteItemFromObject(document, "tag");
+                cJSON_AddItemToObject(document, "tag", tags_arr);
+            }
+        }
+
         func(document, uuid_str);
         cJSON_Delete(document);
+        if (meta_obj) {
+            cJSON_Delete(meta_obj);
+        }
     }
     dyn_buffer_destroy(&buf);
     fclose(file);

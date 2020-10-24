@@ -168,7 +168,7 @@ window.onload = () => {
 };
 
 function saveTag(tag, hit) {
-    const relPath = hit["_source"]["path"] + "/" + hit["_source"]["name"] + ext(hit);
+    const relPath = hit["_source"]["path"] + (hit["_source"]["path"] ? "/" : "") + hit["_source"]["name"] + ext(hit);
 
     return $.jsonPost("/tag/" + hit["_source"]["index"], {
         delete: false,

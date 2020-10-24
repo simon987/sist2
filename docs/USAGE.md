@@ -16,6 +16,7 @@
     * [link to specific indices](#link-to-specific-indices)
 * [exec-script](#exec-script)
 * [tagging](#tagging)
+* [sidecar files](#sidecar-files)
 
 ```
 Usage: sist2 scan [OPTION]... PATH
@@ -153,10 +154,13 @@ documents.idx/
 ├── agg_mime.csv
 ├── agg_date.csv
 ├── add_size.csv
-├── thumbs
+├── thumbs/
 |   ├── data.mdb
 |   └── lock.mdb
-└── tags
+├── tags/
+|   ├── data.mdb
+|   └── lock.mdb
+└── meta/
     ├── data.mdb
     └── lock.mdb
 ```
@@ -183,9 +187,11 @@ by a third party application. The 'external' index must have the following forma
 my_index/
 ├── descriptor.json
 ├── _index_0
-└── thumbs
-    ├── data.mdb
-    └── lock.mdb
+└── thumbs/
+|   ├── data.mdb
+|   └── lock.mdb
+└── meta/
+    └── <empty>
 ```
 
 *descriptor.json*:
@@ -349,3 +355,42 @@ See [Automatic tagging](#automatic-tagging) for information about tag
 ### Automatic tagging
 
 See [scripting](scripting.md) documentation.
+
+# Sidecar files
+
+When scanning, sist2 will read metadata from `.s2meta` JSON files and overwrite the 
+original document's metadata. Sidecar metadata files will also work inside archives.
+Sidecar files themselves are not saved in the index.
+
+This feature is useful to leverage third-party applications such as speech-to-text or
+OCR to add additional metadata to a file.
+
+**Example**
+
+```
+~/Documents/
+├── Video.mp4
+└── Video.mp4.s2meta
+```
+
+The sidecar file must have exactly the same file path and the `.s2meta` suffix.
+
+`Video.mp4.s2meta`:
+```json
+{
+  "content": "This sidecar file will overwrite some metadata fields of Video.mp4",
+  "author": "Some author",
+  "duration": 12345,
+  "bitrate": 67890,
+  "some_arbitrary_field": [1,2,3]
+}
+```
+
+```
+sist2 scan ~/Documents -o ./docs.idx
+sist2 index ./docs.idx
+```
+
+*NOTE*: It is technically possible to overwrite the `tag` value using sidecar files, however,
+it is not currently possible to restore both manual tags and sidecar tags without user scripts
+while reindexing.

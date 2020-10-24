@@ -6,6 +6,7 @@
 #define MAJOR_MIME(mime_id) (mime_id & 0x000F0000) >> 16
 
 #define MIME_EMPTY 1
+#define MIME_SIST2_SIDECAR 2
 
 #define DONT_PARSE 0x80000000
 #define SHOULD_PARSE(mime_id) (ScanCtx.fast == 0 && (mime_id & DONT_PARSE) != DONT_PARSE && mime_id != 0)

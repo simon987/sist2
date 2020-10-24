@@ -43,9 +43,13 @@ void store_destroy(store_t *store) {
 void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t buf_len) {
 
     if (LogCtx.very_verbose) {
-        char uuid_str[UUID_STR_LEN];
-        uuid_unparse((unsigned char *) key, uuid_str);
-        LOG_DEBUGF("store.c", "Store write {%s} %lu bytes", uuid_str, buf_len)
+        if (key_len == 16) {
+            char uuid_str[UUID_STR_LEN] = {0, };
+            uuid_unparse((unsigned char *) key, uuid_str);
+            LOG_DEBUGF("store.c", "Store write {%s} %lu bytes", uuid_str, buf_len)
+        } else {
+            LOG_DEBUGF("store.c", "Store write {%s} %lu bytes", key, buf_len)
+        }
     }
 
     MDB_val mdb_key;
@@ -136,7 +140,9 @@ GHashTable *store_read_all(store_t *store) {
         count += 1;
     }
 
-    LOG_DEBUGF("store.c", "Read tags for %d documents", count);
+    const char *path;
+    mdb_env_get_path(store->env, &path);
+    LOG_DEBUGF("store.c", "Read %d entries from %s", count, path);
 
     mdb_cursor_close(cur);
     mdb_txn_abort(txn);
