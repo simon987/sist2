@@ -39,6 +39,10 @@ typedef struct index_args {
     const char *index_path;
     const char *script_path;
     char *script;
+    const char *es_settings_path;
+    char *es_settings;
+    const char *es_mappings_path;
+    char *es_mappings;
     int print;
     int batch_size;
     int async_script;
