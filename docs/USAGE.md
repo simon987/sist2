@@ -53,6 +53,8 @@ Index options
     --es-index=<str>              Elasticsearch index name. DEFAULT=sist2
     -p, --print                   Just print JSON documents to stdout.
     --script-file=<str>           Path to user script.
+    --mappings-file=<str>         Path to Elasticsearch mappings.
+    --settings-file=<str>         Path to Elasticsearch settings.
     --async-script                Execute user script asynchronously.
     --batch-size=<int>            Index batch size. DEFAULT: 100
     -f, --force-reset             Reset Elasticsearch mappings and settings. (You must use this option the first time you use the index command)
@@ -257,6 +259,10 @@ it is currently unsupported and has no guaranties of back/forward compatibility.
     Print index in JSON format to stdout.
  * `--script-file` 
     Path to user script. See [Scripting](scripting.md).
+ * `--mappings-file`
+    Path to custom Elasticsearch mappings. If none is specified, [the bundled mappings](https://github.com/simon987/sist2/tree/master/schema) will be used.
+ * `--settings-file`
+    Path to custom Elasticsearch settings. *(See above)*
  * `--async-script` 
     Use `wait_for_completion=false` elasticsearch option while executing user script.
      (See [Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/tasks.html))
@@ -266,7 +272,6 @@ it is currently unsupported and has no guaranties of back/forward compatibility.
     down the process.
  * `-f, --force-reset` 
     Reset Elasticsearch mappings and settings.
-    **(You must use this option the first time you use the index command)**.
     
 ### Index examples
 

@@ -56,6 +56,12 @@ void scan_args_destroy(scan_args_t *args) {
 
 void index_args_destroy(index_args_t *args) {
     //todo
+    if (args->es_mappings_path) {
+        free(args->es_mappings);
+    }
+    if (args->es_settings_path) {
+        free(args->es_settings);
+    }
     free(args);
 }
 
@@ -231,25 +237,25 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     return 0;
 }
 
-int load_script(const char *script_path, char **dst) {
+int load_external_file(const char *file_path, char **dst) {
     struct stat info;
-    int res = stat(script_path, &info);
+    int res = stat(file_path, &info);
 
     if (res == -1) {
-        fprintf(stderr, "Error opening script file '%s': %s\n", script_path, strerror(errno));
+        LOG_ERRORF("cli.c", "Error opening file '%s': %s\n", file_path, strerror(errno))
         return 1;
     }
 
-    int fd = open(script_path, O_RDONLY);
+    int fd = open(file_path, O_RDONLY);
     if (fd == -1) {
-        fprintf(stderr, "Error opening script file '%s': %s\n", script_path, strerror(errno));
+        LOG_ERRORF("cli.c", "Error opening file '%s': %s\n", file_path, strerror(errno))
         return 1;
     }
 
     *dst = malloc(info.st_size + 1);
     res = read(fd, *dst, info.st_size);
     if (res < 0) {
-        fprintf(stderr, "Error reading script file '%s': %s\n", script_path, strerror(errno));
+        LOG_ERRORF("cli.c", "Error reading file '%s': %s\n", file_path, strerror(errno))
         return 1;
     }
 
@@ -293,7 +299,19 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
     }
 
     if (args->script_path != NULL) {
-        if (load_script(args->script_path, &args->script) != 0) {
+        if (load_external_file(args->script_path, &args->script) != 0) {
+            return 1;
+        }
+    }
+
+    if (args->es_settings_path != NULL) {
+        if (load_external_file(args->es_settings_path, &args->es_settings) != 0) {
+            return 1;
+        }
+    }
+
+    if (args->es_mappings_path != NULL) {
+        if (load_external_file(args->es_mappings_path, &args->es_mappings) != 0) {
             return 1;
         }
     }
@@ -309,6 +327,10 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg async_script=%s", args->async_script)
     LOG_DEBUGF("cli.c", "arg script=%s", args->script)
     LOG_DEBUGF("cli.c", "arg print=%d", args->print)
+    LOG_DEBUGF("cli.c", "arg es_mappings_path=%s", args->es_mappings_path)
+    LOG_DEBUGF("cli.c", "arg es_mappings=%s", args->es_mappings)
+    LOG_DEBUGF("cli.c", "arg es_settings_path=%s", args->es_settings_path)
+    LOG_DEBUGF("cli.c", "arg es_settings=%s", args->es_settings)
     LOG_DEBUGF("cli.c", "arg batch_size=%d", args->batch_size)
     LOG_DEBUGF("cli.c", "arg force_reset=%d", args->force_reset)
 
@@ -445,7 +467,7 @@ int exec_args_validate(exec_args_t *args, int argc, const char **argv) {
         LOG_FATAL("cli.c", "--script-file argument is required");
     }
 
-    if (load_script(args->script_path, &args->script) != 0) {
+    if (load_external_file(args->script_path, &args->script) != 0) {
         return 1;
     }
 

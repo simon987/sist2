@@ -267,7 +267,7 @@ void sist2_index(index_args_t *args) {
     IndexCtx.batch_size = args->batch_size;
 
     if (!args->print) {
-        elastic_init(args->force_reset);
+        elastic_init(args->force_reset, args->es_mappings, args->es_settings);
     }
 
     char descriptor_path[PATH_MAX];
@@ -446,6 +446,8 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT=sist2"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
+            OPT_STRING(0, "mappings-file", &index_args->es_mappings_path, "Path to Elasticsearch mappings."),
+            OPT_STRING(0, "settings-file", &index_args->es_settings_path, "Path to Elasticsearch settings."),
             OPT_BOOLEAN(0, "async-script", &common_async_script, "Execute user script asynchronously."),
             OPT_INTEGER(0, "batch-size", &index_args->batch_size, "Index batch size. DEFAULT: 100"),
             OPT_BOOLEAN('f', "force-reset", &index_args->force_reset, "Reset Elasticsearch mappings and settings. "
