@@ -9,8 +9,11 @@ add_subdirectory(third-party/libscan)
 set(ARGPARSE_SHARED off)
 add_subdirectory(third-party/argparse)
 
-add_executable(
-        sist2
+add_executable(sist2
+
+        # argparse
+        third-party/argparse/argparse.h third-party/argparse/argparse.c
+
         src/main.c
         src/sist.h
         src/io/walk.h src/io/walk.c
@@ -25,12 +28,9 @@ add_executable(
         src/util.c src/util.h
         src/ctx.h src/types.h
         src/log.c src/log.h
-
-        # argparse
-        third-party/argparse/argparse.h third-party/argparse/argparse.c
-
         src/cli.c src/cli.h
-        src/stats.c src/stats.h src/ctx.c)
+        src/stats.c src/stats.h src/ctx.c
+        src/parsing/sidecar.c src/parsing/sidecar.h)
 
 target_link_directories(sist2 PRIVATE BEFORE ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/)
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
@@ -73,7 +73,6 @@ if (SIST_DEBUG)
             sist2
             PRIVATE
             -fsanitize=address
-#            -static
     )
     set_target_properties(
             sist2
@@ -81,7 +80,7 @@ if (SIST_DEBUG)
             OUTPUT_NAME sist2_debug
     )
 else ()
-#    set(VCPKG_BUILD_TYPE release)
+    #    set(VCPKG_BUILD_TYPE release)
     target_compile_options(
             sist2
             PRIVATE
@@ -106,7 +105,6 @@ target_link_libraries(
         argparse
         unofficial::glib::glib
         unofficial::mongoose::mongoose
-#        OpenSSL::SSL OpenSSL::Crypto
         CURL::libcurl
 
         ${UUID_LIB}

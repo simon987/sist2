@@ -3,6 +3,7 @@ noparse = set()
 ext_in_hash = set()
 
 major_mime = {
+    "sist2": 0,
     "model": 1,
     "example": 2,
     "message": 3,
@@ -122,7 +123,11 @@ def mime_id(mime):
     elif mime in raw:
         mime_id += " | 0x00800000"
     elif mime == "application/x-empty":
+        cnt -= 1
         return "1"
+    elif mime == "sist2/sidecar":
+        cnt -= 1
+        return "2"
     return mime_id
 
 

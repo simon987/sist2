@@ -4,6 +4,7 @@
 #include "src/ctx.h"
 #include "mime.h"
 #include "src/io/serialize.h"
+#include "src/parsing/sidecar.h"
 
 #include <magic.h>
 
@@ -157,6 +158,10 @@ void parse(void *arg) {
         parse_comic(&ScanCtx.comic_ctx, &job->vfile, &doc);
     } else if (IS_MOBI(doc.mime)) {
         parse_mobi(&ScanCtx.mobi_ctx, &job->vfile, &doc);
+    } else if (doc.mime == MIME_SIST2_SIDECAR) {
+        parse_sidecar(&job->vfile, &doc);
+        CLOSE_FILE(job->vfile)
+        return;
     }
 
     abort:

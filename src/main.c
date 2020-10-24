@@ -21,7 +21,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.8.4";
+static const char *const Version = "2.8.5";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -182,6 +182,10 @@ void sist2_scan(scan_args_t *args) {
     mkdir(store_path, S_IWUSR | S_IRUSR | S_IXUSR);
     ScanCtx.index.store = store_create(store_path, STORE_SIZE_TN);
 
+    snprintf(store_path, PATH_MAX, "%smeta", ScanCtx.index.path);
+    mkdir(store_path, S_IWUSR | S_IRUSR | S_IXUSR);
+    ScanCtx.index.meta_store = store_create(store_path, STORE_SIZE_META);
+
     scan_print_header();
 
     if (args->incremental != NULL) {
@@ -288,6 +292,10 @@ void sist2_index(index_args_t *args) {
     mkdir(path_tmp, S_IWUSR | S_IRUSR | S_IXUSR);
     IndexCtx.tag_store = store_create(path_tmp, STORE_SIZE_TAG);
     IndexCtx.tags = store_read_all(IndexCtx.tag_store);
+
+    snprintf(path_tmp, sizeof(path_tmp), "%s/meta", args->index_path);
+    IndexCtx.meta_store = store_create(path_tmp, STORE_SIZE_META);
+    IndexCtx.meta = store_read_all(IndexCtx.meta_store);
 
     index_func f;
     if (args->print) {

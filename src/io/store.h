@@ -8,6 +8,7 @@
 
 #define STORE_SIZE_TN 1024 * 1024 * 5
 #define STORE_SIZE_TAG 1024 * 16
+#define STORE_SIZE_META STORE_SIZE_TAG
 
 typedef struct store_t {
     MDB_dbi dbi;

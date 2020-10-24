@@ -20,6 +20,7 @@ typedef struct index_t {
     struct index_descriptor desc;
     struct store_t *store;
     struct store_t *tag_store;
+    struct store_t *meta_store;
     char path[PATH_MAX];
 } index_t;
 

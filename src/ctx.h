@@ -63,6 +63,8 @@ typedef struct {
     tpool_t *pool;
     store_t *tag_store;
     GHashTable *tags;
+    store_t *meta_store;
+    GHashTable *meta;
 } IndexCtx_t;
 
 typedef struct {
