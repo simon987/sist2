@@ -132,6 +132,6 @@ binaries (GCC 7+ required).
 2. Build
     ```bash
     git clone --recursive https://github.com/simon987/sist2/
-    cmake -DCMAKE_TOOLCHAIN_FILE=<VCPKG_ROOT>/scripts/buildsystems/vcpkg.cmake .
+    cmake -DSIST_DEBUG=off -DCMAKE_TOOLCHAIN_FILE=<VCPKG_ROOT>/scripts/buildsystems/vcpkg.cmake .
     make
     ```
