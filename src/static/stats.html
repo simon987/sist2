@@ -727,7 +727,7 @@ function updateStats() {
 
     const indexId = $("#indices").val();
 
-    d3.csv(`/s/${indexId}/1`).then(tabularData => {
+    d3.csv(`./s/${indexId}/1`).then(tabularData => {
         tabularData.forEach(row => {
             row.taxonomy = row.path.split("/");
             row.size = Number(row.size);
@@ -742,16 +742,16 @@ function updateStats() {
         }
     });
 
-    d3.csv(`/s/${indexId}/2`).then(tabularData => {
+    d3.csv(`./s/${indexId}/2`).then(tabularData => {
         mimeBarSize(tabularData.slice(), mimeSvgSize);
         mimeBarCount(tabularData.slice(), mimeSvgCount);
     });
 
-    d3.csv(`/s/${indexId}/3`).then(tabularData => {
+    d3.csv(`./s/${indexId}/3`).then(tabularData => {
         sizeHistogram(tabularData, sizeHistogramSvg);
     });
 
-    d3.csv(`/s/${indexId}/4`).then(tabularData => {
+    d3.csv(`./s/${indexId}/4`).then(tabularData => {
         dateHistogram(tabularData, dateHistogramSvg);
     });
 
