@@ -149,6 +149,14 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.text_ctx.log = _log;
     ScanCtx.text_ctx.logf = _logf;
 
+    // MSDOC
+    ScanCtx.msdoc_ctx.tn_size = args->size;
+    ScanCtx.msdoc_ctx.content_size = args->content_size;
+    ScanCtx.msdoc_ctx.log = _log;
+    ScanCtx.msdoc_ctx.logf = _logf;
+    ScanCtx.msdoc_ctx.store = _store;
+    ScanCtx.msdoc_ctx.msdoc_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/msword");
+
     ScanCtx.threads = args->threads;
     ScanCtx.depth = args->depth;
 

@@ -162,6 +162,8 @@ void parse(void *arg) {
         parse_sidecar(&job->vfile, &doc);
         CLOSE_FILE(job->vfile)
         return;
+    } else if (is_msdoc(&ScanCtx.msdoc_ctx, doc.mime)) {
+        parse_msdoc(&ScanCtx.msdoc_ctx, &job->vfile, &doc);
     }
 
     abort:
