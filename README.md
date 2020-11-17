@@ -74,7 +74,7 @@ See [Usage guide](docs/USAGE.md) for more details
 
 File type | Library | Content | Thumbnail | Metadata
 :---|:---|:---|:---|:---
-pdf,xps,fb2,epub | MuPDF | text+ocr | yes | title |
+pdf,xps,fb2,epub | MuPDF | text+ocr | yes | author, title |
 cbz,cbr | *(none)* | - | yes | - |
 `audio/*` | ffmpeg | - | yes | ID3 tags |
 `video/*` | ffmpeg | - | yes | title, comment, artist |
@@ -85,6 +85,7 @@ ttf,ttc,cff,woff,fnt,otf | Freetype2 | - | yes, `bmp` | Name & style |
 html, xml | *(none)* | yes | no | - |
 tar, zip, rar, 7z, ar ...  | Libarchive | yes\* | - | no |
 docx, xlsx, pptx | *(none)* | yes | if embedded | creator, modified_by, title |
+doc (MS Word 97-2003) | antiword | yes | yes | author, title |
 mobi, azw, azw3 | libmobi | yes | no | author, title |
 
 \* *See [Archive files](#archive-files)*
