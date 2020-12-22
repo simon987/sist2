@@ -18,7 +18,7 @@ steps:
         from_secret: SSH_USER
       key:
         from_secret: SSH_KEY
-      target: /files/sist2/${DRONE_REPO_NAME}_${DRONE_BRANCH}_${DRONE_BUILD_NUMBER}/
+      target: /files/sist2/${DRONE_REPO_OWNER}_${DRONE_REPO_NAME}/${DRONE_BRANCH}_${DRONE_BUILD_NUMBER}_${DRONE_COMMIT}/
       source:
         - ./sist2.gz
         - ./sist2_debug.tar.gz
