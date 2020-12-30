@@ -1,6 +1,5 @@
 .idea
 thumbs
-test
 *.cbp
 CMakeCache.txt
 CMakeFiles

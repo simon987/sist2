@@ -6,7 +6,7 @@
 #define INDEX_VERSION_EXTERNAL "_external_v1"
 
 typedef struct index_descriptor {
-    char uuid[UUID_STR_LEN];
+    char id[MD5_STR_LENGTH];
     char version[64];
     long timestamp;
     char root[PATH_MAX];

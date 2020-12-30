@@ -21,7 +21,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.8.5";
+static const char *const Version = "2.9.0";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -34,9 +34,10 @@ void init_dir(const char *dirpath) {
     char path[PATH_MAX];
     snprintf(path, PATH_MAX, "%sdescriptor.json", dirpath);
 
-    uuid_t uuid;
-    uuid_generate(uuid);
-    uuid_unparse(uuid, ScanCtx.index.desc.uuid);
+    unsigned char index_md5[MD5_DIGEST_LENGTH];
+    MD5((unsigned char *) ScanCtx.index.desc.name, strlen(ScanCtx.index.desc.name), index_md5);
+    buf2hex(index_md5, MD5_DIGEST_LENGTH, ScanCtx.index.desc.id);
+
     time(&ScanCtx.index.desc.timestamp);
     strcpy(ScanCtx.index.desc.version, Version);
     strcpy(ScanCtx.index.desc.type, INDEX_TYPE_BIN);
@@ -218,7 +219,7 @@ void sist2_scan(scan_args_t *args) {
         while ((de = readdir(dir)) != NULL) {
             if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
                 char file_path[PATH_MAX];
-                snprintf(file_path, PATH_MAX, "%s/%s", args->incremental, de->d_name);
+                snprintf(file_path, PATH_MAX, "%s%s", args->incremental, de->d_name);
                 incremental_read(ScanCtx.original_table, file_path);
             }
         }
@@ -232,8 +233,6 @@ void sist2_scan(scan_args_t *args) {
     walk_directory_tree(ScanCtx.index.desc.root);
     tpool_wait(ScanCtx.pool);
     tpool_destroy(ScanCtx.pool);
-
-    generate_stats(&ScanCtx.index, args->treemap_threshold, ScanCtx.index.path);
 
     if (args->incremental != NULL) {
         char dst_path[PATH_MAX];
@@ -250,7 +249,7 @@ void sist2_scan(scan_args_t *args) {
         while ((de = readdir(dir)) != NULL) {
             if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
                 char file_path[PATH_MAX];
-                snprintf(file_path, PATH_MAX, "%s/%s", args->incremental, de->d_name);
+                snprintf(file_path, PATH_MAX, "%s%s", args->incremental, de->d_name);
                 incremental_copy(source, ScanCtx.index.store, file_path, dst_path, ScanCtx.copy_table);
             }
         }
@@ -264,6 +263,8 @@ void sist2_scan(scan_args_t *args) {
         store_copy(source_tags, dst_path);
         store_destroy(source_tags);
     }
+
+    generate_stats(&ScanCtx.index, args->treemap_threshold, ScanCtx.index.path);
 
     store_destroy(ScanCtx.index.store);
 }
@@ -327,7 +328,7 @@ void sist2_index(index_args_t *args) {
         if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
             char file_path[PATH_MAX];
             snprintf(file_path, PATH_MAX, "%s/%s", args->index_path, de->d_name);
-            read_index(file_path, desc.uuid, desc.type, f);
+            read_index(file_path, desc.id, desc.type, f);
         }
     }
     closedir(dir);
@@ -337,7 +338,7 @@ void sist2_index(index_args_t *args) {
     tpool_destroy(IndexCtx.pool);
 
     if (!args->print) {
-        finish_indexer(args->script, args->async_script, desc.uuid);
+        finish_indexer(args->script, args->async_script, desc.id);
     }
 
     store_destroy(IndexCtx.tag_store);
@@ -357,7 +358,7 @@ void sist2_exec_script(exec_args_t *args) {
 
     LOG_DEBUGF("main.c", "descriptor version %s (%s)", desc.version, desc.type)
 
-    execute_update_script(args->script, args->async_script, desc.uuid);
+    execute_update_script(args->script, args->async_script, desc.id);
     free(args->script);
 }
 
@@ -533,7 +534,7 @@ int main(int argc, const char *argv[]) {
         }
         sist2_web(web_args);
 
-    }  else if (strcmp(argv[0], "exec-script") == 0) {
+    } else if (strcmp(argv[0], "exec-script") == 0) {
 
         int err = exec_args_validate(exec_args, argc, argv);
         if (err != 0) {

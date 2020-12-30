@@ -46,29 +46,31 @@ void parse(void *arg) {
     parse_job_t *job = arg;
     document_t doc;
 
-    int inc_ts = incremental_get(ScanCtx.original_table, job->vfile.info.st_ino);
-    if (inc_ts != 0 && inc_ts == job->vfile.info.st_mtim.tv_sec) {
-        incremental_mark_file_for_copy(ScanCtx.copy_table, job->vfile.info.st_ino);
-        return;
-    }
-
     doc.filepath = job->filepath;
     doc.ext = (short) job->ext;
     doc.base = (short) job->base;
+
+    char *rel_path = doc.filepath + ScanCtx.index.desc.root_len;
+    MD5((unsigned char *) rel_path, strlen(rel_path), doc.path_md5);
+
     doc.meta_head = NULL;
     doc.meta_tail = NULL;
     doc.mime = 0;
     doc.size = job->vfile.info.st_size;
-    doc.ino = job->vfile.info.st_ino;
     doc.mtime = job->vfile.info.st_mtim.tv_sec;
 
-    uuid_generate(doc.uuid);
+    int inc_ts = incremental_get(ScanCtx.original_table, doc.path_md5);
+    if (inc_ts != 0 && inc_ts == job->vfile.info.st_mtim.tv_sec) {
+        incremental_mark_file_for_copy(ScanCtx.copy_table, doc.path_md5);
+        return;
+    }
+
     char *buf[MAGIC_BUF_SIZE];
 
     if (LogCtx.very_verbose) {
-        char uuid_str[UUID_STR_LEN];
-        uuid_unparse(doc.uuid, uuid_str);
-        LOG_DEBUGF(job->filepath, "Starting parse job {%s}", uuid_str)
+        char path_md5_str[MD5_STR_LENGTH];
+        buf2hex(doc.path_md5, MD5_DIGEST_LENGTH, path_md5_str);
+        LOG_DEBUGF(job->filepath, "Starting parse job {%s}", path_md5_str)
     }
 
     if (job->vfile.info.st_size == 0) {
@@ -86,7 +88,8 @@ void parse(void *arg) {
 
         // Get mime type with libmagic
         if (!job->vfile.is_fs_file) {
-            LOG_WARNING(job->filepath, "Guessing mime type with libmagic inside archive files is not currently supported");
+            LOG_WARNING(job->filepath,
+                        "Guessing mime type with libmagic inside archive files is not currently supported");
             goto abort;
         }
 
@@ -169,11 +172,15 @@ void parse(void *arg) {
     abort:
 
     //Parent meta
-    if (!uuid_is_null(job->parent)) {
-        meta_line_t *meta_parent = malloc(sizeof(meta_line_t) + UUID_STR_LEN + 1);
+    if (!md5_digest_is_null(job->parent)) {
+        meta_line_t *meta_parent = malloc(sizeof(meta_line_t) + MD5_STR_LENGTH);
         meta_parent->key = MetaParent;
-        uuid_unparse(job->parent, meta_parent->str_val);
+        buf2hex(job->parent, MD5_DIGEST_LENGTH, meta_parent->str_val);
         APPEND_META((&doc), meta_parent)
+
+        doc.has_parent = TRUE;
+    } else {
+        doc.has_parent = FALSE;
     }
 
     write_document(&doc);

@@ -6,13 +6,13 @@
 static __thread int index_fd = -1;
 
 typedef struct {
-    unsigned char uuid[16];
-    unsigned long ino;
+    unsigned char path_md5[MD5_DIGEST_LENGTH];
     unsigned long size;
     unsigned int mime;
     int mtime;
     short base;
     short ext;
+    char has_parent;
 } line_t;
 
 void skip_meta(FILE *file) {
@@ -32,7 +32,7 @@ void skip_meta(FILE *file) {
 
 void write_index_descriptor(char *path, index_descriptor_t *desc) {
     cJSON *json = cJSON_CreateObject();
-    cJSON_AddStringToObject(json, "uuid", desc->uuid);
+    cJSON_AddStringToObject(json, "id", desc->id);
     cJSON_AddStringToObject(json, "version", desc->version);
     cJSON_AddStringToObject(json, "root", desc->root);
     cJSON_AddStringToObject(json, "name", desc->name);
@@ -82,7 +82,7 @@ index_descriptor_t read_index_descriptor(char *path) {
     strcpy(descriptor.rewrite_url, cJSON_GetObjectItem(json, "rewrite_url")->valuestring);
     descriptor.root_len = (short) strlen(descriptor.root);
     strcpy(descriptor.version, cJSON_GetObjectItem(json, "version")->valuestring);
-    strcpy(descriptor.uuid, cJSON_GetObjectItem(json, "uuid")->valuestring);
+    strcpy(descriptor.id, cJSON_GetObjectItem(json, "id")->valuestring);
     if (cJSON_GetObjectItem(json, "type") == NULL) {
         strcpy(descriptor.type, INDEX_TYPE_BIN);
     } else {
@@ -219,7 +219,7 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
     dyn_buffer_t buf = dyn_buffer_create();
 
     FILE *file = fopen(path, "rb");
-    while (1) {
+    while (TRUE) {
         buf.cur = 0;
         size_t _ = fread((void *) &line, 1, sizeof(line_t), file);
         if (feof(file)) {
@@ -229,8 +229,8 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
         cJSON *document = cJSON_CreateObject();
         cJSON_AddStringToObject(document, "index", index_id);
 
-        char uuid_str[UUID_STR_LEN];
-        uuid_unparse(line.uuid, uuid_str);
+        char path_md5_str[MD5_STR_LENGTH];
+        buf2hex(line.path_md5, sizeof(line.path_md5), path_md5_str);
 
         const char *mime_text = mime_get_mime_text(line.mime);
         if (mime_text == NULL) {
@@ -246,9 +246,6 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
             dyn_buffer_write_char(&buf, (char) c);
         }
         dyn_buffer_write_char(&buf, '\0');
-
-        char full_filename[PATH_MAX];
-        strcpy(full_filename, buf.buf);
 
         cJSON_AddStringToObject(document, "extension", buf.buf + line.ext);
         if (*(buf.buf + line.ext - 1) == '.') {
@@ -331,7 +328,7 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
 
         cJSON *meta_obj = NULL;
         if (IndexCtx.meta != NULL) {
-            const char *meta_string = g_hash_table_lookup(IndexCtx.meta, full_filename);
+            const char *meta_string = g_hash_table_lookup(IndexCtx.meta, path_md5_str);
             if (meta_string != NULL) {
                 meta_obj = cJSON_Parse(meta_string);
 
@@ -346,7 +343,7 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
         }
 
         if (IndexCtx.tags != NULL) {
-            const char *tags_string = g_hash_table_lookup(IndexCtx.tags, full_filename);
+            const char *tags_string = g_hash_table_lookup(IndexCtx.tags, path_md5_str);
             if (tags_string != NULL) {
                 cJSON *tags_arr = cJSON_Parse(tags_string);
                 cJSON_DeleteItemFromObject(document, "tag");
@@ -354,7 +351,7 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
             }
         }
 
-        func(document, uuid_str);
+        func(document, path_md5_str);
         cJSON_Delete(document);
         if (meta_obj) {
             cJSON_Delete(meta_obj);
@@ -382,7 +379,7 @@ const char *json_type_array_fields[] = {
 void read_index_json(const char *path, UNUSED(const char *index_id), index_func func) {
 
     FILE *file = fopen(path, "r");
-    while (1) {
+    while (TRUE) {
         char *line = NULL;
         size_t len;
         size_t read = getline(&line, &len, file);
@@ -402,7 +399,7 @@ void read_index_json(const char *path, UNUSED(const char *index_id), index_func 
         }
 
         cJSON *document = cJSON_CreateObject();
-        const char *uuid_str = cJSON_GetObjectItem(input, "_id")->valuestring;
+        const char *id_str = cJSON_GetObjectItem(input, "_id")->valuestring;
 
         for (int i = 0; i < (sizeof(json_type_copy_fields) / sizeof(json_type_copy_fields[0])); i++) {
             cJSON *value = cJSON_GetObjectItem(input, json_type_copy_fields[i]);
@@ -430,7 +427,7 @@ void read_index_json(const char *path, UNUSED(const char *index_id), index_func 
             }
         }
 
-        func(document, uuid_str);
+        func(document, id_str);
         cJSON_Delete(document);
         cJSON_Delete(input);
 
@@ -438,7 +435,7 @@ void read_index_json(const char *path, UNUSED(const char *index_id), index_func 
     fclose(file);
 }
 
-void read_index(const char *path, const char index_id[UUID_STR_LEN], const char *type, index_func func) {
+void read_index(const char *path, const char index_id[MD5_STR_LENGTH], const char *type, index_func func) {
 
     if (strcmp(type, INDEX_TYPE_BIN) == 0) {
         read_index_bin(path, index_id, func);
@@ -451,13 +448,15 @@ void incremental_read(GHashTable *table, const char *filepath) {
     FILE *file = fopen(filepath, "rb");
     line_t line;
 
+    LOG_DEBUGF("serialize.c", "Incremental read %s", filepath)
+
     while (1) {
-        size_t ret = fread((void *) &line, 1, sizeof(line_t), file);
+        size_t ret = fread((void *) &line, sizeof(line_t), 1, file);
         if (ret != 1 || feof(file)) {
             break;
         }
 
-        incremental_put(table, line.ino, line.mtime);
+        incremental_put(table, line.path_md5, line.mtime);
 
         while ((getc(file))) {}
         skip_meta(file);
@@ -475,33 +474,47 @@ void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
     FILE *dst_file = fopen(dst_filepath, "ab");
     line_t line;
 
-    while (1) {
-        size_t ret = fread((void *) &line, 1, sizeof(line_t), file);
+    LOG_DEBUGF("serialize.c", "Incremental copy %s", filepath)
+
+    while (TRUE) {
+        size_t ret = fread((void *) &line, sizeof(line_t), 1, file);
         if (ret != 1 || feof(file)) {
             break;
         }
 
-        if (incremental_get(copy_table, line.ino)) {
+        // Assume that files with parents still exist.
+        //  One way to "fix" this would be to check if the parent is marked for copy but it would consistently
+        //  delete files with grandparents, which is a side-effect worse than having orphaned files
+        if (line.has_parent || incremental_get(copy_table, line.path_md5)) {
             fwrite(&line, sizeof(line), 1, dst_file);
 
-            size_t buf_len;
-            char *buf = store_read(store, (char *) line.uuid, 16, &buf_len);
-            store_write(dst_store, (char *) line.uuid, 16, buf, buf_len);
-            free(buf);
-
+            // Copy filepath
+            char filepath_buf[PATH_MAX];
             char c;
+            char *ptr = filepath_buf;
             while ((c = (char) getc(file))) {
-                fwrite(&c, sizeof(c), 1, dst_file);
+                *ptr++ = c;
             }
-            fwrite("\0", sizeof(c), 1, dst_file);
+            *ptr = '\0';
+            fwrite(filepath_buf, (ptr - filepath_buf) + 1, 1, dst_file);
+
+            // Copy tn store contents
+            size_t buf_len;
+            char path_md5[MD5_DIGEST_LENGTH];
+            MD5((unsigned char *) filepath_buf, (ptr - filepath_buf), (unsigned char *) path_md5);
+            char *buf = store_read(store, path_md5, sizeof(path_md5), &buf_len);
+            if (buf_len != 0) {
+                store_write(dst_store, path_md5, sizeof(path_md5), buf, buf_len);
+                free(buf);
+            }
 
             enum metakey key;
             while (1) {
                 key = getc(file);
+                fwrite(&key, sizeof(char), 1, dst_file);
                 if (key == '\n') {
                     break;
                 }
-                fwrite(&key, sizeof(char), 1, dst_file);
 
                 if (IS_META_INT(key)) {
                     int val;
@@ -517,14 +530,12 @@ void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
                     }
                     fwrite("\0", sizeof(c), 1, dst_file);
                 }
-
-                if (ret != 1) {
-                    break;
-                }
             }
         } else {
+            while ((getc(file))) {}
             skip_meta(file);
         }
     }
     fclose(file);
+    fclose(dst_file);
 }

@@ -30,11 +30,11 @@ void elastic_cleanup() {
     }
 }
 
-void print_json(cJSON *document, const char uuid_str[UUID_STR_LEN]) {
+void print_json(cJSON *document, const char id_str[MD5_STR_LENGTH]) {
 
     cJSON *line = cJSON_CreateObject();
 
-    cJSON_AddStringToObject(line, "_id", uuid_str);
+    cJSON_AddStringToObject(line, "_id", id_str);
     cJSON_AddStringToObject(line, "_index", IndexCtx.es_index);
     cJSON_AddStringToObject(line, "_type", "_doc");
     cJSON_AddItemReferenceToObject(line, "_source", document);
@@ -52,13 +52,13 @@ void index_json_func(void *arg) {
     elastic_index_line(line);
 }
 
-void index_json(cJSON *document, const char uuid_str[UUID_STR_LEN]) {
+void index_json(cJSON *document, const char index_id_str[MD5_STR_LENGTH]) {
     char *json = cJSON_PrintUnformatted(document);
 
     size_t json_len = strlen(json);
     es_bulk_line_t *bulk_line = malloc(sizeof(es_bulk_line_t) + json_len + 2);
     memcpy(bulk_line->line, json, json_len);
-    memcpy(bulk_line->uuid_str, uuid_str, UUID_STR_LEN);
+    memcpy(bulk_line->path_md5_str, index_id_str, MD5_STR_LENGTH);
     *(bulk_line->line + json_len) = '\n';
     *(bulk_line->line + json_len + 1) = '\0';
     bulk_line->next = NULL;
@@ -67,7 +67,7 @@ void index_json(cJSON *document, const char uuid_str[UUID_STR_LEN]) {
     tpool_add_work(IndexCtx.pool, index_json_func, bulk_line);
 }
 
-void execute_update_script(const char *script, int async, const char index_id[UUID_STR_LEN]) {
+void execute_update_script(const char *script, int async, const char index_id[MD5_STR_LENGTH]) {
 
     if (Indexer == NULL) {
         Indexer = create_indexer(IndexCtx.es_url, IndexCtx.es_index);
@@ -129,9 +129,9 @@ void *create_bulk_buffer(int max, int *count, size_t *buf_len) {
     while (line != NULL && *count < max) {
         char action_str[256];
         snprintf(
-                action_str, 256,
+                action_str, sizeof(action_str),
                 "{\"index\":{\"_id\":\"%s\",\"_type\":\"_doc\",\"_index\":\"%s\"}}\n",
-                line->uuid_str, Indexer->es_index
+                line->path_md5_str, Indexer->es_index
         );
 
         size_t action_str_len = strlen(action_str);
@@ -220,7 +220,7 @@ void _elastic_flush(int max) {
     if (r->status_code == 413) {
 
         if (max <= 1) {
-            LOG_ERRORF("elastic.c", "Single document too large, giving up: {%s}", Indexer->line_head->uuid_str)
+            LOG_ERRORF("elastic.c", "Single document too large, giving up: {%s}", Indexer->line_head->path_md5_str)
             free_response(r);
             free(buf);
             delete_queue(1);
@@ -408,9 +408,9 @@ void elastic_init(int force_reset, const char* user_mappings, const char* user_s
     }
 }
 
-cJSON *elastic_get_document(const char *uuid_str) {
+cJSON *elastic_get_document(const char *id_str) {
     char url[4096];
-    snprintf(url, sizeof(url), "%s/%s/_doc/%s", WebCtx.es_url, WebCtx.es_index, uuid_str);
+    snprintf(url, sizeof(url), "%s/%s/_doc/%s", WebCtx.es_url, WebCtx.es_index, id_str);
 
     response_t *r = web_get(url, 3);
     cJSON *json = NULL;

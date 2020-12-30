@@ -2,8 +2,6 @@
 #include "io/serialize.h"
 #include "ctx.h"
 
-#include <glib.h>
-
 static GHashTable *FlatTree;
 static GHashTable *BufferTable;
 
@@ -22,7 +20,7 @@ typedef struct {
     long count;
 } agg_t;
 
-void fill_tables(cJSON *document, UNUSED(const char uuid_str[UUID_STR_LEN])) {
+void fill_tables(cJSON *document, UNUSED(const char index_id[MD5_STR_LENGTH])) {
 
     if (cJSON_GetObjectItem(document, "parent") != NULL) {
         return;
@@ -103,8 +101,8 @@ void read_index_into_tables(index_t *index) {
     while ((de = readdir(dir)) != NULL) {
         if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
             char file_path[PATH_MAX];
-            snprintf(file_path, PATH_MAX, "%s/%s", index->path, de->d_name);
-            read_index(file_path, index->desc.uuid, index->desc.type, fill_tables);
+            snprintf(file_path, PATH_MAX, "%s%s", index->path, de->d_name);
+            read_index(file_path, index->desc.id, index->desc.type, fill_tables);
         }
     }
     closedir(dir);

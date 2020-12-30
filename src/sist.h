@@ -23,8 +23,9 @@
 #undef ABS
 #define ABS(a)	   (((a) < 0) ? -(a) : (a))
 
-#define UUID_STR_LEN 37
 #define UNUSED(x) __attribute__((__unused__))  x
+
+#define MD5_STR_LENGTH 33
 
 #include "util.h"
 #include "log.h"
@@ -46,6 +47,5 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <ctype.h>
-
 
 #endif
