@@ -2,7 +2,6 @@
 #include "src/ctx.h"
 
 #include <wordexp.h>
-#include <glib.h>
 
 #define PBSTR "========================================"
 #define PBWIDTH 40
@@ -125,7 +124,7 @@ void progress_bar_print(double percentage, size_t tn_size, size_t index_size) {
 }
 
 GHashTable *incremental_get_table() {
-    GHashTable *file_table = g_hash_table_new(g_direct_hash, g_direct_equal);
+    GHashTable *file_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, NULL);
     return file_table;
 }
 

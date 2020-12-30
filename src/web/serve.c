@@ -36,7 +36,7 @@ static void send_response_line(struct mg_connection *nc, int status_code, int le
 
 index_t *get_index_by_id(const char *index_id) {
     for (int i = WebCtx.index_count; i >= 0; i--) {
-        if (strcmp(index_id, WebCtx.indices[i].desc.uuid) == 0) {
+        if (strncmp(index_id, WebCtx.indices[i].desc.id, MD5_STR_LENGTH) == 0) {
             return &WebCtx.indices[i];
         }
     }
@@ -73,17 +73,17 @@ void stats(struct mg_connection *nc) {
 
 void stats_files(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
-    if (path->len != UUID_STR_LEN + 4) {
+    if (path->len != MD5_STR_LENGTH + 4) {
         mg_http_send_error(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
 
-    char arg_uuid[UUID_STR_LEN];
-    memcpy(arg_uuid, hm->uri.p + 3, UUID_STR_LEN);
-    *(arg_uuid + UUID_STR_LEN - 1) = '\0';
+    char arg_md5[MD5_STR_LENGTH];
+    memcpy(arg_md5, hm->uri.p + 3, MD5_STR_LENGTH);
+    *(arg_md5 + MD5_STR_LENGTH - 1) = '\0';
 
-    index_t *index = get_index_by_id(arg_uuid);
+    index_t *index = get_index_by_id(arg_md5);
     if (index == NULL) {
         mg_http_send_error(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
@@ -91,7 +91,7 @@ void stats_files(struct mg_connection *nc, struct http_message *hm, struct mg_st
     }
 
     const char *file;
-    switch (atoi(hm->uri.p + 3 + UUID_STR_LEN)) {
+    switch (atoi(hm->uri.p + 3 + MD5_STR_LENGTH)) {
         case 1:
             file = "treemap.csv";
             break;
@@ -179,29 +179,23 @@ void img_sprite_skin_flat(struct mg_connection *nc, struct http_message *hm) {
 
 void thumbnail(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
-    if (path->len != UUID_STR_LEN * 2 + 2) {
+    if (path->len != 68) {
         LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) path->len, path->p)
         mg_http_send_error(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
 
-    char arg_uuid[UUID_STR_LEN];
-    char arg_index[UUID_STR_LEN];
+    char arg_file_md5[MD5_STR_LENGTH];
+    char arg_index[MD5_STR_LENGTH];
 
-    memcpy(arg_index, hm->uri.p + 3, UUID_STR_LEN);
-    *(arg_index + UUID_STR_LEN - 1) = '\0';
-    memcpy(arg_uuid, hm->uri.p + 3 + UUID_STR_LEN, UUID_STR_LEN);
-    *(arg_uuid + UUID_STR_LEN - 1) = '\0';
+    memcpy(arg_index, hm->uri.p + 3, MD5_STR_LENGTH);
+    *(arg_index + MD5_STR_LENGTH - 1) = '\0';
+    memcpy(arg_file_md5, hm->uri.p + 3 + MD5_STR_LENGTH, MD5_STR_LENGTH);
+    *(arg_file_md5 + MD5_STR_LENGTH - 1) = '\0';
 
-    uuid_t uuid;
-    int ret = uuid_parse(arg_uuid, uuid);
-    if (ret != 0) {
-        LOG_DEBUGF("serve.c", "Invalid thumbnail UUID: %s", arg_uuid)
-        mg_http_send_error(nc, 404, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
-        return;
-    }
+    unsigned char md5_buf[MD5_DIGEST_LENGTH];
+    hex2buf(arg_file_md5, MD5_STR_LENGTH - 1, md5_buf);
 
     store_t *store = get_store(arg_index);
     if (store == NULL) {
@@ -212,7 +206,7 @@ void thumbnail(struct mg_connection *nc, struct http_message *hm, struct mg_str 
     }
 
     size_t data_len = 0;
-    char *data = store_read(store, (char *) uuid, sizeof(uuid_t), &data_len);
+    char *data = store_read(store, (char *) md5_buf, sizeof(md5_buf), &data_len);
     if (data_len != 0) {
         send_response_line(nc, 200, data_len, "Content-Type: image/jpeg");
         mg_send(nc, data, data_len);
@@ -305,7 +299,7 @@ void index_info(struct mg_connection *nc) {
         cJSON *idx_json = cJSON_CreateObject();
         cJSON_AddStringToObject(idx_json, "name", idx->desc.name);
         cJSON_AddStringToObject(idx_json, "version", idx->desc.version);
-        cJSON_AddStringToObject(idx_json, "id", idx->desc.uuid);
+        cJSON_AddStringToObject(idx_json, "id", idx->desc.id);
         cJSON_AddNumberToObject(idx_json, "timestamp", (double) idx->desc.timestamp);
         cJSON_AddItemToArray(arr, idx_json);
     }
@@ -323,18 +317,18 @@ void index_info(struct mg_connection *nc) {
 
 void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
-    if (path->len != UUID_STR_LEN + 2) {
+    if (path->len != MD5_STR_LENGTH + 2) {
         LOG_DEBUGF("serve.c", "Invalid document_info path: %.*s", (int) path->len, path->p)
         mg_http_send_error(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
 
-    char arg_uuid[UUID_STR_LEN];
-    memcpy(arg_uuid, hm->uri.p + 3, UUID_STR_LEN);
-    *(arg_uuid + UUID_STR_LEN - 1) = '\0';
+    char arg_md5[MD5_STR_LENGTH];
+    memcpy(arg_md5, hm->uri.p + 3, MD5_STR_LENGTH);
+    *(arg_md5 + MD5_STR_LENGTH - 1) = '\0';
 
-    cJSON *doc = elastic_get_document(arg_uuid);
+    cJSON *doc = elastic_get_document(arg_md5);
     cJSON *source = cJSON_GetObjectItem(doc, "_source");
 
     cJSON *index_id = cJSON_GetObjectItem(source, "index");
@@ -364,18 +358,18 @@ void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_
 
 void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
 
-    if (path->len != UUID_STR_LEN + 2) {
+    if (path->len != MD5_STR_LENGTH + 2) {
         LOG_DEBUGF("serve.c", "Invalid file path: %.*s", (int) path->len, path->p)
         mg_http_send_error(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
 
-    char arg_uuid[UUID_STR_LEN];
-    memcpy(arg_uuid, hm->uri.p + 3, UUID_STR_LEN);
-    *(arg_uuid + UUID_STR_LEN - 1) = '\0';
+    char arg_md5[MD5_STR_LENGTH];
+    memcpy(arg_md5, hm->uri.p + 3, MD5_STR_LENGTH);
+    *(arg_md5 + MD5_STR_LENGTH - 1) = '\0';
 
-    const char *next = arg_uuid;
+    const char *next = arg_md5;
     cJSON *doc = NULL;
     cJSON *index_id = NULL;
     cJSON *source = NULL;
@@ -430,7 +424,7 @@ void status(struct mg_connection *nc) {
 typedef struct {
     char *name;
     int delete;
-    char *relpath;
+    char *path_md5_str;
     char *doc_id;
 } tag_req_t;
 
@@ -450,8 +444,9 @@ tag_req_t *parse_tag_request(cJSON *json) {
         return NULL;
     }
 
-    cJSON *arg_relpath = cJSON_GetObjectItem(json, "relpath");
-    if (arg_relpath == NULL || !cJSON_IsString(arg_relpath)) {
+    cJSON *arg_path_md5 = cJSON_GetObjectItem(json, "path_md5");
+    if (arg_path_md5 == NULL || !cJSON_IsString(arg_path_md5) ||
+        strlen(arg_path_md5->valuestring) != MD5_STR_LENGTH - 1) {
         return NULL;
     }
 
@@ -463,23 +458,23 @@ tag_req_t *parse_tag_request(cJSON *json) {
     tag_req_t *req = malloc(sizeof(tag_req_t));
     req->delete = arg_delete->valueint;
     req->name = arg_name->valuestring;
-    req->relpath = arg_relpath->valuestring;
+    req->path_md5_str = arg_path_md5->valuestring;
     req->doc_id = arg_doc_id->valuestring;
 
     return req;
 }
 
 void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
-    if (path->len != UUID_STR_LEN + 4) {
+    if (path->len != MD5_STR_LENGTH + 4) {
         LOG_DEBUGF("serve.c", "Invalid tag path: %.*s", (int) path->len, path->p)
         mg_http_send_error(nc, 404, NULL);
         nc->flags |= MG_F_SEND_AND_CLOSE;
         return;
     }
 
-    char arg_index[UUID_STR_LEN];
-    memcpy(arg_index, hm->uri.p + 5, UUID_STR_LEN);
-    *(arg_index + UUID_STR_LEN - 1) = '\0';
+    char arg_index[MD5_STR_LENGTH];
+    memcpy(arg_index, hm->uri.p + 5, MD5_STR_LENGTH);
+    *(arg_index + MD5_STR_LENGTH - 1) = '\0';
 
     if (hm->body.len < 2 || hm->method.len != 4 || memcmp(&hm->method, "POST", 4) == 0) {
         LOG_DEBUG("serve.c", "Invalid tag request")
@@ -514,7 +509,7 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
     cJSON *arr = NULL;
 
     size_t data_len = 0;
-    const char *data = store_read(store, arg_req->relpath, strlen(arg_req->relpath), &data_len);
+    const char *data = store_read(store, arg_req->path_md5_str, MD5_STR_LENGTH, &data_len);
     if (data_len == 0) {
         arr = cJSON_CreateArray();
     } else {
@@ -574,7 +569,8 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
     }
 
     char *json_str = cJSON_PrintUnformatted(arr);
-    store_write(store, arg_req->relpath, strlen(arg_req->relpath) + 1, json_str, strlen(json_str) + 1);
+    store_write(store, arg_req->path_md5_str, MD5_STR_LENGTH, json_str, strlen(json_str) + 1);
+    store_flush(store);
 
     free(arg_req);
     free(json_str);

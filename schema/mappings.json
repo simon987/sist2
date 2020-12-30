@@ -30,6 +30,10 @@
     "mime": {
       "type": "keyword"
     },
+    "parent": {
+      "type": "keyword",
+      "index": false
+    },
     "thumbnail": {
       "type": "keyword",
       "index": false

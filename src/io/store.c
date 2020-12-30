@@ -40,13 +40,17 @@ void store_destroy(store_t *store) {
     free(store);
 }
 
+void store_flush(store_t *store) {
+    mdb_env_sync(store->env, TRUE);
+}
+
 void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t buf_len) {
 
     if (LogCtx.very_verbose) {
-        if (key_len == 16) {
-            char uuid_str[UUID_STR_LEN] = {0, };
-            uuid_unparse((unsigned char *) key, uuid_str);
-            LOG_DEBUGF("store.c", "Store write {%s} %lu bytes", uuid_str, buf_len)
+        if (key_len == MD5_DIGEST_LENGTH) {
+            char path_md5_str[MD5_STR_LENGTH];
+            buf2hex((unsigned char *) key, MD5_DIGEST_LENGTH, path_md5_str);
+            LOG_DEBUGF("store.c", "Store write {%s} %lu bytes", path_md5_str, buf_len)
         } else {
             LOG_DEBUGF("store.c", "Store write {%s} %lu bytes", key, buf_len)
         }

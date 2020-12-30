@@ -7,7 +7,7 @@ void parse_sidecar(vfile_t *vfile, document_t *doc) {
     LOG_DEBUGF("sidecar.c", "Parsing sidecar file %s", vfile->filepath)
 
     size_t size;
-    char* buf = read_all(vfile, &size);
+    char *buf = read_all(vfile, &size);
     if (buf == NULL) {
         LOG_ERRORF("sidecar.c", "Read error for %s", vfile->filepath)
         return;
@@ -23,11 +23,11 @@ void parse_sidecar(vfile_t *vfile, document_t *doc) {
     }
     char *json_str = cJSON_PrintUnformatted(json);
 
-    char filepath[PATH_MAX];
-    memcpy(filepath, vfile->filepath + ScanCtx.index.desc.root_len, doc->ext - 1 - ScanCtx.index.desc.root_len);
-    *(filepath + doc->ext - 1) = '\0';
+    unsigned char path_md5[MD5_DIGEST_LENGTH];
+    MD5((unsigned char *) vfile->filepath + ScanCtx.index.desc.root_len, doc->ext - 1 - ScanCtx.index.desc.root_len,
+        path_md5);
 
-    store_write(ScanCtx.index.meta_store, filepath, doc->ext, json_str, strlen(json_str) + 1);
+    store_write(ScanCtx.index.meta_store, (char *) path_md5, sizeof(path_md5), json_str, strlen(json_str) + 1);
 
     cJSON_Delete(json);
     free(json_str);

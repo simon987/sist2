@@ -24,6 +24,8 @@ void store_destroy(store_t *store);
 
 void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t buf_len);
 
+void store_flush(store_t *store);
+
 char *store_read(store_t *store, char *key, size_t key_len, size_t *ret_vallen);
 
 GHashTable *store_read_all(store_t *store);

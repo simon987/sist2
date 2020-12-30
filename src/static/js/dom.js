@@ -22,7 +22,7 @@ function gifOver(thumbnail, hit) {
     thumbnail.addEventListener("mouseout", function () {
         //Reset timer
         thumbnail.mouseStayedOver = false;
-        thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
+        thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_path_md5"]}`);
     })
 }
 
@@ -419,7 +419,7 @@ function makeThumbnail(mimeCategory, hit, imgWrapper, small) {
             thumbnail.setAttribute("class", "card-img-top fit");
         }
     }
-    thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_id"]}`);
+    thumbnail.setAttribute("src", `t/${hit["_source"]["index"]}/${hit["_path_md5"]}`);
 
     if (shouldDisplayRawImage(hit)) {
         thumbnail.addEventListener("click", () => {

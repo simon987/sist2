@@ -241,8 +241,10 @@ The `_text.*` items will be indexed and searchable as **text** fields (fuzzy sea
 
 *thumbs/*:
 
-LMDB key-value store. Keys are **binary** 128-bit UUID4s (`_id` field)
+LMDB key-value store. Keys are **binary** 16-byte md5 hash* (`_id` field)
 and values are raw image bytes.
+
+*\* Hash is calculated from the full path of the file, including the extension, relative to the index root*
 
 Importing an external `binary` type index is technically possible but
 it is currently unsupported and has no guaranties of back/forward compatibility.

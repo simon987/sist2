@@ -174,7 +174,7 @@ function saveTag(tag, hit) {
         delete: false,
         name: tag,
         doc_id: hit["_id"],
-        relpath: relPath
+        path_md5: md5(relPath)
     }).then(() => {
         tagBar.blur();
         $("#tagModal").modal("hide");
@@ -604,6 +604,7 @@ function search(after = null) {
         hits.forEach(hit => {
             hit["_source"]["name"] = strUnescape(hit["_source"]["name"]);
             hit["_source"]["path"] = strUnescape(hit["_source"]["path"]);
+            hit["_path_md5"] = md5(hit["_source"]["path"] + (hit["_source"]["path"] ? "/" : "") + hit["_source"]["name"] + ext(hit));
         });
 
         if (!after) {
