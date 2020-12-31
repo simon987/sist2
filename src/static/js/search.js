@@ -165,6 +165,9 @@ window.onload = () => {
             }
         }
     });
+
+    initTagTree();
+    updateTagTree();
 };
 
 function saveTag(tag, hit) {
@@ -188,6 +191,10 @@ function saveTag(tag, hit) {
             hideAfter: 3000,
             loaderBg: "#08c7e8",
         });
+
+        window.setTimeout(() => {
+            updateTagTree();
+        }, 2000);
     })
 }
 
@@ -313,25 +320,8 @@ $.jsonPost("es", {
     mimeTree.node("any").select();
 });
 
-// Tags tree
-$.jsonPost("es", {
-    aggs: {
-        tags: {
-            terms: {
-                field: "tag",
-                size: 10000
-            }
-        }
-    },
-    size: 0,
-}).then(resp => {
-    resp["aggregations"]["tags"]["buckets"]
-        .sort((a, b) => a["key"].localeCompare(b["key"]))
-        .forEach(bucket => {
-            addTag(tagMap, bucket["key"], bucket["key"], bucket["doc_count"])
-        });
-
-    tagMap.push({"text": "All", "id": "any"});
+function initTagTree() {
+    tagMap = [{text: "All", id: "any"}];
     tagTree = new InspireTree({
         selection: {
             mode: 'checkbox'
@@ -346,8 +336,34 @@ $.jsonPost("es", {
     });
     tagTree.on("node.state.changed", handleTreeClick(tagTree));
     tagTree.node("any").select();
-    searchBusy = false;
-});
+}
+
+function updateTagTree() {
+    $.jsonPost("es", {
+        aggs: {
+            tags: {
+                terms: {
+                    field: "tag",
+                    size: 10000
+                }
+            }
+        },
+        size: 0,
+    }).then(resp => {
+        tagMap = [];
+        resp["aggregations"]["tags"]["buckets"]
+            .sort((a, b) => a["key"].localeCompare(b["key"]))
+            .forEach(bucket => {
+                addTag(tagMap, bucket["key"], bucket["key"], bucket["doc_count"])
+            });
+
+        tagTree.removeAll();
+        tagMap.push({text: "All", id: "any"})
+        tagTree.addNodes(tagMap);
+        searchBusy = false;
+    });
+}
+
 
 function addTag(map, tag, id, count) {
     // let tags = tag.split("#")[0].split(".");
