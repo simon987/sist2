@@ -24,8 +24,8 @@ steps:
         from_secret: SSH_KEY
       target: /files/sist2/${DRONE_REPO_OWNER}_${DRONE_REPO_NAME}/${DRONE_BRANCH}_${DRONE_BUILD_NUMBER}_${DRONE_COMMIT}/
       source:
-        - ./sist2.gz
-        - ./sist2_debug.tar.gz
+        - ./sist2-x64-linux
+        - ./sist2-x64-linux-debug.tar.gz
 
 ---
 kind: pipeline
@@ -53,4 +53,4 @@ steps:
         from_secret: SSH_KEY
       target: /files/sist2/${DRONE_REPO_OWNER}_${DRONE_REPO_NAME}/${DRONE_BRANCH}_${DRONE_BUILD_NUMBER}_${DRONE_COMMIT}/
       source:
-        - ./sist2_arm64.gz
+        - ./sist2-arm64-linux

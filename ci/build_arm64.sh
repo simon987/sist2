@@ -11,4 +11,3 @@ cmake -DSIST_DEBUG=off -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystem
 make -j 4
 strip sist2
 mv sist2 sist2-arm64-linux
-gzip -9 sist2-arm64-linux
