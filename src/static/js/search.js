@@ -192,9 +192,7 @@ function saveTag(tag, hit) {
             loaderBg: "#08c7e8",
         });
 
-        window.setTimeout(() => {
-            updateTagTree();
-        }, 2000);
+        window.setTimeout(updateTagTree, 2000);
     })
 }
 
@@ -205,7 +203,7 @@ function deleteTag(tag, hit) {
         delete: true,
         name: tag,
         doc_id: hit["_id"],
-        relpath: relPath
+        path_md5: md5(relPath)
     }).then(() => {
         $.toast({
             heading: "Tag deleted",
@@ -217,6 +215,8 @@ function deleteTag(tag, hit) {
             hideAfter: 3000,
             loaderBg: "#08c7e8",
         });
+
+        window.setTimeout(updateTagTree, 2000);
     })
 }
 
