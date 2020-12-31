@@ -29,13 +29,13 @@
     </div>
 
     <div id="treemap-card" class="stats-card">
-        <button class="btn stats-btn" onclick="fullScreen('treemap-card')">Enlarge</button>
+        <button class="btn stats-btn" onclick="fullScreen('treemap-card')" id="treemap-card-enlarge">Enlarge</button>
         <button class="btn stats-btn" onclick="exportTreemap()">Export</button>
         <svg id="treemap"></svg>
     </div>
 
     <div id="graphs-card" class="stats-card">
-        <button class="btn stats-btn" onclick="fullScreen('graphs-card')">Enlarge</button>
+        <button class="btn stats-btn" onclick="fullScreen('graphs-card')" id="graphs-card-enlarge">Enlarge</button>
         <div class="graph">
             <svg id="agg_mime_size"></svg>
         </div>
@@ -789,7 +789,15 @@ window.onload = function () {
 
 function fullScreen(selector) {
     const card = document.getElementById(selector);
+    const btn = document.getElementById(selector + "-enlarge");
+
     card.classList.toggle("full-screen");
+
+    if (card.classList.contains("full-screen")) {
+        btn.innerText = "Shrink";
+    } else {
+        btn.innerText = "Enlarge";
+    }
 }
 
 function exportTreemap() {
