@@ -5,7 +5,7 @@ project(sist2 C)
 
 option(SIST_DEBUG "Build a debug executable" on)
 
-set(BUILD_TESTS on)
+set(BUILD_TESTS off)
 add_subdirectory(third-party/libscan)
 set(ARGPARSE_SHARED off)
 add_subdirectory(third-party/argparse)
