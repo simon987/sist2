@@ -1,4 +1,4 @@
-FROM ubuntu:19.10
+FROM ubuntu:20.04
 MAINTAINER simon987 <me@simon987.net>
 
 RUN apt update
