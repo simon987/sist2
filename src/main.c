@@ -132,6 +132,7 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.media_ctx.logf = _logf;
     ScanCtx.media_ctx.store = _store;
     ScanCtx.media_ctx.max_media_buffer = (long) args->max_memory_buffer * 1024 * 1024;
+    ScanCtx.media_ctx.read_subtitles = args->read_subtitles;
     init_media();
 
     // OOXML
@@ -448,6 +449,7 @@ int main(int argc, const char *argv[]) {
             OPT_INTEGER(0, "mem-buffer", &scan_args->max_memory_buffer,
                         "Maximum memory buffer size per thread in MB for files inside archives "
                         "(see USAGE.md). DEFAULT: 2000"),
+            OPT_BOOLEAN(0, "read-subtitles", &scan_args->read_subtitles, "Read subtitles from media files."),
 
             OPT_GROUP("Index options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),

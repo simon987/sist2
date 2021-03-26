@@ -46,6 +46,7 @@ Scan options
     --fast                        Only index file names & mime type
     --treemap-threshold=<str>     Relative size threshold for treemap (see USAGE.md). DEFAULT: 0.0005
     --mem-buffer=<int>            Maximum memory buffer size per thread in MB for files inside archives (see USAGE.md). DEFAULT: 2000
+    --read-subtitles              Read subtitles from media files
 
 Index options
     -t, --threads=<int>           Number of threads. DEFAULT=1
@@ -91,7 +92,7 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
     Specify an existing index. Information about files in this index that were not modified (based on *mtime* attribute)
     will be copied to the new index and will not be parsed again.
 * `-o, --output` Output directory. 
-* `--rewrite-url` Set the `rewrite_url` option for the web module (See [rewrite_url](#rewrite_url)) 
+* `--rewrite-url` Set the `rewrite_url` option for the web module (See [rewrite_url](#rewrite_url)) 
 * `--name` Set the `name` option for the web module
 * `--depth` Maximum scan dept. Set to 0 only scan files directly in the root directory, set to -1 for infinite depth
 * `--archive` Archive file mode.
@@ -123,6 +124,7 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
     larger than this number will be read sequentially and no *seek* operations will be supported.
 
     To check if a media file can be parsed without *seek*, execute `cat file.mp4 | ffprobe -`
+* `--read-subtitles` When enabled, will attempt to read the subtitles stream from media files.
 
 ### Scan examples
 
