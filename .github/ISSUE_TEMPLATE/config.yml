@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: SIST2 Documentation
+    url: https://github.com/simon987/sist2/blob/master/docs/USAGE.md
+    about: Check out the SIST2 documentation for answers to common questions
