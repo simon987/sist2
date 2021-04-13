@@ -15,7 +15,7 @@ assignees: ''
  - Elasticsearch Version:
 
 **Command Run with arguments** 
-<-- `ex: "scan ~/Documents -o ./i2 --threads 3 -q 1.0` -->
+<!-- `ex: "scan ~/Documents -o ./i2 --threads 3 -q 1.0` -->
 
 **Describe the bug**
 <!-- A clear and concise description of what the bug is. -->
