@@ -8,18 +8,8 @@
 
 #include <src/ctx.h>
 
-#include <mongoose.h>
 
-
-static int has_prefix(const struct mg_str *str, const struct mg_str *prefix) {
-    return str->len > prefix->len && memcmp(str->p, prefix->p, prefix->len) == 0;
-}
-
-static int is_equal(const struct mg_str *s1, const struct mg_str *s2) {
-    return s1->len == s2->len && memcmp(s1->p, s2->p, s2->len) == 0;
-}
-
-static void send_response_line(struct mg_connection *nc, int status_code, int length, char *extra_headers) {
+static void send_response_line(struct mg_connection *nc, int status_code, size_t length, char *extra_headers) {
     mg_printf(
             nc,
             "HTTP/1.1 %d %s\r\n"
@@ -62,36 +52,32 @@ store_t *get_tag_store(const char *index_id) {
 void search_index(struct mg_connection *nc) {
     send_response_line(nc, 200, sizeof(search_html), "Content-Type: text/html");
     mg_send(nc, search_html, sizeof(search_html));
-    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
 void stats(struct mg_connection *nc) {
     send_response_line(nc, 200, sizeof(stats_html), "Content-Type: text/html");
     mg_send(nc, stats_html, sizeof(stats_html));
-    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-void stats_files(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
+void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
 
-    if (path->len != MD5_STR_LENGTH + 4) {
-        mg_http_send_error(nc, 404, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+    if (hm->uri.len != MD5_STR_LENGTH + 4) {
+        mg_http_reply(nc, 404, "", "");
         return;
     }
 
     char arg_md5[MD5_STR_LENGTH];
-    memcpy(arg_md5, hm->uri.p + 3, MD5_STR_LENGTH);
+    memcpy(arg_md5, hm->uri.ptr + 3, MD5_STR_LENGTH);
     *(arg_md5 + MD5_STR_LENGTH - 1) = '\0';
 
     index_t *index = get_index_by_id(arg_md5);
     if (index == NULL) {
-        mg_http_send_error(nc, 404, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+        mg_http_reply(nc, 404, "", "");
         return;
     }
 
     const char *file;
-    switch (atoi(hm->uri.p + 3 + MD5_STR_LENGTH)) {
+    switch (atoi(hm->uri.ptr + 3 + MD5_STR_LENGTH)) {
         case 1:
             file = "treemap.csv";
             break;
@@ -105,7 +91,6 @@ void stats_files(struct mg_connection *nc, struct http_message *hm, struct mg_st
             file = "date_agg.csv";
             break;
         default:
-            nc->flags |= MG_F_SEND_AND_CLOSE;
             return;
     }
 
@@ -116,43 +101,31 @@ void stats_files(struct mg_connection *nc, struct http_message *hm, struct mg_st
     strcpy(full_path, index->path);
     strcat(full_path, file);
 
-    mg_http_serve_file(nc, hm, full_path, mg_mk_str("text/csv"), mg_mk_str(disposition));
-    nc->flags |= MG_F_SEND_AND_CLOSE;
+    mg_http_serve_file(nc, hm, full_path, "text/csv", disposition);
 }
 
 void javascript_lib(struct mg_connection *nc) {
     send_response_line(nc, 200, sizeof(bundle_js), "Content-Type: application/javascript");
     mg_send(nc, bundle_js, sizeof(bundle_js));
-    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
 void javascript_search(struct mg_connection *nc) {
     send_response_line(nc, 200, sizeof(search_js), "Content-Type: application/javascript");
     mg_send(nc, search_js, sizeof(search_js));
-    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-int client_requested_dark_theme(struct http_message *hm) {
-    struct mg_str *cookie_header = mg_get_http_header(hm, "cookie");
+int client_requested_dark_theme(struct mg_http_message *hm) {
+    struct mg_str *cookie_header = mg_http_get_header(hm, "cookie");
     if (cookie_header == NULL) {
         return FALSE;
     }
 
-    char buf[4096];
-    char *sist_cookie = buf;
-    if (mg_http_parse_header2(cookie_header, "sist", &sist_cookie, sizeof(buf)) == 0) {
-        return FALSE;
-    }
+    struct mg_str sist_cookie = http_get_header_var(*cookie_header, mg_str_n("sist", 4));
 
-    int ret = strcmp(sist_cookie, "dark") == 0;
-    if (sist_cookie != buf) {
-        free(sist_cookie);
-    }
-
-    return ret;
+    return mg_strcmp(sist_cookie, mg_str_n("dark", 4)) == 0;
 }
 
-void style(struct mg_connection *nc, struct http_message *hm) {
+void style(struct mg_connection *nc, struct mg_http_message *hm) {
 
     if (client_requested_dark_theme(hm)) {
         send_response_line(nc, 200, sizeof(bundle_dark_css), "Content-Type: text/css");
@@ -161,11 +134,9 @@ void style(struct mg_connection *nc, struct http_message *hm) {
         send_response_line(nc, 200, sizeof(bundle_css), "Content-Type: text/css");
         mg_send(nc, bundle_css, sizeof(bundle_css));
     }
-
-    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-void img_sprite_skin_flat(struct mg_connection *nc, struct http_message *hm) {
+void img_sprite_skin_flat(struct mg_connection *nc, struct mg_http_message *hm) {
     if (client_requested_dark_theme(hm)) {
         send_response_line(nc, 200, sizeof(sprite_skin_flat_dark_png), "Content-Type: image/png");
         mg_send(nc, sprite_skin_flat_dark_png, sizeof(sprite_skin_flat_dark_png));
@@ -173,25 +144,22 @@ void img_sprite_skin_flat(struct mg_connection *nc, struct http_message *hm) {
         send_response_line(nc, 200, sizeof(sprite_skin_flat_png), "Content-Type: image/png");
         mg_send(nc, sprite_skin_flat_png, sizeof(sprite_skin_flat_png));
     }
-
-    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-void thumbnail(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
+void thumbnail(struct mg_connection *nc, struct mg_http_message *hm) {
 
-    if (path->len != 68) {
-        LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) path->len, path->p)
-        mg_http_send_error(nc, 404, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+    if (hm->uri.len != 68) {
+        LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) hm->uri.len, hm->uri.ptr)
+        mg_http_reply(nc, 404, "", "Not found");
         return;
     }
 
     char arg_file_md5[MD5_STR_LENGTH];
     char arg_index[MD5_STR_LENGTH];
 
-    memcpy(arg_index, hm->uri.p + 3, MD5_STR_LENGTH);
+    memcpy(arg_index, hm->uri.ptr + 3, MD5_STR_LENGTH);
     *(arg_index + MD5_STR_LENGTH - 1) = '\0';
-    memcpy(arg_file_md5, hm->uri.p + 3 + MD5_STR_LENGTH, MD5_STR_LENGTH);
+    memcpy(arg_file_md5, hm->uri.ptr + 3 + MD5_STR_LENGTH, MD5_STR_LENGTH);
     *(arg_file_md5 + MD5_STR_LENGTH - 1) = '\0';
 
     unsigned char md5_buf[MD5_DIGEST_LENGTH];
@@ -200,8 +168,7 @@ void thumbnail(struct mg_connection *nc, struct http_message *hm, struct mg_str 
     store_t *store = get_store(arg_index);
     if (store == NULL) {
         LOG_DEBUGF("serve.c", "Could not get store for index: %s", arg_index)
-        mg_http_send_error(nc, 404, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+        mg_http_reply(nc, 404, "", "Not found");
         return;
     }
 
@@ -212,26 +179,24 @@ void thumbnail(struct mg_connection *nc, struct http_message *hm, struct mg_str 
         mg_send(nc, data, data_len);
         free(data);
     }
-    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-void search(struct mg_connection *nc, struct http_message *hm) {
+void search(struct mg_connection *nc, struct mg_http_message *hm) {
 
     if (hm->body.len == 0) {
         LOG_DEBUG("serve.c", "Client sent empty body, ignoring request")
-        mg_http_send_error(nc, 500, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+        mg_http_reply(nc, 500, "", "Invalid request");
         return;
     }
 
     char *body = malloc(hm->body.len + 1);
-    memcpy(body, hm->body.p, hm->body.len);
+    memcpy(body, hm->body.ptr, hm->body.len);
     *(body + hm->body.len) = '\0';
 
     char url[4096];
     snprintf(url, 4096, "%s/%s/_search", WebCtx.es_url, WebCtx.es_index);
 
-    nc->user_data = web_post_async(url, body);
+    nc->fn_data = web_post_async(url, body);
 }
 
 void serve_file_from_url(cJSON *json, index_t *idx, struct mg_connection *nc) {
@@ -253,16 +218,13 @@ void serve_file_from_url(cJSON *json, index_t *idx, struct mg_connection *nc) {
              idx->desc.rewrite_url, path_unescaped, name_unescaped, strlen(ext) == 0 ? "" : ".", ext);
 
     dyn_buffer_t encoded = url_escape(url);
-    mg_http_send_redirect(
-            nc, 308,
-            (struct mg_str) MG_MK_STR_N(encoded.buf, encoded.cur),
-            (struct mg_str) MG_NULL_STR
-    );
+    dyn_buffer_write_char(&encoded, '\0');
+
+    mg_http_reply(nc, 308, "Location: %s", encoded.buf);
     dyn_buffer_destroy(&encoded);
-    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, struct http_message *hm) {
+void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, struct mg_http_message *hm) {
 
     const char *path = cJSON_GetObjectItem(json, "path")->valuestring;
     const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
@@ -286,7 +248,7 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
     snprintf(disposition, sizeof(disposition), "Content-Disposition: inline; filename=\"%s%s%s\"",
              name, strlen(ext) == 0 ? "" : ".", ext);
 
-    mg_http_serve_file(nc, hm, full_path, mg_mk_str(mime), mg_mk_str(disposition));
+    mg_http_serve_file(nc, hm, full_path, mime, "");
 }
 
 void index_info(struct mg_connection *nc) {
@@ -310,22 +272,19 @@ void index_info(struct mg_connection *nc) {
     mg_send(nc, json_str, strlen(json_str));
     free(json_str);
     cJSON_Delete(json);
-
-    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
 
-void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
+void document_info(struct mg_connection *nc, struct mg_http_message *hm) {
 
-    if (path->len != MD5_STR_LENGTH + 2) {
-        LOG_DEBUGF("serve.c", "Invalid document_info path: %.*s", (int) path->len, path->p)
-        mg_http_send_error(nc, 404, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+    if (hm->uri.len != MD5_STR_LENGTH + 2) {
+        LOG_DEBUGF("serve.c", "Invalid document_info path: %.*s", (int) hm->uri.len, hm->uri.ptr)
+        mg_http_reply(nc, 404, "", "Not found");
         return;
     }
 
     char arg_md5[MD5_STR_LENGTH];
-    memcpy(arg_md5, hm->uri.p + 3, MD5_STR_LENGTH);
+    memcpy(arg_md5, hm->uri.ptr + 3, MD5_STR_LENGTH);
     *(arg_md5 + MD5_STR_LENGTH - 1) = '\0';
 
     cJSON *doc = elastic_get_document(arg_md5);
@@ -334,16 +293,14 @@ void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_
     cJSON *index_id = cJSON_GetObjectItem(source, "index");
     if (index_id == NULL) {
         cJSON_Delete(doc);
-        mg_http_send_error(nc, 404, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+        mg_http_reply(nc, 404, "", "Not found");
         return;
     }
 
     index_t *idx = get_index_by_id(index_id->valuestring);
     if (idx == NULL) {
         cJSON_Delete(doc);
-        mg_http_send_error(nc, 404, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+        mg_http_reply(nc, 404, "", "Not found");
         return;
     }
 
@@ -352,21 +309,18 @@ void document_info(struct mg_connection *nc, struct http_message *hm, struct mg_
     mg_send(nc, json_str, (int) strlen(json_str));
     free(json_str);
     cJSON_Delete(doc);
-
-    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
-void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
+void file(struct mg_connection *nc, struct mg_http_message *hm) {
 
-    if (path->len != MD5_STR_LENGTH + 2) {
-        LOG_DEBUGF("serve.c", "Invalid file path: %.*s", (int) path->len, path->p)
-        mg_http_send_error(nc, 404, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+    if (hm->uri.len != MD5_STR_LENGTH + 2) {
+        LOG_DEBUGF("serve.c", "Invalid file path: %.*s", (int) hm->uri.len, hm->uri.ptr)
+        mg_http_reply(nc, 404, "", "Not found");
         return;
     }
 
     char arg_md5[MD5_STR_LENGTH];
-    memcpy(arg_md5, hm->uri.p + 3, MD5_STR_LENGTH);
+    memcpy(arg_md5, hm->uri.ptr + 3, MD5_STR_LENGTH);
     *(arg_md5 + MD5_STR_LENGTH - 1) = '\0';
 
     const char *next = arg_md5;
@@ -380,8 +334,7 @@ void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path
         index_id = cJSON_GetObjectItem(source, "index");
         if (index_id == NULL) {
             cJSON_Delete(doc);
-            mg_http_send_error(nc, 404, NULL);
-            nc->flags |= MG_F_SEND_AND_CLOSE;
+            mg_http_reply(nc, 404, "", "Not found");
             return;
         }
         cJSON *parent = cJSON_GetObjectItem(source, "parent");
@@ -395,8 +348,7 @@ void file(struct mg_connection *nc, struct http_message *hm, struct mg_str *path
 
     if (idx == NULL) {
         cJSON_Delete(doc);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
-        mg_http_send_error(nc, 404, NULL);
+        mg_http_reply(nc, 404, "", "Not found");
         return;
     }
 
@@ -417,8 +369,6 @@ void status(struct mg_connection *nc) {
     }
 
     free(status);
-
-    nc->flags |= MG_F_SEND_AND_CLOSE;
 }
 
 typedef struct {
@@ -464,35 +414,32 @@ tag_req_t *parse_tag_request(cJSON *json) {
     return req;
 }
 
-void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path) {
-    if (path->len != MD5_STR_LENGTH + 4) {
-        LOG_DEBUGF("serve.c", "Invalid tag path: %.*s", (int) path->len, path->p)
-        mg_http_send_error(nc, 404, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+void tag(struct mg_connection *nc, struct mg_http_message *hm) {
+    if (hm->uri.len != MD5_STR_LENGTH + 4) {
+        LOG_DEBUGF("serve.c", "Invalid tag path: %.*s", (int) hm->uri.len, hm->uri.ptr)
+        mg_http_reply(nc, 404, "", "Not found");
         return;
     }
 
     char arg_index[MD5_STR_LENGTH];
-    memcpy(arg_index, hm->uri.p + 5, MD5_STR_LENGTH);
+    memcpy(arg_index, hm->uri.ptr + 5, MD5_STR_LENGTH);
     *(arg_index + MD5_STR_LENGTH - 1) = '\0';
 
     if (hm->body.len < 2 || hm->method.len != 4 || memcmp(&hm->method, "POST", 4) == 0) {
         LOG_DEBUG("serve.c", "Invalid tag request")
-        mg_http_send_error(nc, 400, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+        mg_http_reply(nc, 404, "", "Not found");
         return;
     }
 
     store_t *store = get_tag_store(arg_index);
     if (store == NULL) {
         LOG_DEBUGF("serve.c", "Could not get tag store for index: %s", arg_index)
-        mg_http_send_error(nc, 404, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+        mg_http_reply(nc, 404, "", "Not found");
         return;
     }
 
     char *body = malloc(hm->body.len + 1);
-    memcpy(body, hm->body.p, hm->body.len);
+    memcpy(body, hm->body.ptr, hm->body.len);
     *(body + hm->body.len) = '\0';
     cJSON *json = cJSON_Parse(body);
 
@@ -501,8 +448,7 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
         LOG_DEBUGF("serve.c", "Could not parse tag request", arg_index)
         cJSON_Delete(json);
         free(body);
-        mg_http_send_error(nc, 400, NULL);
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+        mg_http_reply(nc, 400, "", "Invalid request");
         return;
     }
 
@@ -545,7 +491,7 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
 
         char url[4096];
         snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, arg_req->doc_id);
-        nc->user_data = web_post_async(url, buf);
+        nc->fn_data = web_post_async(url, buf);
 
     } else {
         cJSON_AddItemToArray(arr, cJSON_CreateString(arg_req->name));
@@ -565,7 +511,7 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
 
         char url[4096];
         snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, arg_req->doc_id);
-        nc->user_data = web_post_async(url, buf);
+        nc->fn_data = web_post_async(url, buf);
     }
 
     char *json_str = cJSON_PrintUnformatted(arr);
@@ -579,92 +525,73 @@ void tag(struct mg_connection *nc, struct http_message *hm, struct mg_str *path)
     free(body);
 }
 
-int validate_auth(struct mg_connection *nc, struct http_message *hm) {
+int validate_auth(struct mg_connection *nc, struct mg_http_message *hm) {
     char user[256] = {0,};
     char pass[256] = {0,};
 
-    int ret = mg_get_http_basic_auth(hm, user, sizeof(user), pass, sizeof(pass));
-    if (ret == -1 || strcmp(user, WebCtx.auth_user) != 0 || strcmp(pass, WebCtx.auth_pass) != 0) {
-        mg_printf(nc, "HTTP/1.1 401 Unauthorized\r\n"
-                      "WWW-Authenticate: Basic realm=\"sist2\"\r\n"
-                      "Content-Length: 0\r\n\r\n");
-        nc->flags |= MG_F_SEND_AND_CLOSE;
+    mg_http_creds(hm, user, sizeof(user), pass, sizeof(pass));
+    if (strcmp(user, WebCtx.auth_user) != 0 || strcmp(pass, WebCtx.auth_pass) != 0) {
+        mg_http_reply(nc, 401, "WWW-Authenticate: Basic realm=\"sist2\"", "");
         return FALSE;
     }
     return TRUE;
 }
 
-static void ev_router(struct mg_connection *nc, int ev, void *p) {
-    struct mg_str scheme;
-    struct mg_str user_info;
-    struct mg_str host;
-    unsigned int port;
-    struct mg_str path;
-    struct mg_str query;
-    struct mg_str fragment;
+static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(void *fn_data)) {
 
-    if (ev == MG_EV_HTTP_REQUEST) {
-        struct http_message *hm = (struct http_message *) p;
-
-        if (mg_parse_uri(hm->uri, &scheme, &user_info, &host, &port, &path, &query, &fragment) != 0) {
-            mg_http_send_error(nc, 400, NULL);
-            nc->flags |= MG_F_SEND_AND_CLOSE;
-            return;
-        }
-
+    if (ev == MG_EV_HTTP_MSG) {
+        struct mg_http_message *hm = (struct mg_http_message *) ev_data;
 
         if (WebCtx.auth_enabled == TRUE) {
             if (!validate_auth(nc, hm)) {
+                nc->is_closing = 1;
                 return;
             }
         }
 
-        if (is_equal(&path, &((struct mg_str) MG_MK_STR("/")))) {
+        if (mg_http_match_uri(hm, "/")) {
             search_index(nc);
-        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/css")))) {
+        } else if (mg_http_match_uri(hm, "/css")) {
             style(nc, hm);
-        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/stats")))) {
+        } else if (mg_http_match_uri(hm, "/stats")) {
             stats(nc);
-        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/jslib")))) {
+        } else if (mg_http_match_uri(hm, "/jslib")) {
             javascript_lib(nc);
-        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/jssearch")))) {
+        } else if (mg_http_match_uri(hm, "/jssearch")) {
             javascript_search(nc);
-        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/img/sprite-skin-flat.png")))) {
+        } else if (mg_http_match_uri(hm, "/img/sprite-skin-flat.png")) {
             img_sprite_skin_flat(nc, hm);
-        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/es")))) {
+        } else if (mg_http_match_uri(hm, "/es")) {
             search(nc, hm);
-        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/i")))) {
+        } else if (mg_http_match_uri(hm, "/i")) {
             index_info(nc);
-        } else if (is_equal(&path, &((struct mg_str) MG_MK_STR("/status")))) {
+        } else if (mg_http_match_uri(hm, "/status")) {
             status(nc);
-        } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/f/")))) {
-            file(nc, hm, &path);
-        } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/t/")))) {
-            thumbnail(nc, hm, &path);
-        } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/s/")))) {
-            stats_files(nc, hm, &path);
-        } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/tag/")))) {
-            if (WebCtx.tag_auth_enabled == TRUE) {
-                if (!validate_auth(nc, hm)) {
-                    return;
-                }
+        } else if (mg_http_match_uri(hm, "/f/*")) {
+            file(nc, hm);
+        } else if (mg_http_match_uri(hm, "/t/*/*")) {
+            thumbnail(nc, hm);
+        } else if (mg_http_match_uri(hm, "/s/*")) {
+            stats_files(nc, hm);
+        } else if (mg_http_match_uri(hm, "/tag/*")) {
+            if (WebCtx.tag_auth_enabled == TRUE && !validate_auth(nc, hm)) {
+                nc->is_closing = 1;
+                return;
             }
-            tag(nc, hm, &path);
-        } else if (has_prefix(&path, &((struct mg_str) MG_MK_STR("/d/")))) {
-            document_info(nc, hm, &path);
+            tag(nc, hm);
+        } else if (mg_http_match_uri(hm, "/d/*")) {
+            document_info(nc, hm);
         } else {
-            mg_http_send_error(nc, 404, NULL);
-            nc->flags |= MG_F_SEND_AND_CLOSE;
+            mg_http_reply(nc, 404, "", "Page not found");
         }
 
     } else if (ev == MG_EV_POLL) {
-        if (nc->user_data != NULL) {
+        if (nc->fn_data != NULL) {
             //Waiting for ES reply
-            subreq_ctx_t *ctx = (subreq_ctx_t *) nc->user_data;
+            subreq_ctx_t *ctx = (subreq_ctx_t *) nc->fn_data;
             web_post_async_poll(ctx);
 
             if (ctx->done == TRUE) {
-
                 response_t *r = ctx->response;
 
                 if (r->status_code == 200) {
@@ -684,14 +611,14 @@ static void ev_router(struct mg_connection *nc, int ev, void *p) {
                         free(json_str);
                         free(tmp);
                     }
-                    mg_http_send_error(nc, 500, NULL);
+
+                    mg_http_reply(nc, 500, "", "");
                 }
 
                 free_response(r);
                 free(ctx->data);
                 free(ctx);
-                nc->flags |= MG_F_SEND_AND_CLOSE;
-                nc->user_data = NULL;
+                nc->fn_data = NULL;
             }
         }
     }
@@ -702,15 +629,18 @@ void serve(const char *listen_address) {
     printf("Starting web server @ http://%s\n", listen_address);
 
     struct mg_mgr mgr;
-    mg_mgr_init(&mgr, NULL);
+    mg_mgr_init(&mgr);
 
-    struct mg_connection *nc = mg_bind(&mgr, listen_address, ev_router);
+    int ok = 1;
+
+    struct mg_connection *nc = mg_http_listen(&mgr, listen_address, ev_router, NULL);
     if (nc == NULL) {
         LOG_FATALF("serve.c", "Couldn't bind web server on address %s", listen_address)
     }
-    mg_set_protocol_http_websocket(nc);
 
-    for (;;) {
+    while (ok) {
         mg_mgr_poll(&mgr, 10);
     }
+    mg_mgr_free(&mgr);
+    LOG_INFO("serve.c", "Finished web event loop")
 }
