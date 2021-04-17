@@ -350,6 +350,14 @@ function createDocCard(hit) {
             audio.setAttribute("controls", "");
             audio.setAttribute("type", hit["_source"]["mime"]);
             audio.setAttribute("src", "f/" + hit["_id"]);
+            audio.addEventListener("play", () => {
+                // Pause all currently playing audio tags
+                $("audio").each(function(){
+                    if (this !== audio) {
+                        this.pause();
+                    }
+                });
+            });
 
             docCard.appendChild(audio)
         }
