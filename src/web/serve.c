@@ -120,7 +120,7 @@ int client_requested_dark_theme(struct mg_http_message *hm) {
         return FALSE;
     }
 
-    struct mg_str sist_cookie = http_get_header_var(*cookie_header, mg_str_n("sist", 4));
+    struct mg_str sist_cookie = mg_http_get_header_var(*cookie_header, mg_str_n("sist", 4));
 
     return mg_strcmp(sist_cookie, mg_str_n("dark", 4)) == 0;
 }

@@ -5,7 +5,7 @@ project(sist2 C)
 
 option(SIST_DEBUG "Build a debug executable" on)
 
-set(BUILD_TESTS off)
+set(BUILD_TESTS on)
 add_subdirectory(third-party/libscan)
 set(ARGPARSE_SHARED off)
 add_subdirectory(third-party/argparse)
@@ -36,13 +36,14 @@ add_executable(sist2
 target_link_directories(sist2 PRIVATE BEFORE ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/)
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
 
+find_package(PkgConfig REQUIRED)
+
+pkg_search_module(GLIB REQUIRED glib-2.0)
+
 find_package(lmdb CONFIG REQUIRED)
 find_package(cJSON CONFIG REQUIRED)
-find_package(unofficial-glib CONFIG REQUIRED)
 find_package(unofficial-mongoose CONFIG REQUIRED)
 find_package(CURL CONFIG REQUIRED)
-
-#find_package(OpenSSL REQUIRED)
 
 
 target_include_directories(
@@ -51,6 +52,7 @@ target_include_directories(
         ${CMAKE_SOURCE_DIR}/third-party/utf8.h/
         ${CMAKE_SOURCE_DIR}/third-party/libscan/
         ${CMAKE_SOURCE_DIR}/
+        ${GLIB_INCLUDE_DIRS}
 )
 
 target_compile_options(
@@ -103,7 +105,7 @@ target_link_libraries(
         lmdb
         cjson
         argparse
-        unofficial::glib::glib
+        ${GLIB_LDFLAGS}
         unofficial::mongoose::mongoose
         CURL::libcurl
 
