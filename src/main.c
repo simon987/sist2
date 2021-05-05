@@ -99,7 +99,11 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.arc_ctx.log = _log;
     ScanCtx.arc_ctx.logf = _logf;
     ScanCtx.arc_ctx.parse = (parse_callback_t) parse;
-    memset(ScanCtx.arc_ctx.passphrase, 0, sizeof(ScanCtx.arc_ctx.passphrase));
+    if (args->archive_passphrase != NULL) {
+        strcpy(ScanCtx.arc_ctx.passphrase, args->archive_passphrase);
+    } else {
+        ScanCtx.arc_ctx.passphrase[0] = 0;
+    }
 
     // Comic
     ScanCtx.comic_ctx.log = _log;
@@ -441,7 +445,8 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "archive", &scan_args->archive, "Archive file mode (skip|list|shallow|recurse). "
                                                           "skip: Don't parse, list: only get file names as text, "
                                                           "shallow: Don't parse archives inside archives. DEFAULT: recurse"),
-            OPT_STRING(0, "archive-passphrase", &scan_args->archive_passphrase, "Passphrase for encrypted archive files"),
+            OPT_STRING(0, "archive-passphrase", &scan_args->archive_passphrase,
+                       "Passphrase for encrypted archive files"),
 
             OPT_STRING(0, "ocr", &scan_args->tesseract_lang, "Tesseract language (use tesseract --list-langs to see "
                                                              "which are installed on your machine)"),
