@@ -21,7 +21,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.9.0";
+static const char *const Version = "2.9.1";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -99,6 +99,7 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.arc_ctx.log = _log;
     ScanCtx.arc_ctx.logf = _logf;
     ScanCtx.arc_ctx.parse = (parse_callback_t) parse;
+    memset(ScanCtx.arc_ctx.passphrase, 0, sizeof(ScanCtx.arc_ctx.passphrase));
 
     // Comic
     ScanCtx.comic_ctx.log = _log;
@@ -440,6 +441,8 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "archive", &scan_args->archive, "Archive file mode (skip|list|shallow|recurse). "
                                                           "skip: Don't parse, list: only get file names as text, "
                                                           "shallow: Don't parse archives inside archives. DEFAULT: recurse"),
+            OPT_STRING(0, "archive-passphrase", &scan_args->archive_passphrase, "Passphrase for encrypted archive files"),
+
             OPT_STRING(0, "ocr", &scan_args->tesseract_lang, "Tesseract language (use tesseract --list-langs to see "
                                                              "which are installed on your machine)"),
             OPT_STRING('e', "exclude", &scan_args->exclude_regex, "Files that match this regex will not be scanned"),

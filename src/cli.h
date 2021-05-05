@@ -18,6 +18,7 @@ typedef struct scan_args {
     char *path;
     char *archive;
     archive_mode_t archive_mode;
+    char *archive_passphrase;
     char *tesseract_lang;
     const char *tesseract_path;
     char *exclude_regex;

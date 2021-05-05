@@ -227,6 +227,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg depth=%d", args->depth)
     LOG_DEBUGF("cli.c", "arg path=%s", args->path)
     LOG_DEBUGF("cli.c", "arg archive=%s", args->archive)
+    LOG_DEBUGF("cli.c", "arg archive_passphrase=%s", args->archive_passphrase)
     LOG_DEBUGF("cli.c", "arg tesseract_lang=%s", args->tesseract_lang)
     LOG_DEBUGF("cli.c", "arg tesseract_path=%s", args->tesseract_path)
     LOG_DEBUGF("cli.c", "arg exclude=%s", args->exclude_regex)

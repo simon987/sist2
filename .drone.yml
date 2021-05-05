@@ -11,6 +11,21 @@ steps:
     image: simon987/ubuntu_ci
     commands:
       - ./ci/build.sh
+  - name: docker
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: DOCKER_USER
+      password:
+        from_secret: DOCKER_PASSWORD
+      repo: simon987/sist2
+      context: ./Docker/
+      dockerfile: ./Docker/Dockerfile
+      auto_tag: true
+      auto_tag_suffix: x64-linux
+      when:
+        event:
+          - tag
   - name: scp files
     image: appleboy/drone-scp
     settings:
@@ -24,6 +39,7 @@ steps:
         from_secret: SSH_KEY
       target: /files/sist2/${DRONE_REPO_OWNER}_${DRONE_REPO_NAME}/${DRONE_BRANCH}_${DRONE_BUILD_NUMBER}_${DRONE_COMMIT}/
       source:
+        - ./VERSION
         - ./sist2-x64-linux
         - ./sist2-x64-linux-debug.tar.gz
 
@@ -51,6 +67,6 @@ steps:
         from_secret: SSH_USER
       key:
         from_secret: SSH_KEY
-      target: /files/sist2/${DRONE_REPO_OWNER}_${DRONE_REPO_NAME}/${DRONE_BRANCH}_${DRONE_BUILD_NUMBER}_${DRONE_COMMIT}/
+      target: /files/sist2/${DRONE_REPO_OWNER}_${DRONE_REPO_NAME}/arm_${DRONE_BRANCH}_${DRONE_BUILD_NUMBER}_${DRONE_COMMIT}/
       source:
         - ./sist2-arm64-linux
