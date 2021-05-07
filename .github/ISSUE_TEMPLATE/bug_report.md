@@ -1,6 +1,6 @@
 ---
 name: "🐞 Bug Report"
-about: Create a bug report to help us improve
+about: Submit a bug report 
 title: ''
 labels: bug
 assignees: ''
@@ -8,13 +8,13 @@ assignees: ''
 ---
 
 **Device Information (please complete the following information):**
- - OS: [e.g., Ubuntu 20.04, WSL2 on Win10, Mac]
- - Deployment: [Linux or Docker]
- - Browser: [e.g., chrome, safari]
- - SIST2 Version: [e.g., v2.9.0]
- - Elasticsearch Version:
+ - OS: `[e.g., Ubuntu 20.04, WSL2]`
+ - Deployment: `[Linux, Linux ARM64 or Docker]`
+ - Browser *(if relevant)*: `[e.g., chrome, safari]`
+ - SIST2 Version: `[e.g., v2.9.0]`
+ - Elasticsearch Version *(if relevant)* : ``
 
-**Command Run with arguments** 
+**Command with arguments** 
 <!-- `ex: "scan ~/Documents -o ./i2 --threads 3 -q 1.0` -->
 
 **Describe the bug**
