@@ -30,6 +30,69 @@ static const char *const usage[] = {
         NULL,
 };
 
+#include<signal.h>
+#include<unistd.h>
+
+static __sighandler_t sigsegv_handler = NULL;
+static __sighandler_t sigabrt_handler = NULL;
+
+void sig_handler(int signum) {
+
+    LogCtx.verbose = 1;
+    LogCtx.very_verbose = 1;
+
+    LOG_ERROR("*SIGNAL HANDLER*", "=============================================\n\n");
+    LOG_ERRORF("*SIGNAL HANDLER*", "Uh oh! Caught fatal signal: %s", strsignal(signum));
+
+    GHashTableIter iter;
+    g_hash_table_iter_init(&iter, ScanCtx.dbg_current_files);
+
+    void *key;
+    void *value;
+    while (g_hash_table_iter_next(&iter, &key, &value)) {
+        parse_job_t *job = value;
+
+        if (isatty(STDERR_FILENO)) {
+            LOG_DEBUGF(
+                    "*SIGNAL HANDLER*",
+                    "Thread \033[%dm[%04llX]\033[0m was working on job '%s'",
+                    31 + ((unsigned int) key) % 7, key, job->filepath
+            );
+        } else {
+            LOG_DEBUGF(
+                    "*SIGNAL HANDLER*",
+                    "THREAD [%04llX] was working on job %s",
+                    key, job->filepath
+            );
+        }
+    }
+
+    tpool_dump_debug_info(ScanCtx.pool);
+
+    LOG_INFO(
+            "*SIGNAL HANDLER*",
+            "Please consider creating a bug report at https://github.com/simon987/sist2/issues !"
+    )
+    LOG_INFO(
+            "*SIGNAL HANDLER*",
+            "sist2 is an open source project and relies on the collaboration of its users to diagnose and fix bugs"
+    )
+
+#ifndef SIST_DEBUG
+    LOG_WARNING(
+            "*SIGNAL HANDLER*",
+            "You are running sist2 in release mode! Please consider downloading the debug binary from the Github "
+            "releases page to provide additionnal information when submitting a bug report."
+    )
+#endif
+
+    if (signum == SIGSEGV && sigsegv_handler != NULL) {
+        sigsegv_handler(signum);
+    } else if (signum == SIGABRT && sigabrt_handler != NULL) {
+        sigabrt_handler(signum);
+    }
+}
+
 void init_dir(const char *dirpath) {
     char path[PATH_MAX];
     snprintf(path, PATH_MAX, "%sdescriptor.json", dirpath);
@@ -104,6 +167,8 @@ void initialize_scan_context(scan_args_t *args) {
     } else {
         ScanCtx.arc_ctx.passphrase[0] = 0;
     }
+
+    ScanCtx.dbg_current_files = g_hash_table_new(g_int64_hash, g_int64_equal);
 
     // Comic
     ScanCtx.comic_ctx.log = _log;
@@ -405,6 +470,9 @@ void sist2_web(web_args_t *args) {
 
 
 int main(int argc, const char *argv[]) {
+    sigsegv_handler = signal(SIGSEGV, sig_handler);
+    sigabrt_handler = signal(SIGABRT, sig_handler);
+
     setlocale(LC_ALL, "");
 
     scan_args_t *scan_args = scan_args_create();

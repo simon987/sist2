@@ -52,6 +52,13 @@ static tpool_work_t *tpool_work_create(thread_func_t func, void *arg) {
     return work;
 }
 
+void tpool_dump_debug_info(tpool_t *pool) {
+    LOG_DEBUGF("tpool.c", "pool->thread_cnt = %d", pool->thread_cnt)
+    LOG_DEBUGF("tpool.c", "pool->work_cnt = %d", pool->work_cnt)
+    LOG_DEBUGF("tpool.c", "pool->done_cnt = %d", pool->done_cnt)
+    LOG_DEBUGF("tpool.c", "pool->stop = %d", pool->stop)
+}
+
 /**
  * Pop work object from thread pool
  */
@@ -83,7 +90,7 @@ int tpool_add_work(tpool_t *pool, thread_func_t func, void *arg) {
     }
 
     while ((pool->work_cnt - pool->done_cnt) >= MAX_QUEUE_SIZE) {
-        usleep(100000);
+        usleep(10000);
     }
 
     pthread_mutex_lock(&(pool->work_mutex));
@@ -150,6 +157,7 @@ static void *tpool_worker(void *arg) {
     if (pool->cleanup_func != NULL) {
         LOG_INFO("tpool.c", "Executing cleanup function")
         pool->cleanup_func();
+        LOG_DEBUG("tpool.c", "Done executing cleanup function")
     }
 
     pthread_cond_signal(&(pool->working_cond));

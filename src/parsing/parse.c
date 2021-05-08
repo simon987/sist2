@@ -41,10 +41,17 @@ void fs_reset(struct vfile *f) {
 
 #define IS_GIT_OBJ (strlen(doc.filepath + doc.base) == 38 && (strstr(doc.filepath, "objects") != NULL))
 
+void set_dbg_current_file(parse_job_t *job) {
+    unsigned long long pid = (unsigned long long) pthread_self();
+    g_hash_table_replace(ScanCtx.dbg_current_files, GINT_TO_POINTER(pid), job);
+}
+
 void parse(void *arg) {
 
     parse_job_t *job = arg;
     document_t doc;
+
+    set_dbg_current_file(job);
 
     doc.filepath = job->filepath;
     doc.ext = (short) job->ext;
