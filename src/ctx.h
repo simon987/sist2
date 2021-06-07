@@ -40,6 +40,8 @@ typedef struct {
     pcre_extra *exclude_extra;
     int fast;
 
+    GHashTable *dbg_current_files;
+
     scan_arc_ctx_t arc_ctx;
     scan_comic_ctx_t comic_ctx;
     scan_ebook_ctx_t ebook_ctx;
