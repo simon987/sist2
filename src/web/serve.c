@@ -95,7 +95,7 @@ void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
     }
 
     char disposition[8192];
-    snprintf(disposition, sizeof(disposition), "Content-Disposition: inline; filename=\"%s\"", file);
+    snprintf(disposition, sizeof(disposition), "Content-Disposition: inline; filename=\"%s\"\r\n", file);
 
     char full_path[PATH_MAX];
     strcpy(full_path, index->path);
@@ -245,10 +245,10 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
     LOG_DEBUGF("serve.c", "Serving file from disk: %s", full_path)
 
     char disposition[8192];
-    snprintf(disposition, sizeof(disposition), "Content-Disposition: inline; filename=\"%s%s%s\"",
+    snprintf(disposition, sizeof(disposition), "Content-Disposition: inline; filename=\"%s%s%s\"\r\n",
              name, strlen(ext) == 0 ? "" : ".", ext);
 
-    mg_http_serve_file(nc, hm, full_path, mime, "");
+    mg_http_serve_file(nc, hm, full_path, mime, disposition);
 }
 
 void index_info(struct mg_connection *nc) {
@@ -571,7 +571,7 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
             file(nc, hm);
         } else if (mg_http_match_uri(hm, "/t/*/*")) {
             thumbnail(nc, hm);
-        } else if (mg_http_match_uri(hm, "/s/*")) {
+        } else if (mg_http_match_uri(hm, "/s/*/*")) {
             stats_files(nc, hm);
         } else if (mg_http_match_uri(hm, "/tag/*")) {
             if (WebCtx.tag_auth_enabled == TRUE && !validate_auth(nc, hm)) {
