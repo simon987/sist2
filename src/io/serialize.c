@@ -18,7 +18,7 @@ typedef struct {
 #define META_NEXT 0xFFFF
 
 void skip_meta(FILE *file) {
-    enum metakey key;
+    enum metakey key = 0;
     fread(&key, sizeof(uint16_t), 1, file);
 
     while (key != META_NEXT) {
@@ -237,7 +237,7 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
     FILE *file = fopen(path, "rb");
     while (TRUE) {
         buf.cur = 0;
-        size_t _ = fread((void *) &line, 1, sizeof(line_t), file);
+        size_t _ = fread((void *) &line, sizeof(line_t), 1, file);
         if (feof(file)) {
             break;
         }
@@ -284,8 +284,8 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
             cJSON_AddStringToObject(document, "path", "");
         }
 
-        enum metakey key;
-        fread(&key, sizeof(short), 1, file);
+        enum metakey key = 0;
+        fread(&key, sizeof(uint16_t), 1, file);
         size_t ret;
         while (key != META_NEXT) {
             switch (key) {
@@ -481,7 +481,7 @@ void incremental_read(GHashTable *table, const char *filepath) {
 
         incremental_put(table, line.path_md5, line.mtime);
 
-        while ((getc(file))) {}
+        while ((getc(file)) != 0) {}
         skip_meta(file);
     }
     fclose(file);
@@ -531,7 +531,7 @@ void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
                 free(buf);
             }
 
-            enum metakey key;
+            enum metakey key = 0;
             while (1) {
                 fread(&key, sizeof(uint16_t), 1, file);
                 fwrite(&key, sizeof(uint16_t), 1, dst_file);

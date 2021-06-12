@@ -17,17 +17,19 @@ def copy_files(files):
 
 
 def sist2(*args):
+    print("./sist2 " + " ".join(args))
+
     return subprocess.check_output(
-        args=["./sist2_debug", *args],
+        args=["./sist2", *args],
     )
 
 
 def sist2_index(files, *args):
     path = copy_files(files)
 
-    shutil.rmtree("i", ignore_errors=True)
-    sist2("scan", path, "-o", "i", *args)
-    return iter(sist2_index_to_dict("i"))
+    shutil.rmtree("test_i", ignore_errors=True)
+    sist2("scan", path, "-o", "test_i", *args)
+    return iter(sist2_index_to_dict("test_i"))
 
 
 def sist2_incremental_index(files, func=None, *args):
@@ -36,14 +38,14 @@ def sist2_incremental_index(files, func=None, *args):
     if func:
         func(path)
 
-    shutil.rmtree("i_inc", ignore_errors=True)
-    sist2("scan", path, "-o", "i_inc", "--incremental", "i", *args)
-    return iter(sist2_index_to_dict("i_inc"))
+    shutil.rmtree("test_i_inc", ignore_errors=True)
+    sist2("scan", path, "-o", "test_i_inc", "--incremental", "test_i", *args)
+    return iter(sist2_index_to_dict("test_i_inc"))
 
 
 def sist2_index_to_dict(index):
     res = subprocess.check_output(
-        args=["./sist2_debug", "index", "--print", index],
+        args=["./sist2", "index", "--print", index],
     )
 
     for line in res.splitlines():
