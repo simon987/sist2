@@ -192,6 +192,19 @@ function makeUserTag(tag, hit) {
     return userTag;
 }
 
+function makeGpsMetaRow(tbody, latitude, longitude) {
+    tbody.append($("<tr>")
+        .append($("<td>").text("Exif GPS"))
+        .append($("<td>")
+            .append($("<a>")
+                .text(`${latitude}, ${longitude}`)
+                .attr("href", `https://maps.google.com/?q=${latitude},${longitude}&ll=${latitude},${longitude}&t=k&z=17`)
+                .attr("target", "_blank")
+            )
+        )
+    );
+}
+
 function infoButtonCb(hit) {
     return () => {
         getDocumentInfo(hit["_id"]).then(doc => {
@@ -229,13 +242,25 @@ function infoButtonCb(hit) {
                     .text(new Date(doc["mtime"] * 1000).toISOString().split(".")[0].replace("T", " "))
                     .attr("title", doc["mtime"]))
             );
+
+            // Exif GPS
+            if ("exif_gps_longitude_dec" in doc) {
+                makeGpsMetaRow(tbody, doc["exif_gps_latitude_dec"], doc["exif_gps_longitude_dec"])
+            } else if ("exif_gps_longitude_dms" in doc) {
+                makeGpsMetaRow(
+                    tbody,
+                    dmsToDecimal(doc["exif_gps_latitude_dms"], doc["exif_gps_latitude_ref"]),
+                    dmsToDecimal(doc["exif_gps_longitude_dms"], doc["exif_gps_longitude_ref"]),
+                )
+            }
+
             const displayFields = new Set([
                 "mime", "size", "path", "title", "width", "height", "duration", "audioc", "videoc",
                 "bitrate", "artist", "album", "album_artist", "genre", "title", "font_name", "tag", "author",
                 "modified_by", "pages"
             ]);
             Object.keys(doc)
-                .filter(key => key.startsWith("_keyword.") || key.startsWith("_text.") || displayFields.has(key) || key.startsWith("exif_"))
+                .filter(key => key.startsWith("_keyword.") || key.startsWith("_text.") || displayFields.has(key) || (key.startsWith("exif_") && !key.includes("gps")))
                 .forEach(key => {
                     tbody.append($("<tr>")
                         .append($("<td>").text(key))
@@ -352,7 +377,7 @@ function createDocCard(hit) {
             audio.setAttribute("src", "f/" + hit["_id"]);
             audio.addEventListener("play", () => {
                 // Pause all currently playing audio tags
-                $("audio").each(function(){
+                $("audio").each(function () {
                     if (this !== audio) {
                         this.pause();
                     }

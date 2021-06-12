@@ -236,3 +236,13 @@ function updateColumnStyle() {
         `
     }
 }
+
+function dmsToDecimal(dms, ref) {
+    const tokens = dms.split(",")
+
+    const d = Number(tokens[0].trim().split(":")[0]) / Number(tokens[0].trim().split(":")[1])
+    const m = Number(tokens[1].trim().split(":")[0]) / Number(tokens[1].trim().split(":")[1])
+    const s = Number(tokens[2].trim().split(":")[0]) / Number(tokens[2].trim().split(":")[1])
+
+    return (d + (m / 60) + (s / 3600)) * (ref === "S" || ref === "W" ? -1 : 1)
+}
