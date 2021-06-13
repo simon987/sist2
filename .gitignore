@@ -16,3 +16,4 @@ bundle.js
 vgcore.*
 build/
 third-party/
+*.idx/

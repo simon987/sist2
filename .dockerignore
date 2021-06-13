@@ -21,3 +21,4 @@ third-party/libscan/libscan-test-files/
 **/ext_libmobi
 **/scan_a_test
 Dockerfile
+*.idx/
