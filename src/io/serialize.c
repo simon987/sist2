@@ -15,9 +15,13 @@ typedef struct {
     char has_parent;
 } line_t;
 
+#define META_NEXT 0xFFFF
+
 void skip_meta(FILE *file) {
-    enum metakey key = getc(file);
-    while (key != '\n') {
+    enum metakey key = 0;
+    fread(&key, sizeof(uint16_t), 1, file);
+
+    while (key != META_NEXT) {
         if (IS_META_INT(key)) {
             fseek(file, sizeof(int), SEEK_CUR);
         } else if (IS_META_LONG(key)) {
@@ -26,7 +30,7 @@ void skip_meta(FILE *file) {
             while ((getc(file))) {}
         }
 
-        key = getc(file);
+        fread(&key, sizeof(uint16_t), 1, file);
     }
 }
 
@@ -66,7 +70,7 @@ index_descriptor_t read_index_descriptor(char *path) {
     }
 
     char *buf = malloc(info.st_size + 1);
-    int ret = read(fd, buf, info.st_size);
+    size_t ret = read(fd, buf, info.st_size);
     if (ret == -1) {
         LOG_FATALF("serialize.c", "Could not read index descriptor: %s", strerror(errno));
     }
@@ -152,8 +156,20 @@ char *get_meta_key_text(enum metakey meta_key) {
             return "thumbnail";
         case MetaPages:
             return "pages";
+        case MetaExifGpsLongitudeRef:
+            return "exif_gps_longitude_ref";
+        case MetaExifGpsLongitudeDMS:
+            return "exif_gps_longitude_dms";
+        case MetaExifGpsLongitudeDec:
+            return "exif_gps_longitude_dec";
+        case MetaExifGpsLatitudeRef:
+            return "exif_gps_latitude_ref";
+        case MetaExifGpsLatitudeDMS:
+            return "exif_gps_latitude_dms";
+        case MetaExifGpsLatitudeDec:
+            return "exif_gps_latitude_dec";
         default:
-            return NULL;
+        LOG_FATALF("serialize.c", "FIXME: Unknown meta key: %d", meta_key)
     }
 }
 
@@ -183,7 +199,7 @@ void write_document(document_t *doc) {
 
     meta_line_t *meta = doc->meta_head;
     while (meta != NULL) {
-        dyn_buffer_write_char(&buf, meta->key);
+        dyn_buffer_write_short(&buf, (uint16_t) meta->key);
 
         if (IS_META_INT(meta->key)) {
             dyn_buffer_write_int(&buf, meta->int_val);
@@ -197,7 +213,7 @@ void write_document(document_t *doc) {
         meta = meta->next;
         free(tmp);
     }
-    dyn_buffer_write_char(&buf, '\n');
+    dyn_buffer_write_short(&buf, META_NEXT);
 
     int res = write(index_fd, buf.buf, buf.cur);
     if (res == -1) {
@@ -221,7 +237,7 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
     FILE *file = fopen(path, "rb");
     while (TRUE) {
         buf.cur = 0;
-        size_t _ = fread((void *) &line, 1, sizeof(line_t), file);
+        size_t _ = fread((void *) &line, sizeof(line_t), 1, file);
         if (feof(file)) {
             break;
         }
@@ -268,9 +284,10 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
             cJSON_AddStringToObject(document, "path", "");
         }
 
-        enum metakey key = getc(file);
-        size_t ret = 0;
-        while (key != '\n') {
+        enum metakey key = 0;
+        fread(&key, sizeof(uint16_t), 1, file);
+        size_t ret;
+        while (key != META_NEXT) {
             switch (key) {
                 case MetaPages:
                 case MetaWidth:
@@ -308,6 +325,12 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
                 case MetaAuthor:
                 case MetaModifiedBy:
                 case MetaThumbnail:
+                case MetaExifGpsLongitudeDMS:
+                case MetaExifGpsLongitudeDec:
+                case MetaExifGpsLongitudeRef:
+                case MetaExifGpsLatitudeDMS:
+                case MetaExifGpsLatitudeDec:
+                case MetaExifGpsLatitudeRef:
                 case MetaTitle: {
                     buf.cur = 0;
                     while ((c = getc(file)) != 0) {
@@ -323,7 +346,7 @@ void read_index_bin(const char *path, const char *index_id, index_func func) {
                 LOG_FATALF("serialize.c", "Invalid meta key (corrupt index): %x", key)
             }
 
-            key = getc(file);
+            fread(&key, sizeof(uint16_t), 1, file);
         }
 
         cJSON *meta_obj = NULL;
@@ -458,7 +481,7 @@ void incremental_read(GHashTable *table, const char *filepath) {
 
         incremental_put(table, line.path_md5, line.mtime);
 
-        while ((getc(file))) {}
+        while ((getc(file)) != 0) {}
         skip_meta(file);
     }
     fclose(file);
@@ -508,11 +531,11 @@ void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
                 free(buf);
             }
 
-            enum metakey key;
+            enum metakey key = 0;
             while (1) {
-                key = getc(file);
-                fwrite(&key, sizeof(char), 1, dst_file);
-                if (key == '\n') {
+                fread(&key, sizeof(uint16_t), 1, file);
+                fwrite(&key, sizeof(uint16_t), 1, dst_file);
+                if (key == META_NEXT) {
                     break;
                 }
 

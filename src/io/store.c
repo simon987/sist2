@@ -4,6 +4,7 @@
 store_t *store_create(char *path, size_t chunk_size) {
 
     store_t *store = malloc(sizeof(struct store_t));
+#if (SIST_FAKE_STORE != 1)
     store->chunk_size = chunk_size;
     pthread_rwlock_init(&store->lock, NULL);
 
@@ -28,15 +29,18 @@ store_t *store_create(char *path, size_t chunk_size) {
     mdb_txn_begin(store->env, NULL, 0, &txn);
     mdb_dbi_open(txn, NULL, 0, &store->dbi);
     mdb_txn_commit(txn);
+#endif
 
     return store;
 }
 
 void store_destroy(store_t *store) {
 
+#if (SIST_FAKE_STORE != 1)
     pthread_rwlock_destroy(&store->lock);
     mdb_close(store->env, store->dbi);
     mdb_env_close(store->env);
+#endif
     free(store);
 }
 
@@ -55,6 +59,8 @@ void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t bu
             LOG_DEBUGF("store.c", "Store write {%s} %lu bytes", key, buf_len)
         }
     }
+
+#if (SIST_FAKE_STORE != 1)
 
     MDB_val mdb_key;
     mdb_key.mv_data = key;
@@ -92,10 +98,13 @@ void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t bu
     if (put_ret != 0) {
         LOG_ERROR("store.c", mdb_strerror(put_ret))
     }
+#endif
 }
 
 char *store_read(store_t *store, char *key, size_t key_len, size_t *ret_vallen) {
     char *buf = NULL;
+
+#if (SIST_FAKE_STORE != 1)
     MDB_val mdb_key;
     mdb_key.mv_data = key;
     mdb_key.mv_size = key_len;
@@ -116,6 +125,7 @@ char *store_read(store_t *store, char *key, size_t key_len, size_t *ret_vallen) 
     }
 
     mdb_txn_abort(txn);
+#endif
     return buf;
 }
 

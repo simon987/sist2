@@ -25,13 +25,11 @@ sist2 (Simple incremental search tool)
 * OCR support with tesseract \*\*\*
 * Stats page & disk utilisation visualization
 
-
 \* See [format support](#format-support)    
 \*\* See [Archive files](#archive-files)    
-\*\*\* See [OCR](#ocr)    
+\*\*\* See [OCR](#ocr)
 
 ![stats](docs/stats.png)
-
 
 ## Getting Started
 
@@ -56,10 +54,8 @@ sist2 (Simple incremental search tool)
     1. *(or)* `docker pull simon987/sist2:latest`
 
 1. See [Usage guide](docs/USAGE.md)
-   
 
-\* *Windows users*: **sist2** runs under [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux)    
-
+\* *Windows users*: **sist2** runs under [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux)
 
 ## Example usage
 
@@ -69,7 +65,6 @@ See [Usage guide](docs/USAGE.md) for more details
 1. Push index to Elasticsearch: `sist2 index ./docs_idx`
 1. Start web interface: `sist2 web ./docs_idx`
 
-
 ## Format support
 
 File type | Library | Content | Thumbnail | Metadata
@@ -78,8 +73,8 @@ pdf,xps,fb2,epub | MuPDF | text+ocr | yes | author, title |
 cbz,cbr | *(none)* | - | yes | - |
 `audio/*` | ffmpeg | - | yes | ID3 tags |
 `video/*` | ffmpeg | - | yes | title, comment, artist |
-`image/*` | ffmpeg | - | yes | [Common EXIF tags](https://github.com/simon987/sist2/blob/efdde2734eca9b14a54f84568863b7ffd59bdba3/src/parsing/media.c#L190) |
-raw, rw2, dng, cr2, crw, dcr, k25, kdc, mrw, pef, xf3, arw, sr2, srf, erf  | LibRaw | - | yes | Common EXIF tags |
+`image/*` | ffmpeg | - | yes | [Common EXIF tags](https://github.com/simon987/sist2/blob/efdde2734eca9b14a54f84568863b7ffd59bdba3/src/parsing/media.c#L190), GPS tags |
+raw, rw2, dng, cr2, crw, dcr, k25, kdc, mrw, pef, xf3, arw, sr2, srf, erf  | LibRaw | - | yes | Common EXIF tags, GPS tags |
 ttf,ttc,cff,woff,fnt,otf | Freetype2 | - | yes, `bmp` | Name & style |
 `text/plain` | *(none)* | yes | no | - |
 html, xml | *(none)* | yes | no | - |
@@ -89,40 +84,39 @@ doc (MS Word 97-2003) | antiword | yes | yes | author, title |
 mobi, azw, azw3 | libmobi | yes | no | author, title |
 
 \* *See [Archive files](#archive-files)*
- 
+
 ### Archive files
-**sist2** will scan files stored into archive files (zip, tar, 7z...) as if
-they were directly in the file system. Recursive (archives inside archives)
+
+**sist2** will scan files stored into archive files (zip, tar, 7z...) as if they were directly in the file system.
+Recursive (archives inside archives)
 scan is also supported.
 
 **Limitations**:
-* Support for parsing media files with formats that require *seek* (e.g. `.gif`, `.mp4` w/ fragmented metadata etc.) 
+
+* Support for parsing media files with formats that require *seek* (e.g. `.gif`, `.mp4` w/ fragmented metadata etc.)
   is limitted (see `--mem-buffer` option)
 * Archive files are scanned sequentially, by a single thread. On systems where
-**sist2** is not I/O bound, scans might be faster when larger archives are split
- into smaller parts.
- 
- 
+  **sist2** is not I/O bound, scans might be faster when larger archives are split into smaller parts.
+
 ### OCR
 
 You can enable OCR support for pdf,xps,fb2,epub file types with the
-`--ocr <lang>` option. Download the language data files with your
-package manager (`apt install tesseract-ocr-eng`) or directly [from Github](https://github.com/tesseract-ocr/tesseract/wiki/Data-Files).
+`--ocr <lang>` option. Download the language data files with your package manager (`apt install tesseract-ocr-eng`) or
+directly [from Github](https://github.com/tesseract-ocr/tesseract/wiki/Data-Files).
 
-The `simon987/sist2` image comes with common languages 
+The `simon987/sist2` image comes with common languages
 (hin, jpn, eng, fra, rus, spa) pre-installed.
 
 Examples
+
 ```bash
 sist2 scan --ocr jpn ~/Books/Manga/
 sist2 scan --ocr eng ~/Books/Textbooks/
 ```
 
-
 ## Build from source
 
-You can compile **sist2** by yourself if you don't want to use the pre-compiled
-binaries (GCC 7+ required).
+You can compile **sist2** by yourself if you don't want to use the pre-compiled binaries (GCC 7+ required).
 
 1. Install compile-time dependencies
 

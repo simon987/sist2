@@ -12,7 +12,7 @@
 
 <nav class="navbar navbar-expand-lg">
     <a class="navbar-brand" href="/">sist2</a>
-    <span class="badge badge-pill version">2.9.0</span>
+    <span class="badge badge-pill version">2.10.1</span>
     <span class="tagline">Lightning-fast file system indexer and search tool </span>
     <a class="btn ml-auto" href="stats">Stats</a>
     <button class="btn" type="button" data-toggle="modal" data-target="#settings" onclick="loadSettings()">Settings
@@ -120,6 +120,8 @@
                 </div>
                 <div class="modal-body">
 
+                    <h2>Simple search</h2>
+
                     <table class="table">
                         <tbody>
                         <tr>
@@ -168,6 +170,12 @@
                     <p>For more information, see <a target="_blank"
                                                     href="//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html">Elasticsearch
                         documentation</a></p>
+
+                    <h2>Advanced search</h2>
+                    <p>For documentation about the advanced search mode, see <a target="_blank"
+                                                                                href="//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax">Elasticsearch
+                        documentation</a></p>
+
                 </div>
             </div>
         </div>
@@ -207,9 +215,15 @@
 
                     <br/>
                     <div class="form-group">
-                        <input type="number" class="form-control" id="settingFragmentSize">
                         <label for="settingFragmentSize">Highlight context size in characters</label>
+                        <input type="number" class="form-control" id="settingFragmentSize">
                     </div>
+
+                    <label for="settingQueryMode">Search mode</label>
+                    <select id="settingQueryMode" class="form-control form-control-sm">
+                        <option value="simple">Simple</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
 
                     <label for="settingDisplay">Display</label>
                     <select id="settingDisplay" class="form-control form-control-sm">

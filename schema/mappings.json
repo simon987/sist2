@@ -105,10 +105,10 @@
       "analyzer": "my_nGram",
       "type": "text"
     },
-    "_keyword.*":  {
+    "_keyword.*": {
       "type": "keyword"
     },
-    "_text.*":  {
+    "_text.*": {
       "analyzer": "content_analyzer",
       "type": "text",
       "fields": {
@@ -164,6 +164,30 @@
     },
     "exif_user_comment": {
       "type": "text"
+    },
+    "exif_gps_longitude_ref": {
+      "type": "keyword",
+      "index": false
+    },
+    "exif_gps_longitude_dms": {
+      "type": "keyword",
+      "index": false
+    },
+    "exif_gps_longitude_dec": {
+      "type": "keyword",
+      "index": false
+    },
+    "exif_gps_latitude_ref": {
+      "type": "keyword",
+      "index": false
+    },
+    "exif_gps_latitude_dms": {
+      "type": "keyword",
+      "index": false
+    },
+    "exif_gps_latitude_dec": {
+      "type": "keyword",
+      "index": false
     },
     "author": {
       "type": "text"

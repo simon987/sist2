@@ -10,7 +10,7 @@
 
 <nav class="navbar navbar-expand-lg">
     <a class="navbar-brand" href="/">sist2</a>
-    <span class="badge badge-pill version">2.9.0</span>
+    <span class="badge badge-pill version">2.10.1</span>
     <span class="tagline">Lightning-fast file system indexer and search tool </span>
     <a style="margin-left: auto" class="btn" href="/">Back</a>
     <button class="btn" type="button" data-toggle="modal" data-target="#settings"
@@ -84,9 +84,15 @@
 
                 <br/>
                 <div class="form-group">
-                    <input type="number" class="form-control" id="settingFragmentSize">
                     <label for="settingFragmentSize">Highlight context size in characters</label>
+                    <input type="number" class="form-control" id="settingFragmentSize">
                 </div>
+
+                <label for="settingQueryMode">Search mode</label>
+                <select id="settingQueryMode" class="form-control form-control-sm">
+                    <option value="simple">Simple</option>
+                    <option value="advanced">Advanced</option>
+                </select>
 
                 <label for="settingDisplay">Display</label>
                 <select id="settingDisplay" class="form-control form-control-sm">

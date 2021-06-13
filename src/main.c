@@ -21,7 +21,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.9.0";
+static const char *const Version = "2.10.1";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -29,6 +29,69 @@ static const char *const usage[] = {
         "sist2 exec-script [OPTION]... INDEX",
         NULL,
 };
+
+#include<signal.h>
+#include<unistd.h>
+
+static __sighandler_t sigsegv_handler = NULL;
+static __sighandler_t sigabrt_handler = NULL;
+
+void sig_handler(int signum) {
+
+    LogCtx.verbose = 1;
+    LogCtx.very_verbose = 1;
+
+    LOG_ERROR("*SIGNAL HANDLER*", "=============================================\n\n");
+    LOG_ERRORF("*SIGNAL HANDLER*", "Uh oh! Caught fatal signal: %s", strsignal(signum));
+
+    GHashTableIter iter;
+    g_hash_table_iter_init(&iter, ScanCtx.dbg_current_files);
+
+    void *key;
+    void *value;
+    while (g_hash_table_iter_next(&iter, &key, &value)) {
+        parse_job_t *job = value;
+
+        if (isatty(STDERR_FILENO)) {
+            LOG_DEBUGF(
+                    "*SIGNAL HANDLER*",
+                    "Thread \033[%dm[%04llX]\033[0m was working on job '%s'",
+                    31 + ((unsigned int) key) % 7, key, job->filepath
+            );
+        } else {
+            LOG_DEBUGF(
+                    "*SIGNAL HANDLER*",
+                    "THREAD [%04llX] was working on job %s",
+                    key, job->filepath
+            );
+        }
+    }
+
+    tpool_dump_debug_info(ScanCtx.pool);
+
+    LOG_INFO(
+            "*SIGNAL HANDLER*",
+            "Please consider creating a bug report at https://github.com/simon987/sist2/issues !"
+    )
+    LOG_INFO(
+            "*SIGNAL HANDLER*",
+            "sist2 is an open source project and relies on the collaboration of its users to diagnose and fix bugs"
+    )
+
+#ifndef SIST_DEBUG
+    LOG_WARNING(
+            "*SIGNAL HANDLER*",
+            "You are running sist2 in release mode! Please consider downloading the debug binary from the Github "
+            "releases page to provide additionnal information when submitting a bug report."
+    )
+#endif
+
+    if (signum == SIGSEGV && sigsegv_handler != NULL) {
+        sigsegv_handler(signum);
+    } else if (signum == SIGABRT && sigabrt_handler != NULL) {
+        sigabrt_handler(signum);
+    }
+}
 
 void init_dir(const char *dirpath) {
     char path[PATH_MAX];
@@ -99,6 +162,13 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.arc_ctx.log = _log;
     ScanCtx.arc_ctx.logf = _logf;
     ScanCtx.arc_ctx.parse = (parse_callback_t) parse;
+    if (args->archive_passphrase != NULL) {
+        strcpy(ScanCtx.arc_ctx.passphrase, args->archive_passphrase);
+    } else {
+        ScanCtx.arc_ctx.passphrase[0] = 0;
+    }
+
+    ScanCtx.dbg_current_files = g_hash_table_new(g_int64_hash, g_int64_equal);
 
     // Comic
     ScanCtx.comic_ctx.log = _log;
@@ -132,6 +202,7 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.media_ctx.logf = _logf;
     ScanCtx.media_ctx.store = _store;
     ScanCtx.media_ctx.max_media_buffer = (long) args->max_memory_buffer * 1024 * 1024;
+    ScanCtx.media_ctx.read_subtitles = args->read_subtitles;
     init_media();
 
     // OOXML
@@ -399,6 +470,9 @@ void sist2_web(web_args_t *args) {
 
 
 int main(int argc, const char *argv[]) {
+    sigsegv_handler = signal(SIGSEGV, sig_handler);
+    sigabrt_handler = signal(SIGABRT, sig_handler);
+
     setlocale(LC_ALL, "");
 
     scan_args_t *scan_args = scan_args_create();
@@ -439,6 +513,9 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "archive", &scan_args->archive, "Archive file mode (skip|list|shallow|recurse). "
                                                           "skip: Don't parse, list: only get file names as text, "
                                                           "shallow: Don't parse archives inside archives. DEFAULT: recurse"),
+            OPT_STRING(0, "archive-passphrase", &scan_args->archive_passphrase,
+                       "Passphrase for encrypted archive files"),
+
             OPT_STRING(0, "ocr", &scan_args->tesseract_lang, "Tesseract language (use tesseract --list-langs to see "
                                                              "which are installed on your machine)"),
             OPT_STRING('e', "exclude", &scan_args->exclude_regex, "Files that match this regex will not be scanned"),
@@ -448,6 +525,7 @@ int main(int argc, const char *argv[]) {
             OPT_INTEGER(0, "mem-buffer", &scan_args->max_memory_buffer,
                         "Maximum memory buffer size per thread in MB for files inside archives "
                         "(see USAGE.md). DEFAULT: 2000"),
+            OPT_BOOLEAN(0, "read-subtitles", &scan_args->read_subtitles, "Read subtitles from media files."),
 
             OPT_GROUP("Index options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),

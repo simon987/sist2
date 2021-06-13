@@ -18,6 +18,7 @@ typedef struct scan_args {
     char *path;
     char *archive;
     archive_mode_t archive_mode;
+    char *archive_passphrase;
     char *tesseract_lang;
     const char *tesseract_path;
     char *exclude_regex;
@@ -25,6 +26,7 @@ typedef struct scan_args {
     const char* treemap_threshold_str;
     double treemap_threshold;
     int max_memory_buffer;
+    int read_subtitles;
 } scan_args_t;
 
 scan_args_t *scan_args_create();

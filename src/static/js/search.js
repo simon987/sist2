@@ -511,8 +511,8 @@ function search(after = null) {
         searchResults.appendChild(preload);
     }
 
-    let query = searchBar.value;
-    let empty = query === "";
+    let searchBarValue = searchBar.value;
+    let empty = searchBarValue === "";
     let condition = empty ? "should" : "must";
     let filters = [
         {range: {size: {gte: size_min, lte: size_max}}},
@@ -561,19 +561,32 @@ function search(after = null) {
         filters.push({range: {mtime: {lte: date_max}}})
     }
 
+    let query;
+    if (CONF.options.queryMode === "simple") {
+        query = {
+            simple_query_string: {
+                query: searchBarValue,
+                fields: fields,
+                default_operator: "and"
+            }
+        }
+    } else {
+        query = {
+            query_string: {
+                query: searchBarValue,
+                default_field: "name",
+                default_operator: "and"
+            }
+        }
+    }
+
     let q = {
         "_source": {
             excludes: ["content", "_tie"]
         },
         query: {
             bool: {
-                [condition]: {
-                    simple_query_string: {
-                        query: query,
-                        fields: fields,
-                        default_operator: "and"
-                    }
-                },
+                [condition]: query,
                 filter: filters
             }
         },
@@ -611,7 +624,9 @@ function search(after = null) {
         }
     }
 
-    $.jsonPost("es", q).then(searchResult => {
+    const showError = CONF.options.queryMode === "advanced";
+
+    $.jsonPost("es", q, showError).then(searchResult => {
         let hits = searchResult["hits"]["hits"];
         if (hits) {
             lastDoc = hits[hits.length - 1];
@@ -645,7 +660,25 @@ function search(after = null) {
         reachedEnd = hits.length !== SIZE;
         insertHits(resultContainer, hits);
         searchBusy = false;
-    });
+    }).fail(() => {
+        searchBusy = false;
+        if (!after) {
+            preload.remove();
+        }
+
+        console.log("QUERY:")
+        console.log(q)
+        $.toast({
+            heading: "Query error",
+            text: "Could not parse or execute query, please check the Advanced search documentation. " +
+                "See server logs for more information.",
+            stack: false,
+            bgColor: "#FF8F00",
+            textColor: "#FFF3E0",
+            position: 'bottom-right',
+            hideAfter: false
+        });
+    })
 }
 
 

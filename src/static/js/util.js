@@ -70,7 +70,7 @@ function strUnescape(str) {
 
     for (let i = 0; i < str.length; i++) {
         const c = str[i];
-        const next = str[i+1];
+        const next = str[i + 1];
 
         if (c === ']') {
             if (next === ']') {
@@ -102,7 +102,8 @@ const _defaults = {
     treemapSize: "large",
     suggestPath: true,
     fragmentSize: 100,
-    columns: 5
+    columns: 5,
+    queryMode: "simple"
 };
 
 function loadSettings() {
@@ -120,6 +121,7 @@ function loadSettings() {
     $("#settingSuggestPath").prop("checked", CONF.options.suggestPath);
     $("#settingFragmentSize").val(CONF.options.fragmentSize);
     $("#settingColumns").val(CONF.options.columns);
+    $("#settingQueryMode").val(CONF.options.queryMode);
 }
 
 function Settings() {
@@ -127,6 +129,7 @@ function Settings() {
 
     this._onUpdate = function () {
         $("#fuzzyToggle").prop("checked", this.options.fuzzy);
+        $("#searchBar").attr("placeholder", this.options.queryMode === "simple" ? "Search" : "Advanced search");
         updateColumnStyle();
     };
 
@@ -165,6 +168,7 @@ function updateSettings() {
     CONF.options.suggestPath = $("#settingSuggestPath").prop("checked");
     CONF.options.fragmentSize = $("#settingFragmentSize").val();
     CONF.options.columns = $("#settingColumns").val();
+    CONF.options.queryMode = $("#settingQueryMode").val();
     CONF.save();
 
     if (typeof searchDebounced !== "undefined") {
@@ -187,14 +191,16 @@ function updateSettings() {
     });
 }
 
-jQuery["jsonPost"] = function (url, data) {
+jQuery["jsonPost"] = function (url, data, showError = true) {
     return jQuery.ajax({
         url: url,
         type: "post",
         data: JSON.stringify(data),
         contentType: "application/json"
     }).fail(err => {
-        showEsError();
+        if (showError) {
+            showEsError();
+        }
         console.log(err);
     });
 };
@@ -212,7 +218,7 @@ function updateColumnStyle() {
     const style = document.getElementById("style");
     if (style) {
         style.innerHTML =
-        `
+            `
 @media screen and (min-width: 1500px) {
     .container {
             max-width: 1440px;
@@ -229,4 +235,14 @@ function updateColumnStyle() {
 }
         `
     }
+}
+
+function dmsToDecimal(dms, ref) {
+    const tokens = dms.split(",")
+
+    const d = Number(tokens[0].trim().split(":")[0]) / Number(tokens[0].trim().split(":")[1])
+    const m = Number(tokens[1].trim().split(":")[0]) / Number(tokens[1].trim().split(":")[1])
+    const s = Number(tokens[2].trim().split(":")[0]) / Number(tokens[2].trim().split(":")[1])
+
+    return (d + (m / 60) + (s / 3600)) * (ref === "S" || ref === "W" ? -1 : 1)
 }
