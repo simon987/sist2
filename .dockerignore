@@ -22,3 +22,4 @@ third-party/libscan/libscan-test-files/
 **/scan_a_test
 Dockerfile
 *.idx/
+VERSION

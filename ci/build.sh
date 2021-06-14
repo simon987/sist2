@@ -2,7 +2,7 @@
 
 VCPKG_ROOT="/vcpkg"
 
-rm *.gz
+rm *.gz &>/dev/null
 
 git submodule update --init --recursive
 
@@ -11,7 +11,6 @@ cmake -DSIST_DEBUG=off -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystem
 make -j $(nproc)
 strip sist2
 ./sist2 -v > VERSION
-cp sist2 Docker/
 mv sist2 sist2-x64-linux
 
 rm -rf CMakeFiles CMakeCache.txt

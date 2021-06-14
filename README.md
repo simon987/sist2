@@ -50,8 +50,8 @@ sist2 (Simple incremental search tool)
         ```
 1. Download sist2 executable
     1. Download the [latest sist2 release](https://github.com/simon987/sist2/releases) *
-    1. *(or)* Download a [development snapshot](https://files.simon987.net/sist2/simon987_sist2/) *(Not recommended!)*
-    1. *(or)* `docker pull simon987/sist2:latest`
+    1. *(or)* Download a [development snapshot](https://files.simon987.net/.gate/sist2/simon987_sist2/) *(Not recommended!)*
+    1. *(or)* `docker pull simon987/sist2:2.10.1-x64-linux`
 
 1. See [Usage guide](docs/USAGE.md)
 
@@ -67,7 +67,7 @@ See [Usage guide](docs/USAGE.md) for more details
 
 ## Format support
 
-File type | Library | Content | Thumbnail | Metadata
+File type | Library | Content | Thumbnail | Metadata
 :---|:---|:---|:---|:---
 pdf,xps,fb2,epub | MuPDF | text+ocr | yes | author, title |
 cbz,cbr | *(none)* | - | yes | - |
@@ -116,15 +116,35 @@ sist2 scan --ocr eng ~/Books/Textbooks/
 
 ## Build from source
 
-You can compile **sist2** by yourself if you don't want to use the pre-compiled binaries (GCC 7+ required).
+You can compile **sist2** by yourself if you don't want to use the pre-compiled binaries
+
+### With docker (recommended)
+
+```bash
+git clone --recursive https://github.com/simon987/sist2/
+cd sist2
+docker build . -f ./Dockerfile -t my-sist2-image
+docker run --rm my-sist2-image cat /root/sist2 > sist2-x64-linux
+```
+
+### On a linux computer
 
 1. Install compile-time dependencies
 
    ```bash
-   vcpkg install lmdb cjson glib libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 ffmpeg zstd gtest mongoose libmagic libraw curl[core,ssl] jbig2dec brotli libmupdf
+   apt install gcc g++ python3 yasm ragel automake autotools-dev wget libtool libssl-dev curl zip unzip tar xorg-dev libglu1-mesa-dev libxcursor-dev libxml2-dev libxinerama-dev gettext nasm git
    ```
+   
+1. Apply vcpkg patches, as per [sist2-build](https://github.com/simon987/sist2-build) Dockerfile
 
-2. Build
+1. Install vcpkg dependencies
+
+    ```bash
+    vcpkg install curl[core,openssl]
+    vcpkg install lmdb cjson glib brotli libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 libmupdf gtest mongoose libuuid libmagic libraw jasper lcms gumbo
+    ```
+
+1. Build
     ```bash
     git clone --recursive https://github.com/simon987/sist2/
     cmake -DSIST_DEBUG=off -DCMAKE_TOOLCHAIN_FILE=<VCPKG_ROOT>/scripts/buildsystems/vcpkg.cmake .

@@ -43,30 +43,30 @@ steps:
         - ./sist2-x64-linux
         - ./sist2-x64-linux-debug
 
-#---
-#kind: pipeline
-#type: docker
-#name: arm64
-#
-#platform:
-#  arch: arm64
-#
-#steps:
-#  - name: build
-#    image: simon987/ubuntu_ci_arm
-#    commands:
-#      - ./ci/build_arm64.sh
-#  - name: scp files
-#    image: appleboy/drone-scp
-#    settings:
-#      host:
-#        from_secret: SSH_HOST
-#      port:
-#        from_secret: SSH_PORT
-#      user:
-#        from_secret: SSH_USER
-#      key:
-#        from_secret: SSH_KEY
-#      target: /files/sist2/${DRONE_REPO_OWNER}_${DRONE_REPO_NAME}/arm_${DRONE_BRANCH}_${DRONE_BUILD_NUMBER}_${DRONE_COMMIT}/
-#      source:
-#        - ./sist2-arm64-linux
+---
+kind: pipeline
+type: docker
+name: arm64
+
+platform:
+  arch: arm64
+
+steps:
+  - name: build
+    image: simon987/sist2-build-arm64
+    commands:
+      - ./ci/build_arm64.sh
+  - name: scp files
+    image: appleboy/drone-scp
+    settings:
+      host:
+        from_secret: SSH_HOST
+      port:
+        from_secret: SSH_PORT
+      user:
+        from_secret: SSH_USER
+      key:
+        from_secret: SSH_KEY
+      target: /files/sist2/${DRONE_REPO_OWNER}_${DRONE_REPO_NAME}/arm_${DRONE_BRANCH}_${DRONE_BUILD_NUMBER}_${DRONE_COMMIT}/
+      source:
+        - ./sist2-arm64-linux

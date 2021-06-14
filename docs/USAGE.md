@@ -357,8 +357,7 @@ You can safely copy the `/tags/` database to another index.
 See [Automatic tagging](#automatic-tagging) for information about tag 
  hierarchies and tag colors.
 
-\* *It can take a few seconds to take effect in new search queries, and the page needs 
-    to be reloaded for the tags tab to update*
+\* *It can take a few seconds to take effect in new search queries.*
 
 
 ### Automatic tagging
