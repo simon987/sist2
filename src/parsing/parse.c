@@ -43,7 +43,9 @@ void fs_reset(struct vfile *f) {
 
 void set_dbg_current_file(parse_job_t *job) {
     unsigned long long pid = (unsigned long long) pthread_self();
+    pthread_mutex_lock(&ScanCtx.dbg_current_files_mu);
     g_hash_table_replace(ScanCtx.dbg_current_files, GINT_TO_POINTER(pid), job);
+    pthread_mutex_unlock(&ScanCtx.dbg_current_files_mu);
 }
 
 void parse(void *arg) {

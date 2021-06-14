@@ -168,7 +168,8 @@ void initialize_scan_context(scan_args_t *args) {
         ScanCtx.arc_ctx.passphrase[0] = 0;
     }
 
-    ScanCtx.dbg_current_files = g_hash_table_new(g_int64_hash, g_int64_equal);
+    ScanCtx.dbg_current_files = g_hash_table_new_full(g_int64_hash, g_int64_equal, NULL, NULL);
+    pthread_mutex_init(&ScanCtx.dbg_current_files_mu, NULL);
 
     // Comic
     ScanCtx.comic_ctx.log = _log;

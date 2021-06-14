@@ -41,6 +41,7 @@ typedef struct {
     int fast;
 
     GHashTable *dbg_current_files;
+    pthread_mutex_t dbg_current_files_mu;
 
     scan_arc_ctx_t arc_ctx;
     scan_comic_ctx_t comic_ctx;
