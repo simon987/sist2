@@ -427,6 +427,7 @@ void sist2_exec_script(exec_args_t *args) {
     index_descriptor_t desc = read_index_descriptor(descriptor_path);
 
     IndexCtx.es_url = args->es_url;
+    IndexCtx.es_index = args->es_index;
 
     LOG_DEBUGF("main.c", "descriptor version %s (%s)", desc.version, desc.type)
 
