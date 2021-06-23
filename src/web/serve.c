@@ -220,7 +220,10 @@ void serve_file_from_url(cJSON *json, index_t *idx, struct mg_connection *nc) {
     dyn_buffer_t encoded = url_escape(url);
     dyn_buffer_write_char(&encoded, '\0');
 
-    mg_http_reply(nc, 308, "Location: %s", encoded.buf);
+    char location_header[8192];
+    snprintf(location_header, sizeof(location_header), "Location: %s\r\n", encoded.buf);
+
+    mg_http_reply(nc, 308, location_header, "");
     dyn_buffer_destroy(&encoded);
 }
 
@@ -531,7 +534,7 @@ int validate_auth(struct mg_connection *nc, struct mg_http_message *hm) {
 
     mg_http_creds(hm, user, sizeof(user), pass, sizeof(pass));
     if (strcmp(user, WebCtx.auth_user) != 0 || strcmp(pass, WebCtx.auth_pass) != 0) {
-        mg_http_reply(nc, 401, "WWW-Authenticate: Basic realm=\"sist2\"", "");
+        mg_http_reply(nc, 401, "WWW-Authenticate: Basic realm=\"sist2\"\r\n", "");
         return FALSE;
     }
     return TRUE;
@@ -544,7 +547,6 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
 
         if (WebCtx.auth_enabled == TRUE) {
             if (!validate_auth(nc, hm)) {
-                nc->is_closing = 1;
                 return;
             }
         }
@@ -575,7 +577,6 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
             stats_files(nc, hm);
         } else if (mg_http_match_uri(hm, "/tag/*")) {
             if (WebCtx.tag_auth_enabled == TRUE && !validate_auth(nc, hm)) {
-                nc->is_closing = 1;
                 return;
             }
             tag(nc, hm);
