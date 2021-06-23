@@ -51,7 +51,7 @@ sist2 (Simple incremental search tool)
 1. Download sist2 executable
     1. Download the [latest sist2 release](https://github.com/simon987/sist2/releases) *
     1. *(or)* Download a [development snapshot](https://files.simon987.net/.gate/sist2/simon987_sist2/) *(Not recommended!)*
-    1. *(or)* `docker pull simon987/sist2:2.10.1-x64-linux`
+    1. *(or)* `docker pull simon987/sist2:2.10.2-x64-linux`
 
 1. See [Usage guide](docs/USAGE.md)
 
