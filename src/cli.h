@@ -27,6 +27,7 @@ typedef struct scan_args {
     double treemap_threshold;
     int max_memory_buffer;
     int read_subtitles;
+    int fast_epub;
 } scan_args_t;
 
 scan_args_t *scan_args_create();

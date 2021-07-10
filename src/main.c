@@ -21,7 +21,7 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.10.2";
+static const char *const Version = "2.10.3";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -171,6 +171,8 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.dbg_current_files = g_hash_table_new_full(g_int64_hash, g_int64_equal, NULL, NULL);
     pthread_mutex_init(&ScanCtx.dbg_current_files_mu, NULL);
 
+    pthread_mutex_init(&ScanCtx.dbg_file_counts_mu, NULL);
+
     // Comic
     ScanCtx.comic_ctx.log = _log;
     ScanCtx.comic_ctx.logf = _logf;
@@ -189,6 +191,7 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.ebook_ctx.log = _log;
     ScanCtx.ebook_ctx.logf = _logf;
     ScanCtx.ebook_ctx.store = _store;
+    ScanCtx.ebook_ctx.fast_epub_parse = args->fast_epub;
 
     // Font
     ScanCtx.font_ctx.enable_tn = args->size > 0;
@@ -249,6 +252,37 @@ void initialize_scan_context(scan_args_t *args) {
 }
 
 
+void load_incremental_index(const scan_args_t *args) {
+    ScanCtx.original_table = incremental_get_table();
+    ScanCtx.copy_table = incremental_get_table();
+
+    DIR *dir = opendir(args->incremental);
+    if (dir == NULL) {
+        LOG_FATALF("main.c", "Could not open original index for incremental scan: %s", strerror(errno))
+    }
+
+    char descriptor_path[PATH_MAX];
+    snprintf(descriptor_path, PATH_MAX, "%s/descriptor.json", args->incremental);
+    index_descriptor_t original_desc = read_index_descriptor(descriptor_path);
+
+    if (strcmp(original_desc.version, Version) != 0) {
+        LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", original_desc.version,
+                   Version, INDEX_VERSION_EXTERNAL)
+    }
+
+    struct dirent *de;
+    while ((de = readdir(dir)) != NULL) {
+        if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
+            char file_path[PATH_MAX];
+            snprintf(file_path, PATH_MAX, "%s%s", args->incremental, de->d_name);
+            incremental_read(ScanCtx.original_table, file_path);
+        }
+    }
+    closedir(dir);
+
+    LOG_INFOF("main.c", "Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table))
+}
+
 void sist2_scan(scan_args_t *args) {
 
     ScanCtx.mime_table = mime_get_mime_table();
@@ -270,41 +304,21 @@ void sist2_scan(scan_args_t *args) {
     scan_print_header();
 
     if (args->incremental != NULL) {
-        ScanCtx.original_table = incremental_get_table();
-        ScanCtx.copy_table = incremental_get_table();
-
-        DIR *dir = opendir(args->incremental);
-        if (dir == NULL) {
-            LOG_FATALF("main.c", "Could not open original index for incremental scan: %s", strerror(errno))
-        }
-
-        char descriptor_path[PATH_MAX];
-        snprintf(descriptor_path, PATH_MAX, "%s/descriptor.json", args->incremental);
-        index_descriptor_t original_desc = read_index_descriptor(descriptor_path);
-
-        if (strcmp(original_desc.version, Version) != 0) {
-            LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", original_desc.version,
-                       Version, INDEX_VERSION_EXTERNAL)
-        }
-
-        struct dirent *de;
-        while ((de = readdir(dir)) != NULL) {
-            if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
-                char file_path[PATH_MAX];
-                snprintf(file_path, PATH_MAX, "%s%s", args->incremental, de->d_name);
-                incremental_read(ScanCtx.original_table, file_path);
-            }
-        }
-        closedir(dir);
-
-        LOG_INFOF("main.c", "Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table))
+        load_incremental_index(args);
     }
 
     ScanCtx.pool = tpool_create(args->threads, thread_cleanup, TRUE);
     tpool_start(ScanCtx.pool);
-    walk_directory_tree(ScanCtx.index.desc.root);
+    int walk_ret = walk_directory_tree(ScanCtx.index.desc.root);
+    if (walk_ret == -1) {
+        LOG_FATALF("main.c", "walk_directory_tree() failed! %s (%d)", strerror(errno), errno)
+    }
     tpool_wait(ScanCtx.pool);
     tpool_destroy(ScanCtx.pool);
+
+    LOG_DEBUGF("main.c", "Skipped files: %d", ScanCtx.dbg_skipped_files_count)
+    LOG_DEBUGF("main.c", "Excluded files: %d", ScanCtx.dbg_excluded_files_count)
+    LOG_DEBUGF("main.c", "Failed files: %d", ScanCtx.dbg_failed_files_count)
 
     if (args->incremental != NULL) {
         char dst_path[PATH_MAX];
@@ -528,6 +542,7 @@ int main(int argc, const char *argv[]) {
                         "Maximum memory buffer size per thread in MB for files inside archives "
                         "(see USAGE.md). DEFAULT: 2000"),
             OPT_BOOLEAN(0, "read-subtitles", &scan_args->read_subtitles, "Read subtitles from media files."),
+            OPT_BOOLEAN(0, "fast-epub", &scan_args->fast_epub, "Faster but less accurate EPUB parsing (no thumbnails, metadata)"),
 
             OPT_GROUP("Index options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),

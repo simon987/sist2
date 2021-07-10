@@ -41,6 +41,10 @@ int handle_entry(const char *filepath, const struct stat *info, int typeflag, st
 
         if (ScanCtx.exclude != NULL && EXCLUDED(filepath)) {
             LOG_DEBUGF("walk.c", "Excluded: %s", filepath)
+
+            pthread_mutex_lock(&ScanCtx.dbg_file_counts_mu);
+            ScanCtx.dbg_excluded_files_count += 1;
+            pthread_mutex_unlock(&ScanCtx.dbg_file_counts_mu);
             return 0;
         }
 
@@ -51,6 +55,8 @@ int handle_entry(const char *filepath, const struct stat *info, int typeflag, st
     return 0;
 }
 
+#define MAX_FILE_DESCRIPTORS 64
+
 int walk_directory_tree(const char *dirpath) {
-    return nftw(dirpath, handle_entry, 15, FTW_PHYS);
+    return nftw(dirpath, handle_entry, MAX_FILE_DESCRIPTORS, FTW_PHYS | FTW_DEPTH);
 }

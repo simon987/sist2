@@ -232,6 +232,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg tesseract_path=%s", args->tesseract_path)
     LOG_DEBUGF("cli.c", "arg exclude=%s", args->exclude_regex)
     LOG_DEBUGF("cli.c", "arg fast=%d", args->fast)
+    LOG_DEBUGF("cli.c", "arg fast_epub=%d", args->fast_epub)
     LOG_DEBUGF("cli.c", "arg treemap_threshold=%f", args->treemap_threshold)
     LOG_DEBUGF("cli.c", "arg max_memory_buffer=%d", args->max_memory_buffer)
 

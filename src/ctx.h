@@ -43,6 +43,11 @@ typedef struct {
     GHashTable *dbg_current_files;
     pthread_mutex_t dbg_current_files_mu;
 
+    int dbg_failed_files_count;
+    int dbg_skipped_files_count;
+    int dbg_excluded_files_count;
+    pthread_mutex_t dbg_file_counts_mu;
+
     scan_arc_ctx_t arc_ctx;
     scan_comic_ctx_t comic_ctx;
     scan_ebook_ctx_t ebook_ctx;
