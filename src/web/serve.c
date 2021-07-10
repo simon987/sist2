@@ -178,6 +178,9 @@ void thumbnail(struct mg_connection *nc, struct mg_http_message *hm) {
         send_response_line(nc, 200, data_len, "Content-Type: image/jpeg");
         mg_send(nc, data, data_len);
         free(data);
+    } else {
+        mg_http_reply(nc, 404, "Content-Type: text/plain;charset=utf-8\r\n", "Not found");
+        return;
     }
 }
 
