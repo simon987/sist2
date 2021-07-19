@@ -251,7 +251,7 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
     LOG_DEBUGF("serve.c", "Serving file from disk: %s", full_path)
 
     char disposition[8192];
-    snprintf(disposition, sizeof(disposition), "Content-Disposition: inline; filename=\"%s%s%s\"\r\n",
+    snprintf(disposition, sizeof(disposition), "Content-Disposition: inline; filename=\"%s%s%s\"\r\nAccept-Ranges: bytes\r\n",
              name, strlen(ext) == 0 ? "" : ".", ext);
 
     mg_http_serve_file(nc, hm, full_path, mime, disposition);
