@@ -41,12 +41,14 @@ Scan options
     --name=<str>                  Index display name. DEFAULT: (name of the directory)
     --depth=<int>                 Scan up to DEPTH subdirectories deep. Use 0 to only scan files in PATH. DEFAULT: -1
     --archive=<str>               Archive file mode (skip|list|shallow|recurse). skip: Don't parse, list: only get file names as text, shallow: Don't parse archives inside archives. DEFAULT: recurse
+    --archive-passphrase=<str>    Passphrase for encrypted archive files
     --ocr=<str>                   Tesseract language (use tesseract --list-langs to see which are installed on your machine)
     -e, --exclude=<str>           Files that match this regex will not be scanned
     --fast                        Only index file names & mime type
     --treemap-threshold=<str>     Relative size threshold for treemap (see USAGE.md). DEFAULT: 0.0005
     --mem-buffer=<int>            Maximum memory buffer size per thread in MB for files inside archives (see USAGE.md). DEFAULT: 2000
     --read-subtitles              Read subtitles from media files
+    --fast-epub                   Faster but less accurate EPUB parsing (no thumbnails, metadata)
 
 Index options
     -t, --threads=<int>           Number of threads. DEFAULT=1
@@ -100,6 +102,7 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
     * list: Only get file names as text
     * shallow: Don't parse archives inside archives.
     * recurse: Scan archives recursively (default)
+* `--archive-passphrase=<str>`    Passphrase for encrypted archive files
 * `--ocr` See [OCR](../README.md#OCR)
 * `-e, --exclude` Regex pattern to exclude files. A file is excluded if the pattern matches any 
     part of the full absolute path.
@@ -125,6 +128,8 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
 
     To check if a media file can be parsed without *seek*, execute `cat file.mp4 | ffprobe -`
 * `--read-subtitles` When enabled, will attempt to read the subtitles stream from media files.
+* `--fast-epub` Faster but less accurate EPUB parsing (no thumbnails, metadata)
+
 
 ### Scan examples
 
@@ -254,6 +259,8 @@ it is currently unsupported and has no guaranties of back/forward compatibility.
 
 ## Index
 ### Index options
+ * `-t, --threads` 
+      Number of threads for file parsing. **Do not set a number higher than `$(nproc)` or `$(Get-WmiObject Win32_ComputerSystem).NumberOfLogicalProcessors` in Windows!**
  * `--es-url` 
  Elasticsearch url and port. If you are using docker, make sure that both containers are on the
  same network.
