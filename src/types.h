@@ -1,9 +1,7 @@
 #ifndef SIST2_TYPES_H
 #define SIST2_TYPES_H
 
-#define INDEX_TYPE_BIN "binary"
-#define INDEX_TYPE_JSON "json"
-#define INDEX_VERSION_EXTERNAL "_external_v1"
+#define INDEX_TYPE_NDJSON "ndjson"
 
 typedef struct index_descriptor {
     char id[MD5_STR_LENGTH];

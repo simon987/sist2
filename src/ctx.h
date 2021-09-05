@@ -27,6 +27,8 @@ typedef struct {
 
     tpool_t *pool;
 
+    tpool_t *writer_pool;
+
     int threads;
     int depth;
 
@@ -85,7 +87,10 @@ typedef struct {
     char *auth_pass;
     int auth_enabled;
     int tag_auth_enabled;
-    struct index_t indices[64];
+    char *tagline;
+    struct index_t indices[256];
+    char lang[3];
+    int dev;
 } WebCtx_t;
 
 extern ScanCtx_t ScanCtx;

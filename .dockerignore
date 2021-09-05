@@ -23,3 +23,4 @@ third-party/libscan/libscan-test-files/
 Dockerfile
 *.idx/
 VERSION
+sist2-vue/node_modules/

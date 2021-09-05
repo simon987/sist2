@@ -4,8 +4,18 @@ set(CMAKE_C_STANDARD 11)
 project(sist2 C)
 
 option(SIST_DEBUG "Build a debug executable" on)
+option(SIST_FAKE_STORE "Disable IO operations of LMDB stores for debugging purposes" 0)
 
-set(BUILD_TESTS on)
+add_compile_definitions(
+        "SIST_PLATFORM=${SIST_PLATFORM}"
+)
+
+if (SIST_DEBUG)
+    add_compile_definitions(
+            "SIST_DEBUG=${SIST_DEBUG}"
+    )
+endif()
+
 add_subdirectory(third-party/libscan)
 set(ARGPARSE_SHARED off)
 add_subdirectory(third-party/argparse)

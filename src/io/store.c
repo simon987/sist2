@@ -1,9 +1,10 @@
 #include "store.h"
 #include "src/ctx.h"
 
-store_t *store_create(char *path, size_t chunk_size) {
-
+store_t *store_create(const char *path, size_t chunk_size) {
     store_t *store = malloc(sizeof(struct store_t));
+    mkdir(path, S_IWUSR | S_IRUSR | S_IXUSR);
+
 #if (SIST_FAKE_STORE != 1)
     store->chunk_size = chunk_size;
     pthread_rwlock_init(&store->lock, NULL);
@@ -38,7 +39,7 @@ void store_destroy(store_t *store) {
 
 #if (SIST_FAKE_STORE != 1)
     pthread_rwlock_destroy(&store->lock);
-    mdb_close(store->env, store->dbi);
+    mdb_dbi_close(store->env, store->dbi);
     mdb_env_close(store->env);
 #endif
     free(store);

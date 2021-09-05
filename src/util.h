@@ -98,14 +98,21 @@ static int md5_digest_is_null(const unsigned char digest[MD5_DIGEST_LENGTH]) {
 
 
 __always_inline
-static void incremental_put(GHashTable *table, unsigned char path_md5[MD5_DIGEST_LENGTH], int mtime) {
+static void incremental_put(GHashTable *table, const unsigned char path_md5[MD5_DIGEST_LENGTH], int mtime) {
     char *ptr = malloc(MD5_STR_LENGTH);
     buf2hex(path_md5, MD5_DIGEST_LENGTH, ptr);
     g_hash_table_insert(table, ptr, GINT_TO_POINTER(mtime));
 }
 
 __always_inline
-static int incremental_get(GHashTable *table, unsigned char path_md5[MD5_DIGEST_LENGTH]) {
+static void incremental_put_str(GHashTable *table, const char *path_md5, int mtime) {
+    char *ptr = malloc(MD5_STR_LENGTH);
+    strcpy(ptr, path_md5);
+    g_hash_table_insert(table, ptr, GINT_TO_POINTER(mtime));
+}
+
+__always_inline
+static int incremental_get(GHashTable *table, const unsigned char path_md5[MD5_DIGEST_LENGTH]) {
     if (table != NULL) {
         char md5_str[MD5_STR_LENGTH];
         buf2hex(path_md5, MD5_DIGEST_LENGTH, md5_str);
@@ -116,7 +123,16 @@ static int incremental_get(GHashTable *table, unsigned char path_md5[MD5_DIGEST_
 }
 
 __always_inline
-static int incremental_mark_file_for_copy(GHashTable *table, unsigned char path_md5[MD5_DIGEST_LENGTH]) {
+static int incremental_get_str(GHashTable *table, const char *path_md5) {
+    if (table != NULL) {
+        return GPOINTER_TO_INT(g_hash_table_lookup(table, path_md5));
+    } else {
+        return 0;
+    }
+}
+
+__always_inline
+static int incremental_mark_file_for_copy(GHashTable *table, const unsigned char path_md5[MD5_DIGEST_LENGTH]) {
     char *ptr = malloc(MD5_STR_LENGTH);
     buf2hex(path_md5, MD5_DIGEST_LENGTH, ptr);
     return g_hash_table_insert(table, ptr, GINT_TO_POINTER(1));

@@ -21,7 +21,6 @@
 #define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
 
 
-static const char *const Version = "2.10.3";
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
@@ -91,19 +90,21 @@ void sig_handler(int signum) {
     } else if (signum == SIGABRT && sigabrt_handler != NULL) {
         sigabrt_handler(signum);
     }
+
+    exit(-1);
 }
 
 void init_dir(const char *dirpath) {
     char path[PATH_MAX];
     snprintf(path, PATH_MAX, "%sdescriptor.json", dirpath);
 
-    unsigned char index_md5[MD5_DIGEST_LENGTH];
-    MD5((unsigned char *) ScanCtx.index.desc.name, strlen(ScanCtx.index.desc.name), index_md5);
-    buf2hex(index_md5, MD5_DIGEST_LENGTH, ScanCtx.index.desc.id);
-
     time(&ScanCtx.index.desc.timestamp);
     strcpy(ScanCtx.index.desc.version, Version);
-    strcpy(ScanCtx.index.desc.type, INDEX_TYPE_BIN);
+    strcpy(ScanCtx.index.desc.type, INDEX_TYPE_NDJSON);
+
+    unsigned char index_md5[MD5_DIGEST_LENGTH];
+    MD5((unsigned char *) &ScanCtx.index.desc.timestamp, sizeof(ScanCtx.index.desc.timestamp), index_md5);
+    buf2hex(index_md5, MD5_DIGEST_LENGTH, ScanCtx.index.desc.id);
 
     write_index_descriptor(path, &ScanCtx.index.desc);
 }
@@ -157,7 +158,11 @@ void _logf(const char *filepath, int level, char *format, ...) {
 
 void initialize_scan_context(scan_args_t *args) {
 
-    // Arc
+    ScanCtx.dbg_current_files = g_hash_table_new_full(g_int64_hash, g_int64_equal, NULL, NULL);
+    pthread_mutex_init(&ScanCtx.dbg_current_files_mu, NULL);
+    pthread_mutex_init(&ScanCtx.dbg_file_counts_mu, NULL);
+
+    // Archive
     ScanCtx.arc_ctx.mode = args->archive_mode;
     ScanCtx.arc_ctx.log = _log;
     ScanCtx.arc_ctx.logf = _logf;
@@ -167,11 +172,6 @@ void initialize_scan_context(scan_args_t *args) {
     } else {
         ScanCtx.arc_ctx.passphrase[0] = 0;
     }
-
-    ScanCtx.dbg_current_files = g_hash_table_new_full(g_int64_hash, g_int64_equal, NULL, NULL);
-    pthread_mutex_init(&ScanCtx.dbg_current_files_mu, NULL);
-
-    pthread_mutex_init(&ScanCtx.dbg_file_counts_mu, NULL);
 
     // Comic
     ScanCtx.comic_ctx.log = _log;
@@ -192,6 +192,7 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.ebook_ctx.logf = _logf;
     ScanCtx.ebook_ctx.store = _store;
     ScanCtx.ebook_ctx.fast_epub_parse = args->fast_epub;
+    ScanCtx.ebook_ctx.tn_qscale = args->quality;
 
     // Font
     ScanCtx.font_ctx.enable_tn = args->size > 0;
@@ -266,16 +267,15 @@ void load_incremental_index(const scan_args_t *args) {
     index_descriptor_t original_desc = read_index_descriptor(descriptor_path);
 
     if (strcmp(original_desc.version, Version) != 0) {
-        LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", original_desc.version,
-                   Version, INDEX_VERSION_EXTERNAL)
+        LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s", original_desc.version, Version)
     }
 
     struct dirent *de;
     while ((de = readdir(dir)) != NULL) {
-        if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
+        if (strncmp(de->d_name, "_index", sizeof("_index") - 1) == 0) {
             char file_path[PATH_MAX];
             snprintf(file_path, PATH_MAX, "%s%s", args->incremental, de->d_name);
-            incremental_read(ScanCtx.original_table, file_path);
+            incremental_read(ScanCtx.original_table, file_path, &original_desc);
         }
     }
     closedir(dir);
@@ -294,11 +294,9 @@ void sist2_scan(scan_args_t *args) {
 
     char store_path[PATH_MAX];
     snprintf(store_path, PATH_MAX, "%sthumbs", ScanCtx.index.path);
-    mkdir(store_path, S_IWUSR | S_IRUSR | S_IXUSR);
     ScanCtx.index.store = store_create(store_path, STORE_SIZE_TN);
 
     snprintf(store_path, PATH_MAX, "%smeta", ScanCtx.index.path);
-    mkdir(store_path, S_IWUSR | S_IRUSR | S_IXUSR);
     ScanCtx.index.meta_store = store_create(store_path, STORE_SIZE_META);
 
     scan_print_header();
@@ -307,14 +305,21 @@ void sist2_scan(scan_args_t *args) {
         load_incremental_index(args);
     }
 
-    ScanCtx.pool = tpool_create(args->threads, thread_cleanup, TRUE);
+    ScanCtx.pool = tpool_create(args->threads, thread_cleanup, TRUE, TRUE);
     tpool_start(ScanCtx.pool);
+
+    ScanCtx.writer_pool = tpool_create(1, writer_cleanup, TRUE, FALSE);
+    tpool_start(ScanCtx.writer_pool);
+
     int walk_ret = walk_directory_tree(ScanCtx.index.desc.root);
     if (walk_ret == -1) {
         LOG_FATALF("main.c", "walk_directory_tree() failed! %s (%d)", strerror(errno), errno)
     }
     tpool_wait(ScanCtx.pool);
     tpool_destroy(ScanCtx.pool);
+
+    tpool_wait(ScanCtx.writer_pool);
+    tpool_destroy(ScanCtx.writer_pool);
 
     LOG_DEBUGF("main.c", "Skipped files: %d", ScanCtx.dbg_skipped_files_count)
     LOG_DEBUGF("main.c", "Excluded files: %d", ScanCtx.dbg_excluded_files_count)
@@ -323,7 +328,7 @@ void sist2_scan(scan_args_t *args) {
     if (args->incremental != NULL) {
         char dst_path[PATH_MAX];
         snprintf(store_path, PATH_MAX, "%sthumbs", args->incremental);
-        snprintf(dst_path, PATH_MAX, "%s_index_original", ScanCtx.index.path);
+        snprintf(dst_path, PATH_MAX, "%s_index_original.ndjson.zst", ScanCtx.index.path);
         store_t *source = store_create(store_path, STORE_SIZE_TN);
 
         DIR *dir = opendir(args->incremental);
@@ -341,10 +346,10 @@ void sist2_scan(scan_args_t *args) {
         }
         closedir(dir);
         store_destroy(source);
+        writer_cleanup();
 
         snprintf(store_path, PATH_MAX, "%stags", args->incremental);
         snprintf(dst_path, PATH_MAX, "%stags", ScanCtx.index.path);
-        mkdir(store_path, S_IWUSR | S_IRUSR | S_IXUSR);
         store_t *source_tags = store_create(store_path, STORE_SIZE_TAG);
         store_copy(source_tags, dst_path);
         store_destroy(source_tags);
@@ -353,6 +358,7 @@ void sist2_scan(scan_args_t *args) {
     generate_stats(&ScanCtx.index, args->treemap_threshold, ScanCtx.index.path);
 
     store_destroy(ScanCtx.index.store);
+    store_destroy(ScanCtx.index.meta_store);
 }
 
 void sist2_index(index_args_t *args) {
@@ -372,9 +378,8 @@ void sist2_index(index_args_t *args) {
 
     LOG_DEBUGF("main.c", "descriptor version %s (%s)", desc.version, desc.type)
 
-    if (strcmp(desc.version, Version) != 0 && strcmp(desc.version, INDEX_VERSION_EXTERNAL) != 0) {
-        LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s/%s", desc.version, Version,
-                   INDEX_VERSION_EXTERNAL)
+    if (strcmp(desc.version, Version) != 0) {
+        LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s", desc.version, Version)
     }
 
     DIR *dir = opendir(args->index_path);
@@ -384,7 +389,6 @@ void sist2_index(index_args_t *args) {
 
     char path_tmp[PATH_MAX];
     snprintf(path_tmp, sizeof(path_tmp), "%s/tags", args->index_path);
-    mkdir(path_tmp, S_IWUSR | S_IRUSR | S_IXUSR);
     IndexCtx.tag_store = store_create(path_tmp, STORE_SIZE_TAG);
     IndexCtx.tags = store_read_all(IndexCtx.tag_store);
 
@@ -406,7 +410,7 @@ void sist2_index(index_args_t *args) {
         cleanup = elastic_cleanup;
     }
 
-    IndexCtx.pool = tpool_create(args->threads, cleanup, FALSE);
+    IndexCtx.pool = tpool_create(args->threads, cleanup, FALSE, FALSE);
     tpool_start(IndexCtx.pool);
 
     struct dirent *de;
@@ -415,6 +419,7 @@ void sist2_index(index_args_t *args) {
             char file_path[PATH_MAX];
             snprintf(file_path, PATH_MAX, "%s/%s", args->index_path, de->d_name);
             read_index(file_path, desc.id, desc.type, f);
+            LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type)
         }
     }
     closedir(dir);
@@ -428,6 +433,7 @@ void sist2_index(index_args_t *args) {
     }
 
     store_destroy(IndexCtx.tag_store);
+    store_destroy(IndexCtx.meta_store);
     g_hash_table_remove_all(IndexCtx.tags);
     g_hash_table_destroy(IndexCtx.tags);
 }
@@ -458,6 +464,9 @@ void sist2_web(web_args_t *args) {
     WebCtx.auth_pass = args->auth_pass;
     WebCtx.auth_enabled = args->auth_enabled;
     WebCtx.tag_auth_enabled = args->tag_auth_enabled;
+    WebCtx.tagline = args->tagline;
+    WebCtx.dev = args->dev;
+    strcpy(WebCtx.lang, "en");
 
     for (int i = 0; i < args->index_count; i++) {
         char *abs_path = abspath(args->indices[i]);
@@ -514,7 +523,7 @@ int main(int argc, const char *argv[]) {
             OPT_GROUP("Scan options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
             OPT_FLOAT('q', "quality", &scan_args->quality,
-                      "Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=5"),
+                      "Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=3"),
             OPT_INTEGER(0, "size", &scan_args->size,
                         "Thumbnail size, in pixels. Use negative value to disable. DEFAULT=500"),
             OPT_INTEGER(0, "content-size", &scan_args->content_size,
@@ -542,7 +551,8 @@ int main(int argc, const char *argv[]) {
                         "Maximum memory buffer size per thread in MB for files inside archives "
                         "(see USAGE.md). DEFAULT: 2000"),
             OPT_BOOLEAN(0, "read-subtitles", &scan_args->read_subtitles, "Read subtitles from media files."),
-            OPT_BOOLEAN(0, "fast-epub", &scan_args->fast_epub, "Faster but less accurate EPUB parsing (no thumbnails, metadata)"),
+            OPT_BOOLEAN(0, "fast-epub", &scan_args->fast_epub,
+                        "Faster but less accurate EPUB parsing (no thumbnails, metadata)"),
 
             OPT_GROUP("Index options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
@@ -563,6 +573,8 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "bind", &web_args->listen_address, "Listen on this address. DEFAULT=localhost:4090"),
             OPT_STRING(0, "auth", &web_args->credentials, "Basic auth in user:password format"),
             OPT_STRING(0, "tag-auth", &web_args->tag_credentials, "Basic auth in user:password format for tagging"),
+            OPT_STRING(0, "tagline", &web_args->tagline, "Tagline in navbar"),
+            OPT_BOOLEAN(0, "dev", &web_args->dev, "Serve html & js files from disk (for development)"),
 
             OPT_GROUP("Exec-script options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),

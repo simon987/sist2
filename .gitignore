@@ -9,6 +9,7 @@ Makefile
 *.out
 LOG
 sist2*
+!sist2-vue/
 index.sist2/
 bundle*.css
 bundle.js
@@ -18,3 +19,8 @@ build/
 third-party/
 *.idx/
 VERSION
+git_hash.h
+Testing/
+test_i
+test_i_inc
+node_modules/

@@ -70,3 +70,4 @@ steps:
       target: /files/sist2/${DRONE_REPO_OWNER}_${DRONE_REPO_NAME}/arm_${DRONE_BRANCH}_${DRONE_BUILD_NUMBER}_${DRONE_COMMIT}/
       source:
         - ./sist2-arm64-linux
+        - ./sist2-arm64-linux-debug
