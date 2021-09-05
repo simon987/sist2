@@ -59,11 +59,14 @@ typedef struct web_args {
     char *listen_address;
     char *credentials;
     char *tag_credentials;
+    char *tagline;
+    char *lang;
     char auth_user[256];
     char auth_pass[256];
     int auth_enabled;
     int tag_auth_enabled;
     int index_count;
+    int dev;
     const char **indices;
 } web_args_t;
 

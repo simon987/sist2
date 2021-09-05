@@ -3,7 +3,7 @@ MAINTAINER simon987 <me@simon987.net>
 
 WORKDIR /build/
 ADD . /build/
-RUN cmake -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake .
+RUN cmake -DSIST_PLATFORM=arm64_linux -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake .
 RUN make -j$(nproc)
 RUN strip sist2
 

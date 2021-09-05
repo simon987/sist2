@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'/>
+
+    <title><%= htmlWebpackPlugin.options.title %></title>
+</head>
+<body>
+<noscript>
+    <style>
+        body {
+            height: initial;
+        }
+    </style>
+    <div style="text-align: center; margin-top: 100px">
+        <strong>
+            We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled.
+            Please enable it to continue.
+        </strong>
+        <br/>
+        <strong>
+            Nous sommes désolés mais <%= htmlWebpackPlugin.options.title %> ne fonctionne pas correctement
+            si JavaScript est activé.
+            Veuillez l'activer pour continuer.
+        </strong>
+    </div>
+</noscript>
+<div id="app"></div>
+</body>
+</html>

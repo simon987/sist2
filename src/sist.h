@@ -47,5 +47,16 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <ctype.h>
+#include "git_hash.h"
+
+#define VERSION "2.11.0"
+static const char *const Version = VERSION;
+
+#ifndef SIST_PLATFORM
+#define SIST_PLATFORM unknown
+#endif
+
+#define Q(x) #x
+#define QUOTE(x) Q(x)
 
 #endif

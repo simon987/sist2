@@ -393,12 +393,20 @@ void elastic_init(int force_reset, const char* user_mappings, const char* user_s
 
         snprintf(url, sizeof(url), "%s/%s/_settings", IndexCtx.es_url, IndexCtx.es_index);
         r = web_put(url, user_settings ? user_settings : settings_json);
-        LOG_INFOF("elastic.c", "Update user_settings <%d>", r->status_code);
+        LOG_INFOF("elastic.c", "Update ES settings <%d>", r->status_code);
+        if (r->status_code != 200) {
+            print_error(r);
+            LOG_FATAL("elastic.c", "Could not update user settings")
+        }
         free_response(r);
 
         snprintf(url, sizeof(url), "%s/%s/_mappings/_doc?include_type_name=true", IndexCtx.es_url, IndexCtx.es_index);
         r = web_put(url, user_mappings ? user_mappings : mappings_json);
-        LOG_INFOF("elastic.c", "Update user_mappings <%d>", r->status_code);
+        LOG_INFOF("elastic.c", "Update ES mappings <%d>", r->status_code);
+        if (r->status_code != 200) {
+            print_error(r);
+            LOG_FATAL("elastic.c", "Could not update user mappings")
+        }
         free_response(r);
 
         snprintf(url, sizeof(url), "%s/%s/_open", IndexCtx.es_url, IndexCtx.es_index);

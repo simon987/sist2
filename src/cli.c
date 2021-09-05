@@ -4,13 +4,15 @@
 
 #define DEFAULT_OUTPUT "index.sist2/"
 #define DEFAULT_CONTENT_SIZE 32768
-#define DEFAULT_QUALITY 5
-#define DEFAULT_SIZE 500
+#define DEFAULT_QUALITY 1
+#define DEFAULT_SIZE 300
 #define DEFAULT_REWRITE_URL ""
 
 #define DEFAULT_ES_URL "http://localhost:9200"
 #define DEFAULT_ES_INDEX "sist2"
 #define DEFAULT_BATCH_SIZE 100
+#define DEFAULT_TAGLINE "Lightning-fast file system indexer and search tool"
+#define DEFAULT_LANG "en"
 
 #define DEFAULT_LISTEN_ADDRESS "localhost:4090"
 #define DEFAULT_TREEMAP_THRESHOLD 0.0005
@@ -91,7 +93,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (args->incremental != NULL) {
         args->incremental = abspath(args->incremental);
         if (abs_path == NULL) {
-            sist_log("main.c", SIST_WARNING, "Could not open original index! Disabled incremental scan feature.");
+            sist_log("main.c", LOG_SIST_WARNING, "Could not open original index! Disabled incremental scan feature.");
             args->incremental = NULL;
         }
     }
@@ -360,6 +362,15 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
         args->es_index = DEFAULT_ES_INDEX;
     }
 
+    if (args->lang == NULL) {
+        args->lang = DEFAULT_LANG;
+    }
+
+    if (strlen(args->lang) != 2) {
+        fprintf(stderr, "Invalid --lang value, see usage\n");
+        return 1;
+    }
+
     if (args->credentials != NULL) {
         char *ptr = strstr(args->credentials, ":");
         if (ptr == NULL) {
@@ -418,6 +429,8 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
 
     LOG_DEBUGF("cli.c", "arg es_url=%s", args->es_url)
     LOG_DEBUGF("cli.c", "arg es_index=%s", args->es_index)
+    LOG_DEBUGF("cli.c", "arg tagline=%s", args->tagline)
+    LOG_DEBUGF("cli.c", "arg dev=%d", args->dev)
     LOG_DEBUGF("cli.c", "arg listen=%s", args->listen_address)
     LOG_DEBUGF("cli.c", "arg credentials=%s", args->credentials)
     LOG_DEBUGF("cli.c", "arg tag_credentials=%s", args->tag_credentials)

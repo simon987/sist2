@@ -25,7 +25,7 @@ int fs_read(struct vfile *f, void *buf, size_t size) {
     return read(f->fd, buf, size);
 }
 
-#define CLOSE_FILE(f) if (f.close != NULL) {f.close(&f);};
+#define CLOSE_FILE(f) if ((f).close != NULL) {(f).close(&(f));};
 
 void fs_close(struct vfile *f) {
     if (f->fd != -1) {
@@ -39,8 +39,6 @@ void fs_reset(struct vfile *f) {
     }
 }
 
-#define IS_GIT_OBJ (strlen(doc.filepath + doc.base) == 38 && (strstr(doc.filepath, "objects") != NULL))
-
 void set_dbg_current_file(parse_job_t *job) {
     unsigned long long pid = (unsigned long long) pthread_self();
     pthread_mutex_lock(&ScanCtx.dbg_current_files_mu);
@@ -51,26 +49,28 @@ void set_dbg_current_file(parse_job_t *job) {
 void parse(void *arg) {
 
     parse_job_t *job = arg;
-    document_t doc;
+
+    document_t *doc = malloc(sizeof(document_t));
+    doc->filepath = malloc(strlen(job->filepath) + 1);
 
     set_dbg_current_file(job);
 
-    doc.filepath = job->filepath;
-    doc.ext = (short) job->ext;
-    doc.base = (short) job->base;
+    strcpy(doc->filepath, job->filepath);
+    doc->ext = (short) job->ext;
+    doc->base = (short) job->base;
 
-    char *rel_path = doc.filepath + ScanCtx.index.desc.root_len;
-    MD5((unsigned char *) rel_path, strlen(rel_path), doc.path_md5);
+    char *rel_path = doc->filepath + ScanCtx.index.desc.root_len;
+    MD5((unsigned char *) rel_path, strlen(rel_path), doc->path_md5);
 
-    doc.meta_head = NULL;
-    doc.meta_tail = NULL;
-    doc.mime = 0;
-    doc.size = job->vfile.info.st_size;
-    doc.mtime = job->vfile.info.st_mtim.tv_sec;
+    doc->meta_head = NULL;
+    doc->meta_tail = NULL;
+    doc->mime = 0;
+    doc->size = job->vfile.info.st_size;
+    doc->mtime = job->vfile.info.st_mtim.tv_sec;
 
-    int inc_ts = incremental_get(ScanCtx.original_table, doc.path_md5);
+    int inc_ts = incremental_get(ScanCtx.original_table, doc->path_md5);
     if (inc_ts != 0 && inc_ts == job->vfile.info.st_mtim.tv_sec) {
-        incremental_mark_file_for_copy(ScanCtx.copy_table, doc.path_md5);
+        incremental_mark_file_for_copy(ScanCtx.copy_table, doc->path_md5);
 
         pthread_mutex_lock(&ScanCtx.dbg_file_counts_mu);
         ScanCtx.dbg_skipped_files_count += 1;
@@ -83,22 +83,19 @@ void parse(void *arg) {
 
     if (LogCtx.very_verbose) {
         char path_md5_str[MD5_STR_LENGTH];
-        buf2hex(doc.path_md5, MD5_DIGEST_LENGTH, path_md5_str);
+        buf2hex(doc->path_md5, MD5_DIGEST_LENGTH, path_md5_str);
         LOG_DEBUGF(job->filepath, "Starting parse job {%s}", path_md5_str)
     }
 
     if (job->vfile.info.st_size == 0) {
-        doc.mime = MIME_EMPTY;
+        doc->mime = MIME_EMPTY;
     } else if (*(job->filepath + job->ext) != '\0' && (job->ext - job->base != 1)) {
-        doc.mime = mime_get_mime_by_ext(ScanCtx.ext_table, job->filepath + job->ext);
+        doc->mime = mime_get_mime_by_ext(ScanCtx.ext_table, job->filepath + job->ext);
     }
 
     int bytes_read = 0;
 
-    if (doc.mime == 0 && !ScanCtx.fast) {
-        if (IS_GIT_OBJ) {
-            goto abort;
-        }
+    if (doc->mime == 0 && !ScanCtx.fast) {
 
         // Get mime type with libmagic
         if (!job->vfile.is_fs_file) {
@@ -129,11 +126,11 @@ void parse(void *arg) {
 
         const char *magic_mime_str = magic_buffer(magic, buf, bytes_read);
         if (magic_mime_str != NULL) {
-            doc.mime = mime_get_mime_by_string(ScanCtx.mime_table, magic_mime_str);
+            doc->mime = mime_get_mime_by_string(ScanCtx.mime_table, magic_mime_str);
 
             LOG_DEBUGF(job->filepath, "libmagic: %s", magic_mime_str);
 
-            if (doc.mime == 0) {
+            if (doc->mime == 0) {
                 LOG_WARNINGF(job->filepath, "Couldn't find mime %s", magic_mime_str);
             }
         }
@@ -143,48 +140,48 @@ void parse(void *arg) {
         magic_close(magic);
     }
 
-    int mmime = MAJOR_MIME(doc.mime);
+    int mmime = MAJOR_MIME(doc->mime);
 
-    if (!(SHOULD_PARSE(doc.mime))) {
+    if (!(SHOULD_PARSE(doc->mime))) {
 
-    } else if (IS_RAW(doc.mime)) {
-        parse_raw(&ScanCtx.raw_ctx, &job->vfile, &doc);
-    } else if ((mmime == MimeVideo && doc.size >= MIN_VIDEO_SIZE) ||
-               (mmime == MimeImage && doc.size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
+    } else if (IS_RAW(doc->mime)) {
+        parse_raw(&ScanCtx.raw_ctx, &job->vfile, doc);
+    } else if ((mmime == MimeVideo && doc->size >= MIN_VIDEO_SIZE) ||
+               (mmime == MimeImage && doc->size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
 
-        parse_media(&ScanCtx.media_ctx, &job->vfile, &doc);
+        parse_media(&ScanCtx.media_ctx, &job->vfile, doc);
 
-    } else if (IS_PDF(doc.mime)) {
-        parse_ebook(&ScanCtx.ebook_ctx, &job->vfile, mime_get_mime_text(doc.mime), &doc);
+    } else if (IS_PDF(doc->mime)) {
+        parse_ebook(&ScanCtx.ebook_ctx, &job->vfile, mime_get_mime_text(doc->mime), doc);
 
     } else if (mmime == MimeText && ScanCtx.text_ctx.content_size > 0) {
-        if (IS_MARKUP(doc.mime)) {
-            parse_markup(&ScanCtx.text_ctx, &job->vfile, &doc);
+        if (IS_MARKUP(doc->mime)) {
+            parse_markup(&ScanCtx.text_ctx, &job->vfile, doc);
         } else {
-            parse_text(&ScanCtx.text_ctx, &job->vfile, &doc);
+            parse_text(&ScanCtx.text_ctx, &job->vfile, doc);
         }
 
-    } else if (IS_FONT(doc.mime)) {
-        parse_font(&ScanCtx.font_ctx, &job->vfile, &doc);
+    } else if (IS_FONT(doc->mime)) {
+        parse_font(&ScanCtx.font_ctx, &job->vfile, doc);
 
     } else if (
             ScanCtx.arc_ctx.mode != ARC_MODE_SKIP && (
-                    IS_ARC(doc.mime) ||
-                    (IS_ARC_FILTER(doc.mime) && should_parse_filtered_file(doc.filepath, doc.ext))
+                    IS_ARC(doc->mime) ||
+                    (IS_ARC_FILTER(doc->mime) && should_parse_filtered_file(doc->filepath, doc->ext))
             )) {
-        parse_archive(&ScanCtx.arc_ctx, &job->vfile, &doc);
-    } else if ((ScanCtx.ooxml_ctx.content_size > 0 || ScanCtx.media_ctx.tn_size > 0) && IS_DOC(doc.mime)) {
-        parse_ooxml(&ScanCtx.ooxml_ctx, &job->vfile, &doc);
-    } else if (is_cbr(&ScanCtx.comic_ctx, doc.mime) || is_cbz(&ScanCtx.comic_ctx, doc.mime)) {
-        parse_comic(&ScanCtx.comic_ctx, &job->vfile, &doc);
-    } else if (IS_MOBI(doc.mime)) {
-        parse_mobi(&ScanCtx.mobi_ctx, &job->vfile, &doc);
-    } else if (doc.mime == MIME_SIST2_SIDECAR) {
-        parse_sidecar(&job->vfile, &doc);
+        parse_archive(&ScanCtx.arc_ctx, &job->vfile, doc);
+    } else if ((ScanCtx.ooxml_ctx.content_size > 0 || ScanCtx.media_ctx.tn_size > 0) && IS_DOC(doc->mime)) {
+        parse_ooxml(&ScanCtx.ooxml_ctx, &job->vfile, doc);
+    } else if (is_cbr(&ScanCtx.comic_ctx, doc->mime) || is_cbz(&ScanCtx.comic_ctx, doc->mime)) {
+        parse_comic(&ScanCtx.comic_ctx, &job->vfile, doc);
+    } else if (IS_MOBI(doc->mime)) {
+        parse_mobi(&ScanCtx.mobi_ctx, &job->vfile, doc);
+    } else if (doc->mime == MIME_SIST2_SIDECAR) {
+        parse_sidecar(&job->vfile, doc);
         CLOSE_FILE(job->vfile)
         return;
-    } else if (is_msdoc(&ScanCtx.msdoc_ctx, doc.mime)) {
-        parse_msdoc(&ScanCtx.msdoc_ctx, &job->vfile, &doc);
+    } else if (is_msdoc(&ScanCtx.msdoc_ctx, doc->mime)) {
+        parse_msdoc(&ScanCtx.msdoc_ctx, &job->vfile, doc);
     }
 
     abort:
@@ -194,14 +191,14 @@ void parse(void *arg) {
         meta_line_t *meta_parent = malloc(sizeof(meta_line_t) + MD5_STR_LENGTH);
         meta_parent->key = MetaParent;
         buf2hex(job->parent, MD5_DIGEST_LENGTH, meta_parent->str_val);
-        APPEND_META((&doc), meta_parent)
+        APPEND_META((doc), meta_parent)
 
-        doc.has_parent = TRUE;
+        doc->has_parent = TRUE;
     } else {
-        doc.has_parent = FALSE;
+        doc->has_parent = FALSE;
     }
 
-    write_document(&doc);
+    write_document(doc);
 
     CLOSE_FILE(job->vfile)
 }

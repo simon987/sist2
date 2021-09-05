@@ -47,7 +47,7 @@
       "index": false
     },
     "duration": {
-      "type": "float",
+      "type": "integer",
       "index": false
     },
     "width": {
@@ -134,7 +134,9 @@
       }
     },
     "tag": {
-      "type": "keyword",
+      "type": "text",
+      "fielddata": true,
+      "analyzer": "tag_analyzer",
       "copy_to": "suggest-tag"
     },
     "suggest-tag": {

@@ -13,9 +13,8 @@ static void send_response_line(struct mg_connection *nc, int status_code, size_t
     mg_printf(
             nc,
             "HTTP/1.1 %d %s\r\n"
-            "Server: sist2\r\n"
+            "Server: sist2/" VERSION "\r\n"
             "Content-Length: %d\r\n"
-            "Connection: close\r\n"
             "%s\r\n\r\n",
             status_code, "OK",
             length,
@@ -49,14 +48,13 @@ store_t *get_tag_store(const char *index_id) {
     return NULL;
 }
 
-void search_index(struct mg_connection *nc) {
-    send_response_line(nc, 200, sizeof(search_html), "Content-Type: text/html");
-    mg_send(nc, search_html, sizeof(search_html));
-}
-
-void stats(struct mg_connection *nc) {
-    send_response_line(nc, 200, sizeof(stats_html), "Content-Type: text/html");
-    mg_send(nc, stats_html, sizeof(stats_html));
+void search_index(struct mg_connection *nc, struct mg_http_message *hm) {
+    if (WebCtx.dev) {
+        mg_http_serve_file(nc, hm, "sist2-vue/dist/index.html", "text/html", NULL);
+    } else {
+        send_response_line(nc, 200, sizeof(index_html), "Content-Type: text/html");
+        mg_send(nc, index_html, sizeof(index_html));
+    }
 }
 
 void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
@@ -95,7 +93,8 @@ void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
     }
 
     char disposition[8192];
-    snprintf(disposition, sizeof(disposition), "Content-Disposition: inline; filename=\"%s\"\r\n", file);
+    snprintf(disposition, sizeof(disposition),
+             "Content-Disposition: inline; filename=\"%s\"\r\nCache-Control: max-age=31536000\r\n", file);
 
     char full_path[PATH_MAX];
     strcpy(full_path, index->path);
@@ -104,46 +103,37 @@ void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
     mg_http_serve_file(nc, hm, full_path, "text/csv", disposition);
 }
 
-void javascript_lib(struct mg_connection *nc) {
-    send_response_line(nc, 200, sizeof(bundle_js), "Content-Type: application/javascript");
-    mg_send(nc, bundle_js, sizeof(bundle_js));
-}
-
-void javascript_search(struct mg_connection *nc) {
-    send_response_line(nc, 200, sizeof(search_js), "Content-Type: application/javascript");
-    mg_send(nc, search_js, sizeof(search_js));
-}
-
-int client_requested_dark_theme(struct mg_http_message *hm) {
-    struct mg_str *cookie_header = mg_http_get_header(hm, "cookie");
-    if (cookie_header == NULL) {
-        return FALSE;
+void javascript(struct mg_connection *nc, struct mg_http_message *hm) {
+    if (WebCtx.dev) {
+        mg_http_serve_file(nc, hm, "sist2-vue/dist/js/index.js", "application/javascript", NULL);
+    } else {
+        send_response_line(nc, 200, sizeof(index_js), "Content-Type: application/javascript");
+        mg_send(nc, index_js, sizeof(index_js));
     }
+}
 
-    struct mg_str sist_cookie = mg_http_get_header_var(*cookie_header, mg_str_n("sist", 4));
+void javascript_vendor(struct mg_connection *nc, struct mg_http_message *hm) {
+    if (WebCtx.dev) {
+        mg_http_serve_file(nc, hm, "sist2-vue/dist/js/chunk-vendors.js", "application/javascript", NULL);
+    } else {
+        send_response_line(nc, 200, sizeof(chunk_vendors_js), "Content-Type: application/javascript");
+        mg_send(nc, chunk_vendors_js, sizeof(chunk_vendors_js));
+    }
+}
 
-    return mg_strcmp(sist_cookie, mg_str_n("dark", 4)) == 0;
+void favicon(struct mg_connection *nc, struct mg_http_message *hm) {
+    send_response_line(nc, 200, sizeof(favicon_ico), "Content-Type: image/x-icon");
+    mg_send(nc, favicon_ico, sizeof(favicon_ico));
 }
 
 void style(struct mg_connection *nc, struct mg_http_message *hm) {
-
-    if (client_requested_dark_theme(hm)) {
-        send_response_line(nc, 200, sizeof(bundle_dark_css), "Content-Type: text/css");
-        mg_send(nc, bundle_dark_css, sizeof(bundle_dark_css));
-    } else {
-        send_response_line(nc, 200, sizeof(bundle_css), "Content-Type: text/css");
-        mg_send(nc, bundle_css, sizeof(bundle_css));
-    }
+    send_response_line(nc, 200, sizeof(index_css), "Content-Type: text/css");
+    mg_send(nc, index_css, sizeof(index_css));
 }
 
-void img_sprite_skin_flat(struct mg_connection *nc, struct mg_http_message *hm) {
-    if (client_requested_dark_theme(hm)) {
-        send_response_line(nc, 200, sizeof(sprite_skin_flat_dark_png), "Content-Type: image/png");
-        mg_send(nc, sprite_skin_flat_dark_png, sizeof(sprite_skin_flat_dark_png));
-    } else {
-        send_response_line(nc, 200, sizeof(sprite_skin_flat_png), "Content-Type: image/png");
-        mg_send(nc, sprite_skin_flat_png, sizeof(sprite_skin_flat_png));
-    }
+void style_vendor(struct mg_connection *nc, struct mg_http_message *hm) {
+    send_response_line(nc, 200, sizeof(chunk_vendors_css), "Content-Type: text/css");
+    mg_send(nc, chunk_vendors_css, sizeof(chunk_vendors_css));
 }
 
 void thumbnail(struct mg_connection *nc, struct mg_http_message *hm) {
@@ -175,7 +165,11 @@ void thumbnail(struct mg_connection *nc, struct mg_http_message *hm) {
     size_t data_len = 0;
     char *data = store_read(store, (char *) md5_buf, sizeof(md5_buf), &data_len);
     if (data_len != 0) {
-        send_response_line(nc, 200, data_len, "Content-Type: image/jpeg");
+        send_response_line(
+                nc, 200, data_len,
+                "Content-Type: image/jpeg\r\n"
+                "Cache-Control: max-age=31536000"
+        );
         mg_send(nc, data, data_len);
         free(data);
     } else {
@@ -251,7 +245,8 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
     LOG_DEBUGF("serve.c", "Serving file from disk: %s", full_path)
 
     char disposition[8192];
-    snprintf(disposition, sizeof(disposition), "Content-Disposition: inline; filename=\"%s%s%s\"\r\n",
+    snprintf(disposition, sizeof(disposition),
+             "Content-Disposition: inline; filename=\"%s%s%s\"\r\nAccept-Ranges: bytes\r\n",
              name, strlen(ext) == 0 ? "" : ".", ext);
 
     mg_http_serve_file(nc, hm, full_path, mime, disposition);
@@ -261,6 +256,20 @@ void index_info(struct mg_connection *nc) {
     cJSON *json = cJSON_CreateObject();
     cJSON *arr = cJSON_AddArrayToObject(json, "indices");
 
+    cJSON_AddStringToObject(json, "esIndex", WebCtx.es_index);
+    cJSON_AddStringToObject(json, "version", Version);
+    cJSON_AddStringToObject(json, "platform", QUOTE(SIST_PLATFORM));
+    cJSON_AddStringToObject(json, "sist2Hash", Sist2CommitHash);
+    cJSON_AddStringToObject(json, "libscanHash", LibScanCommitHash);
+    cJSON_AddStringToObject(json, "lang", WebCtx.lang);
+    cJSON_AddBoolToObject(json, "dev", WebCtx.dev);
+#ifdef SIST_DEBUG
+    cJSON_AddBoolToObject(json, "debug", TRUE);
+#else
+    cJSON_AddBoolToObject(json, "debug", FALSE);
+#endif
+    cJSON_AddStringToObject(json, "tagline", WebCtx.tagline);
+
     for (int i = 0; i < WebCtx.index_count; i++) {
         index_t *idx = &WebCtx.indices[i];
 
@@ -268,6 +277,7 @@ void index_info(struct mg_connection *nc) {
         cJSON_AddStringToObject(idx_json, "name", idx->desc.name);
         cJSON_AddStringToObject(idx_json, "version", idx->desc.version);
         cJSON_AddStringToObject(idx_json, "id", idx->desc.id);
+        cJSON_AddStringToObject(idx_json, "rewriteUrl", idx->desc.rewrite_url);
         cJSON_AddNumberToObject(idx_json, "timestamp", (double) idx->desc.timestamp);
         cJSON_AddItemToArray(arr, idx_json);
     }
@@ -555,17 +565,17 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
         }
 
         if (mg_http_match_uri(hm, "/")) {
-            search_index(nc);
-        } else if (mg_http_match_uri(hm, "/css")) {
+            search_index(nc, hm);
+        } else if (mg_http_match_uri(hm, "/favicon.ico")) {
+            favicon(nc, hm);
+        } else if (mg_http_match_uri(hm, "/css/index.css")) {
             style(nc, hm);
-        } else if (mg_http_match_uri(hm, "/stats")) {
-            stats(nc);
-        } else if (mg_http_match_uri(hm, "/jslib")) {
-            javascript_lib(nc);
-        } else if (mg_http_match_uri(hm, "/jssearch")) {
-            javascript_search(nc);
-        } else if (mg_http_match_uri(hm, "/img/sprite-skin-flat.png")) {
-            img_sprite_skin_flat(nc, hm);
+        } else if (mg_http_match_uri(hm, "/css/chunk-vendors.css")) {
+            style_vendor(nc, hm);
+        } else if (mg_http_match_uri(hm, "/js/index.js")) {
+            javascript(nc, hm);
+        } else if (mg_http_match_uri(hm, "/js/chunk-vendors.js")) {
+            javascript_vendor(nc, hm);
         } else if (mg_http_match_uri(hm, "/es")) {
             search(nc, hm);
         } else if (mg_http_match_uri(hm, "/i")) {
@@ -602,16 +612,16 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
                     send_response_line(nc, 200, r->size, "Content-Type: application/json");
                     mg_send(nc, r->body, r->size);
                 } else if (r->status_code == 0) {
-                    sist_log("serve.c", SIST_ERROR, "Could not connect to elasticsearch!");
+                    sist_log("serve.c", LOG_SIST_ERROR, "Could not connect to elasticsearch!");
                 } else {
-                    sist_logf("serve.c", SIST_WARNING, "ElasticSearch error during query (%d)", r->status_code);
+                    sist_logf("serve.c", LOG_SIST_WARNING, "ElasticSearch error during query (%d)", r->status_code);
                     if (r->size != 0) {
                         char *tmp = malloc(r->size + 1);
                         memcpy(tmp, r->body, r->size);
                         *(tmp + r->size) = '\0';
                         cJSON *json = cJSON_Parse(tmp);
                         char *json_str = cJSON_Print(json);
-                        sist_log("serve.c", SIST_WARNING, json_str);
+                        sist_log("serve.c", LOG_SIST_WARNING, json_str);
                         free(json_str);
                         free(tmp);
                     }

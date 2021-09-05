@@ -17,11 +17,18 @@ def copy_files(files):
 
 
 def sist2(*args):
-    print("./sist2 " + " ".join(args))
+    print("./sist2_debug " + " ".join(args))
 
-    return subprocess.check_output(
-        args=["./sist2", *args],
-    )
+    args = list(args)
+    args.append("--fast-epub")
+    # args.append("--very-verbose")
+
+    try:
+        return subprocess.check_output(
+            args=["./sist2_debug", *args],
+        )
+    except Exception as e:
+        print(e)
 
 
 def sist2_index(files, *args):
@@ -44,9 +51,7 @@ def sist2_incremental_index(files, func=None, *args):
 
 
 def sist2_index_to_dict(index):
-    res = subprocess.check_output(
-        args=["./sist2", "index", "--print", index],
-    )
+    res = sist2("index", "--print", index)
 
     for line in res.splitlines():
         if line:

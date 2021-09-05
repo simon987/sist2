@@ -11,6 +11,8 @@
 #define STORE_SIZE_META STORE_SIZE_TAG
 
 typedef struct store_t {
+    char *path;
+    char *tmp_path;
     MDB_dbi dbi;
     MDB_env *env;
     size_t size;
@@ -18,7 +20,7 @@ typedef struct store_t {
     pthread_rwlock_t lock;
 } store_t;
 
-store_t *store_create(char *path, size_t chunk_size);
+store_t *store_create(const char *path, size_t chunk_size);
 
 void store_destroy(store_t *store);
 
