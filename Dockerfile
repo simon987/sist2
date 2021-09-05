@@ -2,10 +2,12 @@ FROM simon987/sist2-build as build
 MAINTAINER simon987 <me@simon987.net>
 
 WORKDIR /build/
-ADD . /build/
+COPY . .
 RUN cmake -DSIST_PLATFORM=x64_linux -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake .
 RUN make -j$(nproc)
 RUN strip sist2
+RUN ls -lh
+RUN ls -lh sist2-vue/dist/
 
 FROM ubuntu:20.10
 
