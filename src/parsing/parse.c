@@ -9,8 +9,8 @@
 #include <magic.h>
 
 
-#define MIN_VIDEO_SIZE 1024 * 64
-#define MIN_IMAGE_SIZE 1024 * 2
+#define MIN_VIDEO_SIZE (1024 * 64)
+#define MIN_IMAGE_SIZE (1024 * 2)
 
 int fs_read(struct vfile *f, void *buf, size_t size) {
 
@@ -182,6 +182,8 @@ void parse(void *arg) {
         return;
     } else if (is_msdoc(&ScanCtx.msdoc_ctx, doc->mime)) {
         parse_msdoc(&ScanCtx.msdoc_ctx, &job->vfile, doc);
+    } else if (is_wpd(&ScanCtx.wpd_ctx, doc->mime)) {
+        parse_wpd(&ScanCtx.wpd_ctx, &job->vfile, doc);
     }
 
     abort:

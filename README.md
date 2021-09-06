@@ -82,6 +82,7 @@ tar, zip, rar, 7z, ar ...  | Libarchive | yes\* | - | no |
 docx, xlsx, pptx | *(none)* | yes | if embedded | creator, modified_by, title |
 doc (MS Word 97-2003) | antiword | yes | yes | author, title |
 mobi, azw, azw3 | libmobi | yes | no | author, title |
+wpd (WordPerfect) | libwpd | yes | no | *planned* |
 
 \* *See [Archive files](#archive-files)*
 
