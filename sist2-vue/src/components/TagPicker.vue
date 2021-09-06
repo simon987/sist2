@@ -162,7 +162,7 @@ export default {
       });
     },
     handleTreeClick(node, e) {
-      if (e === "indeterminate" || e === "collapsed" || e === 'rendered') {
+      if (e === "indeterminate" || e === "collapsed" || e === 'rendered' || e === "focused") {
         return;
       }
 

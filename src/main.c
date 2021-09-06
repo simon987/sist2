@@ -43,30 +43,38 @@ void sig_handler(int signum) {
     LOG_ERROR("*SIGNAL HANDLER*", "=============================================\n\n");
     LOG_ERRORF("*SIGNAL HANDLER*", "Uh oh! Caught fatal signal: %s", strsignal(signum));
 
-    GHashTableIter iter;
-    g_hash_table_iter_init(&iter, ScanCtx.dbg_current_files);
+    if (ScanCtx.dbg_current_files != NULL) {
+        GHashTableIter iter;
+        g_hash_table_iter_init(&iter, ScanCtx.dbg_current_files);
 
-    void *key;
-    void *value;
-    while (g_hash_table_iter_next(&iter, &key, &value)) {
-        parse_job_t *job = value;
+        void *key;
+        void *value;
+        while (g_hash_table_iter_next(&iter, &key, &value)) {
+            parse_job_t *job = value;
 
-        if (isatty(STDERR_FILENO)) {
-            LOG_DEBUGF(
-                    "*SIGNAL HANDLER*",
-                    "Thread \033[%dm[%04llX]\033[0m was working on job '%s'",
-                    31 + ((unsigned int) key) % 7, key, job->filepath
-            );
-        } else {
-            LOG_DEBUGF(
-                    "*SIGNAL HANDLER*",
-                    "THREAD [%04llX] was working on job %s",
-                    key, job->filepath
-            );
+            if (isatty(STDERR_FILENO)) {
+                LOG_DEBUGF(
+                        "*SIGNAL HANDLER*",
+                        "Thread \033[%dm[%04llX]\033[0m was working on job '%s'",
+                        31 + ((unsigned int) key) % 7, key, job->filepath
+                );
+            } else {
+                LOG_DEBUGF(
+                        "*SIGNAL HANDLER*",
+                        "THREAD [%04llX] was working on job %s",
+                        key, job->filepath
+                );
+            }
         }
     }
 
-    tpool_dump_debug_info(ScanCtx.pool);
+    if (ScanCtx.pool != NULL) {
+        tpool_dump_debug_info(ScanCtx.pool);
+    }
+
+    if (IndexCtx.pool != NULL) {
+        tpool_dump_debug_info(IndexCtx.pool);
+    }
 
     LOG_INFO(
             "*SIGNAL HANDLER*",

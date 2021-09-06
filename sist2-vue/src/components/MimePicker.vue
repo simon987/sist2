@@ -43,7 +43,7 @@ export default {
   },
   methods: {
     handleTreeClick(node, e) {
-      if (e === "indeterminate" || e === "collapsed") {
+      if (e === "indeterminate" || e === "collapsed" || e === 'rendered' || e === "focused") {
         return;
       }
 
