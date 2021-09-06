@@ -258,6 +258,11 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.raw_ctx.log = _log;
     ScanCtx.raw_ctx.logf = _logf;
     ScanCtx.raw_ctx.store = _store;
+
+    ScanCtx.wpd_ctx.content_size = args->content_size;
+    ScanCtx.wpd_ctx.log = _log;
+    ScanCtx.wpd_ctx.logf = _logf;
+    ScanCtx.wpd_ctx.wpd_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/wordperfect");
 }
 
 

@@ -14,6 +14,7 @@
 #include "libscan/mobi/scan_mobi.h"
 #include "libscan/raw/raw.h"
 #include "libscan/msdoc/msdoc.h"
+#include "libscan/wpd/wpd.h"
 #include "src/io/store.h"
 
 #include <glib.h>
@@ -60,6 +61,7 @@ typedef struct {
     scan_mobi_ctx_t mobi_ctx;
     scan_raw_ctx_t raw_ctx;
     scan_msdoc_ctx_t msdoc_ctx;
+    scan_wpd_ctx_t wpd_ctx;
 } ScanCtx_t;
 
 typedef struct {

@@ -8,7 +8,7 @@
     </b-navbar-brand>
 
     <span class="badge badge-pill version" v-if="$store && $store.state.sist2Info">
-      {{ sist2Version() }}<span v-if="isDebug()">-dbg</span>
+      v{{ sist2Version() }}<span v-if="isDebug()">-dbg</span>
     </span>
 
     <span v-if="$store && $store.state.sist2Info" class="tagline" v-html="tagline()"></span>

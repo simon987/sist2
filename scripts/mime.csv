@@ -78,9 +78,7 @@ application/vocaltec-media-desc, vmd
 application/vocaltec-media-file, vmf
 application/warc, warc
 application/winhelp, hlp
-application/wordperfect6.0, w60
-application/wordperfect6.1, w61
-application/wordperfect, wp|wp5|wp6|wpd
+application/wordperfect, wp|wp5|wp6|wpd|w60|w61
 application/x-123, wk1
 application/x-7z-compressed, 7z
 application/x-aim, aim

@@ -9,7 +9,7 @@ RUN strip sist2
 
 FROM ubuntu:20.10
 
-RUN apt update && apt install -y curl
+RUN apt update && apt install -y curl libasan5
 
 RUN mkdir -p /usr/share/tessdata && \
     cd /usr/share/tessdata/ && \
