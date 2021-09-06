@@ -32,7 +32,7 @@ Lightning-fast file system indexer and search tool.
 
 Scan options
     -t, --threads=<int>           Number of threads. DEFAULT=1
-    -q, --quality=<flt>           Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=5
+    -q, --quality=<flt>           Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=3
     --size=<int>                  Thumbnail size, in pixels. Use negative value to disable. DEFAULT=500
     --content-size=<int>          Number of bytes to be extracted from text documents. Use negative value to disable. DEFAULT=32768
     --incremental=<str>           Reuse an existing index and only scan modified files.
@@ -41,12 +41,14 @@ Scan options
     --name=<str>                  Index display name. DEFAULT: (name of the directory)
     --depth=<int>                 Scan up to DEPTH subdirectories deep. Use 0 to only scan files in PATH. DEFAULT: -1
     --archive=<str>               Archive file mode (skip|list|shallow|recurse). skip: Don't parse, list: only get file names as text, shallow: Don't parse archives inside archives. DEFAULT: recurse
+    --archive-passphrase=<str>    Passphrase for encrypted archive files
     --ocr=<str>                   Tesseract language (use tesseract --list-langs to see which are installed on your machine)
     -e, --exclude=<str>           Files that match this regex will not be scanned
     --fast                        Only index file names & mime type
     --treemap-threshold=<str>     Relative size threshold for treemap (see USAGE.md). DEFAULT: 0.0005
     --mem-buffer=<int>            Maximum memory buffer size per thread in MB for files inside archives (see USAGE.md). DEFAULT: 2000
-    --read-subtitles              Read subtitles from media files
+    --read-subtitles              Read subtitles from media files.
+    --fast-epub                   Faster but less accurate EPUB parsing (no thumbnails, metadata)
 
 Index options
     -t, --threads=<int>           Number of threads. DEFAULT=1
@@ -66,13 +68,14 @@ Web options
     --bind=<str>                  Listen on this address. DEFAULT=localhost:4090
     --auth=<str>                  Basic auth in user:password format
     --tag-auth=<str>              Basic auth in user:password format for tagging
+    --tagline=<str>               Tagline in navbar
+    --dev                         Serve html & js files from disk (for development)
 
 Exec-script options
     --es-url=<str>                Elasticsearch url. DEFAULT=http://localhost:9200
     --es-index=<str>              Elasticsearch index name. DEFAULT=sist2
     --script-file=<str>           Path to user script.
     --async-script                Execute user script asynchronously.
-Made by simon987 <me@simon987.net>. Released under GPL-3.0
 ```
 
 ## Scan
@@ -82,7 +85,7 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
 * `-t, --threads` 
       Number of threads for file parsing. **Do not set a number higher than `$(nproc)` or `$(Get-WmiObject Win32_ComputerSystem).NumberOfLogicalProcessors` in Windows!**
 * `-q, --quality` 
-    Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. *Does not affect PDF thumbnails quality*
+    Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best.
 * `--size` 
     Thumbnail size in pixels.
 * `--content-size` 
@@ -125,6 +128,7 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
 
     To check if a media file can be parsed without *seek*, execute `cat file.mp4 | ffprobe -`
 * `--read-subtitles` When enabled, will attempt to read the subtitles stream from media files.
+* `--fast-epub` Much faster but less accurate EPUB parsing. When enabled, sist2 will use a simple HTML parser to read epub files instead of the MuPDF library. No thumbnails are generated and author/title metadata are not parsed.
 
 ### Scan examples
 
@@ -145,15 +149,11 @@ sist2 scan --incremental ./orig_idx/ -o ./updated_idx/ ~/Documents
 
 ### Index format
 
-A typical `binary` type index structure looks like this:
+A typical `ndjson` type index structure looks like this:
 ```
 documents.idx/
 ├── descriptor.json
-├── _index_139965416830720
-├── _index_139965425223424
-├── _index_139965433616128
-├── _index_139965442008832
-├── _index_139965442008832
+├── _index_main.ndjson.zst
 ├── treemap.csv
 ├── agg_mime.csv
 ├── agg_date.csv
@@ -169,9 +169,7 @@ documents.idx/
     └── lock.mdb
 ```
 
-The `_index_*` files contain the raw binary index data and are not meant to be
-read by other applications. The format is generally compatible across different 
-sist2 versions.
+The `_index_*.ndjson.zst` files contain the document data in JSON format, in a compressed newline-delemited file.
 
 The `thumbs/` folder is a [LMDB](https://en.wikipedia.org/wiki/Lightning_Memory-Mapped_Database)
 database containing the thumbnails.
@@ -181,75 +179,12 @@ following fields are safe to modify manually: `root`, `name`, [rewrite_url](#rew
 
 The `.csv` are pre-computed aggregations necessary for the stats page.
 
-
-*Advanced usage*
-
-Instead of using the `scan` module, you can also import an index generated
-by a third party application. The 'external' index must have the following format:
-
-```
-my_index/
-├── descriptor.json
-├── _index_0
-└── thumbs/
-|   ├── data.mdb
-|   └── lock.mdb
-└── meta/
-    └── <empty>
-```
-
-*descriptor.json*:
-```json
-{
-    "uuid": "<valid UUID4>",
-    "version": "_external_v1",
-    "root": "(optional)",
-    "name": "<name>",
-    "rewrite_url": "(optional)",
-    "type": "json",
-    "timestamp": 1578971024
-}
-```
-
-*_index_0*: NDJSON format (One json object per line)
-
-```json
-{
-  "_id": "unique uuid for the file",
-  "index": "index uuid4 (same one as descriptor.json!)",
-  "mime": "application/x-cbz",
-  "size": 14341204,
-  "mtime": 1578882996,
-  "extension": "cbz",
-  "name": "my_book",
-  "path": "path/to/books",
-  "content": "text contents of the book",
-  "title": "Title of the book",
-  "tag": ["genre.fiction", "author.someguy", "etc..."],
-  "_keyword": [
-    {"k": "ISBN", "v": "ABCD34789231"}
-  ],
-  "_text": [
-    {"k": "other", "v": "This will be indexed as text"}
-  ]
-}
-```
-
-You can find the full list of supported fields [here](../src/io/serialize.c#L90)
-
-The `_keyword.*` items will be indexed and searchable as **keyword** fields (only full matches allowed).
-The `_text.*` items will be indexed and searchable as **text** fields (fuzzy searching allowed)
-
-
 *thumbs/*:
 
 LMDB key-value store. Keys are **binary** 16-byte md5 hash* (`_id` field)
 and values are raw image bytes.
 
 *\* Hash is calculated from the full path of the file, including the extension, relative to the index root*
-
-Importing an external `binary` type index is technically possible but
-it is currently unsupported and has no guaranties of back/forward compatibility.
 
 
 ## Index
@@ -276,6 +211,7 @@ it is currently unsupported and has no guaranties of back/forward compatibility.
     down the process.
  * `-f, --force-reset` 
     Reset Elasticsearch mappings and settings.
+ * `-t, --threads` Number of threads to use. Ideally, choose a number equal to the number of logical cores of the machine hosting Elasticsearch.
     
 ### Index examples
 
@@ -305,6 +241,8 @@ sist2 index --print ./my_index/ | jq | less
  * `--auth=<str>` Basic auth in user:password format
  * `--tag-auth=<str>` Basic auth in user:password format. Works the same way as the 
     `--auth` argument, but authentication is only applied the `/tag/` endpoint.
+ * `--tagline=<str>` When specified, will replace the default tagline in the navbar.
+ * `--dev` Serve html & js files from disk (for development, used to modify frontend files without having to recompile)
  
 ### Web examples
 
@@ -326,12 +264,6 @@ field and will return a HTTP redirect to `<rewrite_url><path>/<name><extension>`
 instead of serving the file from disk. 
 Both the `root` and `rewrite_url` fields are safe to manually modify from the 
 `descriptor.json` file.
-
-### Link to specific indices
-
-To link to specific indices, you can add a list of comma-separated index name to 
-the URL: `?i=<name>,<name>`. By default, indices with `"(nsfw)"` in their name are
-not displayed.
 
 ## exec-script
 
