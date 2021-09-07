@@ -15,6 +15,7 @@
 #include "libscan/raw/raw.h"
 #include "libscan/msdoc/msdoc.h"
 #include "libscan/wpd/wpd.h"
+#include "libscan/json/json.h"
 #include "src/io/store.h"
 
 #include <glib.h>
@@ -62,6 +63,7 @@ typedef struct {
     scan_raw_ctx_t raw_ctx;
     scan_msdoc_ctx_t msdoc_ctx;
     scan_wpd_ctx_t wpd_ctx;
+    scan_json_ctx_t json_ctx;
 } ScanCtx_t;
 
 typedef struct {

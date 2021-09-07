@@ -259,10 +259,18 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.raw_ctx.logf = _logf;
     ScanCtx.raw_ctx.store = _store;
 
+    // Wpd
     ScanCtx.wpd_ctx.content_size = args->content_size;
     ScanCtx.wpd_ctx.log = _log;
     ScanCtx.wpd_ctx.logf = _logf;
     ScanCtx.wpd_ctx.wpd_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/wordperfect");
+
+    // Json
+    ScanCtx.json_ctx.content_size = args->content_size;
+    ScanCtx.json_ctx.log = _log;
+    ScanCtx.json_ctx.logf = _logf;
+    ScanCtx.json_ctx.json_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/json");
+    ScanCtx.json_ctx.ndjson_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/ndjson");
 }
 
 

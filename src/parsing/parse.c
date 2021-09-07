@@ -182,8 +182,10 @@ void parse(void *arg) {
         return;
     } else if (is_msdoc(&ScanCtx.msdoc_ctx, doc->mime)) {
         parse_msdoc(&ScanCtx.msdoc_ctx, &job->vfile, doc);
-    } else if (is_wpd(&ScanCtx.wpd_ctx, doc->mime)) {
-        parse_wpd(&ScanCtx.wpd_ctx, &job->vfile, doc);
+    } else if (is_json(&ScanCtx.json_ctx, doc->mime)) {
+        parse_json(&ScanCtx.json_ctx, &job->vfile, doc);
+    } else if (is_ndjson(&ScanCtx.json_ctx, doc->mime)) {
+        parse_ndjson(&ScanCtx.json_ctx, &job->vfile, doc);
     }
 
     abort:
