@@ -26,6 +26,8 @@
 #define UNUSED(x) __attribute__((__unused__))  x
 
 #define MD5_STR_LENGTH 33
+#define SHA1_STR_LENGTH 41
+#define SHA1_DIGEST_LENGTH 20
 
 #include "util.h"
 #include "log.h"

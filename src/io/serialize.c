@@ -74,6 +74,8 @@ char *get_meta_key_text(enum metakey meta_key) {
             return "exif_gps_latitude_dms";
         case MetaExifGpsLatitudeDec:
             return "exif_gps_latitude_dec";
+        case MetaChecksum:
+            return "checksum";
         default:
         LOG_FATALF("serialize.c", "FIXME: Unknown meta key: %d", meta_key)
     }
@@ -165,6 +167,7 @@ char *build_json_string(document_t *doc) {
             case MetaExifGpsLatitudeDMS:
             case MetaExifGpsLatitudeDec:
             case MetaExifGpsLatitudeRef:
+            case MetaChecksum:
             case MetaTitle: {
                 cJSON_AddStringToObject(json, get_meta_key_text(meta->key), meta->str_val);
                 buffer_size_guess += (int) strlen(meta->str_val);

@@ -170,6 +170,8 @@ void initialize_scan_context(scan_args_t *args) {
     pthread_mutex_init(&ScanCtx.dbg_current_files_mu, NULL);
     pthread_mutex_init(&ScanCtx.dbg_file_counts_mu, NULL);
 
+    ScanCtx.calculate_checksums = args->calculate_checksums;
+
     // Archive
     ScanCtx.arc_ctx.mode = args->archive_mode;
     ScanCtx.arc_ctx.log = _log;
@@ -516,8 +518,8 @@ void sist2_web(web_args_t *args) {
 
 
 int main(int argc, const char *argv[]) {
-    sigsegv_handler = signal(SIGSEGV, sig_handler);
-    sigabrt_handler = signal(SIGABRT, sig_handler);
+//    sigsegv_handler = signal(SIGSEGV, sig_handler);
+//    sigabrt_handler = signal(SIGABRT, sig_handler);
 
     setlocale(LC_ALL, "");
 
@@ -574,6 +576,7 @@ int main(int argc, const char *argv[]) {
             OPT_BOOLEAN(0, "read-subtitles", &scan_args->read_subtitles, "Read subtitles from media files."),
             OPT_BOOLEAN(0, "fast-epub", &scan_args->fast_epub,
                         "Faster but less accurate EPUB parsing (no thumbnails, metadata)"),
+            OPT_BOOLEAN(0, "checksum", &scan_args->calculate_checksums, "Calculate file checksums when scanning."),
 
             OPT_GROUP("Index options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),

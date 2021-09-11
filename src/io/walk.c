@@ -28,6 +28,8 @@ parse_job_t *create_fs_parse_job(const char *filepath, const struct stat *info, 
     job->vfile.close = fs_close;
     job->vfile.fd = -1;
     job->vfile.is_fs_file = TRUE;
+    job->vfile.has_checksum = FALSE;
+    job->vfile.calculate_checksum = ScanCtx.calculate_checksums;
 
     return job;
 }

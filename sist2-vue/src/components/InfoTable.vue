@@ -3,7 +3,7 @@
 
     <template #cell(value)="data">
       <span v-if="'html' in data.item" v-html="data.item.html"></span>
-      <span v-else>{{data.value}}</span>
+      <span v-else>{{ data.value }}</span>
     </template>
   </b-table>
 </template>
@@ -57,7 +57,8 @@ export default {
         "bitrate", "artist", "album", "album_artist", "genre", "font_name", "author",
         "modified_by", "pages", "tag",
         "exif_make", "exif_software", "exif_exposure_time", "exif_fnumber", "exif_focal_length",
-          "exif_user_comment", "exif_iso_speed_ratings", "exif_model", "exif_datetime",
+        "exif_user_comment", "exif_iso_speed_ratings", "exif_model", "exif_datetime",
+        "checksum"
       ];
 
       fields.forEach(field => {
@@ -76,9 +77,9 @@ export default {
         items.push({
           key: "Exif GPS",
           html: makeGpsLink(
-                  dmsToDecimal(src["exif_gps_latitude_dms"], src["exif_gps_latitude_ref"]),
-                  dmsToDecimal(src["exif_gps_longitude_dms"], src["exif_gps_longitude_ref"]),
-              ),
+              dmsToDecimal(src["exif_gps_latitude_dms"], src["exif_gps_latitude_ref"]),
+              dmsToDecimal(src["exif_gps_longitude_dms"], src["exif_gps_longitude_ref"]),
+          ),
         });
       }
 

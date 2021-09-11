@@ -50,6 +50,7 @@ export interface EsHit {
         height: number
         duration: number
         tag: string[]
+        checksum: string
     }
     _props: {
         isSubDocument: boolean

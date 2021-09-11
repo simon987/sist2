@@ -10,25 +10,34 @@
 
 
 #define MIN_VIDEO_SIZE (1024 * 64)
-#define MIN_IMAGE_SIZE (1024 * 2)
+#define MIN_IMAGE_SIZE (512)
 
 int fs_read(struct vfile *f, void *buf, size_t size) {
 
     if (f->fd == -1) {
+        SHA1_Init(&f->sha1_ctx);
+
         f->fd = open(f->filepath, O_RDONLY);
         if (f->fd == -1) {
-            LOG_ERRORF(f->filepath, "open(): [%d] %s", errno, strerror(errno))
             return -1;
         }
     }
 
-    return read(f->fd, buf, size);
+    int ret = (int) read(f->fd, buf, size);
+
+    if (ret != 0 && f->calculate_checksum) {
+        f->has_checksum = TRUE;
+        safe_sha1_update(&f->sha1_ctx, (unsigned char*)buf, ret);
+    }
+
+    return ret;
 }
 
 #define CLOSE_FILE(f) if ((f).close != NULL) {(f).close(&(f));};
 
 void fs_close(struct vfile *f) {
     if (f->fd != -1) {
+        SHA1_Final(f->sha1_digest, &f->sha1_ctx);
         close(f->fd);
     }
 }
@@ -66,7 +75,7 @@ void parse(void *arg) {
     doc->meta_tail = NULL;
     doc->mime = 0;
     doc->size = job->vfile.info.st_size;
-    doc->mtime = job->vfile.info.st_mtim.tv_sec;
+    doc->mtime = (int) job->vfile.info.st_mtim.tv_sec;
 
     int inc_ts = incremental_get(ScanCtx.original_table, doc->path_md5);
     if (inc_ts != 0 && inc_ts == job->vfile.info.st_mtim.tv_sec) {
@@ -202,9 +211,15 @@ void parse(void *arg) {
         doc->has_parent = FALSE;
     }
 
-    write_document(doc);
-
     CLOSE_FILE(job->vfile)
+
+    if (job->vfile.has_checksum) {
+        char sha1_digest_str[SHA1_STR_LENGTH];
+        buf2hex((unsigned char *) job->vfile.sha1_digest, SHA1_DIGEST_LENGTH, (char *) sha1_digest_str);
+        APPEND_STR_META(doc, MetaChecksum, (const char *) sha1_digest_str);
+    }
+
+    write_document(doc);
 }
 
 void cleanup_parse() {

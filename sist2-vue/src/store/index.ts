@@ -27,6 +27,7 @@ export default new Vuex.Store({
         size: 60,
 
         optLang: "en",
+        optHideDuplicates: true,
         optTheme: "light",
         optDisplay: "grid",
 
@@ -79,6 +80,7 @@ export default new Vuex.Store({
         setSizeMax: (state, val) => state.sizeMax = val,
         setSist2Info: (state, val) => state.sist2Info = val,
         setSeed: (state, val) => state.seed = val,
+        setOptHideDuplicates: (state, val) => state.optHideDuplicates = val,
         setOptLang: (state, val) => state.optLang = val,
         setSortMode: (state, val) => state.sortMode = val,
         setIndices: (state, val) => {
@@ -317,6 +319,7 @@ export default new Vuex.Store({
         uiLightboxKey: state => state.uiLightboxKey,
         uiLightboxSlide: state => state.uiLightboxSlide,
 
+        optHideDuplicates: state => state.optHideDuplicates,
         optLang: state => state.optLang,
         optTheme: state => state.optTheme,
         optDisplay: state => state.optDisplay,
