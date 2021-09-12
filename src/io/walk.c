@@ -24,11 +24,15 @@ parse_job_t *create_fs_parse_job(const char *filepath, const struct stat *info, 
 
     job->vfile.filepath = job->filepath;
     job->vfile.read = fs_read;
+    // Filesystem reads are always rewindable
+    job->vfile.read_rewindable = fs_read;
     job->vfile.reset = fs_reset;
     job->vfile.close = fs_close;
     job->vfile.fd = -1;
     job->vfile.is_fs_file = TRUE;
     job->vfile.has_checksum = FALSE;
+    job->vfile.rewind_buffer_size = 0;
+    job->vfile.rewind_buffer = NULL;
     job->vfile.calculate_checksum = ScanCtx.calculate_checksums;
 
     return job;

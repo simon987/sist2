@@ -27,7 +27,7 @@ int fs_read(struct vfile *f, void *buf, size_t size) {
 
     if (ret != 0 && f->calculate_checksum) {
         f->has_checksum = TRUE;
-        safe_sha1_update(&f->sha1_ctx, (unsigned char*)buf, ret);
+        safe_sha1_update(&f->sha1_ctx, (unsigned char *) buf, ret);
     }
 
     return ret;
@@ -102,18 +102,17 @@ void parse(void *arg) {
         doc->mime = mime_get_mime_by_ext(ScanCtx.ext_table, job->filepath + job->ext);
     }
 
-    int bytes_read = 0;
 
     if (doc->mime == 0 && !ScanCtx.fast) {
 
         // Get mime type with libmagic
-        if (!job->vfile.is_fs_file) {
+        if (job->vfile.read_rewindable == NULL) {
             LOG_WARNING(job->filepath,
-                        "Guessing mime type with libmagic inside archive files is not currently supported");
+                        "File does not support rewindable reads, cannot guess Media type");
             goto abort;
         }
 
-        bytes_read = job->vfile.read(&job->vfile, buf, MAGIC_BUF_SIZE);
+        int bytes_read = job->vfile.read_rewindable(&job->vfile, buf, MAGIC_BUF_SIZE);
         if (bytes_read < 0) {
 
             if (job->vfile.is_fs_file) {
@@ -144,7 +143,9 @@ void parse(void *arg) {
             }
         }
 
-        job->vfile.reset(&job->vfile);
+        if (job->vfile.reset != NULL) {
+            job->vfile.reset(&job->vfile);
+        }
 
         magic_close(magic);
     }
@@ -158,7 +159,7 @@ void parse(void *arg) {
     } else if ((mmime == MimeVideo && doc->size >= MIN_VIDEO_SIZE) ||
                (mmime == MimeImage && doc->size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
 
-        parse_media(&ScanCtx.media_ctx, &job->vfile, doc);
+        parse_media(&ScanCtx.media_ctx, &job->vfile, doc, mime_get_mime_text(doc->mime));
 
     } else if (IS_PDF(doc->mime)) {
         parse_ebook(&ScanCtx.ebook_ctx, &job->vfile, mime_get_mime_text(doc->mime), doc);

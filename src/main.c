@@ -576,7 +576,7 @@ int main(int argc, const char *argv[]) {
             OPT_BOOLEAN(0, "read-subtitles", &scan_args->read_subtitles, "Read subtitles from media files."),
             OPT_BOOLEAN(0, "fast-epub", &scan_args->fast_epub,
                         "Faster but less accurate EPUB parsing (no thumbnails, metadata)"),
-            OPT_BOOLEAN(0, "checksum", &scan_args->calculate_checksums, "Calculate file checksums when scanning."),
+            OPT_BOOLEAN(0, "checksums", &scan_args->calculate_checksums, "Calculate file checksums when scanning."),
 
             OPT_GROUP("Index options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
