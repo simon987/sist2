@@ -2,7 +2,8 @@
   "index": {
     "refresh_interval": "30s",
     "codec": "best_compression",
-    "number_of_replicas": 0
+    "number_of_replicas": 0,
+    "highlight.max_analyzed_offset": 10000000
   },
   "analysis": {
     "tokenizer": {
