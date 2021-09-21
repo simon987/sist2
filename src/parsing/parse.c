@@ -179,7 +179,7 @@ void parse(void *arg) {
                     IS_ARC(doc->mime) ||
                     (IS_ARC_FILTER(doc->mime) && should_parse_filtered_file(doc->filepath, doc->ext))
             )) {
-        parse_archive(&ScanCtx.arc_ctx, &job->vfile, doc);
+        parse_archive(&ScanCtx.arc_ctx, &job->vfile, doc, ScanCtx.exclude, ScanCtx.exclude_extra);
     } else if ((ScanCtx.ooxml_ctx.content_size > 0 || ScanCtx.media_ctx.tn_size > 0) && IS_DOC(doc->mime)) {
         parse_ooxml(&ScanCtx.ooxml_ctx, &job->vfile, doc);
     } else if (is_cbr(&ScanCtx.comic_ctx, doc->mime) || is_cbz(&ScanCtx.comic_ctx, doc->mime)) {
@@ -189,6 +189,8 @@ void parse(void *arg) {
     } else if (doc->mime == MIME_SIST2_SIDECAR) {
         parse_sidecar(&job->vfile, doc);
         CLOSE_FILE(job->vfile)
+        free(doc->filepath);
+        free(doc);
         return;
     } else if (is_msdoc(&ScanCtx.msdoc_ctx, doc->mime)) {
         parse_msdoc(&ScanCtx.msdoc_ctx, &job->vfile, doc);

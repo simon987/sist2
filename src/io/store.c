@@ -4,6 +4,7 @@
 store_t *store_create(const char *path, size_t chunk_size) {
     store_t *store = malloc(sizeof(struct store_t));
     mkdir(path, S_IWUSR | S_IRUSR | S_IXUSR);
+    strcpy(store->path, path);
 
 #if (SIST_FAKE_STORE != 1)
     store->chunk_size = chunk_size;
@@ -78,27 +79,57 @@ void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t bu
     int put_ret = mdb_put(txn, store->dbi, &mdb_key, &mdb_value, 0);
     ScanCtx.stat_tn_size += buf_len;
 
+    int db_full = FALSE;
+    int should_abort_transaction = FALSE;
+
     if (put_ret == MDB_MAP_FULL) {
-        mdb_txn_abort(txn);
+        db_full = TRUE;
+        should_abort_transaction = TRUE;
+    } else {
+        int commit_ret = mdb_txn_commit(txn);
+
+        if (commit_ret == MDB_MAP_FULL) {
+            db_full = TRUE;
+        }
+    }
+
+    if (db_full) {
+        LOG_INFOF("store.c", "Updating mdb mapsize to %lu bytes", store->size)
+
+        if (should_abort_transaction) {
+            mdb_txn_abort(txn);
+        }
+
         pthread_rwlock_unlock(&store->lock);
 
         // Cannot resize when there is a opened transaction.
         //  Resize take effect on the next commit.
         pthread_rwlock_wrlock(&store->lock);
         store->size += store->chunk_size;
-        mdb_env_set_mapsize(store->env, store->size);
+        int resize_ret = mdb_env_set_mapsize(store->env, store->size);
+        if (resize_ret != 0) {
+            LOG_ERROR("store.c", mdb_strerror(put_ret))
+        }
         mdb_txn_begin(store->env, NULL, 0, &txn);
-        put_ret = mdb_put(txn, store->dbi, &mdb_key, &mdb_value, 0);
+        int put_ret_retry = mdb_put(txn, store->dbi, &mdb_key, &mdb_value, 0);
 
+        if (put_ret_retry != 0) {
+            LOG_ERROR("store.c", mdb_strerror(put_ret))
+        }
+
+        int ret = mdb_txn_commit(txn);
+        if (ret != 0) {
+            LOG_FATALF("store.c", "FIXME: Could not commit to store %s: %s (%d), %d, %d %d",
+                       store->path, mdb_strerror(ret), ret,
+                       put_ret, put_ret_retry);
+        }
         LOG_INFOF("store.c", "Updated mdb mapsize to %lu bytes", store->size)
-    }
-
-    mdb_txn_commit(txn);
-    pthread_rwlock_unlock(&store->lock);
-
-    if (put_ret != 0) {
+    } else if (put_ret != 0) {
         LOG_ERROR("store.c", mdb_strerror(put_ret))
     }
+
+    pthread_rwlock_unlock(&store->lock);
+
 #endif
 }
 

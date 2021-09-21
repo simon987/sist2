@@ -39,7 +39,7 @@ parse_job_t *create_fs_parse_job(const char *filepath, const struct stat *info, 
 }
 
 int sub_strings[30];
-#define EXCLUDED(str) (pcre_exec(ScanCtx.exclude, ScanCtx.exclude_extra, filepath, strlen(filepath), 0, 0, sub_strings, sizeof(sub_strings)) >= 0)
+#define EXCLUDED(str) (pcre_exec(ScanCtx.exclude, ScanCtx.exclude_extra, str, strlen(str), 0, 0, sub_strings, sizeof(sub_strings)) >= 0)
 
 int handle_entry(const char *filepath, const struct stat *info, int typeflag, struct FTW *ftw) {
 
