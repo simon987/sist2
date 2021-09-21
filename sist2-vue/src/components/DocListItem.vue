@@ -1,5 +1,5 @@
 <template>
-  <b-list-group-item class="flex-column align-items-start mb-2">
+  <b-list-group-item class="flex-column align-items-start mb-2" :class="{'sub-document': doc._props.isSubDocument}">
 
     <!-- Info modal-->
     <DocInfoModal :show="showInfo" :doc="doc" @close="showInfo = false"></DocInfoModal>
@@ -40,9 +40,11 @@
         </div>
 
         <div v-if="doc._source.pages || doc._source.author" class="path-row text-muted">
-          <span v-if="doc._source.pages">{{ doc._source.pages }} {{ doc._source.pages > 1 ? $t("pages") : $t("page") }}</span>
+          <span v-if="doc._source.pages">{{ doc._source.pages }} {{
+              doc._source.pages > 1 ? $t("pages") : $t("page")
+            }}</span>
           <span v-if="doc._source.author && doc._source.pages" class="mx-1">-</span>
-          <span v-if="doc._source.author">{{doc._source.author}}</span>
+          <span v-if="doc._source.author">{{ doc._source.author }}</span>
         </div>
       </div>
     </div>
@@ -89,6 +91,14 @@ export default {
 </script>
 
 <style scoped>
+.sub-document {
+  background: #AB47BC1F !important;
+}
+
+.theme-black .sub-document {
+  background: #37474F !important;
+}
+
 .list-group {
   margin-top: 1em;
 }
