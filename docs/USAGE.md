@@ -49,6 +49,7 @@ Scan options
     --mem-buffer=<int>            Maximum memory buffer size per thread in MB for files inside archives (see USAGE.md). DEFAULT: 2000
     --read-subtitles              Read subtitles from media files.
     --fast-epub                   Faster but less accurate EPUB parsing (no thumbnails, metadata)
+    --checksums                   Calculate file checksums when scanning.
 
 Index options
     -t, --threads=<int>           Number of threads. DEFAULT=1
@@ -129,6 +130,9 @@ Exec-script options
     To check if a media file can be parsed without *seek*, execute `cat file.mp4 | ffprobe -`
 * `--read-subtitles` When enabled, will attempt to read the subtitles stream from media files.
 * `--fast-epub` Much faster but less accurate EPUB parsing. When enabled, sist2 will use a simple HTML parser to read epub files instead of the MuPDF library. No thumbnails are generated and author/title metadata are not parsed.
+* `--checksums` Calculate file checksums (sha1) when scanning files. This option does not cause any additional read 
+  operations. Checksums are not calculated for all file types, unless the file is inside an archive. When enabled, duplicate
+  files are hidden in the web UI (this behaviour can be toggled in the Configuration page).
 
 ### Scan examples
 
