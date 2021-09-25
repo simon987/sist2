@@ -62,7 +62,8 @@ export default {
             lightboxLoadOnlyCurrent: "Do not preload full-size images for adjacent slides in image viewer.",
             slideDuration: "Slide duration",
             resultSize: "Number of results per page",
-            tagOrOperator: "Use OR operator when specifying multiple tags."
+            tagOrOperator: "Use OR operator when specifying multiple tags.",
+            hideDuplicates: "Hide duplicate results based on checksum"
         },
         queryMode: {
             simple: "Simple",
@@ -209,7 +210,8 @@ export default {
             lightboxLoadOnlyCurrent: "Désactiver le chargement des diapositives adjacentes pour le visualiseur d'images",
             slideDuration: "Durée des diapositives",
             resultSize: "Nombre de résultats par page",
-            tagOrOperator: "Utiliser l'opérateur OU lors de la spécification de plusieurs tags"
+            tagOrOperator: "Utiliser l'opérateur OU lors de la spécification de plusieurs tags",
+            hideDuplicates: "Masquer les résultats en double"
         },
         queryMode: {
             simple: "Simple",

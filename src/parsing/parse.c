@@ -10,25 +10,34 @@
 
 
 #define MIN_VIDEO_SIZE (1024 * 64)
-#define MIN_IMAGE_SIZE (1024 * 2)
+#define MIN_IMAGE_SIZE (512)
 
 int fs_read(struct vfile *f, void *buf, size_t size) {
 
     if (f->fd == -1) {
+        SHA1_Init(&f->sha1_ctx);
+
         f->fd = open(f->filepath, O_RDONLY);
         if (f->fd == -1) {
-            LOG_ERRORF(f->filepath, "open(): [%d] %s", errno, strerror(errno))
             return -1;
         }
     }
 
-    return read(f->fd, buf, size);
+    int ret = (int) read(f->fd, buf, size);
+
+    if (ret != 0 && f->calculate_checksum) {
+        f->has_checksum = TRUE;
+        safe_sha1_update(&f->sha1_ctx, (unsigned char *) buf, ret);
+    }
+
+    return ret;
 }
 
 #define CLOSE_FILE(f) if ((f).close != NULL) {(f).close(&(f));};
 
 void fs_close(struct vfile *f) {
     if (f->fd != -1) {
+        SHA1_Final(f->sha1_digest, &f->sha1_ctx);
         close(f->fd);
     }
 }
@@ -66,7 +75,7 @@ void parse(void *arg) {
     doc->meta_tail = NULL;
     doc->mime = 0;
     doc->size = job->vfile.info.st_size;
-    doc->mtime = job->vfile.info.st_mtim.tv_sec;
+    doc->mtime = (int) job->vfile.info.st_mtim.tv_sec;
 
     int inc_ts = incremental_get(ScanCtx.original_table, doc->path_md5);
     if (inc_ts != 0 && inc_ts == job->vfile.info.st_mtim.tv_sec) {
@@ -93,18 +102,17 @@ void parse(void *arg) {
         doc->mime = mime_get_mime_by_ext(ScanCtx.ext_table, job->filepath + job->ext);
     }
 
-    int bytes_read = 0;
 
     if (doc->mime == 0 && !ScanCtx.fast) {
 
         // Get mime type with libmagic
-        if (!job->vfile.is_fs_file) {
+        if (job->vfile.read_rewindable == NULL) {
             LOG_WARNING(job->filepath,
-                        "Guessing mime type with libmagic inside archive files is not currently supported");
+                        "File does not support rewindable reads, cannot guess Media type");
             goto abort;
         }
 
-        bytes_read = job->vfile.read(&job->vfile, buf, MAGIC_BUF_SIZE);
+        int bytes_read = job->vfile.read_rewindable(&job->vfile, buf, MAGIC_BUF_SIZE);
         if (bytes_read < 0) {
 
             if (job->vfile.is_fs_file) {
@@ -135,7 +143,9 @@ void parse(void *arg) {
             }
         }
 
-        job->vfile.reset(&job->vfile);
+        if (job->vfile.reset != NULL) {
+            job->vfile.reset(&job->vfile);
+        }
 
         magic_close(magic);
     }
@@ -149,7 +159,7 @@ void parse(void *arg) {
     } else if ((mmime == MimeVideo && doc->size >= MIN_VIDEO_SIZE) ||
                (mmime == MimeImage && doc->size >= MIN_IMAGE_SIZE) || mmime == MimeAudio) {
 
-        parse_media(&ScanCtx.media_ctx, &job->vfile, doc);
+        parse_media(&ScanCtx.media_ctx, &job->vfile, doc, mime_get_mime_text(doc->mime));
 
     } else if (IS_PDF(doc->mime)) {
         parse_ebook(&ScanCtx.ebook_ctx, &job->vfile, mime_get_mime_text(doc->mime), doc);
@@ -169,7 +179,7 @@ void parse(void *arg) {
                     IS_ARC(doc->mime) ||
                     (IS_ARC_FILTER(doc->mime) && should_parse_filtered_file(doc->filepath, doc->ext))
             )) {
-        parse_archive(&ScanCtx.arc_ctx, &job->vfile, doc);
+        parse_archive(&ScanCtx.arc_ctx, &job->vfile, doc, ScanCtx.exclude, ScanCtx.exclude_extra);
     } else if ((ScanCtx.ooxml_ctx.content_size > 0 || ScanCtx.media_ctx.tn_size > 0) && IS_DOC(doc->mime)) {
         parse_ooxml(&ScanCtx.ooxml_ctx, &job->vfile, doc);
     } else if (is_cbr(&ScanCtx.comic_ctx, doc->mime) || is_cbz(&ScanCtx.comic_ctx, doc->mime)) {
@@ -179,11 +189,15 @@ void parse(void *arg) {
     } else if (doc->mime == MIME_SIST2_SIDECAR) {
         parse_sidecar(&job->vfile, doc);
         CLOSE_FILE(job->vfile)
+        free(doc->filepath);
+        free(doc);
         return;
     } else if (is_msdoc(&ScanCtx.msdoc_ctx, doc->mime)) {
         parse_msdoc(&ScanCtx.msdoc_ctx, &job->vfile, doc);
-    } else if (is_wpd(&ScanCtx.wpd_ctx, doc->mime)) {
-        parse_wpd(&ScanCtx.wpd_ctx, &job->vfile, doc);
+    } else if (is_json(&ScanCtx.json_ctx, doc->mime)) {
+        parse_json(&ScanCtx.json_ctx, &job->vfile, doc);
+    } else if (is_ndjson(&ScanCtx.json_ctx, doc->mime)) {
+        parse_ndjson(&ScanCtx.json_ctx, &job->vfile, doc);
     }
 
     abort:
@@ -200,9 +214,15 @@ void parse(void *arg) {
         doc->has_parent = FALSE;
     }
 
-    write_document(doc);
-
     CLOSE_FILE(job->vfile)
+
+    if (job->vfile.has_checksum) {
+        char sha1_digest_str[SHA1_STR_LENGTH];
+        buf2hex((unsigned char *) job->vfile.sha1_digest, SHA1_DIGEST_LENGTH, (char *) sha1_digest_str);
+        APPEND_STR_META(doc, MetaChecksum, (const char *) sha1_digest_str);
+    }
+
+    write_document(doc);
 }
 
 void cleanup_parse() {

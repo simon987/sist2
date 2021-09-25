@@ -4,7 +4,8 @@
     <template #modal-title>
       <h5 class="modal-title" :title="doc._source.name + ext(doc)">{{ doc._source.name + ext(doc) }}</h5>
     </template>
-    <img :src="`t/${doc._source.index}/${doc._id}`" alt="" class="fit card-img-top">
+
+    <img v-if="doc._props.hasThumbnail" :src="`t/${doc._source.index}/${doc._id}`" alt="" class="fit card-img-top">
 
     <InfoTable :doc="doc"></InfoTable>
 

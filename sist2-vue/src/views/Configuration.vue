@@ -35,6 +35,11 @@
         <br/>
         <h4>{{ $t("searchOptions") }}</h4>
         <b-card>
+          <b-form-checkbox :checked="optHideDuplicates" @input="setOptHideDuplicates">{{
+              $t("opt.hideDuplicates")
+            }}
+          </b-form-checkbox>
+
           <b-form-checkbox :checked="optHighlight" @input="setOptHighlight">{{ $t("opt.highlight") }}</b-form-checkbox>
           <b-form-checkbox :checked="optTagOrOperator" @input="setOptTagOrOperator">{{
               $t("opt.tagOrOperator")
@@ -206,10 +211,10 @@ export default {
       "optTreemapSize",
       "optLightboxLoadOnlyCurrent",
       "optLightboxSlideDuration",
-      "optContainerWidth",
       "optResultSize",
       "optTagOrOperator",
-      "optLang"
+      "optLang",
+      "optHideDuplicates",
     ]),
     clientWidth() {
       return window.innerWidth;
@@ -248,7 +253,8 @@ export default {
       "setOptContainerWidth",
       "setOptResultSize",
       "setOptTagOrOperator",
-      "setOptLang"
+      "setOptLang",
+      "setOptHideDuplicates"
     ]),
     onResetClick() {
       localStorage.removeItem("sist2_configuration");

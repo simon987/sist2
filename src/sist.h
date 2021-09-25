@@ -26,6 +26,8 @@
 #define UNUSED(x) __attribute__((__unused__))  x
 
 #define MD5_STR_LENGTH 33
+#define SHA1_STR_LENGTH 41
+#define SHA1_DIGEST_LENGTH 20
 
 #include "util.h"
 #include "log.h"
@@ -49,7 +51,7 @@
 #include <ctype.h>
 #include "git_hash.h"
 
-#define VERSION "2.11.2"
+#define VERSION "2.11.3"
 static const char *const Version = VERSION;
 
 #ifndef SIST_PLATFORM

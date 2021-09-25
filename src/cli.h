@@ -28,6 +28,7 @@ typedef struct scan_args {
     int max_memory_buffer;
     int read_subtitles;
     int fast_epub;
+    int calculate_checksums;
 } scan_args_t;
 
 scan_args_t *scan_args_create();

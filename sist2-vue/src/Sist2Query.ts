@@ -187,7 +187,8 @@ class Sist2Query {
                     "name.nGram": {},
                     "content.nGram": {},
                     font_name: {},
-                }
+                },
+                max_analyzed_offset: 9_999_999
             };
             if (getters.optSearchInPath) {
                 q.highlight.fields["path.text"] = {};

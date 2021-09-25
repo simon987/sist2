@@ -4,6 +4,10 @@
       "type": "keyword",
       "doc_values": true
     },
+    "checksum": {
+      "type": "keyword",
+      "index": false
+    },
     "_depth": {
       "type": "integer"
     },

@@ -91,6 +91,7 @@ export default Vue.extend({
     search: undefined as any,
     docs: [] as EsHit[],
     docIds: new Set(),
+    docChecksums: new Set(),
     searchBusy: false,
     Sist2Query: Sist2Query,
     showHelp: false
@@ -193,6 +194,7 @@ export default Vue.extend({
     async clearResults() {
       this.docs = [];
       this.docIds.clear();
+      this.docChecksums.clear();
       await this.$store.dispatch("clearResults");
       this.$store.commit("setUiReachedScrollEnd", false);
     },
@@ -202,7 +204,19 @@ export default Vue.extend({
       }
 
       resp.hits.hits = resp.hits.hits.filter(hit => !this.docIds.has(hit._id));
-      resp.hits.hits.forEach(hit => this.docIds.add(hit._id));
+
+      if (this.$store.state.optHideDuplicates) {
+        resp.hits.hits = resp.hits.hits.filter(hit => {
+
+          if (!("checksum" in hit._source)) {
+              return true;
+          }
+
+          const isDupe = !this.docChecksums.has(hit._source.checksum);
+          this.docChecksums.add(hit._source.checksum);
+          return isDupe;
+        });
+      }
 
       for (const hit of resp.hits.hits) {
         if (hit._props.isPlayableImage || hit._props.isPlayableVideo) {

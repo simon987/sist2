@@ -22,6 +22,7 @@ application/java-archive, jar
 application/java, class
 application/javascript,
 application/json, json
+application/ndjson, jsonl|ndjson
 application/marc, mrc
 application/mbedlet, mbd
 application/mime, aps
