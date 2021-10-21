@@ -9,6 +9,26 @@ typedef struct es_bulk_line {
     char line[0];
 } es_bulk_line_t;
 
+typedef struct {
+    int major;
+    int minor;
+    int patch;
+} es_version_t;
+
+#define VERSION_GE(version, maj, min) ((version)->major > (maj) || ((version)->major == (maj) && (version)->minor >= (min)))
+#define IS_SUPPORTED_ES_VERSION(es_version) VERSION_GE((es_version), 6, 8)
+#define USE_LEGACY_ES_SETTINGS(es_version) (!VERSION_GE((es_version), 7, 14))
+
+__always_inline
+static const char *format_es_version(es_version_t *version) {
+    static char buf[64];
+
+    snprintf(buf, sizeof(buf), "%d.%d.%d", version->major, version->minor, version->patch);
+
+    return buf;
+}
+
+
 /**
  * Note: indexer is *not* thread safe
  */
@@ -30,6 +50,8 @@ void elastic_init(int force_reset, const char* user_mappings, const char* user_s
 cJSON *elastic_get_document(const char *id_str);
 
 char *elastic_get_status();
+
+es_version_t *elastic_get_version(const char *es_url);
 
 void execute_update_script(const char *script, int async, const char index_id[MD5_STR_LENGTH]);
 

@@ -252,12 +252,32 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
     mg_http_serve_file(nc, hm, full_path, mime, disposition);
 }
 
+void cache_es_version() {
+    static int is_cached = FALSE;
+
+    if (is_cached == TRUE) {
+        return;
+    }
+
+    es_version_t *es_version = elastic_get_version(WebCtx.es_url);
+    if (es_version != NULL) {
+        WebCtx.es_version = es_version;
+        is_cached = TRUE;
+    }
+}
+
 void index_info(struct mg_connection *nc) {
+
+    cache_es_version();
+
     cJSON *json = cJSON_CreateObject();
     cJSON *arr = cJSON_AddArrayToObject(json, "indices");
 
     cJSON_AddStringToObject(json, "esIndex", WebCtx.es_index);
     cJSON_AddStringToObject(json, "version", Version);
+    cJSON_AddStringToObject(json, "esVersion", format_es_version(WebCtx.es_version));
+    cJSON_AddBoolToObject(json, "esVersionSupported", IS_SUPPORTED_ES_VERSION(WebCtx.es_version));
+    cJSON_AddBoolToObject(json, "esVersionLegacy", USE_LEGACY_ES_SETTINGS(WebCtx.es_version));
     cJSON_AddStringToObject(json, "platform", QUOTE(SIST_PLATFORM));
     cJSON_AddStringToObject(json, "sist2Hash", Sist2CommitHash);
     cJSON_AddStringToObject(json, "libscanHash", LibScanCommitHash);

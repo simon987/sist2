@@ -356,7 +356,65 @@ void finish_indexer(char *script, int async_script, char *index_id) {
     free_response(r);
 }
 
-void elastic_init(int force_reset, const char* user_mappings, const char* user_settings) {
+es_version_t *elastic_get_version(const char *es_url) {
+    response_t *r = web_get(es_url, 30);
+
+    char *tmp = malloc(r->size + 1);
+    memcpy(tmp, r->body, r->size);
+    *(tmp + r->size) = '\0';
+    cJSON *response = cJSON_Parse(tmp);
+    free(tmp);
+    free_response(r);
+
+    if (response == NULL) {
+        return NULL;
+    }
+
+    if (cJSON_GetObjectItem(response, "version") == NULL ||
+        cJSON_GetObjectItem(cJSON_GetObjectItem(response, "version"), "number") == NULL) {
+        cJSON_Delete(response);
+        return NULL;
+    }
+
+    char *version_str = cJSON_GetObjectItem(cJSON_GetObjectItem(response, "version"), "number")->valuestring;
+
+    es_version_t *version = malloc(sizeof(es_version_t));
+
+    const char *tok = strtok(version_str, ".");
+    version->major = atoi(tok);
+    tok = strtok(NULL, ".");
+    version->minor = atoi(tok);
+    tok = strtok(NULL, ".");
+    version->patch = atoi(tok);
+
+    cJSON_Delete(response);
+
+    return version;
+}
+
+void elastic_init(int force_reset, const char *user_mappings, const char *user_settings) {
+
+    es_version_t *es_version = elastic_get_version(IndexCtx.es_url);
+    IndexCtx.es_version = es_version;
+
+    if (es_version == NULL) {
+        LOG_FATAL("elastic.c", "Could not get ES version")
+    }
+
+    LOG_INFOF("elastic.c",
+              "Elasticsearch version is %s (supported=%d, legacy=%d)",
+              format_es_version(es_version), IS_SUPPORTED_ES_VERSION(es_version), USE_LEGACY_ES_SETTINGS(es_version));
+
+    if (!IS_SUPPORTED_ES_VERSION(es_version)) {
+        LOG_FATAL("elastic.c", "sist2 only supports Elasticsearch v6.8 or newer")
+    }
+
+    char *settings = NULL;
+    if (USE_LEGACY_ES_SETTINGS(es_version)) {
+        settings = settings_json;
+    } else {
+        settings = settings_legacy_json;
+    }
 
     // Check if index exists
     char url[4096];
@@ -392,7 +450,7 @@ void elastic_init(int force_reset, const char* user_mappings, const char* user_s
         free_response(r);
 
         snprintf(url, sizeof(url), "%s/%s/_settings", IndexCtx.es_url, IndexCtx.es_index);
-        r = web_put(url, user_settings ? user_settings : settings_json);
+        r = web_put(url, user_settings ? user_settings : settings);
         LOG_INFOF("elastic.c", "Update ES settings <%d>", r->status_code);
         if (r->status_code != 200) {
             print_error(r);

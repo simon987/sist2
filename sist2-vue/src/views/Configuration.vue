@@ -19,6 +19,10 @@
             {{ $t("opt.lightboxLoadOnlyCurrent") }}
           </b-form-checkbox>
 
+          <b-form-checkbox :checked="optHideLegacy" @input="setOptHideLegacy">
+            {{ $t("opt.hideLegacy") }}
+          </b-form-checkbox>
+
           <label>{{ $t("opt.lang") }}</label>
           <b-form-select :options="langOptions" :value="optLang" @input="setOptLang"></b-form-select>
 
@@ -215,6 +219,7 @@ export default {
       "optTagOrOperator",
       "optLang",
       "optHideDuplicates",
+      "optHideLegacy",
     ]),
     clientWidth() {
       return window.innerWidth;
@@ -254,7 +259,8 @@ export default {
       "setOptResultSize",
       "setOptTagOrOperator",
       "setOptLang",
-      "setOptHideDuplicates"
+      "setOptHideDuplicates",
+      "setOptHideLegacy"
     ]),
     onResetClick() {
       localStorage.removeItem("sist2_configuration");

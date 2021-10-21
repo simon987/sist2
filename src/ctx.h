@@ -17,6 +17,7 @@
 #include "libscan/wpd/wpd.h"
 #include "libscan/json/json.h"
 #include "src/io/store.h"
+#include "src/index/elastic.h"
 
 #include <glib.h>
 #include <pcre.h>
@@ -75,6 +76,7 @@ typedef struct {
 
 typedef struct {
     char *es_url;
+    es_version_t *es_version;
     char *es_index;
     int batch_size;
     tpool_t *pool;
@@ -86,6 +88,7 @@ typedef struct {
 
 typedef struct {
     char *es_url;
+    es_version_t *es_version;
     char *es_index;
     int index_count;
     char *auth_user;

@@ -63,7 +63,8 @@ export default {
             slideDuration: "Slide duration",
             resultSize: "Number of results per page",
             tagOrOperator: "Use OR operator when specifying multiple tags.",
-            hideDuplicates: "Hide duplicate results based on checksum"
+            hideDuplicates: "Hide duplicate results based on checksum",
+            hideLegacy: "Hide the 'legacyES' Elasticsearch notice"
         },
         queryMode: {
             simple: "Simple",
@@ -211,7 +212,8 @@ export default {
             slideDuration: "Durée des diapositives",
             resultSize: "Nombre de résultats par page",
             tagOrOperator: "Utiliser l'opérateur OU lors de la spécification de plusieurs tags",
-            hideDuplicates: "Masquer les résultats en double"
+            hideDuplicates: "Masquer les résultats en double",
+            hideLegacy: "Masquer la notice 'legacyES' Elasticsearch"
         },
         queryMode: {
             simple: "Simple",

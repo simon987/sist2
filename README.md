@@ -33,12 +33,11 @@ sist2 (Simple incremental search tool)
 
 ## Getting Started
 
-1. Have an Elasticsearch (>= 6.X.X) instance running
+1. Have an Elasticsearch (>= 6.8.X, ideally >=7.14.0) instance running
     1. Download [from official website](https://www.elastic.co/downloads/elasticsearch)
     1. *(or)* Run using docker:
         ```bash
-       docker run -d --name es1 --net sist2_net -p 9200:9200 \
-            -e "discovery.type=single-node" elasticsearch:7.14.0
+        docker run -d --name es1 -p 9201:9200 -e "discovery.type=single-node" elasticsearch:7.14.0
         ```
     1. *(or)* Run using docker-compose:
         ```yaml
@@ -52,7 +51,7 @@ sist2 (Simple incremental search tool)
     1. Download the [latest sist2 release](https://github.com/simon987/sist2/releases) *
     1. *(or)* Download a [development snapshot](https://files.simon987.net/.gate/sist2/simon987_sist2/) *(Not
        recommended!)*
-    1. *(or)* `docker pull simon987/sist2:2.11.2-x64-linux`
+    1. *(or)* `docker pull simon987/sist2:2.11.4-x64-linux`
 
 1. See [Usage guide](docs/USAGE.md)
 

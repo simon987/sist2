@@ -8,7 +8,8 @@
     </b-navbar-brand>
 
     <span class="badge badge-pill version" v-if="$store && $store.state.sist2Info">
-      v{{ sist2Version() }}<span v-if="isDebug()">-dbg</span>
+      v{{ sist2Version() }}<span v-if="isDebug()">-dbg</span><span v-if="isLegacy() && !hideLegacy()">-<a
+        href="https://github.com/simon987/sist2/blob/master/docs/USAGE.md#elasticsearch" target="_blank">legacyES</a></span>
     </span>
 
     <span v-if="$store && $store.state.sist2Info" class="tagline" v-html="tagline()"></span>
@@ -20,6 +21,7 @@
 
 <script>
 import Sist2Icon from "@/components/Sist2Icon";
+
 export default {
   name: "NavBar",
   components: {Sist2Icon},
@@ -32,6 +34,12 @@ export default {
     },
     isDebug() {
       return this.$store.state.sist2Info.debug;
+    },
+    isLegacy() {
+      return this.$store.state.sist2Info.esVersionLegacy;
+    },
+    hideLegacy() {
+      return this.$store.state.optHideLegacy;
     }
   }
 }
@@ -95,7 +103,7 @@ export default {
   }
 }
 
-.theme-light .btn-link{
+.theme-light .btn-link {
   color: #222;
 }
 </style>

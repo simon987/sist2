@@ -46,6 +46,7 @@ export default new Vuex.Store({
         optTreemapColor: "PuBuGn",
         optLightboxLoadOnlyCurrent: false,
         optLightboxSlideDuration: 15,
+        optHideLegacy: false,
 
         _onLoadSelectedIndices: [] as string[],
         _onLoadSelectedMimeTypes: [] as string[],
@@ -144,6 +145,7 @@ export default new Vuex.Store({
         setOptTreemapColorGroupingDepth: (state, val) => state.optTreemapColorGroupingDepth = val,
         setOptTreemapSize: (state, val) => state.optTreemapSize = val,
         setOptTreemapColor: (state, val) => state.optTreemapColor = val,
+        setOptHideLegacy: (state, val) => state.optHideLegacy = val,
 
         setOptLightboxLoadOnlyCurrent: (state, val) => state.optLightboxLoadOnlyCurrent = val,
 
@@ -339,5 +341,6 @@ export default new Vuex.Store({
         optLightboxLoadOnlyCurrent: state => state.optLightboxLoadOnlyCurrent,
         optLightboxSlideDuration: state => state.optLightboxSlideDuration,
         optResultSize: state => state.size,
+        optHideLegacy: state => state.optHideLegacy,
     }
 })

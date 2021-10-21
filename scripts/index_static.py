@@ -3,6 +3,7 @@ import json
 files = [
     "schema/mappings.json",
     "schema/settings.json",
+    "schema/settings_legacy.json",
     "schema/pipeline.json",
 ]
 
