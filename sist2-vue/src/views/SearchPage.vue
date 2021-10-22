@@ -31,7 +31,7 @@
           </b-row>
         </b-col>
         <b-col>
-          <b-tabs>
+          <b-tabs justified>
             <b-tab :title="$t('mimeTypes')">
               <MimePicker></MimePicker>
             </b-tab>
@@ -43,13 +43,13 @@
       </b-row>
     </b-card>
 
-    <template v-if="docs.length === 0 && !uiLoading">
+    <div v-show="docs.length === 0 && !uiLoading">
       <Preloader v-if="searchBusy" class="mt-3"></Preloader>
 
       <ResultsCard></ResultsCard>
-    </template>
+    </div>
 
-    <div v-else>
+    <div v-if="docs.length > 0">
       <ResultsCard></ResultsCard>
 
       <DocCardWall v-if="optDisplay==='grid'" :docs="docs" :append="appendFunc"></DocCardWall>
@@ -113,10 +113,6 @@ export default Vue.extend({
 
     }, 350, {leading: false});
 
-    Sist2Api.getMimeTypes().then(mimeMap => {
-      this.$store.commit("setUiMimeMap", mimeMap);
-    });
-
     this.$store.dispatch("loadFromArgs", this.$route).then(() => {
       this.$store.subscribe(() => this.$store.dispatch("updateArgs", this.$router));
       this.$store.subscribe((mutation) => {
@@ -142,9 +138,13 @@ export default Vue.extend({
       sist2.getSist2Info().then(data => {
         this.setSist2Info(data);
         this.setIndices(data.indices);
-        this.uiLoading = false;
 
-        this.search(true);
+        Sist2Api.getMimeTypes().then(mimeMap => {
+          this.$store.commit("setUiMimeMap", mimeMap);
+          this.uiLoading = false;
+          this.search(true);
+        });
+
       }).catch(() => {
         this.showErrorToast();
       });

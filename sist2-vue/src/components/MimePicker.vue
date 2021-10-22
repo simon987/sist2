@@ -21,6 +21,9 @@ export default {
       if (mutation.type === "setUiMimeMap") {
         const mimeMap = mutation.payload.slice();
 
+        const elem = document.getElementById("mimeTree");
+        console.log(elem);
+
         this.mimeTree = new InspireTree({
           selection: {
             mode: 'checkbox'
