@@ -43,9 +43,13 @@
       </b-row>
     </b-card>
 
-    <Preloader v-if="searchBusy && docs.length === 0" class="mt-3"></Preloader>
+    <template v-if="docs.length === 0 && !uiLoading">
+      <Preloader v-if="searchBusy" class="mt-3"></Preloader>
 
-    <div v-else-if="docs.length > 0">
+      <ResultsCard></ResultsCard>
+    </template>
+
+    <div v-else>
       <ResultsCard></ResultsCard>
 
       <DocCardWall v-if="optDisplay==='grid'" :docs="docs" :append="appendFunc"></DocCardWall>
@@ -209,7 +213,7 @@ export default Vue.extend({
         resp.hits.hits = resp.hits.hits.filter(hit => {
 
           if (!("checksum" in hit._source)) {
-              return true;
+            return true;
           }
 
           const isDupe = !this.docChecksums.has(hit._source.checksum);

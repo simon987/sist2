@@ -5,9 +5,11 @@
     <div style="float: right">
       <b-button v-b-toggle.collapse-1 variant="primary" class="not-mobile">{{ $t("details") }}</b-button>
 
-      <SortSelect class="ml-2"></SortSelect>
+      <template v-if="hitCount !== 0">
+        <SortSelect class="ml-2"></SortSelect>
 
-      <DisplayModeToggle class="ml-2"></DisplayModeToggle>
+        <DisplayModeToggle class="ml-2"></DisplayModeToggle>
+      </template>
     </div>
 
     <b-collapse id="collapse-1" class="pt-2" style="clear:both;">
