@@ -4,3 +4,9 @@
 [submodule "third-party/argparse"]
 	path = third-party/argparse
 	url = https://github.com/cofyc/argparse
+[submodule "third-party/libscan/third-party/utf8.h"]
+	path = third-party/libscan/third-party/utf8.h
+	url = https://github.com/sheredom/utf8.h
+[submodule "third-party/libscan/third-party/antiword"]
+	path = third-party/libscan/third-party/antiword
+	url = https://github.com/simon987/antiword

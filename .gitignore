@@ -16,7 +16,7 @@ bundle.js
 *.a
 vgcore.*
 build/
-third-party/
+third-party/argparse
 *.idx/
 VERSION
 git_hash.h
