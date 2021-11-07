@@ -1,6 +1,8 @@
 #ifndef SIST_H
 #define SIST_H
 
+#define _GNU_SOURCE
+
 #ifndef	FALSE
 #define	FALSE	(0)
 #define BOOL int

@@ -43,26 +43,36 @@ int sub_strings[30];
 
 int handle_entry(const char *filepath, const struct stat *info, int typeflag, struct FTW *ftw) {
 
-    if (typeflag == FTW_F && S_ISREG(info->st_mode) && ftw->level <= ScanCtx.depth) {
+    if (ftw->level > ScanCtx.depth) {
+        if (typeflag == FTW_D) {
+            return FTW_SKIP_SUBTREE;
+        }
+        return FTW_CONTINUE;
+    }
 
-        if (ScanCtx.exclude != NULL && EXCLUDED(filepath)) {
-            LOG_DEBUGF("walk.c", "Excluded: %s", filepath)
+    if (ScanCtx.exclude != NULL && EXCLUDED(filepath)) {
+        LOG_DEBUGF("walk.c", "Excluded: %s", filepath)
 
+        if (typeflag == FTW_F && S_ISREG(info->st_mode)) {
             pthread_mutex_lock(&ScanCtx.dbg_file_counts_mu);
             ScanCtx.dbg_excluded_files_count += 1;
             pthread_mutex_unlock(&ScanCtx.dbg_file_counts_mu);
             return 0;
+        } else if (typeflag == FTW_D) {
+            return FTW_SKIP_SUBTREE;
         }
+    }
 
+    if (typeflag == FTW_F && S_ISREG(info->st_mode)) {
         parse_job_t *job = create_fs_parse_job(filepath, info, ftw->base);
         tpool_add_work(ScanCtx.pool, parse, job);
     }
 
-    return 0;
+    return FTW_CONTINUE;
 }
 
 #define MAX_FILE_DESCRIPTORS 64
 
 int walk_directory_tree(const char *dirpath) {
-    return nftw(dirpath, handle_entry, MAX_FILE_DESCRIPTORS, FTW_PHYS | FTW_DEPTH);
+    return nftw(dirpath, handle_entry, MAX_FILE_DESCRIPTORS, FTW_PHYS | FTW_ACTIONRETVAL);
 }
