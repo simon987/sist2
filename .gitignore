@@ -10,7 +10,7 @@ Makefile
 LOG
 sist2*
 !sist2-vue/
-index.sist2/
+*.sist2/
 bundle*.css
 bundle.js
 *.a
