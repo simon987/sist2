@@ -2,6 +2,7 @@
 
 ScanCtx_t ScanCtx = {
         .stat_index_size = 0,
+        .stat_tn_size = 0,
         .dbg_current_files = NULL,
         .pool = NULL
 };

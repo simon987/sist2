@@ -253,7 +253,7 @@ void _elastic_flush(int max) {
     } else {
 
         print_errors(r);
-        LOG_INFOF("elastic.c", "Indexed %d documents (%zukB) <%d>", count, buf_len / 1024, r->status_code);
+        LOG_DEBUGF("elastic.c", "Indexed %d documents (%zukB) <%d>", count, buf_len / 1024, r->status_code);
         delete_queue(max);
 
         if (Indexer->queued != 0) {

@@ -433,7 +433,7 @@ void sist2_index(index_args_t *args) {
         cleanup = elastic_cleanup;
     }
 
-    IndexCtx.pool = tpool_create(args->threads, cleanup, FALSE, FALSE);
+    IndexCtx.pool = tpool_create(args->threads, cleanup, FALSE, TRUE);
     tpool_start(IndexCtx.pool);
 
     struct dirent *de;
