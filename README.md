@@ -2,7 +2,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/simon987/sist2/badge?s=05daa325188aac4eae32c786f3d9cf4e0593f822)](https://www.codefactor.io/repository/github/simon987/sist2)
 [![Development snapshots](https://ci.simon987.net/api/badges/simon987/sist2/status.svg)](https://files.simon987.net/.gate/sist2/simon987_sist2/)
 
-**Demo**: [sist2.simon987.net](https://sist2.simon987.net/?i=Demo%20files)
+**Demo**: [sist2.simon987.net](https://sist2.simon987.net/)
 
 # sist2
 
