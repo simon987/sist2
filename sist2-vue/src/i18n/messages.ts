@@ -137,6 +137,8 @@ export default {
             dateDesc: "Date (Newer first)",
             sizeAsc: "Size (Smaller first)",
             sizeDesc: "Size (Larger first)",
+            nameAsc: "Name (A-z)",
+            nameDesc: "Name (Z-a)",
             random: "Random",
         },
         d3: {
@@ -293,6 +295,8 @@ export default {
             dateDesc: "Date (Plus récent)",
             sizeAsc: "Taille (Plus petit)",
             sizeDesc: "Taille (Plus grand)",
+            nameAsc: "Nom (A-z)",
+            nameDesc: "Nom (Z-a)",
             random: "Aléatoire",
         },
         d3: {

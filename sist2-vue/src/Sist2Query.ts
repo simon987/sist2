@@ -43,6 +43,20 @@ const SORT_MODES = {
             {_tie: {order: "asc"}}
         ],
         key: (hit: EsHit) => hit._source.size
+    },
+    nameAsc: {
+        mode: [
+            {name: {order: "asc"}},
+            {_tie: {order: "asc"}}
+        ],
+        key: (hit: EsHit) => hit._source.name
+    },
+    nameDesc: {
+        mode: [
+            {name: {order: "desc"}},
+            {_tie: {order: "asc"}}
+        ],
+        key: (hit: EsHit) => hit._source.name
     }
 } as any;
 
