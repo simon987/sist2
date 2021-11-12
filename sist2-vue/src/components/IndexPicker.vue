@@ -7,11 +7,28 @@
         value-field="id"></b-form-select>
   </div>
   <div v-else>
-    <b-list-group id="index-picker-desktop">
+
+
+    <div class="d-flex justify-content-between align-content-center">
+      <span>
+        {{ selectedIndices.length }}
+        {{ selectedIndices.length === 1 ? $t("indexPicker.selectedIndex") : $t("indexPicker.selectedIndices") }}
+      </span>
+
+      <div>
+        <b-button variant="link" @click="selectAll()"> {{ $t("indexPicker.selectAll") }}</b-button>
+        <b-button variant="link" @click="selectNone()"> {{ $t("indexPicker.selectNone") }}</b-button>
+      </div>
+    </div>
+
+    <b-list-group id="index-picker-desktop" class="unselectable">
       <b-list-group-item
           v-for="idx in indices"
-          @click="toggleIndex(idx)"
-          class="d-flex justify-content-between align-items-center list-group-item-action pointer">
+          @click="toggleIndex(idx, $event)"
+          @click.shift="shiftClick(idx, $event)"
+          class="d-flex justify-content-between align-items-center list-group-item-action pointer"
+          :class="{active: lastClickIndex === idx}"
+      >
         <div class="d-flex">
           <b-checkbox @change="toggleIndex(idx)" :checked="isSelected(idx)"></b-checkbox>
           {{ idx.name }}
@@ -36,6 +53,7 @@ export default Vue.extend({
   data() {
     return {
       loading: true,
+      lastClickIndex: null
     }
   },
   computed: {
@@ -53,13 +71,50 @@ export default Vue.extend({
     ...mapActions({
       setSelectedIndices: "setSelectedIndices"
     }),
+    shiftClick(index, e) {
+      if (this.lastClickIndex === null) {
+        return;
+      }
+
+      const select = this.isSelected(this.lastClickIndex);
+
+      let leftBoundary = this.indices.indexOf(this.lastClickIndex);
+      let rightBoundary = this.indices.indexOf(index);
+
+      if (rightBoundary < leftBoundary) {
+        let tmp = leftBoundary;
+        leftBoundary = rightBoundary;
+        rightBoundary = tmp;
+      }
+
+      for (let i = leftBoundary; i <= rightBoundary; i++) {
+        if (select) {
+          if (!this.isSelected(this.indices[i])) {
+            this.setSelectedIndices([this.indices[i], ...this.selectedIndices]);
+          }
+        } else {
+          this.setSelectedIndices(this.selectedIndices.filter(idx => idx !== this.indices[i]));
+        }
+      }
+    },
+    selectAll() {
+      this.setSelectedIndices(this.indices);
+    },
+    selectNone() {
+      this.setSelectedIndices([]);
+    },
     onSelect(value) {
       this.setSelectedIndices(this.indices.filter(idx => value.includes(idx.id)));
     },
     formatIdxDate(timestamp: number): string {
       return format(new Date(timestamp * 1000), "yyyy-MM-dd");
     },
-    toggleIndex(index) {
+    toggleIndex(index, e) {
+      if (e.shiftKey) {
+        return;
+      }
+
+      this.lastClickIndex = index;
       if (this.isSelected(index)) {
         this.setSelectedIndices(this.selectedIndices.filter(idx => idx.id != index.id));
       } else {
@@ -91,5 +146,22 @@ export default Vue.extend({
 #index-picker-desktop {
   overflow-y: auto;
   max-height: 132px;
+}
+
+.btn-link:focus {
+  box-shadow: none;
+}
+
+.unselectable {
+  user-select: none;
+  -ms-user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+}
+
+.list-group-item.active {
+  z-index: 2;
+  background-color: inherit;
+  color: inherit;
 }
 </style>

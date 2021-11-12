@@ -23,7 +23,7 @@
 <script lang="ts">
 import {EsResult} from "@/Sist2Api";
 import Vue from "vue";
-import {humanFileSize, humanTime} from "@/util";
+import {humanFileSize} from "@/util";
 import DisplayModeToggle from "@/components/DisplayModeToggle.vue";
 import SortSelect from "@/components/SortSelect.vue";
 

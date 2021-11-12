@@ -131,7 +131,6 @@ export default {
         saveTagModalTitle: "Add tag",
         saveTagPlaceholder: "Tag name",
         confirm: "Confirm",
-        indexPickerPlaceholder: "Select indices",
         sort: {
             relevance: "Relevance",
             dateAsc: "Date (Older first)",
@@ -145,7 +144,13 @@ export default {
             mimeSize: "Size distribution by media type",
             dateHistogram: "File modification time distribution",
             sizeHistogram: "File size distribution",
-        }
+        },
+        indexPicker: {
+            selectNone: "Select None",
+            selectAll: "Select All",
+            selectedIndex: "selected index",
+            selectedIndices: "selected indices",
+        },
     },
     fr: {
         searchBar: {
