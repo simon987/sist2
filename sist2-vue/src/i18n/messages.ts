@@ -300,6 +300,12 @@ export default {
             mimeSize: "Distribution des tailles de fichiers par type de média",
             dateHistogram: "Distribution des dates de modification",
             sizeHistogram: "Distribution des tailles de fichier",
-        }
+        },
+        indexPicker: {
+            selectNone: "Sélectionner aucun",
+            selectAll: "Sélectionner tout",
+            selectedIndex: "indice sélectionné",
+            selectedIndices: "indices sélectionnés",
+        },
     }
 }

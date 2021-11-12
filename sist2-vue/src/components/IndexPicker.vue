@@ -8,7 +8,6 @@
   </div>
   <div v-else>
 
-
     <div class="d-flex justify-content-between align-content-center">
       <span>
         {{ selectedIndices.length }}
