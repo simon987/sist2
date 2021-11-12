@@ -10,7 +10,7 @@ steps:
   - name: build
     image: simon987/sist2-build
     commands:
-      - ./ci/build.sh
+      - ./scripts/build.sh
   - name: docker
     image: plugins/docker
     settings:
@@ -55,7 +55,7 @@ steps:
   - name: build
     image: simon987/sist2-build-arm64
     commands:
-      - ./ci/build_arm64.sh
+      - ./scripts/build_arm64.sh
   - name: scp files
     image: appleboy/drone-scp
     settings:
