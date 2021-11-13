@@ -315,7 +315,7 @@ See [scripting](scripting.md) documentation.
 # Sidecar files
 
 When scanning, sist2 will read metadata from `.s2meta` JSON files and overwrite the 
-original document's metadata. Sidecar metadata files will also work inside archives.
+original document's indexed metadata (does not modify the actual file). Sidecar metadata files will also work inside archives.
 Sidecar files themselves are not saved in the index.
 
 This feature is useful to leverage third-party applications such as speech-to-text or

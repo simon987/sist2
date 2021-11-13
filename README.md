@@ -10,7 +10,7 @@ sist2 (Simple incremental search tool)
 
 *Warning: sist2 is in early development*
 
-![sist2.png](docs/sist2.png)
+![search panel](docs/sist2.png)
 
 ## Features
 
