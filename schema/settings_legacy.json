@@ -1,0 +1,58 @@
+{
+  "index": {
+    "refresh_interval": "30s",
+    "codec": "best_compression",
+    "number_of_replicas": 0
+  },
+  "analysis": {
+    "tokenizer": {
+      "path_tokenizer": {
+        "type": "path_hierarchy",
+        "delimiter": "/"
+      },
+      "tag_tokenizer": {
+        "type": "path_hierarchy",
+        "delimiter": "."
+      },
+      "my_nGram_tokenizer": {
+        "type": "nGram",
+        "min_gram": 3,
+        "max_gram": 3
+      }
+    },
+    "analyzer": {
+      "path_analyzer": {
+        "tokenizer": "path_tokenizer",
+        "filter": [
+          "lowercase"
+        ]
+      },
+      "tag_analyzer": {
+        "tokenizer": "tag_tokenizer",
+        "filter": [
+          "lowercase"
+        ]
+      },
+      "case_insensitive_kw_analyzer": {
+        "tokenizer": "keyword",
+        "filter": [
+          "lowercase"
+        ]
+      },
+      "my_nGram": {
+        "tokenizer": "my_nGram_tokenizer",
+        "filter": [
+          "lowercase",
+          "asciifolding"
+        ]
+      },
+      "content_analyzer": {
+        "tokenizer": "standard",
+        "filter": [
+          "lowercase",
+          "asciifolding"
+        ]
+      }
+    }
+  }
+}

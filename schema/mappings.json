@@ -78,6 +78,7 @@
     "name": {
       "analyzer": "content_analyzer",
       "type": "text",
+      "fielddata": true,
       "fields": {
         "nGram": {
           "type": "text",

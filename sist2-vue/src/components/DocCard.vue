@@ -15,11 +15,15 @@
           <span class="badge badge-resolution">{{ humanTime(doc._source.duration) }}</span>
         </div>
 
-        <div v-if="doc._props.isImage && !hover" class="card-img-overlay" :class="{'small-badge': smallBadge}">
+        <div
+            v-if="doc._props.isImage && !hover && doc._props.tnW / doc._props.tnH < 5"
+            class="card-img-overlay"
+            :class="{'small-badge': smallBadge}">
           <span class="badge badge-resolution">{{ `${doc._source.width}x${doc._source.height}` }}</span>
         </div>
 
-        <div v-if="(doc._props.isVideo || doc._props.isGif) && doc._source.duration > 0 && !hover" class="card-img-overlay"
+        <div v-if="(doc._props.isVideo || doc._props.isGif) && doc._source.duration > 0 && !hover"
+             class="card-img-overlay"
              :class="{'small-badge': smallBadge}">
           <span class="badge badge-resolution">{{ humanTime(doc._source.duration) }}</span>
         </div>
@@ -39,7 +43,8 @@
       </div>
 
       <!-- Audio player-->
-      <audio v-if="doc._props.isAudio" ref="audio" preload="none" class="audio-fit fit" controls :type="doc._source.mime"
+      <audio v-if="doc._props.isAudio" ref="audio" preload="none" class="audio-fit fit" controls
+             :type="doc._source.mime"
              :src="`f/${doc._id}`"
              @play="onAudioPlay()"></audio>
 

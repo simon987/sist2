@@ -19,6 +19,14 @@
       {{ $t("sort.sizeDesc") }}
     </b-dropdown-item>
 
+    <b-dropdown-item :class="{'dropdown-active': sort === 'nameDesc'}" @click="onSelect('nameDesc')">
+      {{ $t("sort.nameDesc") }}
+    </b-dropdown-item>
+
+    <b-dropdown-item :class="{'dropdown-active': sort === 'nameAsc'}" @click="onSelect('nameAsc')">
+      {{ $t("sort.nameAsc") }}
+    </b-dropdown-item>
+
     <b-dropdown-item :class="{'dropdown-active': sort === 'random'}" @click="onSelect('random')">
       {{ $t("sort.random") }}
     </b-dropdown-item>

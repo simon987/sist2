@@ -51,6 +51,7 @@ export interface EsHit {
         duration: number
         tag: string[]
         checksum: string
+        thumbnail: string
     }
     _props: {
         isSubDocument: boolean
@@ -61,6 +62,8 @@ export interface EsHit {
         isPlayableImage: boolean
         isAudio: boolean
         hasThumbnail: boolean
+        tnW: number
+        tnH: number
     }
     highlight: {
         name: string[] | undefined,
@@ -131,6 +134,8 @@ class Sist2Api {
 
         if ("thumbnail" in hit._source) {
             hit._props.hasThumbnail = true;
+            hit._props.tnW = Number(hit._source.thumbnail.split(",")[0]);
+            hit._props.tnH = Number(hit._source.thumbnail.split(",")[1]);
         }
 
         switch (mimeCategory) {

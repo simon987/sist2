@@ -5,7 +5,6 @@
 
     <b-card-body>
 
-      <!-- TODO: ES connectivity, Link to GH page -->
       <b-table :items="tableItems" small borderless responsive="md" thead-class="hidden" class="mb-0"></b-table>
 
       <hr />
@@ -32,6 +31,9 @@ export default {
         {key: "esIndex", value: this.$store.state.sist2Info.esIndex},
         {key: "tagline", value: this.$store.state.sist2Info.tagline},
         {key: "dev", value: this.$store.state.sist2Info.dev},
+        {key: "esVersion", value: this.$store.state.sist2Info.esVersion},
+        {key: "esVersionSupported", value: this.$store.state.sist2Info.esVersionSupported},
+        {key: "esVersionLegacy", value: this.$store.state.sist2Info.esVersionLegacy},
       ]
     }
   }

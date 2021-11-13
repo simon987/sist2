@@ -1,6 +1,8 @@
 #ifndef SIST_H
 #define SIST_H
 
+#define _GNU_SOURCE
+
 #ifndef	FALSE
 #define	FALSE	(0)
 #define BOOL int
@@ -51,7 +53,7 @@
 #include <ctype.h>
 #include "git_hash.h"
 
-#define VERSION "2.11.3"
+#define VERSION "2.11.4"
 static const char *const Version = VERSION;
 
 #ifndef SIST_PLATFORM

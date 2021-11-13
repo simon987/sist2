@@ -23,7 +23,6 @@ store_t *store_create(const char *path, size_t chunk_size) {
     }
 
     store->size = (size_t) store->chunk_size;
-    ScanCtx.stat_tn_size = 0;
     mdb_env_set_mapsize(store->env, store->size);
 
     // Open dbi

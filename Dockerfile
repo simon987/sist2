@@ -6,12 +6,10 @@ COPY . .
 RUN cmake -DSIST_PLATFORM=x64_linux -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake .
 RUN make -j$(nproc)
 RUN strip sist2
-RUN ls -lh
-RUN ls -lh sist2-vue/dist/
 
-FROM ubuntu:20.10
+FROM ubuntu:21.10
 
-RUN apt update && apt install -y curl libasan5
+RUN apt update && apt install -y curl libasan5 && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /usr/share/tessdata && \
     cd /usr/share/tessdata/ && \
@@ -22,9 +20,9 @@ RUN mkdir -p /usr/share/tessdata && \
     curl -o /usr/share/tessdata/rus.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/rus.traineddata &&\
     curl -o /usr/share/tessdata/spa.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/spa.traineddata
 
-COPY --from=build /build/sist2 /root/sist2
+ENTRYPOINT ["/root/sist2"]
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
-ENTRYPOINT ["/root/sist2"]
+COPY --from=build /build/sist2 /root/sist2

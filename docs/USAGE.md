@@ -14,6 +14,7 @@
     * [examples](#web-examples)
     * [rewrite_url](#rewrite_url)
     * [link to specific indices](#link-to-specific-indices)
+* [elasticsearch](#elasticsearch)
 * [exec-script](#exec-script)
 * [tagging](#tagging)
 * [sidecar files](#sidecar-files)
@@ -266,8 +267,19 @@ sist2 web index1 index2 index3 index4
 When the `rewrite_url` field is not empty, the web module ignores the `root`
 field and will return a HTTP redirect to `<rewrite_url><path>/<name><extension>`
 instead of serving the file from disk. 
-Both the `root` and `rewrite_url` fields are safe to manually modify from the 
+Both the `root` and `rewrite_url` fields are safe to manually modify from the 
 `descriptor.json` file.
+
+# Elasticsearch
+
+Elasticsearch versions >=6.8.0, <8.0.0 are supported by sist2. 
+
+Using a version >=7.14.0 is recommended to enable the following features:
+
+- Bug fix for large documents (See #198)
+
+When using a legacy version of ES, a notice will be displayed next to the sist2 version in the web UI.
+If you don't care about the features above, you can ignore it or disable it in the configuration page.
 
 ## exec-script
 

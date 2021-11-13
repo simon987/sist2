@@ -63,7 +63,8 @@ export default {
             slideDuration: "Slide duration",
             resultSize: "Number of results per page",
             tagOrOperator: "Use OR operator when specifying multiple tags.",
-            hideDuplicates: "Hide duplicate results based on checksum"
+            hideDuplicates: "Hide duplicate results based on checksum",
+            hideLegacy: "Hide the 'legacyES' Elasticsearch notice"
         },
         queryMode: {
             simple: "Simple",
@@ -130,13 +131,14 @@ export default {
         saveTagModalTitle: "Add tag",
         saveTagPlaceholder: "Tag name",
         confirm: "Confirm",
-        indexPickerPlaceholder: "Select indices",
         sort: {
             relevance: "Relevance",
             dateAsc: "Date (Older first)",
             dateDesc: "Date (Newer first)",
             sizeAsc: "Size (Smaller first)",
             sizeDesc: "Size (Larger first)",
+            nameAsc: "Name (A-z)",
+            nameDesc: "Name (Z-a)",
             random: "Random",
         },
         d3: {
@@ -144,7 +146,13 @@ export default {
             mimeSize: "Size distribution by media type",
             dateHistogram: "File modification time distribution",
             sizeHistogram: "File size distribution",
-        }
+        },
+        indexPicker: {
+            selectNone: "Select None",
+            selectAll: "Select All",
+            selectedIndex: "selected index",
+            selectedIndices: "selected indices",
+        },
     },
     fr: {
         searchBar: {
@@ -211,7 +219,8 @@ export default {
             slideDuration: "Durée des diapositives",
             resultSize: "Nombre de résultats par page",
             tagOrOperator: "Utiliser l'opérateur OU lors de la spécification de plusieurs tags",
-            hideDuplicates: "Masquer les résultats en double"
+            hideDuplicates: "Masquer les résultats en double",
+            hideLegacy: "Masquer la notice 'legacyES' Elasticsearch"
         },
         queryMode: {
             simple: "Simple",
@@ -286,6 +295,8 @@ export default {
             dateDesc: "Date (Plus récent)",
             sizeAsc: "Taille (Plus petit)",
             sizeDesc: "Taille (Plus grand)",
+            nameAsc: "Nom (A-z)",
+            nameDesc: "Nom (Z-a)",
             random: "Aléatoire",
         },
         d3: {
@@ -293,6 +304,12 @@ export default {
             mimeSize: "Distribution des tailles de fichiers par type de média",
             dateHistogram: "Distribution des dates de modification",
             sizeHistogram: "Distribution des tailles de fichier",
-        }
+        },
+        indexPicker: {
+            selectNone: "Sélectionner aucun",
+            selectAll: "Sélectionner tout",
+            selectedIndex: "indice sélectionné",
+            selectedIndices: "indices sélectionnés",
+        },
     }
 }

@@ -177,7 +177,7 @@ static void *tpool_worker(void *arg) {
 }
 
 void tpool_wait(tpool_t *pool) {
-    LOG_INFO("tpool.c", "Waiting for worker threads to finish")
+    LOG_DEBUG("tpool.c", "Waiting for worker threads to finish")
     pthread_mutex_lock(&(pool->work_mutex));
     while (TRUE) {
         if (pool->done_cnt < pool->work_cnt) {

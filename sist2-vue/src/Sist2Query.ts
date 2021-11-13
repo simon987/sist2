@@ -43,6 +43,20 @@ const SORT_MODES = {
             {_tie: {order: "asc"}}
         ],
         key: (hit: EsHit) => hit._source.size
+    },
+    nameAsc: {
+        mode: [
+            {name: {order: "asc"}},
+            {_tie: {order: "asc"}}
+        ],
+        key: (hit: EsHit) => hit._source.name
+    },
+    nameDesc: {
+        mode: [
+            {name: {order: "desc"}},
+            {_tie: {order: "asc"}}
+        ],
+        key: (hit: EsHit) => hit._source.name
     }
 } as any;
 
@@ -72,6 +86,8 @@ class Sist2Query {
         const selectedIndexIds = getters.selectedIndices.map((idx: Index) => idx.id)
         const selectedMimeTypes = getters.selectedMimeTypes;
         const selectedTags = getters.selectedTags;
+
+        const legacyES = store.state.sist2Info.esVersionLegacy;
 
         const filters = [
             {terms: {index: selectedIndexIds}}
@@ -187,9 +203,13 @@ class Sist2Query {
                     "name.nGram": {},
                     "content.nGram": {},
                     font_name: {},
-                },
-                max_analyzed_offset: 9_999_999
+                }
             };
+
+            if (!legacyES) {
+                q.highlight.max_analyzed_offset = 9_999_999;
+            }
+
             if (getters.optSearchInPath) {
                 q.highlight.fields["path.text"] = {};
                 q.highlight.fields["path.nGram"] = {};
