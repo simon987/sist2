@@ -7,7 +7,7 @@ RUN cmake -DSIST_PLATFORM=arm64_linux -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE
 RUN make -j$(nproc)
 RUN strip sist2
 
-FROM --platform linux/arm64/v8 ubuntu:21.10
+FROM --platform="linux/arm64/v8" ubuntu:21.10
 
 RUN apt update && apt install -y curl libasan5 && rm -rf /var/lib/apt/lists/*
 
