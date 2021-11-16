@@ -55,10 +55,14 @@ void vsist_logf(const char *filepath, int level, char *format, va_list ap) {
         log_len += 1;
     }
 
-    int ret = write(STDERR_FILENO, log_str, log_len);
-    if (ret == -1) {
-        LOG_FATALF("serialize.c", "Could not write index descriptor: %s", strerror(errno))
+    if (PrintingProgressBar) {
+        PrintingProgressBar = FALSE;
+        memmove(log_str + 1, log_str, log_len);
+        log_str[0] = '\n';
+        log_len += 1;
     }
+
+    write(STDERR_FILENO, log_str, log_len);
 }
 
 void sist_logf(const char *filepath, int level, char *format, ...) {
@@ -104,8 +108,12 @@ void sist_log(const char *filepath, int level, char *str) {
         );
     }
 
-    int ret = write(STDERR_FILENO, log_str, log_len);
-    if (ret == -1) {
-        LOG_FATALF("serialize.c", "Could not write index descriptor: %s", strerror(errno));
+    if (PrintingProgressBar) {
+        PrintingProgressBar = FALSE;
+        memmove(log_str + 1, log_str, log_len);
+        log_str[0] = '\n';
+        log_len += 1;
     }
+
+    write(STDERR_FILENO, log_str, log_len);
 }

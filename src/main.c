@@ -433,7 +433,7 @@ void sist2_index(index_args_t *args) {
         cleanup = elastic_cleanup;
     }
 
-    IndexCtx.pool = tpool_create(args->threads, cleanup, FALSE, TRUE);
+    IndexCtx.pool = tpool_create(args->threads, cleanup, FALSE, args->print == 0);
     tpool_start(IndexCtx.pool);
 
     struct dirent *de;
@@ -518,8 +518,8 @@ void sist2_web(web_args_t *args) {
 
 
 int main(int argc, const char *argv[]) {
-//    sigsegv_handler = signal(SIGSEGV, sig_handler);
-//    sigabrt_handler = signal(SIGABRT, sig_handler);
+    sigsegv_handler = signal(SIGSEGV, sig_handler);
+    sigabrt_handler = signal(SIGABRT, sig_handler);
 
     setlocale(LC_ALL, "");
 

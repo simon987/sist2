@@ -191,7 +191,9 @@ void tpool_wait(tpool_t *pool) {
             }
         }
     }
-    progress_bar_print(1.0, ScanCtx.stat_tn_size, ScanCtx.stat_index_size);
+    if (pool->print_progress) {
+        progress_bar_print(1.0, ScanCtx.stat_tn_size, ScanCtx.stat_index_size);
+    }
     pthread_mutex_unlock(&(pool->work_mutex));
 
     LOG_INFO("tpool.c", "Worker threads finished")

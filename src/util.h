@@ -19,6 +19,8 @@ char *expandpath(const char *path);
 
 dyn_buffer_t url_escape(char *str);
 
+extern int PrintingProgressBar;
+
 void progress_bar_print(double percentage, size_t tn_size, size_t index_size);
 
 GHashTable *incremental_get_table();

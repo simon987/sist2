@@ -84,6 +84,8 @@ char *expandpath(const char *path) {
     return expanded;
 }
 
+int PrintingProgressBar = 0;
+
 void progress_bar_print(double percentage, size_t tn_size, size_t index_size) {
 
     static int last_val = -1;
@@ -114,13 +116,21 @@ void progress_bar_print(double percentage, size_t tn_size, size_t index_size) {
         index_unit = 'M';
     }
 
-    printf(
-            "\r%3d%%[%.*s>%*s] TN:%3d%c IDX:%3d%c",
-            val, lpad, PBSTR, rpad, "",
-            (int) tn_size, tn_unit,
-            (int) index_size, index_unit
-    );
-    fflush(stdout);
+    if (tn_size == 0 && index_size == 0) {
+        fprintf(stderr,
+                "\r%3d%%[%.*s>%*s]",
+                val, lpad, PBSTR, rpad, ""
+        );
+    } else {
+        fprintf(stderr,
+                "\r%3d%%[%.*s>%*s] TN:%3d%c IDX:%3d%c",
+                val, lpad, PBSTR, rpad, "",
+                (int) tn_size, tn_unit,
+                (int) index_size, index_unit
+        );
+    }
+
+    PrintingProgressBar = TRUE;
 }
 
 GHashTable *incremental_get_table() {
