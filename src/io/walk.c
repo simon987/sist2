@@ -57,10 +57,11 @@ int handle_entry(const char *filepath, const struct stat *info, int typeflag, st
             pthread_mutex_lock(&ScanCtx.dbg_file_counts_mu);
             ScanCtx.dbg_excluded_files_count += 1;
             pthread_mutex_unlock(&ScanCtx.dbg_file_counts_mu);
-            return 0;
         } else if (typeflag == FTW_D) {
             return FTW_SKIP_SUBTREE;
         }
+
+        return FTW_CONTINUE;
     }
 
     if (typeflag == FTW_F && S_ISREG(info->st_mode)) {
