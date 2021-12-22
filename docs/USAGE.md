@@ -85,7 +85,7 @@ Exec-script options
 ### Scan options
 
 * `-t, --threads` 
-      Number of threads for file parsing. **Do not set a number higher than `$(nproc)` or `$(Get-WmiObject Win32_ComputerSystem).NumberOfLogicalProcessors` in Windows!**
+      Number of threads for file parsing. **Do not set a number higher than `$(nproc)` or `$(Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors` in Windows!**
 * `-q, --quality` 
     Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best.
 * `--size` 
