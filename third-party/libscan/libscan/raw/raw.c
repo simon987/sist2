@@ -143,7 +143,7 @@ void parse_raw(scan_raw_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
     libraw_gps_info_t gps = libraw_lib->other.parsed_gps;
     double gps_longitude_dec =
-            (gps.longtitude[0] + gps.longtitude[1] / 60 + gps.longtitude[2] / 3600) * DMS_REF(gps.longref);
+            (gps.longitude[0] + gps.longitude[1] / 60 + gps.longitude[2] / 3600) * DMS_REF(gps.longref);
     snprintf(tmp, sizeof(tmp), "%.15f", gps_longitude_dec);
     if (gps_longitude_dec != 0.0) {
         APPEND_STR_META(doc, MetaExifGpsLongitudeDec, tmp)
@@ -163,7 +163,13 @@ void parse_raw(scan_raw_ctx_t *ctx, vfile_t *f, document_t *doc) {
         return;
     }
 
-    libraw_unpack_thumb(libraw_lib);
+    int unpack_ret = libraw_unpack_thumb(libraw_lib);
+    if (unpack_ret != 0) {
+        CTX_LOG_ERRORF(f->filepath, "libraw_unpack_thumb returned error code %d", unpack_ret)
+        free(buf);
+        libraw_close(libraw_lib);
+        return;
+    }
 
     int errc = 0;
     libraw_processed_image_t *thumb = libraw_dcraw_make_mem_thumb(libraw_lib, &errc);

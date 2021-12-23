@@ -780,6 +780,19 @@ TEST(Arc, EncryptedZip) {
 }
 
 /* RAW */
+TEST(RAW, Segfault1) {
+    vfile_t f;
+    document_t doc;
+    load_doc_file("libscan-test-files/test_files/raw/segfault1.dng", &f, &doc);
+
+    parse_raw(&raw_ctx, &f, &doc);
+
+    ASSERT_EQ(get_meta(&doc, MetaWidth)->long_val, 3840);
+    ASSERT_EQ(get_meta(&doc, MetaHeight)->long_val, 7680);
+
+    cleanup(&doc, &f);
+}
+
 TEST(RAW, Panasonic) {
     vfile_t f;
     document_t doc;
