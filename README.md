@@ -51,7 +51,7 @@ sist2 (Simple incremental search tool)
     1. Download the [latest sist2 release](https://github.com/simon987/sist2/releases) *
     1. *(or)* Download a [development snapshot](https://files.simon987.net/.gate/sist2/simon987_sist2/) *(Not
        recommended!)*
-    1. *(or)* `docker pull simon987/sist2:2.11.4-x64-linux`
+    1. *(or)* `docker pull simon987/sist2:2.11.6-x64-linux`
 
 1. See [Usage guide](docs/USAGE.md)
 
@@ -143,7 +143,7 @@ docker run --rm my-sist2-image cat /root/sist2 > sist2-x64-linux
 
     ```bash
     vcpkg install curl[core,openssl]
-    vcpkg install lmdb cjson glib brotli libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 libmupdf gtest mongoose libuuid libmagic libraw jasper lcms gumbo
+    vcpkg install lmdb cjson glib brotli libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 libmupdf gtest mongoose libmagic libraw jasper lcms gumbo
     ```
 
 1. Build
