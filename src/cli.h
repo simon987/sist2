@@ -29,6 +29,8 @@ typedef struct scan_args {
     int read_subtitles;
     int fast_epub;
     int calculate_checksums;
+    char *list_path;
+    FILE *list_file;
 } scan_args_t;
 
 scan_args_t *scan_args_create();

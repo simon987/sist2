@@ -7,7 +7,7 @@
 #include "../third-party/utf8.h/utf8.h"
 #include "macros.h"
 
-#define STR_STARTS_WITH(x, y) (strncmp(y, x, sizeof(y) - 1) == 0)
+#define STR_STARTS_WITH_CONSTANT(x, y) (strncmp(y, x, sizeof(y) - 1) == 0)
 
 #define TEXT_BUF_FULL (-1)
 #define INITIAL_BUF_SIZE (1024 * 16)

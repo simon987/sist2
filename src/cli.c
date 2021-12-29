@@ -219,6 +219,19 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->max_memory_buffer = DEFAULT_MAX_MEM_BUFFER;
     }
 
+    if (args->list_path != NULL) {
+        if(strcmp(args->list_path, "-") == 0) {
+            args->list_file = stdin;
+            LOG_DEBUG("cli.c", "Using stdin as list file")
+        } else {
+            args->list_file = fopen(args->list_path, "r");
+
+            if (args->list_file == NULL) {
+                LOG_FATALF("main.c", "List file could not be opened: %s (%s)", args->list_path, errno);
+            }
+        }
+    }
+
     LOG_DEBUGF("cli.c", "arg quality=%f", args->quality)
     LOG_DEBUGF("cli.c", "arg size=%d", args->size)
     LOG_DEBUGF("cli.c", "arg content_size=%d", args->content_size)
@@ -238,6 +251,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg fast_epub=%d", args->fast_epub)
     LOG_DEBUGF("cli.c", "arg treemap_threshold=%f", args->treemap_threshold)
     LOG_DEBUGF("cli.c", "arg max_memory_buffer=%d", args->max_memory_buffer)
+    LOG_DEBUGF("cli.c", "arg list_path=%s", args->list_path)
 
     return 0;
 }

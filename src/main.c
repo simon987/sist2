@@ -14,6 +14,9 @@
 #include "parsing/mime.h"
 #include "parsing/parse.h"
 
+#include <signal.h>
+#include <unistd.h>
+
 #include "stats.h"
 
 #define DESCRIPTION "Lightning-fast file system indexer and search tool."
@@ -29,8 +32,6 @@ static const char *const usage[] = {
         NULL,
 };
 
-#include<signal.h>
-#include<unistd.h>
 
 static __sighandler_t sigsegv_handler = NULL;
 static __sighandler_t sigabrt_handler = NULL;
@@ -334,10 +335,20 @@ void sist2_scan(scan_args_t *args) {
     ScanCtx.writer_pool = tpool_create(1, writer_cleanup, TRUE, FALSE);
     tpool_start(ScanCtx.writer_pool);
 
-    int walk_ret = walk_directory_tree(ScanCtx.index.desc.root);
-    if (walk_ret == -1) {
-        LOG_FATALF("main.c", "walk_directory_tree() failed! %s (%d)", strerror(errno), errno)
+    if (args->list_path) {
+        // Scan using file list
+        int list_ret = iterate_file_list(args->list_file);
+        if (list_ret != 0) {
+            LOG_FATALF("main.c", "iterate_file_list() failed! (%d)", list_ret)
+        }
+    } else {
+        // Scan directory recursively
+        int walk_ret = walk_directory_tree(ScanCtx.index.desc.root);
+        if (walk_ret == -1) {
+            LOG_FATALF("main.c", "walk_directory_tree() failed! %s (%d)", strerror(errno), errno)
+        }
     }
+
     tpool_wait(ScanCtx.pool);
     tpool_destroy(ScanCtx.pool);
 
@@ -577,6 +588,9 @@ int main(int argc, const char *argv[]) {
             OPT_BOOLEAN(0, "fast-epub", &scan_args->fast_epub,
                         "Faster but less accurate EPUB parsing (no thumbnails, metadata)"),
             OPT_BOOLEAN(0, "checksums", &scan_args->calculate_checksums, "Calculate file checksums when scanning."),
+            OPT_STRING(0, "list-file", &scan_args->list_path, "Specify a list of newline-delimited paths to be scanned"
+                                                              " instead of normal directory traversal. Use '-' to read"
+                                                              " from stdin."),
 
             OPT_GROUP("Index options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),

@@ -15,18 +15,18 @@ static int should_read_part(const char *part) {
     }
 
     if (    // Word
-            STR_STARTS_WITH(part, "word/document.xml")
-            || STR_STARTS_WITH(part, "word/footnotes.xml")
-            || STR_STARTS_WITH(part, "word/endnotes.xml")
-            || STR_STARTS_WITH(part, "word/footer")
-            || STR_STARTS_WITH(part, "word/header")
+            STR_STARTS_WITH_CONSTANT(part, "word/document.xml")
+            || STR_STARTS_WITH_CONSTANT(part, "word/footnotes.xml")
+            || STR_STARTS_WITH_CONSTANT(part, "word/endnotes.xml")
+            || STR_STARTS_WITH_CONSTANT(part, "word/footer")
+            || STR_STARTS_WITH_CONSTANT(part, "word/header")
             // PowerPoint
-            || STR_STARTS_WITH(part, "ppt/slides/slide")
-            || STR_STARTS_WITH(part, "ppt/notesSlides/slide")
+            || STR_STARTS_WITH_CONSTANT(part, "ppt/slides/slide")
+            || STR_STARTS_WITH_CONSTANT(part, "ppt/notesSlides/slide")
             // Excel
-            || STR_STARTS_WITH(part, "xl/worksheets/sheet")
-            || STR_STARTS_WITH(part, "xl/sharedStrings.xml")
-            || STR_STARTS_WITH(part, "xl/workbook.xml")
+            || STR_STARTS_WITH_CONSTANT(part, "xl/worksheets/sheet")
+            || STR_STARTS_WITH_CONSTANT(part, "xl/sharedStrings.xml")
+            || STR_STARTS_WITH_CONSTANT(part, "xl/workbook.xml")
             ) {
         return TRUE;
     }
