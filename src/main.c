@@ -170,6 +170,7 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.dbg_current_files = g_hash_table_new_full(g_int64_hash, g_int64_equal, NULL, NULL);
     pthread_mutex_init(&ScanCtx.dbg_current_files_mu, NULL);
     pthread_mutex_init(&ScanCtx.dbg_file_counts_mu, NULL);
+    pthread_mutex_init(&ScanCtx.copy_table_mu, NULL);
 
     ScanCtx.calculate_checksums = args->calculate_checksums;
 

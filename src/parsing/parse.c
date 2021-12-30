@@ -79,7 +79,9 @@ void parse(void *arg) {
 
     int inc_ts = incremental_get(ScanCtx.original_table, doc->path_md5);
     if (inc_ts != 0 && inc_ts == job->vfile.info.st_mtim.tv_sec) {
+        pthread_mutex_lock(&ScanCtx.copy_table_mu);
         incremental_mark_file_for_copy(ScanCtx.copy_table, doc->path_md5);
+        pthread_mutex_unlock(&ScanCtx.copy_table_mu);
 
         pthread_mutex_lock(&ScanCtx.dbg_file_counts_mu);
         ScanCtx.dbg_skipped_files_count += 1;
