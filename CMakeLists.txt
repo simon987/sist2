@@ -87,6 +87,7 @@ if (SIST_DEBUG)
             sist2
             PRIVATE
             -fsanitize=address
+            -static-libasan
     )
     set_target_properties(
             sist2
