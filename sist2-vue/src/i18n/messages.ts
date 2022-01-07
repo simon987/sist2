@@ -72,7 +72,8 @@ export default {
         },
         lang: {
             en: "English",
-            fr: "Français"
+            fr: "Français",
+            "zh-CN": "简体中文",
         },
         displayMode: {
             grid: "Grid",
@@ -228,7 +229,8 @@ export default {
         },
         lang: {
             en: "English",
-            fr: "Français"
+            fr: "Français",
+            "zh-CN": "简体中文",
         },
         displayMode: {
             grid: "Grille",
@@ -311,5 +313,161 @@ export default {
             selectedIndex: "indice sélectionné",
             selectedIndices: "indices sélectionnés",
         },
-    }
+    },
+    "zh-CN": {
+        searchBar: {
+            simple: "搜索",
+            advanced: "高级搜索",
+            fuzzy: "模糊搜索"
+        },
+        download: "下载",
+        and: "与",
+        page: "页",
+        pages: "页",
+        mimeTypes: "文件类型",
+        tags: "标签",
+        help: {
+            simpleSearch: "简易搜索",
+            advancedSearch: "高级搜索",
+            help: "帮助",
+            term: "<关键词>",
+            and: "与操作",
+            or: "或操作",
+            not: "反选单个关键词",
+            quotes: "括起来的部分视为一个关键词，保序",
+            prefix: "在词尾使用时，匹配前缀",
+            parens: "表达式编组",
+            tildeTerm: "匹配编辑距离以内的关键词",
+            tildePhrase: "匹配短语，容忍一些非匹配词",
+            example1:
+                "例如: <code>\"番茄\" +(炒蛋 | 牛腩) -饭</code> 将匹配" +
+                "短语 <i>番茄炒蛋</i>、<i>炒蛋</i> 或者 <i>牛腩</i>，而忽略任何带有" +
+                "<i>饭</i>的关键词.",
+            defaultOperator:
+                "表达式中无<code>+</code>或者<code>|</code>时，默认使用" +
+                "<code>+</code>（与操作）。",
+            fuzzy:
+                "选中<b>模糊搜索</b>选项时，返回部分匹配的结果（3-grams)。",
+            moreInfoSimple: "详细信息：<a target=\"_blank\" " +
+                "rel=\"noreferrer\" href=\"//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html\">Elasticsearch文档</a>",
+            moreInfoAdvanced: "高级搜索模式文档：<a target=\"_blank\" rel=\"noreferrer\" href=\"//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax\">Elasticsearch文档</a>"
+        },
+        config: "配置",
+        configDescription: "配置在此浏览器中实时保存。",
+        configReset: "重置所有设置",
+        searchOptions: "搜索选项",
+        treemapOptions: "树状图选项",
+        displayOptions: "显示选项",
+        opt: {
+            lang: "语言",
+            highlight: "启用高亮",
+            fuzzy: "默认使用模糊搜索",
+            searchInPath: "匹配文档路径",
+            suggestPath: "搜索框启用自动补全",
+            fragmentSize: "高亮上下文大小",
+            queryMode: "搜索模式",
+            displayMode: "显示",
+            columns: "列数",
+            treemapType: "树状图类属性",
+            treemapTiling: "树状图平铺",
+            treemapColorGroupingDepth: "树状图颜色编组深度（展开）",
+            treemapColor: "树状图颜色（折叠）",
+            treemapSize: "树状图大小",
+            theme: "主题",
+            lightboxLoadOnlyCurrent: "在图片查看器中，不要预读相邻的全图",
+            slideDuration: "幻灯片时长",
+            resultSize: "每页结果数",
+            tagOrOperator: "使用或操作（OR）匹配多个标签。",
+            hideDuplicates: "使用校验码隐藏重复结果",
+            hideLegacy: "隐藏'legacyES' Elasticsearch 通知"
+        },
+        queryMode: {
+            simple: "简单",
+            advanced: "高级",
+        },
+        lang: {
+            en: "English",
+            fr: "Français",
+            "zh-CN": "简体中文",
+        },
+        displayMode: {
+            grid: "网格",
+            list: "列表",
+        },
+        columns: {
+            auto: "自动"
+        },
+        treemapType: {
+            cascaded: "折叠",
+            flat: "平铺（紧凑）"
+        },
+        treemapSize: {
+            small: "小",
+            medium: "中",
+            large: "大",
+            xLarge: "加大",
+            xxLarge: "加加大",
+            custom: "自订",
+        },
+        treemapTiling: {
+            binary: "Binary",
+            squarify: "Squarify",
+            slice: "Slice",
+            dice: "Dice",
+            sliceDice: "Slice & Dice",
+        },
+        theme: {
+            light: "亮",
+            black: "暗"
+        },
+        hit: "命中",
+        hits: "命中",
+        details: "详细信息",
+        stats: "统计信息",
+        queryTime: "查询时间",
+        totalSize: "总大小",
+        pathBar: {
+            placeholder: "过滤路径",
+            modalTitle: "选择路径"
+        },
+        debug: "调试信息",
+        debugDescription: "对调试除错有用的信息。 若您遇到bug或者想建议新功能，请提交新Issue到" +
+            "<a href='https://github.com/simon987/sist2/issues/new/choose'>这里</a>.",
+        tagline: "标签栏",
+        toast: {
+            esConnErrTitle: "Elasticsearch连接错误",
+            esConnErr: "sist2 web 模块连接Elasticsearch出错。" +
+                "查看服务日志以获取更多信息。",
+            esQueryErrTitle: "查询错误",
+            esQueryErr: "无法识别或执行查询，请查阅高级搜索文档。" +
+                "查看服务日志以获取更多信息。",
+            dupeTagTitle: "重复标签",
+            dupeTag: "该标签已存在于此文档。"
+        },
+        saveTagModalTitle: "增加标签",
+        saveTagPlaceholder: "标签名",
+        confirm: "确认",
+        sort: {
+            relevance: "相关度",
+            dateAsc: "日期（由旧到新）",
+            dateDesc: "日期（由新到旧）",
+            sizeAsc: "大小（从小到大）",
+            sizeDesc: "大小（从大到小）",
+            nameAsc: "名字（A-z）",
+            nameDesc: "名字 （Z-a）",
+            random: "随机",
+        },
+        d3: {
+            mimeCount: "各类文件数量分布",
+            mimeSize: "各类文件大小分布",
+            dateHistogram: "文件修改时间分布",
+            sizeHistogram: "文件大小分布",
+        },
+        indexPicker: {
+            selectNone: "清空",
+            selectAll: "全选",
+            selectedIndex: "选中索引",
+            selectedIndices: "选中索引",
+        },
+    },
 }
