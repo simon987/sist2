@@ -5,9 +5,7 @@
 
 #include "../media/media.h"
 #include "../arc/arc.h"
-
-#define MIN_OCR_SIZE 350
-#define MIN_OCR_LEN 10
+#include "../ocr/ocr.h"
 
 /* fill_image callback doesn't let us pass opaque pointers unless I create my own device */
 __thread text_buffer_t thread_buffer;
@@ -225,7 +223,9 @@ static int read_stext_block(fz_stext_block *block, text_buffer_t *tex) {
     return 0;
 }
 
-#define IS_VALID_BPP(d) ((d)==1 || (d)==2 || (d)==4 || (d)==8 || (d)==16 || (d)==24 || (d)==32)
+static void fill_image_ocr_cb(const char* text, size_t len) {
+  text_buffer_append_string(&thread_buffer, text, len - 1);
+}
 
 void fill_image(fz_context *fzctx, UNUSED(fz_device *dev),
                 fz_image *img, UNUSED(fz_matrix ctm), UNUSED(float alpha),
@@ -233,26 +233,9 @@ void fill_image(fz_context *fzctx, UNUSED(fz_device *dev),
 
     int l2factor = 0;
 
-    if (img->w > MIN_OCR_SIZE && img->h > MIN_OCR_SIZE && IS_VALID_BPP(img->n)) {
-
+    if (img->w > MIN_OCR_SIZE && img->h > MIN_OCR_SIZE && OCR_IS_VALID_BPP(img->n)) {
         fz_pixmap *pix = img->get_pixmap(fzctx, img, NULL, img->w, img->h, &l2factor);
-
-        if (pix->h > MIN_OCR_SIZE && img->h > MIN_OCR_SIZE && img->xres != 0) {
-            TessBaseAPI *api = TessBaseAPICreate();
-            TessBaseAPIInit3(api, thread_ctx.tesseract_path, thread_ctx.tesseract_lang);
-
-            TessBaseAPISetImage(api, pix->samples, pix->w, pix->h, pix->n, pix->stride);
-            TessBaseAPISetSourceResolution(api, pix->xres);
-
-            char *text = TessBaseAPIGetUTF8Text(api);
-            size_t len = strlen(text);
-            if (len >= MIN_OCR_LEN) {
-                text_buffer_append_string(&thread_buffer, text, len - 1);
-            }
-
-            TessBaseAPIEnd(api);
-            TessBaseAPIDelete(api);
-        }
+        ocr_extract_text(thread_ctx.tesseract_path, thread_ctx.tesseract_lang, pix->samples, pix->w, pix->h, pix->n, pix->stride, pix->xres, fill_image_ocr_cb);
         fz_drop_pixmap(fzctx, pix);
     }
 }
