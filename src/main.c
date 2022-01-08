@@ -501,7 +501,7 @@ void sist2_web(web_args_t *args) {
     WebCtx.tag_auth_enabled = args->tag_auth_enabled;
     WebCtx.tagline = args->tagline;
     WebCtx.dev = args->dev;
-    strcpy(WebCtx.lang, "en");
+    strcpy(WebCtx.lang,  args->lang);
 
     for (int i = 0; i < args->index_count; i++) {
         char *abs_path = abspath(args->indices[i]);
@@ -614,6 +614,7 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "tag-auth", &web_args->tag_credentials, "Basic auth in user:password format for tagging"),
             OPT_STRING(0, "tagline", &web_args->tagline, "Tagline in navbar"),
             OPT_BOOLEAN(0, "dev", &web_args->dev, "Serve html & js files from disk (for development)"),
+            OPT_STRING(0, "lang", &web_args->lang, "Default UI language. Can be changed by the user"),
 
             OPT_GROUP("Exec-script options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),

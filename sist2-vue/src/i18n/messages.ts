@@ -5,6 +5,8 @@ export default {
             advanced: "Advanced search",
             fuzzy: "Fuzzy"
         },
+        addTag: "Add",
+        deleteTag: "Delete",
         download: "Download",
         and: "and",
         page: "page",
@@ -132,6 +134,7 @@ export default {
         saveTagModalTitle: "Add tag",
         saveTagPlaceholder: "Tag name",
         confirm: "Confirm",
+        indexPickerPlaceholder: "Select an index",
         sort: {
             relevance: "Relevance",
             dateAsc: "Date (Older first)",
@@ -161,6 +164,8 @@ export default {
             advanced: "Recherche avancée",
             fuzzy: "Approximatif"
         },
+        addTag: "Ajouter",
+        deleteTag: "Supprimer",
         download: "Télécharger",
         and: "et",
         page: "page",
@@ -320,6 +325,8 @@ export default {
             advanced: "高级搜索",
             fuzzy: "模糊搜索"
         },
+        addTag: "添加",
+        deleteTag: "删除",
         download: "下载",
         and: "与",
         page: "页",
@@ -447,6 +454,7 @@ export default {
         saveTagModalTitle: "增加标签",
         saveTagPlaceholder: "标签名",
         confirm: "确认",
+        indexPickerPlaceholder: "选择一个索引",
         sort: {
             relevance: "相关度",
             dateAsc: "日期（由旧到新）",

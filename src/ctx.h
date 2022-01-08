@@ -98,7 +98,7 @@ typedef struct {
     int tag_auth_enabled;
     char *tagline;
     struct index_t indices[256];
-    char lang[3];
+    char lang[10];
     int dev;
 } WebCtx_t;
 

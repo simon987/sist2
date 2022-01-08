@@ -377,15 +377,15 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
         args->es_index = DEFAULT_ES_INDEX;
     }
 
-    if (args->lang == NULL) {
-        args->lang = DEFAULT_LANG;
-    }
-
     if (args->tagline == NULL) {
         args->tagline = DEFAULT_TAGLINE;
     }
 
-    if (strlen(args->lang) != 2) {
+    if (args->lang == NULL) {
+        args->lang = DEFAULT_LANG;
+    }
+
+    if (strlen(args->lang) != 2 && strlen(args->lang) != 5) {
         fprintf(stderr, "Invalid --lang value, see usage\n");
         return 1;
     }

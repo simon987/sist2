@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import Sist2Icon from "@/components/Sist2Icon";
+import Sist2Icon from "@/components/icons/Sist2Icon";
 
 export default {
   name: "NavBar",

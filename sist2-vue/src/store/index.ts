@@ -27,6 +27,7 @@ export default new Vuex.Store({
         size: 60,
 
         optLang: "en",
+        optLangIsDefault: true,
         optHideDuplicates: true,
         optTheme: "light",
         optDisplay: "grid",
@@ -82,7 +83,10 @@ export default new Vuex.Store({
         setSist2Info: (state, val) => state.sist2Info = val,
         setSeed: (state, val) => state.seed = val,
         setOptHideDuplicates: (state, val) => state.optHideDuplicates = val,
-        setOptLang: (state, val) => state.optLang = val,
+        setOptLang: (state, val) => {
+            state.optLang = val;
+            state.optLangIsDefault = false;
+        },
         setSortMode: (state, val) => state.sortMode = val,
         setIndices: (state, val) => {
             state.indices = val;
@@ -148,6 +152,7 @@ export default new Vuex.Store({
         setOptHideLegacy: (state, val) => state.optHideLegacy = val,
 
         setOptLightboxLoadOnlyCurrent: (state, val) => state.optLightboxLoadOnlyCurrent = val,
+        setOptLightboxSlideDuration: (state, val) => state.optLightboxSlideDuration = val,
 
         setUiMimeMap: (state, val) => state.uiMimeMap = val,
 
@@ -159,6 +164,13 @@ export default new Vuex.Store({
         },
     },
     actions: {
+        setSist2Info: (store, val) => {
+            store.commit("setSist2Info", val);
+
+            if (store.state.optLangIsDefault) {
+                store.commit("setOptLang", val.lang);
+            }
+        },
         loadFromArgs({commit}, route: Route) {
 
             if (route.query.q) {

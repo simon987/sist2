@@ -60,7 +60,7 @@
 
 <script lang="ts">
 import Preloader from "@/components/Preloader.vue";
-import {mapGetters, mapMutations} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 import sist2 from "../Sist2Api";
 import Sist2Api, {EsHit, EsResult} from "../Sist2Api";
 import SearchBar from "@/components/SearchBar.vue";
@@ -151,8 +151,10 @@ export default Vue.extend({
     });
   },
   methods: {
-    ...mapMutations({
+    ...mapActions({
       setSist2Info: "setSist2Info",
+    }),
+    ...mapMutations({
       setIndices: "setIndices",
       setDateBoundsMin: "setDateBoundsMin",
       setDateBoundsMax: "setDateBoundsMax",
