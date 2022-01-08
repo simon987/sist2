@@ -187,7 +187,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
         TessBaseAPI *api = TessBaseAPICreate();
 
-        const char* trained_data_path;
+        const char *trained_data_path = NULL;
         char *lang = malloc(strlen(args->tesseract_lang) + 1);
         strcpy(lang, args->tesseract_lang);
 
@@ -196,10 +196,16 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         while (lang != NULL) {
             char filename[128];
             sprintf(filename, "%s.traineddata", lang);
-            trained_data_path = find_file_in_paths(TESS_DATAPATHS, filename);
-            if (trained_data_path == NULL) {
+
+            const char *path = find_file_in_paths(TESS_DATAPATHS, filename);
+            if (path == NULL) {
                 LOG_FATALF("cli.c", "Could not find tesseract language file: %s!", filename);
             }
+            if (trained_data_path != NULL && path != trained_data_path) {
+                LOG_FATAL("cli.c", "When specifying more than one tesseract language, all the traineddata "
+                                   "files must be in the same folder")
+            }
+            trained_data_path = path;
 
             lang = strtok(NULL, "+");
         }
