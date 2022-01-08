@@ -24,3 +24,5 @@ Testing/
 test_i
 test_i_inc
 node_modules/
+.cmake/
+i_inc/

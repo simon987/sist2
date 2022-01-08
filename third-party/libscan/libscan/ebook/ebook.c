@@ -233,7 +233,7 @@ void fill_image(fz_context *fzctx, UNUSED(fz_device *dev),
 
     int l2factor = 0;
 
-    if (img->w > MIN_OCR_SIZE && img->h > MIN_OCR_SIZE && OCR_IS_VALID_BPP(img->n)) {
+    if (img->w >= MIN_OCR_SIZE && img->h >= MIN_OCR_SIZE && OCR_IS_VALID_BPP(img->n)) {
         fz_pixmap *pix = img->get_pixmap(fzctx, img, NULL, img->w, img->h, &l2factor);
         ocr_extract_text(thread_ctx.tesseract_path, thread_ctx.tesseract_lang, pix->samples, pix->w, pix->h, pix->n, pix->stride, pix->xres, fill_image_ocr_cb);
         fz_drop_pixmap(fzctx, pix);
