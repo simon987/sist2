@@ -37,6 +37,10 @@
           <b-form-checkbox :checked="optHideLegacy" @input="setOptHideLegacy">
             {{ $t("opt.hideLegacy") }}
           </b-form-checkbox>
+
+          <b-form-checkbox :checked="optUpdateMimeMap" @input="setOptUpdateMimeMap">
+            {{ $t("opt.updateMimeMap") }}
+          </b-form-checkbox>
         </b-card>
 
         <br/>
@@ -224,6 +228,7 @@ export default {
       "optLang",
       "optHideDuplicates",
       "optHideLegacy",
+      "optUpdateMimeMap",
     ]),
     clientWidth() {
       return window.innerWidth;
@@ -266,7 +271,8 @@ export default {
       "setOptTagOrOperator",
       "setOptLang",
       "setOptHideDuplicates",
-      "setOptHideLegacy"
+      "setOptHideLegacy",
+      "setOptUpdateMimeMap"
     ]),
     onResetClick() {
       localStorage.removeItem("sist2_configuration");

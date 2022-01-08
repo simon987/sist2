@@ -66,7 +66,8 @@ export default {
             resultSize: "Number of results per page",
             tagOrOperator: "Use OR operator when specifying multiple tags.",
             hideDuplicates: "Hide duplicate results based on checksum",
-            hideLegacy: "Hide the 'legacyES' Elasticsearch notice"
+            hideLegacy: "Hide the 'legacyES' Elasticsearch notice",
+            updateMimeMap: "Update the Media Types tree in real time"
         },
         queryMode: {
             simple: "Simple",
@@ -129,7 +130,8 @@ export default {
             esQueryErr: "Could not parse or execute query, please check the Advanced search documentation. " +
                 "See server logs for more information.",
             dupeTagTitle: "Duplicate tag",
-            dupeTag: "This tag already exists for this document."
+            dupeTag: "This tag already exists for this document.",
+            copiedToClipboard: "Copied to clipboard"
         },
         saveTagModalTitle: "Add tag",
         saveTagPlaceholder: "Tag name",
@@ -226,7 +228,8 @@ export default {
             resultSize: "Nombre de résultats par page",
             tagOrOperator: "Utiliser l'opérateur OU lors de la spécification de plusieurs tags",
             hideDuplicates: "Masquer les résultats en double",
-            hideLegacy: "Masquer la notice 'legacyES' Elasticsearch"
+            hideLegacy: "Masquer la notice 'legacyES' Elasticsearch",
+            updateMimeMap: "Mettre à jour l'arbre de Types de médias en temps réel"
         },
         queryMode: {
             simple: "Simple",
@@ -290,7 +293,8 @@ export default {
             esQueryErr: "Impossible d'analyser ou d'exécuter la requête, veuillez consulter la documentation sur la " +
                 "recherche avancée. Voir les journaux du serveur pour plus d'informations.",
             dupeTagTitle: "Tag en double",
-            dupeTag: "Ce tag existe déjà pour ce document."
+            dupeTag: "Ce tag existe déjà pour ce document.",
+            copiedToClipboard: "Copié dans le presse-papier"
         },
         saveTagModalTitle: "Ajouter un tag",
         saveTagPlaceholder: "Nom du tag",
@@ -386,7 +390,8 @@ export default {
             resultSize: "每页结果数",
             tagOrOperator: "使用或操作（OR）匹配多个标签。",
             hideDuplicates: "使用校验码隐藏重复结果",
-            hideLegacy: "隐藏'legacyES' Elasticsearch 通知"
+            hideLegacy: "隐藏'legacyES' Elasticsearch 通知",
+            updateMimeMap: "媒体类型树的实时更新"
         },
         queryMode: {
             simple: "简单",
@@ -449,7 +454,8 @@ export default {
             esQueryErr: "无法识别或执行查询，请查阅高级搜索文档。" +
                 "查看服务日志以获取更多信息。",
             dupeTagTitle: "重复标签",
-            dupeTag: "该标签已存在于此文档。"
+            dupeTag: "该标签已存在于此文档。",
+            copiedToClipboard: "复制到剪贴板"
         },
         saveTagModalTitle: "增加标签",
         saveTagPlaceholder: "标签名",

@@ -48,6 +48,7 @@ export default new Vuex.Store({
         optLightboxLoadOnlyCurrent: false,
         optLightboxSlideDuration: 15,
         optHideLegacy: false,
+        optUpdateMimeMap: true,
 
         _onLoadSelectedIndices: [] as string[],
         _onLoadSelectedMimeTypes: [] as string[],
@@ -72,9 +73,14 @@ export default new Vuex.Store({
         uiLightboxSlide: 0,
         uiReachedScrollEnd: false,
 
+        uiDetailsMimeAgg: null,
+        uiShowDetails: false,
+
         uiMimeMap: [] as any[]
     },
     mutations: {
+        setUiShowDetails: (state, val) => state.uiShowDetails = val,
+        setUiDetailsMimeAgg: (state, val) => state.uiDetailsMimeAgg = val,
         setUiReachedScrollEnd: (state, val) => state.uiReachedScrollEnd = val,
         setTags: (state, val) => state.tags = val,
         setPathText: (state, val) => state.pathText = val,
@@ -150,6 +156,7 @@ export default new Vuex.Store({
         setOptTreemapSize: (state, val) => state.optTreemapSize = val,
         setOptTreemapColor: (state, val) => state.optTreemapColor = val,
         setOptHideLegacy: (state, val) => state.optHideLegacy = val,
+        setOptUpdateMimeMap: (state, val) => state.optUpdateMimeMap = val,
 
         setOptLightboxLoadOnlyCurrent: (state, val) => state.optLightboxLoadOnlyCurrent = val,
         setOptLightboxSlideDuration: (state, val) => state.optLightboxSlideDuration = val,
@@ -160,6 +167,9 @@ export default new Vuex.Store({
             // noop
         },
         busUpdateTags: () => {
+            // noop
+        },
+        busSearch: () => {
             // noop
         },
     },
@@ -290,6 +300,7 @@ export default new Vuex.Store({
             commit("setUiLightboxTypes", []);
             commit("setUiLightboxCaptions", []);
             commit("setUiLightboxKey", 0);
+            commit("setUiDetailsMimeAgg", null);
         }
     },
     modules: {},
@@ -354,5 +365,6 @@ export default new Vuex.Store({
         optLightboxSlideDuration: state => state.optLightboxSlideDuration,
         optResultSize: state => state.size,
         optHideLegacy: state => state.optHideLegacy,
+        optUpdateMimeMap: state => state.optUpdateMimeMap,
     }
 })
