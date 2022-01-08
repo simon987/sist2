@@ -77,6 +77,15 @@ void exec_args_destroy(exec_args_t *args) {
     free(args);
 }
 
+__always_inline
+static const char* find_tessdata(const char* p_lang, size_t len) {
+    char filename[128];
+    memcpy(filename, p_lang, len);
+    filename[len] = '\0';
+    strcat(filename, ".traineddata");
+    return find_file_in_paths(TESS_DATAPATHS, filename);
+}
+
 int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (argc < 2) {
         fprintf(stderr, "Required positional argument: PATH.\n");
@@ -171,16 +180,28 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (args->tesseract_lang != NULL) {
         TessBaseAPI *api = TessBaseAPICreate();
 
-        char filename[128];
-        sprintf(filename, "%s.traineddata", args->tesseract_lang);
-        const char *path = find_file_in_paths(TESS_DATAPATHS, filename);
-        if (path == NULL) {
-            LOG_FATAL("cli.c", "Could not find tesseract language file!");
+        const char *p_lang = args->tesseract_lang;
+        const char *e_lang = p_lang + strlen(p_lang);
+        const char *path = NULL;
+        while (p_lang < e_lang) {
+            const char *p_plus = strstr(p_lang, "+");
+            if (p_plus == NULL) {
+                p_plus = e_lang;
+            }
+            const char* _path = find_tessdata(p_lang, p_plus - p_lang);
+            if (_path == NULL) {
+                LOG_FATAL("cli.c", "Could not find tesseract language file!");
+            } else if (path != NULL && path != _path) {
+                LOG_FATAL("cli.c", "Multiple tesseract language files are not in the same directory!");
+            }
+            path = _path;
+            p_lang = p_plus + 1;
         }
 
         ret = TessBaseAPIInit3(api, path, args->tesseract_lang);
         if (ret != 0) {
             fprintf(stderr, "Could not initialize tesseract with lang '%s'\n", args->tesseract_lang);
+            TessBaseAPIDelete(api);
             return 1;
         }
         TessBaseAPIEnd(api);
