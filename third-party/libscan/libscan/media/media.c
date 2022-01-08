@@ -3,7 +3,7 @@
 
 #define MIN_SIZE 32
 #define AVIO_BUF_SIZE 8192
-#define IS_VIDEO(fmt) (fmt->iformat->name && strcmp(fmt->iformat->name, "image2") != 0)
+#define IS_VIDEO(fmt) ((fmt)->iformat->name && strcmp((fmt)->iformat->name, "image2") != 0)
 
 #define STORE_AS_IS ((void*)-1)
 
@@ -534,7 +534,7 @@ long memfile_seek(void *ptr, long offset, int whence) {
     memfile_t *mem = ptr;
 
     if (whence == 0x10000) {
-        return mem->size;
+        return (long) mem->size;
     }
 
     int ret = fseek(mem->file, offset, whence);
