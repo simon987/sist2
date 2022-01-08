@@ -280,7 +280,6 @@ void index_info(struct mg_connection *nc) {
     cJSON_AddBoolToObject(json, "esVersionLegacy", USE_LEGACY_ES_SETTINGS(WebCtx.es_version));
     cJSON_AddStringToObject(json, "platform", QUOTE(SIST_PLATFORM));
     cJSON_AddStringToObject(json, "sist2Hash", Sist2CommitHash);
-    cJSON_AddStringToObject(json, "libscanHash", LibScanCommitHash);
     cJSON_AddStringToObject(json, "lang", WebCtx.lang);
     cJSON_AddBoolToObject(json, "dev", WebCtx.dev);
 #ifdef SIST_DEBUG
