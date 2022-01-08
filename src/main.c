@@ -220,6 +220,11 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.media_ctx.store = _store;
     ScanCtx.media_ctx.max_media_buffer = (long) args->max_memory_buffer * 1024 * 1024;
     ScanCtx.media_ctx.read_subtitles = args->read_subtitles;
+
+    if (args->ocr_images) {
+        ScanCtx.media_ctx.tesseract_lang = args->tesseract_lang;
+        ScanCtx.media_ctx.tesseract_path = args->tesseract_path;
+    }
     init_media();
 
     // OOXML
@@ -501,7 +506,7 @@ void sist2_web(web_args_t *args) {
     WebCtx.tag_auth_enabled = args->tag_auth_enabled;
     WebCtx.tagline = args->tagline;
     WebCtx.dev = args->dev;
-    strcpy(WebCtx.lang,  args->lang);
+    strcpy(WebCtx.lang, args->lang);
 
     for (int i = 0; i < args->index_count; i++) {
         char *abs_path = abspath(args->indices[i]);
@@ -576,8 +581,11 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "archive-passphrase", &scan_args->archive_passphrase,
                        "Passphrase for encrypted archive files"),
 
-            OPT_STRING(0, "ocr", &scan_args->tesseract_lang, "Tesseract language (use tesseract --list-langs to see "
-                                                             "which are installed on your machine)"),
+            OPT_STRING(0, "ocr-lang", &scan_args->tesseract_lang,
+                       "Tesseract language (use 'tesseract --list-langs' to see "
+                       "which are installed on your machine)"),
+            OPT_BOOLEAN(0, "ocr-images", &scan_args->ocr_images, "Enable OCR'ing of image files."),
+            OPT_BOOLEAN(0, "ocr-ebooks", &scan_args->ocr_ebooks, "Enable OCR'ing of ebook files."),
             OPT_STRING('e', "exclude", &scan_args->exclude_regex, "Files that match this regex will not be scanned"),
             OPT_BOOLEAN(0, "fast", &scan_args->fast, "Only index file names & mime type"),
             OPT_STRING(0, "treemap-threshold", &scan_args->treemap_threshold_str, "Relative size threshold for treemap "

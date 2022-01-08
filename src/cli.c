@@ -168,7 +168,23 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         return 1;
     }
 
+    if (args->ocr_images && args->tesseract_lang == NULL) {
+        fprintf(stderr, "You must specify --ocr-lang <LANG> to use --ocr-images");
+        return 1;
+    }
+
+    if (args->ocr_ebooks && args->tesseract_lang == NULL) {
+        fprintf(stderr, "You must specify --ocr-lang <LANG> to use --ocr-ebooks");
+        return 1;
+    }
+
     if (args->tesseract_lang != NULL) {
+
+        if (!args->ocr_ebooks && !args->ocr_images) {
+            fprintf(stderr, "You must specify at least one of --ocr-ebooks, --ocr-images");
+            return 1;
+        }
+
         TessBaseAPI *api = TessBaseAPICreate();
 
         const char* trained_data_path;

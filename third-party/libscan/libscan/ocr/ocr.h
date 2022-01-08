@@ -4,7 +4,8 @@
 #include "../scan.h"
 #include <tesseract/capi.h>
 
-#define MIN_OCR_SIZE 350
+#define MIN_OCR_WIDTH 350
+#define MIN_OCR_HEIGHT 100
 #define MIN_OCR_LEN 10
 
 #define OCR_IS_VALID_BPP(d)                                                    \
@@ -19,7 +20,7 @@ ocr_extract_text(const char *tesseract_path, const char *tesseract_lang,
                  const int img_bpp, const int img_stride, const int img_xres,
                  const ocr_extract_callback_t cb) {
 
-    if (img_w < MIN_OCR_SIZE || img_h < MIN_OCR_SIZE || img_xres <= 0 ||
+    if (img_w < MIN_OCR_WIDTH || img_h < MIN_OCR_HEIGHT || img_xres <= 0 ||
         !OCR_IS_VALID_BPP(img_bpp)) {
         return;
     }
@@ -31,11 +32,13 @@ ocr_extract_text(const char *tesseract_path, const char *tesseract_lang,
     TessBaseAPISetSourceResolution(api, img_xres);
 
     char *text = TessBaseAPIGetUTF8Text(api);
-    size_t len = strlen(text);
-    if (len >= MIN_OCR_LEN) {
-        cb(text, len);
+    if (text != NULL) {
+        size_t len = strlen(text);
+        if (len >= MIN_OCR_LEN) {
+            cb(text, len);
+        }
+        TessDeleteText(text);
     }
-    TessDeleteText(text);
 
     TessBaseAPIEnd(api);
     TessBaseAPIDelete(api);

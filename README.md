@@ -102,8 +102,9 @@ scan is also supported.
 
 ### OCR
 
-You can enable OCR support for pdf,xps,fb2,epub file types with the
-`--ocr <lang>` option. Download the language data files with your package manager (`apt install tesseract-ocr-eng`) or
+You can enable OCR support for ebook (pdf,xps,fb2,epub) or image file types with the
+`--ocr-lang <lang>` option in combination with `--ocr-images` and/or `--ocr-ebooks`.
+Download the language data files with your package manager (`apt install tesseract-ocr-eng`) or
 directly [from Github](https://github.com/tesseract-ocr/tesseract/wiki/Data-Files).
 
 The `simon987/sist2` image comes with common languages
@@ -116,9 +117,9 @@ name must be identical to the `*.traineddata` file installed on your system
 Examples:
 
 ```bash
-sist2 scan --ocr jpn ~/Books/Manga/
-sist2 scan --ocr eng ~/Books/Textbooks/
-sist2 scan --ocr eng+chi_sim ~/Books/Chinese-Bilingual/
+sist2 scan --ocr-ebooks --ocr-lang jpn ~/Books/Manga/
+sist2 scan --ocr-images --ocr-lang eng ~/Images/Screenshots/
+sist2 scan --ocr-ebooks --ocr-images --ocr-lang eng+chi_sim ~/Chinese-Bilingual/
 ```
 
 ## Build from source
