@@ -19,25 +19,26 @@ ocr_extract_text(const char *tesseract_path, const char *tesseract_lang,
                  const int img_bpp, const int img_stride, const int img_xres,
                  const ocr_extract_callback_t cb) {
 
-  if (img_w < MIN_OCR_SIZE || img_h < MIN_OCR_SIZE || img_xres <= 0 ||
-      !OCR_IS_VALID_BPP(img_bpp)) {
-    return;
-  }
+    if (img_w < MIN_OCR_SIZE || img_h < MIN_OCR_SIZE || img_xres <= 0 ||
+        !OCR_IS_VALID_BPP(img_bpp)) {
+        return;
+    }
 
-  TessBaseAPI *api = TessBaseAPICreate();
-  TessBaseAPIInit3(api, tesseract_path, tesseract_lang);
+    TessBaseAPI *api = TessBaseAPICreate();
+    TessBaseAPIInit3(api, tesseract_path, tesseract_lang);
 
-  TessBaseAPISetImage(api, img_buf, img_w, img_h, img_bpp, img_stride);
-  TessBaseAPISetSourceResolution(api, img_xres);
+    TessBaseAPISetImage(api, img_buf, img_w, img_h, img_bpp, img_stride);
+    TessBaseAPISetSourceResolution(api, img_xres);
 
-  char *text = TessBaseAPIGetUTF8Text(api);
-  size_t len = strlen(text);
-  if (len >= MIN_OCR_LEN) {
-    cb(text, len);
-  }
+    char *text = TessBaseAPIGetUTF8Text(api);
+    size_t len = strlen(text);
+    if (len >= MIN_OCR_LEN) {
+        cb(text, len);
+    }
+    TessDeleteText(text);
 
-  TessBaseAPIEnd(api);
-  TessBaseAPIDelete(api);
+    TessBaseAPIEnd(api);
+    TessBaseAPIDelete(api);
 }
 
 #endif

@@ -146,7 +146,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (args->name == NULL) {
         args->name = g_path_get_basename(args->output);
     } else {
-        char* tmp = malloc(strlen(args->name) + 1);
+        char *tmp = malloc(strlen(args->name) + 1);
         strcpy(tmp, args->name);
         args->name = tmp;
     }
@@ -171,14 +171,25 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (args->tesseract_lang != NULL) {
         TessBaseAPI *api = TessBaseAPICreate();
 
-        char filename[128];
-        sprintf(filename, "%s.traineddata", args->tesseract_lang);
-        const char *path = find_file_in_paths(TESS_DATAPATHS, filename);
-        if (path == NULL) {
-            LOG_FATAL("cli.c", "Could not find tesseract language file!");
-        }
+        const char* trained_data_path;
+        char *lang = malloc(strlen(args->tesseract_lang) + 1);
+        strcpy(lang, args->tesseract_lang);
 
-        ret = TessBaseAPIInit3(api, path, args->tesseract_lang);
+        lang = strtok(lang, "+");
+
+        while (lang != NULL) {
+            char filename[128];
+            sprintf(filename, "%s.traineddata", lang);
+            trained_data_path = find_file_in_paths(TESS_DATAPATHS, filename);
+            if (trained_data_path == NULL) {
+                LOG_FATALF("cli.c", "Could not find tesseract language file: %s!", filename);
+            }
+
+            lang = strtok(NULL, "+");
+        }
+        free(lang);
+
+        ret = TessBaseAPIInit3(api, trained_data_path, args->tesseract_lang);
         if (ret != 0) {
             fprintf(stderr, "Could not initialize tesseract with lang '%s'\n", args->tesseract_lang);
             return 1;
@@ -186,7 +197,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         TessBaseAPIEnd(api);
         TessBaseAPIDelete(api);
 
-        args->tesseract_path = path;
+        args->tesseract_path = trained_data_path;
     }
 
     if (args->exclude_regex != NULL) {
@@ -220,7 +231,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     }
 
     if (args->list_path != NULL) {
-        if(strcmp(args->list_path, "-") == 0) {
+        if (strcmp(args->list_path, "-") == 0) {
             args->list_file = stdin;
             LOG_DEBUG("cli.c", "Using stdin as list file")
         } else {

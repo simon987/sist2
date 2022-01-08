@@ -67,23 +67,23 @@ See [Usage guide](docs/USAGE.md) for more details
 
 ## Format support
 
-File type | Library | Content | Thumbnail | Metadata
-:---|:---|:---|:---|:---
-pdf,xps,fb2,epub | MuPDF | text+ocr | yes | author, title |
-cbz,cbr | [libscan](https://github.com/simon987/libscan) | - | yes | - |
-`audio/*` | ffmpeg | - | yes | ID3 tags |
-`video/*` | ffmpeg | - | yes | title, comment, artist |
-`image/*` | ffmpeg | - | yes | [Common EXIF tags](https://github.com/simon987/sist2/blob/efdde2734eca9b14a54f84568863b7ffd59bdba3/src/parsing/media.c#L190), GPS tags |
-raw, rw2, dng, cr2, crw, dcr, k25, kdc, mrw, pef, xf3, arw, sr2, srf, erf  | LibRaw | - | yes | Common EXIF tags, GPS tags |
-ttf,ttc,cff,woff,fnt,otf | Freetype2 | - | yes, `bmp` | Name & style |
-`text/plain` | [libscan](https://github.com/simon987/libscan) | yes | no | - |
-html, xml | [libscan](https://github.com/simon987/libscan) | yes | no | - |
-tar, zip, rar, 7z, ar ...  | Libarchive | yes\* | - | no |
-docx, xlsx, pptx | [libscan](https://github.com/simon987/libscan) | yes | if embedded | creator, modified_by, title |
-doc (MS Word 97-2003) | antiword | yes | yes | author, title |
-mobi, azw, azw3 | libmobi | yes | no | author, title |
-wpd (WordPerfect) | libwpd | yes | no | *planned* |
-json, jsonl, ndjson | [libscan](https://github.com/simon987/libscan) | yes | - | - |
+| File type                                                                 | Library                                                                      | Content  | Thumbnail   | Metadata                                                                                                                               |
+|:--------------------------------------------------------------------------|:-----------------------------------------------------------------------------|:---------|:------------|:---------------------------------------------------------------------------------------------------------------------------------------|
+| pdf,xps,fb2,epub                                                          | MuPDF                                                                        | text+ocr | yes         | author, title                                                                                                                          |
+| cbz,cbr                                                                   | [libscan](https://github.com/simon987/sist2/tree/master/third-party/libscan) | -        | yes         | -                                                                                                                                      |
+| `audio/*`                                                                 | ffmpeg                                                                       | -        | yes         | ID3 tags                                                                                                                               |
+| `video/*`                                                                 | ffmpeg                                                                       | -        | yes         | title, comment, artist                                                                                                                 |
+| `image/*`                                                                 | ffmpeg                                                                       | -        | yes         | [Common EXIF tags](https://github.com/simon987/sist2/blob/efdde2734eca9b14a54f84568863b7ffd59bdba3/src/parsing/media.c#L190), GPS tags |
+| raw, rw2, dng, cr2, crw, dcr, k25, kdc, mrw, pef, xf3, arw, sr2, srf, erf | LibRaw                                                                       | -        | yes         | Common EXIF tags, GPS tags                                                                                                             |
+| ttf,ttc,cff,woff,fnt,otf                                                  | Freetype2                                                                    | -        | yes, `bmp`  | Name & style                                                                                                                           |
+| `text/plain`                                                              | [libscan](https://github.com/simon987/sist2/tree/master/third-party/libscan) | yes      | no          | -                                                                                                                                      |
+| html, xml                                                                 | [libscan](https://github.com/simon987/sist2/tree/master/third-party/libscan) | yes      | no          | -                                                                                                                                      |
+| tar, zip, rar, 7z, ar ...                                                 | Libarchive                                                                   | yes\*    | -           | no                                                                                                                                     |
+| docx, xlsx, pptx                                                          | [libscan](https://github.com/simon987/sist2/tree/master/third-party/libscan) | yes      | if embedded | creator, modified_by, title                                                                                                            |
+| doc (MS Word 97-2003)                                                     | antiword                                                                     | yes      | yes         | author, title                                                                                                                          |
+| mobi, azw, azw3                                                           | libmobi                                                                      | yes      | no          | author, title                                                                                                                          |
+| wpd (WordPerfect)                                                         | libwpd                                                                       | yes      | no          | *planned*                                                                                                                              |
+| json, jsonl, ndjson                                                       | [libscan](https://github.com/simon987/sist2/tree/master/third-party/libscan) | yes      | -           | -                                                                                                                                      |
 
 \* *See [Archive files](#archive-files)*
 
@@ -109,11 +109,16 @@ directly [from Github](https://github.com/tesseract-ocr/tesseract/wiki/Data-File
 The `simon987/sist2` image comes with common languages
 (hin, jpn, eng, fra, rus, spa) pre-installed.
 
-Examples
+You can use the `+` separator to specify multiple languages. The language
+name must be identical to the `*.traineddata` file installed on your system 
+(use `chi_sim` rather than `chi-sim`).
+
+Examples:
 
 ```bash
 sist2 scan --ocr jpn ~/Books/Manga/
 sist2 scan --ocr eng ~/Books/Textbooks/
+sist2 scan --ocr eng+chi_sim ~/Books/Chinese-Bilingual/
 ```
 
 ## Build from source
@@ -126,7 +131,7 @@ You can compile **sist2** by yourself if you don't want to use the pre-compiled 
 git clone --recursive https://github.com/simon987/sist2/
 cd sist2
 docker build . -f ./Dockerfile -t my-sist2-image
-docker run --rm my-sist2-image cat /root/sist2 > sist2-x64-linux
+docker run --rm --entrypoint cat my-sist2-image /root/sist2 > sist2-x64-linux
 ```
 
 ### On a linux computer
