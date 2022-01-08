@@ -19,7 +19,7 @@ ocr_extract_text(const char *tesseract_path, const char *tesseract_lang,
                  const int img_bpp, const int img_stride, const int img_xres,
                  const ocr_extract_callback_t cb) {
 
-  if (img_h <= MIN_OCR_SIZE || img_h <= MIN_OCR_SIZE || img_xres <= 0 ||
+  if (img_w <= MIN_OCR_SIZE || img_h <= MIN_OCR_SIZE || img_xres <= 0 ||
       !OCR_IS_VALID_BPP(img_bpp)) {
     return;
   }
