@@ -15,15 +15,8 @@
         <h4>{{ $t("displayOptions") }}</h4>
 
         <b-card>
-          <b-form-checkbox :checked="optLightboxLoadOnlyCurrent" @input="setOptLightboxLoadOnlyCurrent">
-            {{ $t("opt.lightboxLoadOnlyCurrent") }}
-          </b-form-checkbox>
 
-          <b-form-checkbox :checked="optHideLegacy" @input="setOptHideLegacy">
-            {{ $t("opt.hideLegacy") }}
-          </b-form-checkbox>
-
-          <label>{{ $t("opt.lang") }}</label>
+          <label><LanguageIcon/><span style="vertical-align: middle">&nbsp;{{ $t("opt.lang") }}</span></label>
           <b-form-select :options="langOptions" :value="optLang" @input="setOptLang"></b-form-select>
 
           <label>{{ $t("opt.theme") }}</label>
@@ -34,6 +27,20 @@
 
           <label>{{ $t("opt.columns") }}</label>
           <b-form-select :options="columnsOptions" :value="optColumns" @input="setOptColumns"></b-form-select>
+
+          <div style="height: 10px"></div>
+
+          <b-form-checkbox :checked="optLightboxLoadOnlyCurrent" @input="setOptLightboxLoadOnlyCurrent">
+            {{ $t("opt.lightboxLoadOnlyCurrent") }}
+          </b-form-checkbox>
+
+          <b-form-checkbox :checked="optHideLegacy" @input="setOptHideLegacy">
+            {{ $t("opt.hideLegacy") }}
+          </b-form-checkbox>
+
+          <b-form-checkbox :checked="optUpdateMimeMap" @input="setOptUpdateMimeMap">
+            {{ $t("opt.updateMimeMap") }}
+          </b-form-checkbox>
         </b-card>
 
         <br/>
@@ -117,15 +124,15 @@
 </template>
 
 <script>
-import Vue from "vue";
-import {mapGetters, mapMutations} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 import DebugInfo from "@/components/DebugInfo.vue";
 import Preloader from "@/components/Preloader.vue";
 import sist2 from "@/Sist2Api";
-import GearIcon from "@/components/GearIcon.vue";
+import GearIcon from "@/components/icons/GearIcon.vue";
+import LanguageIcon from "@/components/icons/LanguageIcon";
 
 export default {
-  components: {GearIcon, DebugInfo, Preloader},
+  components: {LanguageIcon, GearIcon, DebugInfo, Preloader},
   data() {
     return {
       loading: true,
@@ -133,6 +140,7 @@ export default {
       langOptions: [
         {value: "en", text: this.$t("lang.en")},
         {value: "fr", text: this.$t("lang.fr")},
+        {value: "zh-CN", text: this.$t("lang.zh-CN")},
       ],
       queryModeOptions: [
         {value: "simple", text: this.$t("queryMode.simple")},
@@ -220,6 +228,7 @@ export default {
       "optLang",
       "optHideDuplicates",
       "optHideLegacy",
+      "optUpdateMimeMap",
     ]),
     clientWidth() {
       return window.innerWidth;
@@ -227,7 +236,7 @@ export default {
   },
   mounted() {
     sist2.getSist2Info().then(data => {
-      this.$store.commit("setSist2Info", data)
+      this.setSist2Info(data);
       this.loading = false;
     });
 
@@ -238,6 +247,9 @@ export default {
     });
   },
   methods: {
+    ...mapActions({
+      setSist2Info: "setSist2Info",
+    }),
     ...mapMutations([
       "setOptTheme",
       "setOptDisplay",
@@ -255,12 +267,12 @@ export default {
       "setOptTreemapSize",
       "setOptLightboxLoadOnlyCurrent",
       "setOptLightboxSlideDuration",
-      "setOptContainerWidth",
       "setOptResultSize",
       "setOptTagOrOperator",
       "setOptLang",
       "setOptHideDuplicates",
-      "setOptHideLegacy"
+      "setOptHideLegacy",
+      "setOptUpdateMimeMap"
     ]),
     onResetClick() {
       localStorage.removeItem("sist2_configuration");

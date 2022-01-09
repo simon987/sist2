@@ -22,9 +22,6 @@ add_subdirectory(third-party/argparse)
 
 add_executable(sist2
 
-        # argparse
-        third-party/argparse/argparse.h third-party/argparse/argparse.c
-
         src/main.c
         src/sist.h
         src/io/walk.h src/io/walk.c
@@ -41,7 +38,11 @@ add_executable(sist2
         src/log.c src/log.h
         src/cli.c src/cli.h
         src/stats.c src/stats.h src/ctx.c
-        src/parsing/sidecar.c src/parsing/sidecar.h)
+        src/parsing/sidecar.c src/parsing/sidecar.h
+
+        # argparse
+        third-party/argparse/argparse.h third-party/argparse/argparse.c
+        )
 
 target_link_directories(sist2 PRIVATE BEFORE ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/)
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
@@ -86,6 +87,7 @@ if (SIST_DEBUG)
             sist2
             PRIVATE
             -fsanitize=address
+            -static-libasan
     )
     set_target_properties(
             sist2

@@ -14,6 +14,9 @@
 #include "parsing/mime.h"
 #include "parsing/parse.h"
 
+#include <signal.h>
+#include <unistd.h>
+
 #include "stats.h"
 
 #define DESCRIPTION "Lightning-fast file system indexer and search tool."
@@ -29,8 +32,6 @@ static const char *const usage[] = {
         NULL,
 };
 
-#include<signal.h>
-#include<unistd.h>
 
 static __sighandler_t sigsegv_handler = NULL;
 static __sighandler_t sigabrt_handler = NULL;
@@ -169,6 +170,7 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.dbg_current_files = g_hash_table_new_full(g_int64_hash, g_int64_equal, NULL, NULL);
     pthread_mutex_init(&ScanCtx.dbg_current_files_mu, NULL);
     pthread_mutex_init(&ScanCtx.dbg_file_counts_mu, NULL);
+    pthread_mutex_init(&ScanCtx.copy_table_mu, NULL);
 
     ScanCtx.calculate_checksums = args->calculate_checksums;
 
@@ -218,6 +220,11 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.media_ctx.store = _store;
     ScanCtx.media_ctx.max_media_buffer = (long) args->max_memory_buffer * 1024 * 1024;
     ScanCtx.media_ctx.read_subtitles = args->read_subtitles;
+
+    if (args->ocr_images) {
+        ScanCtx.media_ctx.tesseract_lang = args->tesseract_lang;
+        ScanCtx.media_ctx.tesseract_path = args->tesseract_path;
+    }
     init_media();
 
     // OOXML
@@ -334,10 +341,20 @@ void sist2_scan(scan_args_t *args) {
     ScanCtx.writer_pool = tpool_create(1, writer_cleanup, TRUE, FALSE);
     tpool_start(ScanCtx.writer_pool);
 
-    int walk_ret = walk_directory_tree(ScanCtx.index.desc.root);
-    if (walk_ret == -1) {
-        LOG_FATALF("main.c", "walk_directory_tree() failed! %s (%d)", strerror(errno), errno)
+    if (args->list_path) {
+        // Scan using file list
+        int list_ret = iterate_file_list(args->list_file);
+        if (list_ret != 0) {
+            LOG_FATALF("main.c", "iterate_file_list() failed! (%d)", list_ret)
+        }
+    } else {
+        // Scan directory recursively
+        int walk_ret = walk_directory_tree(ScanCtx.index.desc.root);
+        if (walk_ret == -1) {
+            LOG_FATALF("main.c", "walk_directory_tree() failed! %s (%d)", strerror(errno), errno)
+        }
     }
+
     tpool_wait(ScanCtx.pool);
     tpool_destroy(ScanCtx.pool);
 
@@ -489,7 +506,7 @@ void sist2_web(web_args_t *args) {
     WebCtx.tag_auth_enabled = args->tag_auth_enabled;
     WebCtx.tagline = args->tagline;
     WebCtx.dev = args->dev;
-    strcpy(WebCtx.lang, "en");
+    strcpy(WebCtx.lang, args->lang);
 
     for (int i = 0; i < args->index_count; i++) {
         char *abs_path = abspath(args->indices[i]);
@@ -564,8 +581,11 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "archive-passphrase", &scan_args->archive_passphrase,
                        "Passphrase for encrypted archive files"),
 
-            OPT_STRING(0, "ocr", &scan_args->tesseract_lang, "Tesseract language (use tesseract --list-langs to see "
-                                                             "which are installed on your machine)"),
+            OPT_STRING(0, "ocr-lang", &scan_args->tesseract_lang,
+                       "Tesseract language (use 'tesseract --list-langs' to see "
+                       "which are installed on your machine)"),
+            OPT_BOOLEAN(0, "ocr-images", &scan_args->ocr_images, "Enable OCR'ing of image files."),
+            OPT_BOOLEAN(0, "ocr-ebooks", &scan_args->ocr_ebooks, "Enable OCR'ing of ebook files."),
             OPT_STRING('e', "exclude", &scan_args->exclude_regex, "Files that match this regex will not be scanned"),
             OPT_BOOLEAN(0, "fast", &scan_args->fast, "Only index file names & mime type"),
             OPT_STRING(0, "treemap-threshold", &scan_args->treemap_threshold_str, "Relative size threshold for treemap "
@@ -577,6 +597,9 @@ int main(int argc, const char *argv[]) {
             OPT_BOOLEAN(0, "fast-epub", &scan_args->fast_epub,
                         "Faster but less accurate EPUB parsing (no thumbnails, metadata)"),
             OPT_BOOLEAN(0, "checksums", &scan_args->calculate_checksums, "Calculate file checksums when scanning."),
+            OPT_STRING(0, "list-file", &scan_args->list_path, "Specify a list of newline-delimited paths to be scanned"
+                                                              " instead of normal directory traversal. Use '-' to read"
+                                                              " from stdin."),
 
             OPT_GROUP("Index options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
@@ -599,6 +622,7 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "tag-auth", &web_args->tag_credentials, "Basic auth in user:password format for tagging"),
             OPT_STRING(0, "tagline", &web_args->tagline, "Tagline in navbar"),
             OPT_BOOLEAN(0, "dev", &web_args->dev, "Serve html & js files from disk (for development)"),
+            OPT_STRING(0, "lang", &web_args->lang, "Default UI language. Can be changed by the user"),
 
             OPT_GROUP("Exec-script options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),

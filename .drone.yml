@@ -11,21 +11,6 @@ steps:
     image: simon987/sist2-build
     commands:
       - ./scripts/build.sh
-  - name: docker
-    image: plugins/docker
-    settings:
-      username:
-        from_secret: DOCKER_USER
-      password:
-        from_secret: DOCKER_PASSWORD
-      repo: simon987/sist2
-      context: ./
-      dockerfile: ./Dockerfile
-      auto_tag: true
-      auto_tag_suffix: x64-linux
-      when:
-        event:
-          - tag
   - name: scp files
     image: appleboy/drone-scp
     settings:
@@ -42,6 +27,21 @@ steps:
         - ./VERSION
         - ./sist2-x64-linux
         - ./sist2-x64-linux-debug
+  - name: docker
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: DOCKER_USER
+      password:
+        from_secret: DOCKER_PASSWORD
+      repo: simon987/sist2
+      context: ./
+      dockerfile: ./Dockerfile
+      auto_tag: true
+      auto_tag_suffix: x64-linux
+      when:
+        event:
+          - tag
 
 ---
 kind: pipeline

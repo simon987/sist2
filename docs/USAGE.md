@@ -43,7 +43,7 @@ Scan options
     --depth=<int>                 Scan up to DEPTH subdirectories deep. Use 0 to only scan files in PATH. DEFAULT: -1
     --archive=<str>               Archive file mode (skip|list|shallow|recurse). skip: Don't parse, list: only get file names as text, shallow: Don't parse archives inside archives. DEFAULT: recurse
     --archive-passphrase=<str>    Passphrase for encrypted archive files
-    --ocr=<str>                   Tesseract language (use tesseract --list-langs to see which are installed on your machine)
+    # TODO: add new --ocr-* options here
     -e, --exclude=<str>           Files that match this regex will not be scanned
     --fast                        Only index file names & mime type
     --treemap-threshold=<str>     Relative size threshold for treemap (see USAGE.md). DEFAULT: 0.0005

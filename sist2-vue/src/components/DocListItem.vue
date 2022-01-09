@@ -1,5 +1,6 @@
 <template>
-  <b-list-group-item class="flex-column align-items-start mb-2" :class="{'sub-document': doc._props.isSubDocument}">
+  <b-list-group-item class="flex-column align-items-start mb-2" :class="{'sub-document': doc._props.isSubDocument}"
+                     @mouseenter="onTnEnter()" @mouseleave="onTnLeave()" >
 
     <!-- Info modal-->
     <DocInfoModal :show="showInfo" :doc="doc" @close="showInfo = false"></DocInfoModal>
@@ -56,7 +57,7 @@ import TagContainer from "@/components/TagContainer";
 import DocFileTitle from "@/components/DocFileTitle";
 import DocInfoModal from "@/components/DocInfoModal";
 import ContentDiv from "@/components/ContentDiv";
-import FileIcon from "@/components/FileIcon";
+import FileIcon from "@/components/icons/FileIcon";
 
 export default {
   name: "DocListItem",
@@ -85,7 +86,13 @@ export default {
         return this.doc.highlight["path.nGram"] + "/"
       }
       return this.doc._source.path + "/"
-    }
+    },
+    onTnEnter() {
+      this.hover = true;
+    },
+    onTnLeave() {
+      this.hover = false;
+    },
   }
 }
 </script>

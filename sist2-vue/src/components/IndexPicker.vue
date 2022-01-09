@@ -133,6 +133,11 @@ export default Vue.extend({
   font-size: 80%;
 }
 
+.theme-black .version-badge {
+  color: #eee !important;
+  background: none;
+}
+
 .version-badge {
   color: #222 !important;
   background: none;

@@ -41,6 +41,7 @@ typedef struct {
 
     GHashTable *original_table;
     GHashTable *copy_table;
+    pthread_mutex_t copy_table_mu;
 
     pcre *exclude;
     pcre_extra *exclude_extra;
@@ -97,7 +98,7 @@ typedef struct {
     int tag_auth_enabled;
     char *tagline;
     struct index_t indices[256];
-    char lang[3];
+    char lang[10];
     int dev;
 } WebCtx_t;
 

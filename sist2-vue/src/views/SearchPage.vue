@@ -60,7 +60,7 @@
 
 <script lang="ts">
 import Preloader from "@/components/Preloader.vue";
-import {mapGetters, mapMutations} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 import sist2 from "../Sist2Api";
 import Sist2Api, {EsHit, EsResult} from "../Sist2Api";
 import SearchBar from "@/components/SearchBar.vue";
@@ -139,7 +139,7 @@ export default Vue.extend({
         this.setSist2Info(data);
         this.setIndices(data.indices);
 
-        Sist2Api.getMimeTypes().then(mimeMap => {
+        Sist2Api.getMimeTypes(Sist2Query.searchQuery()).then(({mimeMap}) => {
           this.$store.commit("setUiMimeMap", mimeMap);
           this.uiLoading = false;
           this.search(true);
@@ -151,8 +151,10 @@ export default Vue.extend({
     });
   },
   methods: {
-    ...mapMutations({
+    ...mapActions({
       setSist2Info: "setSist2Info",
+    }),
+    ...mapMutations({
       setIndices: "setIndices",
       setDateBoundsMin: "setDateBoundsMin",
       setDateBoundsMax: "setDateBoundsMax",
@@ -183,6 +185,7 @@ export default Vue.extend({
     async searchNow(q: any) {
       this.searchBusy = true;
       await this.$store.dispatch("incrementQuerySequence");
+      this.$store.commit("busSearch");
 
       Sist2Api.esQuery(q).then(async (resp: EsResult) => {
         await this.handleSearch(resp);
@@ -282,6 +285,11 @@ export default Vue.extend({
   box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .08) !important;
   border-radius: 0;
   border: none;
+}
+
+.toast-header-info, .toast-body-info {
+  background: #2196f3;
+  color: #fff !important;
 }
 
 .toast-header-error, .toast-body-error {

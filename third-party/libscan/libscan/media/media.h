@@ -19,6 +19,9 @@ typedef struct {
     float tn_qscale;
     long max_media_buffer;
     int read_subtitles;
+
+    const char *tesseract_lang;
+    const char *tesseract_path;
 } scan_media_ctx_t;
 
 __always_inline

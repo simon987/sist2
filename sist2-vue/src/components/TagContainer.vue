@@ -51,7 +51,7 @@
         >{{ tag.text.split(".").pop() }}</span>
 
         <b-popover :target="hit._id+tag.rawText" triggers="focus blur" placement="top">
-          <b-button variant="danger" @click="onTagDeleteClick(tag, $event)">Delete</b-button>
+          <b-button variant="danger" @click="onTagDeleteClick(tag, $event)">{{$t("deleteTag")}}</b-button>
         </b-popover>
       </div>
 
@@ -63,7 +63,7 @@
     </template>
 
     <!-- Add button -->
-    <small v-if="showAddButton" class="badge add-tag-button" @click="tagAdd()">Add</small>
+    <small v-if="showAddButton" class="badge add-tag-button" @click="tagAdd()">{{$t("addTag")}}</small>
 
     <!-- Size tag-->
     <small v-else class="text-muted badge-size">{{

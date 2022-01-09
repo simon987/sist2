@@ -38,6 +38,8 @@ char *get_meta_key_text(enum metakey meta_key) {
             return "parent";
         case MetaExifMake:
             return "exif_make";
+        case MetaExifDescription:
+            return "exif_description";
         case MetaExifSoftware:
             return "exif_software";
         case MetaExifExposureTime:
@@ -150,6 +152,7 @@ char *build_json_string(document_t *doc) {
             case MetaFontName:
             case MetaParent:
             case MetaExifMake:
+            case MetaExifDescription:
             case MetaExifSoftware:
             case MetaExifExposureTime:
             case MetaExifFNumber:

@@ -256,20 +256,31 @@ class Sist2Api {
         });
     }
 
-    getMimeTypes() {
-        return this.esQuery({
-            aggs: {
-                mimeTypes: {
-                    terms: {
-                        field: "mime",
-                        size: 10000
-                    }
+    getMimeTypes(query = undefined) {
+        const AGGS = {
+            mimeTypes: {
+                terms: {
+                    field: "mime",
+                    size: 10000
                 }
-            },
-            size: 0,
-        }).then(resp => {
+            }
+        };
+
+        if (!query) {
+            query = {
+                aggs: AGGS,
+                size: 0,
+            };
+        } else {
+            query.size = 0;
+            query.aggs = AGGS;
+        }
+
+        return this.esQuery(query).then(resp => {
             const mimeMap: any[] = [];
-            resp["aggregations"]["mimeTypes"]["buckets"].sort((a: any, b: any) => a.key > b.key).forEach((bucket: any) => {
+            const buckets = resp["aggregations"]["mimeTypes"]["buckets"];
+
+            buckets.sort((a: any, b: any) => a.key > b.key).forEach((bucket: any) => {
                 const tmp = bucket["key"].split("/");
                 const category = tmp[0];
                 const mime = tmp[1];
@@ -289,11 +300,18 @@ class Sist2Api {
                 });
 
                 if (!category_exists) {
-                    mimeMap.push({"text": category, children: [child]});
+                    mimeMap.push({text: category, children: [child], id: category});
                 }
             })
 
-            return mimeMap;
+            mimeMap.forEach(node => {
+                if (node.children) {
+                    node.children.sort((a, b) => a.id.localeCompare(b.id));
+                }
+            })
+            mimeMap.sort((a, b) => a.id.localeCompare(b.id))
+
+            return {buckets, mimeMap};
         });
     }
 

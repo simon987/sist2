@@ -133,6 +133,9 @@ static int incremental_get_str(GHashTable *table, const char *path_md5) {
     }
 }
 
+/**
+ * Not thread safe!
+ */
 __always_inline
 static int incremental_mark_file_for_copy(GHashTable *table, const unsigned char path_md5[MD5_DIGEST_LENGTH]) {
     char *ptr = malloc(MD5_STR_LENGTH);

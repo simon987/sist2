@@ -21,6 +21,8 @@ typedef struct scan_args {
     char *archive_passphrase;
     char *tesseract_lang;
     const char *tesseract_path;
+    int ocr_images;
+    int ocr_ebooks;
     char *exclude_regex;
     int fast;
     const char* treemap_threshold_str;
@@ -29,6 +31,8 @@ typedef struct scan_args {
     int read_subtitles;
     int fast_epub;
     int calculate_checksums;
+    char *list_path;
+    FILE *list_file;
 } scan_args_t;
 
 scan_args_t *scan_args_create();

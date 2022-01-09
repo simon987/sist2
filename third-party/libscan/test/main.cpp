@@ -227,7 +227,7 @@ TEST(Ebook, Utf8Pdf) {
 
     parse_ebook(&ebook_500_ctx, &f, "application/pdf", &doc);
 
-    ASSERT_TRUE(STR_STARTS_WITH(get_meta(&doc, MetaContent)->str_val, "最後測試 "));
+    ASSERT_TRUE(STR_STARTS_WITH_CONSTANT(get_meta(&doc, MetaContent)->str_val, "最後測試 "));
     cleanup(&doc, &f);
 }
 
@@ -245,7 +245,7 @@ TEST(Ebook, Utf8PdfInvalidChars) {
     // It should say "HART is a group of highly qualified ..." but the PDF
     //  text is been intentionally fucked with by the authors
     // We can at least filter out the non-printable/invalid characters like '�' etc
-    ASSERT_TRUE(STR_STARTS_WITH(get_meta(&doc, MetaContent)->str_val, "HART i a g f highl alified "));
+    ASSERT_TRUE(STR_STARTS_WITH_CONSTANT(get_meta(&doc, MetaContent)->str_val, "HART i a g f highl alified "));
     cleanup(&doc, &f);
 }
 
@@ -780,6 +780,19 @@ TEST(Arc, EncryptedZip) {
 }
 
 /* RAW */
+TEST(RAW, Segfault1) {
+    vfile_t f;
+    document_t doc;
+    load_doc_file("libscan-test-files/test_files/raw/segfault1.dng", &f, &doc);
+
+    parse_raw(&raw_ctx, &f, &doc);
+
+    ASSERT_EQ(get_meta(&doc, MetaWidth)->long_val, 3840);
+    ASSERT_EQ(get_meta(&doc, MetaHeight)->long_val, 7680);
+
+    cleanup(&doc, &f);
+}
+
 TEST(RAW, Panasonic) {
     vfile_t f;
     document_t doc;

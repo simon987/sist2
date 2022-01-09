@@ -61,6 +61,7 @@ enum metakey {
     MetaFontName,
     MetaParent,
     MetaExifMake,
+    MetaExifDescription,
     MetaExifSoftware,
     MetaExifExposureTime,
     MetaExifFNumber,

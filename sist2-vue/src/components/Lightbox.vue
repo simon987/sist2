@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- TODO: Set slideshowTime as a configurable option-->
     <FsLightbox
         :key="lightboxKey"
         :toggler="showLightbox"
@@ -10,7 +9,7 @@
         :types="lightboxTypes"
         :source-index="lightboxSlide"
         :custom-toolbar-buttons="customButtons"
-        :slideshow-time="1000 * 10"
+        :slideshow-time="$store.getters.optLightboxSlideDuration * 1000"
         :zoom-increment="0.5"
         :load-only-current-source="$store.getters.optLightboxLoadOnlyCurrent"
         :on-close="onClose"

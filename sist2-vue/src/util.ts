@@ -97,6 +97,30 @@ export function getSelectedTreeNodes(tree: any) {
     return Array.from(selectedNodes);
 }
 
+export function getTreeNodeAttributes(tree: any) {
+    const nodes = tree.selectable();
+    const attributes = {};
+
+    for (let i = 0; i < nodes.length; i++) {
+
+        let id = null;
+
+        if (nodes[i].text.indexOf("(") !== -1 && nodes[i].values) {
+            id = nodes[i].values.slice(-1)[0];
+        } else {
+            id = nodes[i].id
+        }
+
+        attributes[id] = {
+            checked: nodes[i].itree.state.checked,
+            collapsed: nodes[i].itree.state.collapsed,
+        }
+    }
+
+    return attributes;
+}
+
+
 export function serializeMimes(mimes: string[]): string | undefined {
     if (mimes.length == 0) {
         return undefined;

@@ -4,6 +4,8 @@
 
 #include <ftw.h>
 
+#define STR_STARTS_WITH(x, y) (strncmp(y, x, strlen(y) - 1) == 0)
+
 __always_inline
 parse_job_t *create_fs_parse_job(const char *filepath, const struct stat *info, int base) {
     int len = (int) strlen(filepath);
@@ -76,4 +78,58 @@ int handle_entry(const char *filepath, const struct stat *info, int typeflag, st
 
 int walk_directory_tree(const char *dirpath) {
     return nftw(dirpath, handle_entry, MAX_FILE_DESCRIPTORS, FTW_PHYS | FTW_ACTIONRETVAL);
+}
+
+int iterate_file_list(void *input_file) {
+
+    char buf[PATH_MAX];
+    struct stat info;
+
+    while (fgets(buf, sizeof(buf), input_file) != NULL) {
+
+        // Remove trailing newline
+        *(buf + strlen(buf) - 1) = '\0';
+
+        int stat_ret = stat(buf, &info);
+
+        if (stat_ret != 0) {
+            LOG_ERRORF("walk.c", "Could not stat file %s (%s)", buf, strerror(errno));
+            continue;
+        }
+
+        if (!S_ISREG(info.st_mode)) {
+            LOG_ERRORF("walk.c", "Is not a regular file: %s", buf);
+            continue;
+        }
+
+        char *absolute_path = canonicalize_file_name(buf);
+
+        if (absolute_path == NULL) {
+            LOG_FATALF("walk.c", "FIXME: Could not get absolute path of %s", buf);
+        }
+
+        if (ScanCtx.exclude != NULL && EXCLUDED(absolute_path)) {
+            LOG_DEBUGF("walk.c", "Excluded: %s", absolute_path)
+
+            if (S_ISREG(info.st_mode)) {
+                pthread_mutex_lock(&ScanCtx.dbg_file_counts_mu);
+                ScanCtx.dbg_excluded_files_count += 1;
+                pthread_mutex_unlock(&ScanCtx.dbg_file_counts_mu);
+            }
+
+            continue;
+        }
+
+        if (!STR_STARTS_WITH(absolute_path, ScanCtx.index.desc.root)) {
+            LOG_FATALF("walk.c", "File is not a children of root folder (%s): %s", ScanCtx.index.desc.root, buf);
+        }
+
+        int base = (int) (strrchr(buf, '/') - buf) + 1;
+
+        parse_job_t *job = create_fs_parse_job(absolute_path, &info, base);
+        free(absolute_path);
+        tpool_add_work(ScanCtx.pool, parse, job);
+    }
+
+    return 0;
 }

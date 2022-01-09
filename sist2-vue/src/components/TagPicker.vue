@@ -120,7 +120,7 @@ export default {
   },
   mounted() {
     this.$store.subscribe((mutation) => {
-      if (mutation.type === "setUiMimeMap") {
+      if (mutation.type === "setUiMimeMap" && this.tagTree === null) {
         this.initializeTree();
         this.updateTree();
       } else if (mutation.type === "busUpdateTags") {
@@ -147,6 +147,7 @@ export default {
       this.tagTree.on("node.state.changed", this.handleTreeClick);
     },
     updateTree() {
+      // TODO: remember which tags are selected and restore?
       const tagMap = [];
       Sist2Api.getTags().then(tags => {
         tags.forEach(tag => addTag(tagMap, tag.id, tag.id, tag.count));

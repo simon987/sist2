@@ -34,9 +34,11 @@
           </svg>
         </div>
 
-        <img v-if="doc._props.isPlayableImage || doc._props.isPlayableVideo"
+        <img ref="tn"
+             v-if="doc._props.isPlayableImage || doc._props.isPlayableVideo"
              :src="(doc._props.isGif && hover) ? `f/${doc._id}` : `t/${doc._source.index}/${doc._id}`"
              alt=""
+             :style="{height: (doc._props.isGif && hover) ? `${tnHeight()}px` : undefined}"
              class="pointer fit card-img-top" @click="onThumbnailClick()">
         <img v-else :src="`t/${doc._source.index}/${doc._id}`" alt=""
              class="fit card-img-top">
@@ -122,6 +124,9 @@ export default {
     },
     onTnLeave() {
       this.hover = false;
+    },
+    tnHeight() {
+      return this.$refs.tn.height;
     }
   },
 }

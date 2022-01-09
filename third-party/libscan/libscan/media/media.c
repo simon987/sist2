@@ -1,11 +1,17 @@
 #include "media.h"
+#include "../ocr/ocr.h"
 #include <ctype.h>
 
 #define MIN_SIZE 32
 #define AVIO_BUF_SIZE 8192
-#define IS_VIDEO(fmt) (fmt->iformat->name && strcmp(fmt->iformat->name, "image2") != 0)
+#define IS_VIDEO(fmt) ((fmt)->iformat->name && strcmp((fmt)->iformat->name, "image2") != 0)
+
+#define STREAM_IS_IMAGE (stream->nb_frames <= 1)
 
 #define STORE_AS_IS ((void*)-1)
+
+// Pointer to document being processed
+__thread document_t *thread_doc;
 
 const char *get_filepath_with_ext(document_t *doc, const char *filepath, const char *mime_str) {
 
@@ -311,7 +317,7 @@ append_video_meta(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, AVFrame *f
             if (strcmp(key, "artist") == 0) {
                 append_tag_meta_if_not_exists(ctx, doc, tag, MetaArtist);
             } else if (strcmp(key, "imagedescription") == 0) {
-                APPEND_TAG_META(MetaContent)
+                append_tag_meta_if_not_exists(ctx, doc, tag, MetaContent);
             } else if (strcmp(key, "make") == 0) {
                 APPEND_TAG_META(MetaExifMake)
             } else if (strcmp(key, "model") == 0) {
@@ -341,6 +347,55 @@ append_video_meta(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, AVFrame *f
             }
         }
     }
+}
+
+static void ocr_image_cb(const char *text, size_t len) {
+    APPEND_STR_META(thread_doc, MetaContent, text);
+}
+
+#define OCR_PIXEL_FORMAT AV_PIX_FMT_RGB32
+#define OCR_BYTES_PER_PIXEL 4
+#define OCR_PIXELS_PER_INCH 70
+
+void ocr_image(scan_media_ctx_t *ctx, document_t *doc, const AVCodecContext *decoder, AVFrame *frame) {
+
+    // Convert to RGB32
+    AVFrame *rgb_frame = av_frame_alloc();
+
+    struct SwsContext *sws_ctx = sws_getContext(
+            frame->width, frame->height, decoder->pix_fmt,
+            frame->width, frame->height, OCR_PIXEL_FORMAT,
+            SWS_LANCZOS, 0, 0, 0
+    );
+
+    int dst_buf_len = av_image_get_buffer_size(OCR_PIXEL_FORMAT, frame->width, frame->height, 1);
+    uint8_t *dst_buf = (uint8_t *) av_malloc(dst_buf_len * 2);
+
+    av_image_fill_arrays(rgb_frame->data, rgb_frame->linesize, dst_buf, OCR_PIXEL_FORMAT, frame->width, frame->height,
+                         1);
+
+    sws_scale(sws_ctx,
+              (const uint8_t *const *) frame->data, frame->linesize,
+              0, frame->height,
+              rgb_frame->data, rgb_frame->linesize
+    );
+
+    thread_doc = doc;
+    ocr_extract_text(
+            ctx->tesseract_path,
+            ctx->tesseract_lang,
+            rgb_frame->data[0],
+            frame->width,
+            frame->height,
+            OCR_BYTES_PER_PIXEL,
+            rgb_frame->linesize[0],
+            OCR_PIXELS_PER_INCH,
+            ocr_image_cb
+    );
+
+    sws_freeContext(sws_ctx);
+    av_free(*rgb_frame->data);
+    av_frame_free(&rgb_frame);
 }
 
 void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, document_t *doc) {
@@ -419,11 +474,11 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
         avcodec_open2(decoder, video_codec, NULL);
 
         //Seek
-        if (stream->nb_frames > 1 && stream->codecpar->codec_id != AV_CODEC_ID_GIF) {
+        if (!STREAM_IS_IMAGE && stream->codecpar->codec_id != AV_CODEC_ID_GIF) {
             int seek_ret;
             for (int i = 20; i >= 0; i--) {
                 seek_ret = av_seek_frame(pFormatCtx, video_stream,
-                                         stream->duration * 0.10, 0);
+                                         (long) ((double) stream->duration * 0.10), 0);
                 if (seek_ret == 0) {
                     break;
                 }
@@ -438,6 +493,11 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
             return;
         }
 
+        if (ctx->tesseract_lang != NULL && STREAM_IS_IMAGE) {
+            ocr_image(ctx, doc, decoder, frame_and_packet->frame);
+        }
+
+        // NOTE: OCR'd content takes precedence over exif image description
         append_video_meta(ctx, pFormatCtx, frame_and_packet->frame, doc, IS_VIDEO(pFormatCtx));
 
         // Scale frame
@@ -534,7 +594,7 @@ long memfile_seek(void *ptr, long offset, int whence) {
     memfile_t *mem = ptr;
 
     if (whence == 0x10000) {
-        return mem->size;
+        return (long) mem->size;
     }
 
     int ret = fseek(mem->file, offset, whence);

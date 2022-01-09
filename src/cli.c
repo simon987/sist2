@@ -22,6 +22,7 @@
 const char *TESS_DATAPATHS[] = {
         "/usr/share/tessdata/",
         "/usr/share/tesseract-ocr/tessdata/",
+        "/usr/share/tesseract-ocr/4.00/tessdata/",
         "./",
         NULL
 };
@@ -145,7 +146,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (args->name == NULL) {
         args->name = g_path_get_basename(args->output);
     } else {
-        char* tmp = malloc(strlen(args->name) + 1);
+        char *tmp = malloc(strlen(args->name) + 1);
         strcpy(tmp, args->name);
         args->name = tmp;
     }
@@ -167,17 +168,50 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         return 1;
     }
 
-    if (args->tesseract_lang != NULL) {
-        TessBaseAPI *api = TessBaseAPICreate();
+    if (args->ocr_images && args->tesseract_lang == NULL) {
+        fprintf(stderr, "You must specify --ocr-lang <LANG> to use --ocr-images");
+        return 1;
+    }
 
-        char filename[128];
-        sprintf(filename, "%s.traineddata", args->tesseract_lang);
-        const char *path = find_file_in_paths(TESS_DATAPATHS, filename);
-        if (path == NULL) {
-            LOG_FATAL("cli.c", "Could not find tesseract language file!");
+    if (args->ocr_ebooks && args->tesseract_lang == NULL) {
+        fprintf(stderr, "You must specify --ocr-lang <LANG> to use --ocr-ebooks");
+        return 1;
+    }
+
+    if (args->tesseract_lang != NULL) {
+
+        if (!args->ocr_ebooks && !args->ocr_images) {
+            fprintf(stderr, "You must specify at least one of --ocr-ebooks, --ocr-images");
+            return 1;
         }
 
-        ret = TessBaseAPIInit3(api, path, args->tesseract_lang);
+        TessBaseAPI *api = TessBaseAPICreate();
+
+        const char *trained_data_path = NULL;
+        char *lang = malloc(strlen(args->tesseract_lang) + 1);
+        strcpy(lang, args->tesseract_lang);
+
+        lang = strtok(lang, "+");
+
+        while (lang != NULL) {
+            char filename[128];
+            sprintf(filename, "%s.traineddata", lang);
+
+            const char *path = find_file_in_paths(TESS_DATAPATHS, filename);
+            if (path == NULL) {
+                LOG_FATALF("cli.c", "Could not find tesseract language file: %s!", filename);
+            }
+            if (trained_data_path != NULL && path != trained_data_path) {
+                LOG_FATAL("cli.c", "When specifying more than one tesseract language, all the traineddata "
+                                   "files must be in the same folder")
+            }
+            trained_data_path = path;
+
+            lang = strtok(NULL, "+");
+        }
+        free(lang);
+
+        ret = TessBaseAPIInit3(api, trained_data_path, args->tesseract_lang);
         if (ret != 0) {
             fprintf(stderr, "Could not initialize tesseract with lang '%s'\n", args->tesseract_lang);
             return 1;
@@ -185,7 +219,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         TessBaseAPIEnd(api);
         TessBaseAPIDelete(api);
 
-        args->tesseract_path = path;
+        args->tesseract_path = trained_data_path;
     }
 
     if (args->exclude_regex != NULL) {
@@ -218,6 +252,19 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->max_memory_buffer = DEFAULT_MAX_MEM_BUFFER;
     }
 
+    if (args->list_path != NULL) {
+        if (strcmp(args->list_path, "-") == 0) {
+            args->list_file = stdin;
+            LOG_DEBUG("cli.c", "Using stdin as list file")
+        } else {
+            args->list_file = fopen(args->list_path, "r");
+
+            if (args->list_file == NULL) {
+                LOG_FATALF("main.c", "List file could not be opened: %s (%s)", args->list_path, errno);
+            }
+        }
+    }
+
     LOG_DEBUGF("cli.c", "arg quality=%f", args->quality)
     LOG_DEBUGF("cli.c", "arg size=%d", args->size)
     LOG_DEBUGF("cli.c", "arg content_size=%d", args->content_size)
@@ -237,6 +284,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg fast_epub=%d", args->fast_epub)
     LOG_DEBUGF("cli.c", "arg treemap_threshold=%f", args->treemap_threshold)
     LOG_DEBUGF("cli.c", "arg max_memory_buffer=%d", args->max_memory_buffer)
+    LOG_DEBUGF("cli.c", "arg list_path=%s", args->list_path)
 
     return 0;
 }
@@ -362,15 +410,15 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
         args->es_index = DEFAULT_ES_INDEX;
     }
 
-    if (args->lang == NULL) {
-        args->lang = DEFAULT_LANG;
-    }
-
     if (args->tagline == NULL) {
         args->tagline = DEFAULT_TAGLINE;
     }
 
-    if (strlen(args->lang) != 2) {
+    if (args->lang == NULL) {
+        args->lang = DEFAULT_LANG;
+    }
+
+    if (strlen(args->lang) != 2 && strlen(args->lang) != 5) {
         fprintf(stderr, "Invalid --lang value, see usage\n");
         return 1;
     }
