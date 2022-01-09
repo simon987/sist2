@@ -48,10 +48,11 @@ sist2 (Simple incremental search tool)
               - "ES_JAVA_OPTS=-Xms1G -Xmx2G"
         ```
 1. Download sist2 executable
-    1. Download the [latest sist2 release](https://github.com/simon987/sist2/releases) *
-    1. *(or)* Download a [development snapshot](https://files.simon987.net/.gate/sist2/simon987_sist2/) *(Not
+    1. Download the [latest sist2 release](https://github.com/simon987/sist2/releases). 
+Select the file corresponding to your CPU architecture and mark the binary as executable with `chmod +x` *
+    2. *(or)* Download a [development snapshot](https://files.simon987.net/.gate/sist2/simon987_sist2/) *(Not
        recommended!)*
-    1. *(or)* `docker pull simon987/sist2:2.11.6-x64-linux`
+    3. *(or)* `docker pull simon987/sist2:2.11.6-x64-linux`
 
 1. See [Usage guide](docs/USAGE.md)
 
@@ -73,8 +74,8 @@ See [Usage guide](docs/USAGE.md) for more details
 | cbz,cbr                                                                   | [libscan](https://github.com/simon987/sist2/tree/master/third-party/libscan) | -        | yes         | -                                                                                                                                      |
 | `audio/*`                                                                 | ffmpeg                                                                       | -        | yes         | ID3 tags                                                                                                                               |
 | `video/*`                                                                 | ffmpeg                                                                       | -        | yes         | title, comment, artist                                                                                                                 |
-| `image/*`                                                                 | ffmpeg                                                                       | -        | yes         | [Common EXIF tags](https://github.com/simon987/sist2/blob/efdde2734eca9b14a54f84568863b7ffd59bdba3/src/parsing/media.c#L190), GPS tags |
-| raw, rw2, dng, cr2, crw, dcr, k25, kdc, mrw, pef, xf3, arw, sr2, srf, erf | LibRaw                                                                       | -        | yes         | Common EXIF tags, GPS tags                                                                                                             |
+| `image/*`                                                                 | ffmpeg                                                                       | ocr      | yes         | [Common EXIF tags](https://github.com/simon987/sist2/blob/efdde2734eca9b14a54f84568863b7ffd59bdba3/src/parsing/media.c#L190), GPS tags |
+| raw, rw2, dng, cr2, crw, dcr, k25, kdc, mrw, pef, xf3, arw, sr2, srf, erf | LibRaw                                                                       | no       | yes         | Common EXIF tags, GPS tags                                                                                                             |
 | ttf,ttc,cff,woff,fnt,otf                                                  | Freetype2                                                                    | -        | yes, `bmp`  | Name & style                                                                                                                           |
 | `text/plain`                                                              | [libscan](https://github.com/simon987/sist2/tree/master/third-party/libscan) | yes      | no          | -                                                                                                                                      |
 | html, xml                                                                 | [libscan](https://github.com/simon987/sist2/tree/master/third-party/libscan) | yes      | no          | -                                                                                                                                      |

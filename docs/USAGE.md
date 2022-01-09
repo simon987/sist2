@@ -43,7 +43,9 @@ Scan options
     --depth=<int>                 Scan up to DEPTH subdirectories deep. Use 0 to only scan files in PATH. DEFAULT: -1
     --archive=<str>               Archive file mode (skip|list|shallow|recurse). skip: Don't parse, list: only get file names as text, shallow: Don't parse archives inside archives. DEFAULT: recurse
     --archive-passphrase=<str>    Passphrase for encrypted archive files
-    # TODO: add new --ocr-* options here
+    --ocr-lang=<str>              Tesseract language (use 'tesseract --list-langs' to see which are installed on your machine)
+    --ocr-images                  Enable OCR'ing of image files.
+    --ocr-ebooks                  Enable OCR'ing of ebook files.
     -e, --exclude=<str>           Files that match this regex will not be scanned
     --fast                        Only index file names & mime type
     --treemap-threshold=<str>     Relative size threshold for treemap (see USAGE.md). DEFAULT: 0.0005
@@ -51,6 +53,7 @@ Scan options
     --read-subtitles              Read subtitles from media files.
     --fast-epub                   Faster but less accurate EPUB parsing (no thumbnails, metadata)
     --checksums                   Calculate file checksums when scanning.
+    --list-file=<str>             Specify a list of newline-delimited paths to be scanned instead of normal directory traversal. Use '-' to read from stdin.
 
 Index options
     -t, --threads=<int>           Number of threads. DEFAULT=1
@@ -72,6 +75,7 @@ Web options
     --tag-auth=<str>              Basic auth in user:password format for tagging
     --tagline=<str>               Tagline in navbar
     --dev                         Serve html & js files from disk (for development)
+    --lang=<str>                  Default UI language. Can be changed by the user
 
 Exec-script options
     --es-url=<str>                Elasticsearch url. DEFAULT=http://localhost:9200
@@ -105,7 +109,7 @@ Exec-script options
     * list: Only get file names as text
     * shallow: Don't parse archives inside archives.
     * recurse: Scan archives recursively (default)
-* `--ocr` See [OCR](../README.md#OCR)
+* `--ocr-lang`, `--ocr-ebooks`, `--ocr-images` See [OCR](../README.md#OCR)
 * `-e, --exclude` Regex pattern to exclude files. A file is excluded if the pattern matches any 
     part of the full absolute path.
     
@@ -248,7 +252,9 @@ sist2 index --print ./my_index/ | jq | less
     `--auth` argument, but authentication is only applied the `/tag/` endpoint.
  * `--tagline=<str>` When specified, will replace the default tagline in the navbar.
  * `--dev` Serve html & js files from disk (for development, used to modify frontend files without having to recompile)
- 
+ * `--lang=<str>` Set the default web UI language (See #180 for a list of supported languages, default
+   is `en`). The user can change the language in the configuration page
+
 ### Web examples
 
 **Single index**
