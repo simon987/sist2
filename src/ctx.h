@@ -41,6 +41,7 @@ typedef struct {
 
     GHashTable *original_table;
     GHashTable *copy_table;
+    GHashTable *new_table;
     pthread_mutex_t copy_table_mu;
 
     pcre *exclude;

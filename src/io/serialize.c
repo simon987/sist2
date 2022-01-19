@@ -524,3 +524,20 @@ void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
 
     read_index(filepath, "", INDEX_TYPE_NDJSON, incremental_copy_handle_doc);
 }
+
+void incremental_delete(const char *del_filepath, GHashTable *orig_table, GHashTable *new_table) {
+    GHashTableIter iter;
+    gpointer key, UNUSED(value);
+    char path_md5[MD5_STR_LENGTH + 1];
+    path_md5[MD5_STR_LENGTH] = '\0';
+    path_md5[MD5_STR_LENGTH - 1] = '\n';
+    initialize_writer_ctx(del_filepath);
+    g_hash_table_iter_init(&iter, orig_table);
+    while(g_hash_table_iter_next(&iter, &key, &value)) {
+        if (NULL == g_hash_table_lookup(new_table, key)) {
+            memcpy(path_md5, key, MD5_STR_LENGTH - 1);
+            zstd_write_string(path_md5, MD5_STR_LENGTH);
+        }
+    }
+    writer_cleanup();
+}

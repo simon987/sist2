@@ -282,10 +282,22 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.json_ctx.ndjson_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/ndjson");
 }
 
-
+/**
+ * Loads an existing index as the baseline for incremental scanning.
+ *   1. load old index files (original+main) => original_table
+ *   2. allocate empty table                 => copy_table
+ *   3. allocate empty table                 => new_table
+ * the original_table/copy_table/new_table will be populated in parsing/parse.c:parse
+ * and consumed in main.c:save_incremental_index
+ *
+ * Note: the existing index may or may not be of incremental index form.
+ */
 void load_incremental_index(const scan_args_t *args) {
+    char file_path[PATH_MAX];
+
     ScanCtx.original_table = incremental_get_table();
     ScanCtx.copy_table = incremental_get_table();
+    ScanCtx.new_table = incremental_get_table();
 
     DIR *dir = opendir(args->incremental);
     if (dir == NULL) {
@@ -300,19 +312,78 @@ void load_incremental_index(const scan_args_t *args) {
         LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s", original_desc.version, Version)
     }
 
-    struct dirent *de;
-    while ((de = readdir(dir)) != NULL) {
-        if (strncmp(de->d_name, "_index", sizeof("_index") - 1) == 0) {
-            char file_path[PATH_MAX];
-            snprintf(file_path, PATH_MAX, "%s%s", args->incremental, de->d_name);
-            incremental_read(ScanCtx.original_table, file_path, &original_desc);
-        }
+    snprintf(file_path, PATH_MAX, "%s_index_main.ndjson.zst", args->incremental);
+    if (0 == access(file_path, R_OK)) {
+        incremental_read(ScanCtx.original_table, file_path, &original_desc);
+    } else {
+        LOG_FATALF("main.c", "Could not open original main index for incremental scan: %s", strerror(errno));
     }
+    snprintf(file_path, PATH_MAX, "%s_index_original.ndjson.zst", args->incremental);
+    if (0 == access(file_path, R_OK)) {
+        incremental_read(ScanCtx.original_table, file_path, &original_desc);
+    }
+
     closedir(dir);
 
     LOG_INFOF("main.c", "Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table))
 }
 
+/**
+ * Saves an incremental index.
+ * Before calling this function, the scanner should have finished writing the main index.
+ *   1. Build original_table - new_table => delete_table
+ *   2. Incrementally copy from old index files [(original+main) /\ copy_table] => index_original.ndjson.zst & store
+ */
+void save_incremental_index(scan_args_t* args) {
+    char dst_path[PATH_MAX];
+    char store_path[PATH_MAX];
+    char file_path[PATH_MAX];
+    snprintf(store_path, PATH_MAX, "%sthumbs", args->incremental);
+    snprintf(dst_path, PATH_MAX, "%s_index_original.ndjson.zst", ScanCtx.index.path);
+    store_t *source = store_create(store_path, STORE_SIZE_TN);
+
+    DIR *dir = opendir(args->incremental);
+    if (dir == NULL) {
+        perror("opendir");
+        return;
+    }
+
+    snprintf(file_path, PATH_MAX, "%s_index_delete.list.zst", ScanCtx.index.path);
+    incremental_delete(file_path, ScanCtx.original_table, ScanCtx.new_table);
+
+    snprintf(file_path, PATH_MAX, "%s_index_main.ndjson.zst", args->incremental);
+    if (0 == access(file_path, R_OK)) {
+        incremental_copy(source, ScanCtx.index.store, file_path, dst_path, ScanCtx.copy_table);
+    } else {
+        perror("incremental_copy");
+        return;
+    }
+    snprintf(file_path, PATH_MAX, "%s_index_original.ndjson.zst", args->incremental);
+    if (0 == access(file_path, R_OK)) {
+        incremental_copy(source, ScanCtx.index.store, file_path, dst_path, ScanCtx.copy_table);
+    }
+
+    closedir(dir);
+    store_destroy(source);
+    writer_cleanup();
+
+    snprintf(store_path, PATH_MAX, "%stags", args->incremental);
+    snprintf(dst_path, PATH_MAX, "%stags", ScanCtx.index.path);
+    store_t *source_tags = store_create(store_path, STORE_SIZE_TAG);
+    store_copy(source_tags, dst_path);
+    store_destroy(source_tags);
+}
+
+/**
+ * An index can be either incremental or non-incremental (initial index).
+ * For an initial index, there is only the "main" index.
+ * For an incremental index, there are, additionally:
+ *   - An "original" index, referencing all files unchanged since the previous index.
+ *   - A "delete" index, referencing all files that exist in the previous index, but deleted since then.
+ * Therefore, for an incremental index, "main"+"original" covers all the current files in the live filesystem,
+ * and is orthognal with the "delete" index. When building an incremental index upon an old incremental index,
+ * the old "delete" index can be safely ignored.
+ */
 void sist2_scan(scan_args_t *args) {
 
     ScanCtx.mime_table = mime_get_mime_table();
@@ -366,33 +437,7 @@ void sist2_scan(scan_args_t *args) {
     LOG_DEBUGF("main.c", "Failed files: %d", ScanCtx.dbg_failed_files_count)
 
     if (args->incremental != NULL) {
-        char dst_path[PATH_MAX];
-        snprintf(store_path, PATH_MAX, "%sthumbs", args->incremental);
-        snprintf(dst_path, PATH_MAX, "%s_index_original.ndjson.zst", ScanCtx.index.path);
-        store_t *source = store_create(store_path, STORE_SIZE_TN);
-
-        DIR *dir = opendir(args->incremental);
-        if (dir == NULL) {
-            perror("opendir");
-            return;
-        }
-        struct dirent *de;
-        while ((de = readdir(dir)) != NULL) {
-            if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
-                char file_path[PATH_MAX];
-                snprintf(file_path, PATH_MAX, "%s%s", args->incremental, de->d_name);
-                incremental_copy(source, ScanCtx.index.store, file_path, dst_path, ScanCtx.copy_table);
-            }
-        }
-        closedir(dir);
-        store_destroy(source);
-        writer_cleanup();
-
-        snprintf(store_path, PATH_MAX, "%stags", args->incremental);
-        snprintf(dst_path, PATH_MAX, "%stags", ScanCtx.index.path);
-        store_t *source_tags = store_create(store_path, STORE_SIZE_TAG);
-        store_copy(source_tags, dst_path);
-        store_destroy(source_tags);
+        save_incremental_index(args);
     }
 
     generate_stats(&ScanCtx.index, args->treemap_threshold, ScanCtx.index.path);

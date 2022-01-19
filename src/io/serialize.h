@@ -12,6 +12,8 @@ typedef void(*index_func)(cJSON *, const char[MD5_STR_LENGTH]);
 void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
                       const char *dst_filepath, GHashTable *copy_table);
 
+void incremental_delete(const char *del_filepath, GHashTable *orig_table, GHashTable *new_table);
+
 void write_document(document_t *doc);
 
 void read_index(const char *path, const char[MD5_STR_LENGTH], const char *type, index_func);

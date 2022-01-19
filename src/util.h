@@ -134,10 +134,11 @@ static int incremental_get_str(GHashTable *table, const char *path_md5) {
 }
 
 /**
- * Not thread safe!
+ * Marks a file by adding it to a table.
+ * !!Not thread safe.
  */
 __always_inline
-static int incremental_mark_file_for_copy(GHashTable *table, const unsigned char path_md5[MD5_DIGEST_LENGTH]) {
+static int incremental_mark_file(GHashTable *table, const unsigned char path_md5[MD5_DIGEST_LENGTH]) {
     char *ptr = malloc(MD5_STR_LENGTH);
     buf2hex(path_md5, MD5_DIGEST_LENGTH, ptr);
     return g_hash_table_insert(table, ptr, GINT_TO_POINTER(1));
