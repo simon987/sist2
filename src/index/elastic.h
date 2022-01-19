@@ -3,9 +3,13 @@
 
 #include "src/sist.h"
 
+#define ES_BULK_LINE_INDEX 0
+#define ES_BULK_LINE_DELETE 1
+
 typedef struct es_bulk_line {
     struct es_bulk_line *next;
     char path_md5_str[MD5_STR_LENGTH];
+    int type;
     char line[0];
 } es_bulk_line_t;
 

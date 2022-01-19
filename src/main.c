@@ -489,7 +489,7 @@ void sist2_index(index_args_t *args) {
     snprintf(file_path, PATH_MAX, "%s_index_delete.list.zst", args->index_path);
     if (0 == access(file_path, R_OK)) {
         read_lines(file_path, (line_processor_t) {
-            .data = desc.id,
+            .data = NULL,
             .func = delete_document
         });
         LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type)
@@ -698,7 +698,7 @@ int main(int argc, const char *argv[]) {
     exec_args->async_script = common_async_script;
     index_args->async_script = common_async_script;
 
-    scan_args->incremental = common_incremental;
+    scan_args->incremental = (common_incremental == NULL) ? NULL : strdup(common_incremental);
     index_args->incremental = (common_incremental != NULL);
 
     if (argc == 0) {
