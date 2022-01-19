@@ -40,6 +40,8 @@ void print_json(cJSON *document, const char index_id_str[MD5_STR_LENGTH]);
 
 void index_json(cJSON *document, const char index_id_str[MD5_STR_LENGTH]);
 
+void delete_document(const char *document_id_str, void* data);
+
 es_indexer_t *create_indexer(const char *url, const char *index);
 
 void elastic_cleanup();

@@ -7,6 +7,11 @@
 #include <sys/syscall.h>
 #include <glib.h>
 
+typedef struct line_processor {
+  void* data;
+  void (*func)(const char*, void*);
+} line_processor_t;
+
 typedef void(*index_func)(cJSON *, const char[MD5_STR_LENGTH]);
 
 void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
@@ -15,6 +20,8 @@ void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
 void incremental_delete(const char *del_filepath, GHashTable *orig_table, GHashTable *new_table);
 
 void write_document(document_t *doc);
+
+void read_lines(const char *path, const line_processor_t processor);
 
 void read_index(const char *path, const char[MD5_STR_LENGTH], const char *type, index_func);
 

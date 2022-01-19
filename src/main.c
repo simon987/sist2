@@ -447,6 +447,7 @@ void sist2_scan(scan_args_t *args) {
 }
 
 void sist2_index(index_args_t *args) {
+    char file_path[PATH_MAX];
 
     IndexCtx.es_url = args->es_url;
     IndexCtx.es_index = args->es_index;
@@ -498,15 +499,25 @@ void sist2_index(index_args_t *args) {
     IndexCtx.pool = tpool_create(args->threads, cleanup, FALSE, args->print == 0);
     tpool_start(IndexCtx.pool);
 
-    struct dirent *de;
-    while ((de = readdir(dir)) != NULL) {
-        if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
-            char file_path[PATH_MAX];
-            snprintf(file_path, PATH_MAX, "%s/%s", args->index_path, de->d_name);
-            read_index(file_path, desc.id, desc.type, f);
-            LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type)
-        }
+    snprintf(file_path, PATH_MAX, "%s/_index_original.ndjson.zst", args->index_path);
+    if (!args->incremental && 0 == access(file_path, R_OK)) {
+        read_index(file_path, desc.id, desc.type, f);
+        LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type)
     }
+    snprintf(file_path, PATH_MAX, "%s/_index_main.ndjson.zst", args->index_path);
+    if (0 == access(file_path, R_OK)) {
+        read_index(file_path, desc.id, desc.type, f);
+        LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type)
+    }
+    snprintf(file_path, PATH_MAX, "%s/_index_delete.list.zst", args->index_path);
+    if (0 == access(file_path, R_OK)) {
+        read_lines(file_path, (line_processor_t) {
+            .data = desc.id,
+            .func = delete_document
+        });
+        LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type)
+    }
+
     closedir(dir);
 
     tpool_wait(IndexCtx.pool);
@@ -595,6 +606,7 @@ int main(int argc, const char *argv[]) {
     char *common_es_url = NULL;
     char *common_es_index = NULL;
     char *common_script_path = NULL;
+    char *common_incremental = NULL;
     int common_async_script = 0;
     int common_threads = 0;
 
@@ -613,7 +625,7 @@ int main(int argc, const char *argv[]) {
                         "Thumbnail size, in pixels. Use negative value to disable. DEFAULT=500"),
             OPT_INTEGER(0, "content-size", &scan_args->content_size,
                         "Number of bytes to be extracted from text documents. Use negative value to disable. DEFAULT=32768"),
-            OPT_STRING(0, "incremental", &scan_args->incremental,
+            OPT_STRING(0, "incremental", &common_incremental,
                        "Reuse an existing index and only scan modified files."),
             OPT_STRING('o', "output", &scan_args->output, "Output directory. DEFAULT=index.sist2/"),
             OPT_STRING(0, "rewrite-url", &scan_args->rewrite_url, "Serve files from this url instead of from disk."),
@@ -651,6 +663,8 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT=http://localhost:9200"),
             OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT=sist2"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
+            OPT_STRING(0, "incremental", &common_incremental,
+                       "Conduct incremental indexing, assumes that the old index is already digested by Elasticsearch."),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
             OPT_STRING(0, "mappings-file", &index_args->es_mappings_path, "Path to Elasticsearch mappings."),
             OPT_STRING(0, "settings-file", &index_args->es_settings_path, "Path to Elasticsearch settings."),
@@ -706,6 +720,9 @@ int main(int argc, const char *argv[]) {
     scan_args->threads = common_threads;
     exec_args->async_script = common_async_script;
     index_args->async_script = common_async_script;
+
+    scan_args->incremental = common_incremental;
+    index_args->incremental = (common_incremental != NULL);
 
     if (argc == 0) {
         argparse_usage(&argparse);

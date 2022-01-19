@@ -17,7 +17,7 @@ typedef struct es_indexer {
 
 static __thread es_indexer_t *Indexer;
 
-void delete_queue(int max);
+void free_queue(int max);
 
 void elastic_flush();
 
@@ -65,6 +65,11 @@ void index_json(cJSON *document, const char index_id_str[MD5_STR_LENGTH]) {
 
     cJSON_free(json);
     tpool_add_work(IndexCtx.pool, index_json_func, bulk_line);
+}
+
+void delete_document(const char* document_id_str, void* data) {
+    const char* index_id_str = data;
+    // TODO bulk delete
 }
 
 void execute_update_script(const char *script, int async, const char index_id[MD5_STR_LENGTH]) {
@@ -223,7 +228,7 @@ void _elastic_flush(int max) {
             LOG_ERRORF("elastic.c", "Single document too large, giving up: {%s}", Indexer->line_head->path_md5_str)
             free_response(r);
             free(buf);
-            delete_queue(1);
+            free_queue(1);
             if (Indexer->queued != 0) {
                 elastic_flush();
             }
@@ -248,13 +253,13 @@ void _elastic_flush(int max) {
 
     } else if (r->status_code != 200) {
         print_errors(r);
-        delete_queue(Indexer->queued);
+        free_queue(Indexer->queued);
 
     } else {
 
         print_errors(r);
         LOG_DEBUGF("elastic.c", "Indexed %d documents (%zukB) <%d>", count, buf_len / 1024, r->status_code);
-        delete_queue(max);
+        free_queue(max);
 
         if (Indexer->queued != 0) {
             elastic_flush();
@@ -265,7 +270,7 @@ void _elastic_flush(int max) {
     free(buf);
 }
 
-void delete_queue(int max) {
+void free_queue(int max) {
     for (int i = 0; i < max; i++) {
         es_bulk_line_t *tmp = Indexer->line_head;
         Indexer->line_head = tmp->next;

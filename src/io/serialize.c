@@ -398,7 +398,7 @@ void read_index_bin_handle_line(const char *line, const char *index_id, index_fu
     }
 }
 
-void read_index_ndjson(const char *path, const char *index_id, index_func func) {
+void read_lines(const char *path, const line_processor_t processor) {
     dyn_buffer_t buf = dyn_buffer_create();
 
     // Initialize zstd things
@@ -427,7 +427,7 @@ void read_index_ndjson(const char *path, const char *index_id, index_func func) 
 
                 if (c == '\n') {
                     dyn_buffer_write_char(&buf, '\0');
-                    read_index_bin_handle_line(buf.buf, index_id, func);
+                    processor.func(buf.buf, processor.data);
                     buf.cur = 0;
                 } else {
                     dyn_buffer_write_char(&buf, c);
@@ -452,12 +452,22 @@ void read_index_ndjson(const char *path, const char *index_id, index_func func) 
 
     dyn_buffer_destroy(&buf);
     fclose(file);
+
+}
+
+void read_index_ndjson(const char *line, void* _data) {
+    void** data = _data;
+    const char* index_id = data[0];
+    index_func func = data[1];
+    read_index_bin_handle_line(line, index_id, func);
 }
 
 void read_index(const char *path, const char index_id[MD5_STR_LENGTH], const char *type, index_func func) {
-
     if (strcmp(type, INDEX_TYPE_NDJSON) == 0) {
-        read_index_ndjson(path, index_id, func);
+        read_lines(path, (line_processor_t) {
+            .data = (void*[2]){(void*)index_id, func} ,
+            .func = read_index_ndjson,
+        });
     }
 }
 
