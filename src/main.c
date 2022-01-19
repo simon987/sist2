@@ -305,23 +305,15 @@ void load_incremental_index(const scan_args_t *args) {
     }
 
     char descriptor_path[PATH_MAX];
-    snprintf(descriptor_path, PATH_MAX, "%s/descriptor.json", args->incremental);
+    snprintf(descriptor_path, PATH_MAX, "%sdescriptor.json", args->incremental);
     index_descriptor_t original_desc = read_index_descriptor(descriptor_path);
 
     if (strcmp(original_desc.version, Version) != 0) {
         LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s", original_desc.version, Version)
     }
 
-    snprintf(file_path, PATH_MAX, "%s_index_main.ndjson.zst", args->incremental);
-    if (0 == access(file_path, R_OK)) {
-        incremental_read(ScanCtx.original_table, file_path, &original_desc);
-    } else {
-        LOG_FATALF("main.c", "Could not open original main index for incremental scan: %s", strerror(errno));
-    }
-    snprintf(file_path, PATH_MAX, "%s_index_original.ndjson.zst", args->incremental);
-    if (0 == access(file_path, R_OK)) {
-        incremental_read(ScanCtx.original_table, file_path, &original_desc);
-    }
+    READ_INDICES(file_path, args->incremental, incremental_read(ScanCtx.original_table, file_path, &original_desc),
+                 LOG_FATALF("main.c", "Could not open original main index for incremental scan: %s", strerror(errno)), 1);
 
     closedir(dir);
 
@@ -351,17 +343,8 @@ void save_incremental_index(scan_args_t* args) {
     snprintf(file_path, PATH_MAX, "%s_index_delete.list.zst", ScanCtx.index.path);
     incremental_delete(file_path, ScanCtx.original_table, ScanCtx.new_table);
 
-    snprintf(file_path, PATH_MAX, "%s_index_main.ndjson.zst", args->incremental);
-    if (0 == access(file_path, R_OK)) {
-        incremental_copy(source, ScanCtx.index.store, file_path, dst_path, ScanCtx.copy_table);
-    } else {
-        perror("incremental_copy");
-        return;
-    }
-    snprintf(file_path, PATH_MAX, "%s_index_original.ndjson.zst", args->incremental);
-    if (0 == access(file_path, R_OK)) {
-        incremental_copy(source, ScanCtx.index.store, file_path, dst_path, ScanCtx.copy_table);
-    }
+    READ_INDICES(file_path, args->incremental, incremental_copy(source, ScanCtx.index.store, file_path, dst_path, ScanCtx.copy_table), 
+                 perror("incremental_copy"), 1);
 
     closedir(dir);
     store_destroy(source);
@@ -458,7 +441,7 @@ void sist2_index(index_args_t *args) {
     }
 
     char descriptor_path[PATH_MAX];
-    snprintf(descriptor_path, PATH_MAX, "%s/descriptor.json", args->index_path);
+    snprintf(descriptor_path, PATH_MAX, "%sdescriptor.json", args->index_path);
 
     index_descriptor_t desc = read_index_descriptor(descriptor_path);
 
@@ -474,11 +457,11 @@ void sist2_index(index_args_t *args) {
     }
 
     char path_tmp[PATH_MAX];
-    snprintf(path_tmp, sizeof(path_tmp), "%s/tags", args->index_path);
+    snprintf(path_tmp, sizeof(path_tmp), "%stags", args->index_path);
     IndexCtx.tag_store = store_create(path_tmp, STORE_SIZE_TAG);
     IndexCtx.tags = store_read_all(IndexCtx.tag_store);
 
-    snprintf(path_tmp, sizeof(path_tmp), "%s/meta", args->index_path);
+    snprintf(path_tmp, sizeof(path_tmp), "%smeta", args->index_path);
     IndexCtx.meta_store = store_create(path_tmp, STORE_SIZE_META);
     IndexCtx.meta = store_read_all(IndexCtx.meta_store);
 
@@ -499,17 +482,11 @@ void sist2_index(index_args_t *args) {
     IndexCtx.pool = tpool_create(args->threads, cleanup, FALSE, args->print == 0);
     tpool_start(IndexCtx.pool);
 
-    snprintf(file_path, PATH_MAX, "%s/_index_original.ndjson.zst", args->index_path);
-    if (!args->incremental && 0 == access(file_path, R_OK)) {
+    READ_INDICES(file_path, args->index_path, {
         read_index(file_path, desc.id, desc.type, f);
-        LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type)
-    }
-    snprintf(file_path, PATH_MAX, "%s/_index_main.ndjson.zst", args->index_path);
-    if (0 == access(file_path, R_OK)) {
-        read_index(file_path, desc.id, desc.type, f);
-        LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type)
-    }
-    snprintf(file_path, PATH_MAX, "%s/_index_delete.list.zst", args->index_path);
+        LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type);
+    }, {}, !args->incremental);
+    snprintf(file_path, PATH_MAX, "%s_index_delete.list.zst", args->index_path);
     if (0 == access(file_path, R_OK)) {
         read_lines(file_path, (line_processor_t) {
             .data = desc.id,
@@ -539,7 +516,7 @@ void sist2_exec_script(exec_args_t *args) {
     LogCtx.verbose = TRUE;
 
     char descriptor_path[PATH_MAX];
-    snprintf(descriptor_path, PATH_MAX, "%s/descriptor.json", args->index_path);
+    snprintf(descriptor_path, PATH_MAX, "%sdescriptor.json", args->index_path);
     index_descriptor_t desc = read_index_descriptor(descriptor_path);
 
     IndexCtx.es_url = args->es_url;
