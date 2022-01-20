@@ -341,7 +341,7 @@ void save_incremental_index(scan_args_t* args) {
     }
 
     snprintf(file_path, PATH_MAX, "%s_index_delete.list.zst", ScanCtx.index.path);
-    incremental_delete(file_path, ScanCtx.original_table, ScanCtx.new_table);
+    incremental_delete(file_path, ScanCtx.original_table, ScanCtx.copy_table, ScanCtx.new_table);
 
     READ_INDICES(file_path, args->incremental, incremental_copy(source, ScanCtx.index.store, file_path, dst_path, ScanCtx.copy_table), 
                  perror("incremental_copy"), 1);
