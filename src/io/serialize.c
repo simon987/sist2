@@ -486,6 +486,7 @@ void incremental_read(GHashTable *table, const char *filepath, index_descriptor_
 }
 
 static __thread GHashTable *IncrementalCopyTable = NULL;
+static __thread GHashTable *IncrementalNewTable = NULL;
 static __thread store_t *IncrementalCopySourceStore = NULL;
 static __thread store_t *IncrementalCopyDestinationStore = NULL;
 
@@ -535,20 +536,32 @@ void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
     read_index(filepath, "", INDEX_TYPE_NDJSON, incremental_copy_handle_doc);
 }
 
-void incremental_delete(const char *del_filepath, GHashTable *orig_table, GHashTable *copy_table, GHashTable *new_table) {
-    GHashTableIter iter;
-    gpointer key, UNUSED(value);
-    char path_md5[MD5_STR_LENGTH + 1];
-    path_md5[MD5_STR_LENGTH] = '\0';
-    path_md5[MD5_STR_LENGTH - 1] = '\n';
-    initialize_writer_ctx(del_filepath);
-    g_hash_table_iter_init(&iter, orig_table);
-    while(g_hash_table_iter_next(&iter, &key, &value)) {
-        if (NULL == g_hash_table_lookup(new_table, key) && 
-            NULL == g_hash_table_lookup(copy_table, key)) {
-            memcpy(path_md5, key, MD5_STR_LENGTH - 1);
-            zstd_write_string(path_md5, MD5_STR_LENGTH);
-        }
+void incremental_delete_handle_doc(cJSON *document, UNUSED(const char id_str[MD5_STR_LENGTH])) {
+
+    char path_md5_n[MD5_STR_LENGTH + 1];
+    path_md5_n[MD5_STR_LENGTH] = '\0';
+    path_md5_n[MD5_STR_LENGTH - 1] = '\n';
+    const char *path_md5_str = cJSON_GetObjectItem(document, "_id")->valuestring;
+
+    // do not delete archive virtual entries
+    if (cJSON_GetObjectItem(document, "parent") == NULL 
+        && !incremental_get_str(IncrementalCopyTable, path_md5_str)
+        && !incremental_get_str(IncrementalNewTable, path_md5_str)
+        ) {
+        memcpy(path_md5_n, path_md5_str, MD5_STR_LENGTH - 1);
+        zstd_write_string(path_md5_n, MD5_STR_LENGTH);
     }
-    writer_cleanup();
+}
+
+void incremental_delete(const char *del_filepath, const char* index_filepath, 
+                        GHashTable *copy_table, GHashTable *new_table) {
+
+    if (WriterCtx.out_file == NULL) {
+        initialize_writer_ctx(del_filepath);
+    }
+
+    IncrementalCopyTable = copy_table;
+    IncrementalNewTable = new_table;
+
+    read_index(index_filepath, "", INDEX_TYPE_NDJSON, incremental_delete_handle_doc);
 }

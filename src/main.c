@@ -299,11 +299,6 @@ void load_incremental_index(const scan_args_t *args) {
     ScanCtx.copy_table = incremental_get_table();
     ScanCtx.new_table = incremental_get_table();
 
-    DIR *dir = opendir(args->incremental);
-    if (dir == NULL) {
-        LOG_FATALF("main.c", "Could not open original index for incremental scan: %s", strerror(errno))
-    }
-
     char descriptor_path[PATH_MAX];
     snprintf(descriptor_path, PATH_MAX, "%sdescriptor.json", args->incremental);
     index_descriptor_t original_desc = read_index_descriptor(descriptor_path);
@@ -314,8 +309,6 @@ void load_incremental_index(const scan_args_t *args) {
 
     READ_INDICES(file_path, args->incremental, incremental_read(ScanCtx.original_table, file_path, &original_desc),
                  LOG_FATALF("main.c", "Could not open original main index for incremental scan: %s", strerror(errno)), 1);
-
-    closedir(dir);
 
     LOG_INFOF("main.c", "Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table))
 }
@@ -330,25 +323,25 @@ void save_incremental_index(scan_args_t* args) {
     char dst_path[PATH_MAX];
     char store_path[PATH_MAX];
     char file_path[PATH_MAX];
+    char del_path[PATH_MAX];
     snprintf(store_path, PATH_MAX, "%sthumbs", args->incremental);
     snprintf(dst_path, PATH_MAX, "%s_index_original.ndjson.zst", ScanCtx.index.path);
     store_t *source = store_create(store_path, STORE_SIZE_TN);
 
-    DIR *dir = opendir(args->incremental);
-    if (dir == NULL) {
-        perror("opendir");
-        return;
-    }
-
-    snprintf(file_path, PATH_MAX, "%s_index_delete.list.zst", ScanCtx.index.path);
-    incremental_delete(file_path, ScanCtx.original_table, ScanCtx.copy_table, ScanCtx.new_table);
+    LOG_INFOF("main.c", "incremental_delete: original size = %u, copy size = %u, new size = %u",
+        g_hash_table_size(ScanCtx.original_table),
+        g_hash_table_size(ScanCtx.copy_table),
+        g_hash_table_size(ScanCtx.new_table));
+    snprintf(del_path, PATH_MAX, "%s_index_delete.list.zst", ScanCtx.index.path);
+    READ_INDICES(file_path, args->incremental, incremental_delete(del_path, file_path, ScanCtx.copy_table, ScanCtx.new_table),
+                 perror("incremental_delete"), 1);
+    writer_cleanup();
 
     READ_INDICES(file_path, args->incremental, incremental_copy(source, ScanCtx.index.store, file_path, dst_path, ScanCtx.copy_table), 
                  perror("incremental_copy"), 1);
-
-    closedir(dir);
-    store_destroy(source);
     writer_cleanup();
+
+    store_destroy(source);
 
     snprintf(store_path, PATH_MAX, "%stags", args->incremental);
     snprintf(dst_path, PATH_MAX, "%stags", ScanCtx.index.path);
