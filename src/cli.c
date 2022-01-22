@@ -85,8 +85,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
     char *abs_path = abspath(argv[1]);
     if (abs_path == NULL) {
-        fprintf(stderr, "File not found: %s\n", argv[1]);
-        return 1;
+        LOG_FATALF("cli.c", "Invalid PATH argument. File not found: %s", argv[1])
     } else {
         args->path = abs_path;
     }
@@ -335,8 +334,7 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
 
     char *index_path = abspath(argv[1]);
     if (index_path == NULL) {
-        fprintf(stderr, "File not found: %s\n", argv[1]);
-        return 1;
+        LOG_FATALF("cli.c", "Invalid PATH argument. File not found: %s", argv[1])
     } else {
         args->index_path = argv[1];
         free(index_path);
@@ -474,8 +472,7 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     for (int i = 0; i < args->index_count; i++) {
         char *abs_path = abspath(args->indices[i]);
         if (abs_path == NULL) {
-            fprintf(stderr, "File not found: %s\n", args->indices[i]);
-            return 1;
+            LOG_FATALF("cli.c", "Index not found: %s", args->indices[i])
         }
     }
 
@@ -515,8 +512,7 @@ int exec_args_validate(exec_args_t *args, int argc, const char **argv) {
 
     char *index_path = abspath(argv[1]);
     if (index_path == NULL) {
-        fprintf(stderr, "File not found: %s\n", argv[1]);
-        return 1;
+        LOG_FATALF("cli.c", "Invalid index PATH argument. File not found: %s", argv[1])
     } else {
         args->index_path = argv[1];
         free(index_path);
