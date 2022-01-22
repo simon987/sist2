@@ -118,7 +118,7 @@ int tpool_add_work(tpool_t *pool, thread_func_t func, void *arg) {
  * see: https://github.com/htop-dev/htop/blob/f782f821f7f8081cb43bbad1c37f32830a260a81/linux/LinuxProcessList.c
  */
 __always_inline
-static size_t _get_total_mem_mb() {
+static size_t _get_total_mem() {
     FILE* statmfile = fopen("/proc/self/statm", "r");
     if (!statmfile)
       return 0;
@@ -137,7 +137,7 @@ static size_t _get_total_mem_mb() {
     fclose(statmfile);
 
     if (r == 7) {
-        return m_resident * 4 / 1024; // XXX assume 4KB pages.
+        return m_resident * 4096; // XXX assume 4KB pages.
     } else {
         return 0;
     }
@@ -167,15 +167,12 @@ static void *tpool_worker(void *arg) {
         pthread_mutex_unlock(&(pool->work_mutex));
 
         if (work != NULL) {
-            if (pool->stop) {
-                break;
+            while(!pool->stop && ScanCtx.mem_limit > 0 && _get_total_mem() >= ScanCtx.mem_limit) {
+                usleep(10000);
             }
 
-            while(ScanCtx.mem_limit > 0 && _get_total_mem_mb() >= ScanCtx.mem_limit) {
-                if (pool->stop) {
-                    break;
-                }
-                usleep(10000);
+            if (pool->stop) {
+                break;
             }
 
             work->func(work->arg);
