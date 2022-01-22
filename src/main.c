@@ -253,6 +253,7 @@ void initialize_scan_context(scan_args_t *args) {
 
     ScanCtx.threads = args->threads;
     ScanCtx.depth = args->depth;
+    ScanCtx.mem_limit = args->throttle_memory_threshold * 1024 * 1024;
 
     strncpy(ScanCtx.index.path, args->output, sizeof(ScanCtx.index.path));
     strncpy(ScanCtx.index.desc.name, args->name, sizeof(ScanCtx.index.desc.name));
@@ -586,6 +587,7 @@ int main(int argc, const char *argv[]) {
 
             OPT_GROUP("Scan options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
+            OPT_STRING(0, "mem-throttle", &scan_args->throttle_memory_threshold, "Total memory threshold in MB for scan throttling. DEFAULT=0"),
             OPT_FLOAT('q', "quality", &scan_args->quality,
                       "Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=3"),
             OPT_INTEGER(0, "size", &scan_args->size,

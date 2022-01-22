@@ -115,6 +115,35 @@ int tpool_add_work(tpool_t *pool, thread_func_t func, void *arg) {
 }
 
 /**
+ * see: https://github.com/htop-dev/htop/blob/f782f821f7f8081cb43bbad1c37f32830a260a81/linux/LinuxProcessList.c
+ */
+__always_inline
+static size_t _get_total_mem_mb() {
+    FILE* statmfile = fopen("/proc/self/statm", "r");
+    if (!statmfile)
+      return 0;
+
+    long int dummy, dummy2, dummy3, dummy4, dummy5, dummy6;
+    long int m_resident;
+
+    int r = fscanf(statmfile, "%ld %ld %ld %ld %ld %ld %ld",
+        &dummy, /* m_virt */
+        &m_resident,
+        &dummy2, /* m_share */
+        &dummy3, /* m_trs */
+        &dummy4, /* unused since Linux 2.6; always 0 */
+        &dummy5, /* m_drs */
+        &dummy6); /* unused since Linux 2.6; always 0 */
+    fclose(statmfile);
+
+    if (r == 7) {
+        return m_resident * 4 / 1024; // XXX assume 4KB pages.
+    } else {
+        return 0;
+    }
+}
+
+/**
  * Thread worker function
  */
 static void *tpool_worker(void *arg) {
@@ -140,6 +169,13 @@ static void *tpool_worker(void *arg) {
         if (work != NULL) {
             if (pool->stop) {
                 break;
+            }
+
+            while(ScanCtx.mem_limit > 0 && _get_total_mem_mb() >= ScanCtx.mem_limit) {
+                if (pool->stop) {
+                    break;
+                }
+                usleep(10000);
             }
 
             work->func(work->arg);

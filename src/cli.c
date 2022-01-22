@@ -19,6 +19,8 @@
 
 #define DEFAULT_MAX_MEM_BUFFER 2000
 
+#define DEFAULT_THROTTLE_MEMORY_THRESHOLD 0
+
 const char *TESS_DATAPATHS[] = {
         "/usr/share/tessdata/",
         "/usr/share/tesseract-ocr/tessdata/",
@@ -253,6 +255,10 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
     if (args->max_memory_buffer == 0) {
         args->max_memory_buffer = DEFAULT_MAX_MEM_BUFFER;
+    }
+
+    if (args->throttle_memory_threshold <= 0) {
+        args->throttle_memory_threshold = DEFAULT_THROTTLE_MEMORY_THRESHOLD;
     }
 
     if (args->list_path != NULL) {
