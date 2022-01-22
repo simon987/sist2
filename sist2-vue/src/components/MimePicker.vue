@@ -16,7 +16,8 @@ export default {
   data() {
     return {
       mimeTree: null,
-      stashedMimeTreeAttributes: null
+      stashedMimeTreeAttributes: null,
+      updateBusy: false
     }
   },
   mounted() {
@@ -34,6 +35,10 @@ export default {
         return;
       }
 
+      if (this.updateBusy) {
+        return;
+      }
+
       this.$store.commit("setSelectedMimeTypes", getSelectedTreeNodes(this.mimeTree));
     },
     updateTree() {
@@ -41,6 +46,11 @@ export default {
       if (this.$store.getters.optUpdateMimeMap === false) {
         return;
       }
+
+      if (this.updateBusy) {
+        return
+      }
+      this.updateBusy = true;
 
       if (this.stashedMimeTreeAttributes === null) {
         this.stashedMimeTreeAttributes = getTreeNodeAttributes(this.mimeTree);
@@ -78,6 +88,7 @@ export default {
           }
         });
         this.stashedMimeTreeAttributes = null;
+        this.updateBusy = false;
       });
     },
 
