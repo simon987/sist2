@@ -29,6 +29,7 @@ typedef struct tpool {
     int done_cnt;
     int busy_cnt;
     int throttle_stuck_cnt;
+    size_t mem_limit;
 
     int free_arg;
     int stop;
@@ -171,7 +172,7 @@ static void *tpool_worker(void *arg) {
 
         if (work != NULL) {
             stuck_notified = 0;
-            while(!pool->stop && ScanCtx.mem_limit > 0 && _get_total_mem() >= ScanCtx.mem_limit) {
+            while(!pool->stop && pool->mem_limit > 0 && _get_total_mem() >= pool->mem_limit) {
                 if (!stuck_notified && throttle_ms >= 90000) {
                     // notify the pool that this thread is stuck.
                     pthread_mutex_lock(&(pool->work_mutex));
@@ -299,7 +300,7 @@ void tpool_destroy(tpool_t *pool) {
  * Create a thread pool
  * @param thread_cnt Worker threads count
  */
-tpool_t *tpool_create(int thread_cnt, void cleanup_func(), int free_arg, int print_progress) {
+tpool_t *tpool_create(int thread_cnt, void cleanup_func(), int free_arg, int print_progress, size_t mem_limit) {
 
     tpool_t *pool = malloc(sizeof(tpool_t));
     pool->thread_cnt = thread_cnt;
@@ -307,6 +308,7 @@ tpool_t *tpool_create(int thread_cnt, void cleanup_func(), int free_arg, int pri
     pool->done_cnt = 0;
     pool->busy_cnt = 0;
     pool->throttle_stuck_cnt = 0;
+    pool->mem_limit = mem_limit;
     pool->stop = FALSE;
     pool->free_arg = free_arg;
     pool->cleanup_func = cleanup_func;

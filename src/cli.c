@@ -257,8 +257,8 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->max_memory_buffer = DEFAULT_MAX_MEM_BUFFER;
     }
 
-    if (args->throttle_memory_threshold <= 0) {
-        args->throttle_memory_threshold = DEFAULT_THROTTLE_MEMORY_THRESHOLD;
+    if (args->scan_mem_limit <= 0) {
+        args->scan_mem_limit = DEFAULT_THROTTLE_MEMORY_THRESHOLD;
     }
 
     if (args->list_path != NULL) {
