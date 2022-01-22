@@ -89,9 +89,11 @@ void parse(void *arg) {
 
         return;
     }
-    pthread_mutex_lock(&ScanCtx.copy_table_mu);
-    incremental_mark_file(ScanCtx.new_table, doc->path_md5);
-    pthread_mutex_unlock(&ScanCtx.copy_table_mu);
+    if (ScanCtx.new_table != NULL) {
+        pthread_mutex_lock(&ScanCtx.copy_table_mu);
+        incremental_mark_file(ScanCtx.new_table, doc->path_md5);
+        pthread_mutex_unlock(&ScanCtx.copy_table_mu);
+    }
 
     char *buf[MAGIC_BUF_SIZE];
 
