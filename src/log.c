@@ -48,6 +48,12 @@ void vsist_logf(const char *filepath, int level, char *format, va_list ap) {
     size_t maxsize = sizeof(log_str) - log_len;
     log_len += vsnprintf(log_str + log_len, maxsize, format, ap);
 
+    if (log_len >= maxsize) {
+        fprintf(stderr, "([%s] FIXME: Log string is too long to display: %dB)\n",
+                log_levels[level], log_len);
+        return;
+    }
+
     if (is_tty) {
         log_len += sprintf(log_str + log_len, "\033[0m\n");
     } else {
