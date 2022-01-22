@@ -19,11 +19,7 @@
       </b-row>
       <b-row>
         <b-col sm="6">
-          <b-row>
-            <b-col style="height: 70px;">
-              <DateSlider></DateSlider>
-            </b-col>
-          </b-row>
+          <DateSlider></DateSlider>
           <b-row>
             <b-col>
               <IndexPicker></IndexPicker>

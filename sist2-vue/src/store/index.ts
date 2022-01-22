@@ -49,6 +49,7 @@ export default new Vuex.Store({
         optLightboxSlideDuration: 15,
         optHideLegacy: false,
         optUpdateMimeMap: true,
+        optUseDatePicker: false,
 
         _onLoadSelectedIndices: [] as string[],
         _onLoadSelectedMimeTypes: [] as string[],
@@ -157,6 +158,7 @@ export default new Vuex.Store({
         setOptTreemapColor: (state, val) => state.optTreemapColor = val,
         setOptHideLegacy: (state, val) => state.optHideLegacy = val,
         setOptUpdateMimeMap: (state, val) => state.optUpdateMimeMap = val,
+        setOptUseDatePicker: (state, val) => state.optUseDatePicker = val,
 
         setOptLightboxLoadOnlyCurrent: (state, val) => state.optLightboxLoadOnlyCurrent = val,
         setOptLightboxSlideDuration: (state, val) => state.optLightboxSlideDuration = val,
@@ -366,5 +368,6 @@ export default new Vuex.Store({
         optResultSize: state => state.size,
         optHideLegacy: state => state.optHideLegacy,
         optUpdateMimeMap: state => state.optUpdateMimeMap,
+        optUseDatePicker: state => state.optUseDatePicker,
     }
 })

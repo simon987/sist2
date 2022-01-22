@@ -1,5 +1,31 @@
 <template>
-  <div id="dateSlider"></div>
+  <div v-if="$store.state.optUseDatePicker">
+    <b-row>
+      <b-col sm="6">
+        <b-form-datepicker
+            value-as-date
+            :date-format-options="{ year: 'numeric', month: '2-digit', day: '2-digit' }"
+            :locale="$store.state.optLang"
+            class="mb-2"
+            :value="dateMin" @input="setDateMin"></b-form-datepicker>
+      </b-col>
+      <b-col sm="6">
+        <b-form-datepicker
+            value-as-date
+            :date-format-options="{ year: 'numeric', month: '2-digit', day: '2-digit' }"
+            :locale="$store.state.optLang"
+            class="mb-2"
+            :value="dateMax" @input="setDateMax"></b-form-datepicker>
+      </b-col>
+    </b-row>
+  </div>
+  <div v-else>
+    <b-row>
+      <b-col style="height: 70px;">
+        <div id="dateSlider"></div>
+      </b-col>
+    </b-row>
+  </div>
 </template>
 
 <script>
@@ -10,10 +36,35 @@ import {mergeTooltips} from "@/util-js";
 
 export default {
   name: "DateSlider",
+  methods: {
+    setDateMin(val) {
+      const epochDate = Math.ceil(+val / 1000);
+      this.$store.commit("setDateMin", epochDate);
+    },
+    setDateMax(val) {
+      const epochDate = Math.ceil(+val / 1000);
+      this.$store.commit("setDateMax", epochDate);
+    },
+  },
+  computed: {
+    dateMin() {
+      const dateMin = this.$store.state.dateMin ? this.$store.state.dateMin : this.$store.state.dateBoundsMin;
+      return new Date(dateMin * 1000)
+    },
+    dateMax() {
+      const dateMax = this.$store.state.dateMax ? this.$store.state.dateMax : this.$store.state.dateBoundsMax;
+      return new Date(dateMax * 1000)
+    }
+  },
   mounted() {
     this.$store.subscribe((mutation) => {
       if (mutation.type === "setDateBoundsMax") {
         const elem = document.getElementById("dateSlider");
+
+        if (elem === null) {
+          // Using b-form-datepicker, skip initialisation of slider
+          return
+        }
 
         if (elem.children.length > 0) {
           return;

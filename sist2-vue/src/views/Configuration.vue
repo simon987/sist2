@@ -41,6 +41,10 @@
           <b-form-checkbox :checked="optUpdateMimeMap" @input="setOptUpdateMimeMap">
             {{ $t("opt.updateMimeMap") }}
           </b-form-checkbox>
+
+          <b-form-checkbox :checked="optUseDatePicker" @input="setOptUseDatePicker">
+            {{ $t("opt.useDatePicker") }}
+          </b-form-checkbox>
         </b-card>
 
         <br/>
@@ -229,6 +233,7 @@ export default {
       "optHideDuplicates",
       "optHideLegacy",
       "optUpdateMimeMap",
+      "optUseDatePicker",
     ]),
     clientWidth() {
       return window.innerWidth;
@@ -272,7 +277,8 @@ export default {
       "setOptLang",
       "setOptHideDuplicates",
       "setOptHideLegacy",
-      "setOptUpdateMimeMap"
+      "setOptUpdateMimeMap",
+      "setOptUseDatePicker",
     ]),
     onResetClick() {
       localStorage.removeItem("sist2_configuration");
