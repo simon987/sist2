@@ -28,6 +28,7 @@ typedef struct tpool {
     int work_cnt;
     int done_cnt;
     int busy_cnt;
+    int throttle_stuck_cnt;
 
     int free_arg;
     int stop;
@@ -148,6 +149,8 @@ static size_t _get_total_mem() {
  */
 static void *tpool_worker(void *arg) {
     tpool_t *pool = arg;
+    int stuck_notified = 0;
+    int throttle_ms = 0;
 
     while (1) {
         pthread_mutex_lock(&pool->work_mutex);
@@ -167,12 +170,32 @@ static void *tpool_worker(void *arg) {
         pthread_mutex_unlock(&(pool->work_mutex));
 
         if (work != NULL) {
+            stuck_notified = 0;
             while(!pool->stop && ScanCtx.mem_limit > 0 && _get_total_mem() >= ScanCtx.mem_limit) {
+                if (!stuck_notified && throttle_ms >= 90000) {
+                    // notify the pool that this thread is stuck.
+                    pthread_mutex_lock(&(pool->work_mutex));
+                    pool->throttle_stuck_cnt += 1;
+                    if (pool->throttle_stuck_cnt == pool->thread_cnt) {
+                        LOG_FATAL("tpool.c", "Throttle memory limit too low, cannot proceed!");
+                        pool->stop = TRUE;
+                    }
+                    pthread_mutex_unlock(&(pool->work_mutex));
+                    stuck_notified = 1;
+                }
                 usleep(10000);
+                throttle_ms += 10;
             }
 
             if (pool->stop) {
                 break;
+            }
+
+            // we are not stuck anymore. cancel our notification.
+            if (stuck_notified) {
+                pthread_mutex_lock(&(pool->work_mutex));
+                pool->throttle_stuck_cnt -= 1;
+                pthread_mutex_unlock(&(pool->work_mutex));
             }
 
             work->func(work->arg);
@@ -283,6 +306,7 @@ tpool_t *tpool_create(int thread_cnt, void cleanup_func(), int free_arg, int pri
     pool->work_cnt = 0;
     pool->done_cnt = 0;
     pool->busy_cnt = 0;
+    pool->throttle_stuck_cnt = 0;
     pool->stop = FALSE;
     pool->free_arg = free_arg;
     pool->cleanup_func = cleanup_func;
