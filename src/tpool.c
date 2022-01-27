@@ -173,6 +173,7 @@ static void *tpool_worker(void *arg) {
 
         if (work != NULL) {
             stuck_notified = 0;
+            throttle_ms = 0;
             while(!pool->stop && pool->mem_limit > 0 && _get_total_mem(pool) >= pool->mem_limit) {
                 if (!stuck_notified && throttle_ms >= 90000) {
                     // notify the pool that this thread is stuck.
