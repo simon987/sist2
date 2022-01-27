@@ -30,6 +30,7 @@ typedef struct tpool {
     int busy_cnt;
     int throttle_stuck_cnt;
     size_t mem_limit;
+    size_t page_size;
 
     int free_arg;
     int stop;
@@ -120,7 +121,7 @@ int tpool_add_work(tpool_t *pool, thread_func_t func, void *arg) {
  * see: https://github.com/htop-dev/htop/blob/f782f821f7f8081cb43bbad1c37f32830a260a81/linux/LinuxProcessList.c
  */
 __always_inline
-static size_t _get_total_mem() {
+static size_t _get_total_mem(tpool_t* pool) {
     FILE* statmfile = fopen("/proc/self/statm", "r");
     if (!statmfile)
       return 0;
@@ -139,7 +140,7 @@ static size_t _get_total_mem() {
     fclose(statmfile);
 
     if (r == 7) {
-        return m_resident * 4096; // XXX assume 4KB pages.
+        return m_resident * pool->page_size;
     } else {
         return 0;
     }
@@ -172,7 +173,7 @@ static void *tpool_worker(void *arg) {
 
         if (work != NULL) {
             stuck_notified = 0;
-            while(!pool->stop && pool->mem_limit > 0 && _get_total_mem() >= pool->mem_limit) {
+            while(!pool->stop && pool->mem_limit > 0 && _get_total_mem(pool) >= pool->mem_limit) {
                 if (!stuck_notified && throttle_ms >= 90000) {
                     // notify the pool that this thread is stuck.
                     pthread_mutex_lock(&(pool->work_mutex));
@@ -314,6 +315,7 @@ tpool_t *tpool_create(int thread_cnt, void cleanup_func(), int free_arg, int pri
     pool->cleanup_func = cleanup_func;
     pool->threads = calloc(sizeof(pthread_t), thread_cnt);
     pool->print_progress = print_progress;
+    pool->page_size = getpagesize();
 
     pthread_mutex_init(&(pool->work_mutex), NULL);
 
