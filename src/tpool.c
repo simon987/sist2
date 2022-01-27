@@ -178,7 +178,7 @@ static void *tpool_worker(void *arg) {
                     pthread_mutex_lock(&(pool->work_mutex));
                     pool->throttle_stuck_cnt += 1;
                     if (pool->throttle_stuck_cnt == pool->thread_cnt) {
-                        LOG_FATAL("tpool.c", "Throttle memory limit too low, cannot proceed!");
+                        LOG_ERROR("tpool.c", "Throttle memory limit too low, cannot proceed!");
                         pool->stop = TRUE;
                     }
                     pthread_mutex_unlock(&(pool->work_mutex));
