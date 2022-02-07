@@ -374,15 +374,15 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg es_index=%s", args->es_index)
     LOG_DEBUGF("cli.c", "arg index_path=%s", args->index_path)
     LOG_DEBUGF("cli.c", "arg script_path=%s", args->script_path)
+    LOG_DEBUGF("cli.c", "arg async_script=%d", args->async_script)
 
-    char log_buf[5000];
-    strncpy(log_buf, args->script, sizeof(log_buf));
-    *(log_buf + sizeof(log_buf) - 1) = '\0';
-    LOG_DEBUGF("cli.c", "arg async_script=%s", log_buf)
+    if (args->script) {
+        char log_buf[5000];
 
-    strncpy(log_buf, args->script, sizeof(log_buf));
-    *(log_buf + sizeof(log_buf) - 1) = '\0';
-    LOG_DEBUGF("cli.c", "arg script=%s", log_buf)
+        strncpy(log_buf, args->script, sizeof(log_buf));
+        *(log_buf + sizeof(log_buf) - 1) = '\0';
+        LOG_DEBUGF("cli.c", "arg script=%s", log_buf)
+    }
 
     LOG_DEBUGF("cli.c", "arg print=%d", args->print)
     LOG_DEBUGF("cli.c", "arg es_mappings_path=%s", args->es_mappings_path)
