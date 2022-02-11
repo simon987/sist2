@@ -48,7 +48,7 @@ export default new Vuex.Store({
         optLightboxLoadOnlyCurrent: false,
         optLightboxSlideDuration: 15,
         optHideLegacy: false,
-        optUpdateMimeMap: true,
+        optUpdateMimeMap: false,
         optUseDatePicker: false,
 
         _onLoadSelectedIndices: [] as string[],
