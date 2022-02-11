@@ -146,6 +146,7 @@ html, body {
 
 .theme-black .nav-tabs .nav-link {
   color: #e0e0e0;
+  border-radius: 0;
 }
 
 .theme-black .nav-tabs .nav-item.show .nav-link, .theme-black .nav-tabs .nav-link.active {

@@ -169,6 +169,14 @@ export default Vue.extend({
   color: inherit;
 }
 
+.theme-black .list-group-item {
+  border: 1px solid rgba(255,255,255, 0.1);
+}
+
+.theme-black .list-group-item:first-child {
+  border: 1px solid rgba(255,255,255, 0.05);
+}
+
 .theme-black .list-group-item.active {
   z-index: 2;
   background-color: inherit;
