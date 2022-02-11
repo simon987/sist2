@@ -96,16 +96,8 @@ void fill_tables(cJSON *document, UNUSED(const char index_id[MD5_STR_LENGTH])) {
 }
 
 void read_index_into_tables(index_t *index) {
-    DIR *dir = opendir(index->path);
-    struct dirent *de;
-    while ((de = readdir(dir)) != NULL) {
-        if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
-            char file_path[PATH_MAX];
-            snprintf(file_path, PATH_MAX, "%s%s", index->path, de->d_name);
-            read_index(file_path, index->desc.id, index->desc.type, fill_tables);
-        }
-    }
-    closedir(dir);
+    char file_path[PATH_MAX];
+    READ_INDICES(file_path, index->path, read_index(file_path, index->desc.id, index->desc.type, fill_tables), {}, 1);
 }
 
 static size_t rfind(const char *str, int c) {

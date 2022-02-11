@@ -56,6 +56,7 @@ typedef struct index_args {
     int async_script;
     int force_reset;
     int threads;
+    int incremental;
 } index_args_t;
 
 typedef struct web_args {

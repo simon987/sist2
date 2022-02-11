@@ -336,8 +336,7 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
     if (index_path == NULL) {
         LOG_FATALF("cli.c", "Invalid PATH argument. File not found: %s", argv[1])
     } else {
-        args->index_path = argv[1];
-        free(index_path);
+        args->index_path = index_path;
     }
 
     if (args->es_url == NULL) {
@@ -522,8 +521,7 @@ int exec_args_validate(exec_args_t *args, int argc, const char **argv) {
     if (index_path == NULL) {
         LOG_FATALF("cli.c", "Invalid index PATH argument. File not found: %s", argv[1])
     } else {
-        args->index_path = argv[1];
-        free(index_path);
+        args->index_path = index_path;
     }
 
     if (args->es_url == NULL) {
