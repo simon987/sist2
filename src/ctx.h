@@ -86,6 +86,10 @@ typedef struct {
     GHashTable *tags;
     store_t *meta_store;
     GHashTable *meta;
+    /**
+     * Set to false when using --print
+     */
+    int needs_es_connection;
 } IndexCtx_t;
 
 typedef struct {

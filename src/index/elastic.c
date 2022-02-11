@@ -15,19 +15,34 @@ typedef struct es_indexer {
 } es_indexer_t;
 
 
-static __thread es_indexer_t *Indexer;
+static __thread es_indexer_t *Indexer = NULL;
 
 void free_queue(int max);
 
 void elastic_flush();
 
-void elastic_cleanup() {
-    elastic_flush();
-    if (Indexer != NULL) {
-        free(Indexer->es_index);
-        free(Indexer->es_url);
-        free(Indexer);
+void destroy_indexer(es_indexer_t *indexer) {
+
+    if (indexer == NULL) {
+        return;
     }
+
+    LOG_DEBUG("elastic.c", "Destroying indexer")
+
+    if (indexer->es_url != NULL) {
+        free(indexer->es_url);
+        free(indexer->es_index);
+    }
+
+    free(indexer);
+}
+
+void elastic_cleanup() {
+    if (IndexCtx.needs_es_connection) {
+        elastic_flush();
+    }
+
+    destroy_indexer(Indexer);
 }
 
 void print_json(cJSON *document, const char id_str[MD5_STR_LENGTH]) {
@@ -53,10 +68,10 @@ void index_json_func(void *arg) {
 }
 
 void delete_document(const char* document_id_str, void* UNUSED(_data)) {
-    size_t id_len = strlen(document_id_str);
     es_bulk_line_t *bulk_line = malloc(sizeof(es_bulk_line_t));
     bulk_line->type = ES_BULK_LINE_DELETE;
     bulk_line->next = NULL;
+
     memcpy(bulk_line->path_md5_str, document_id_str, MD5_STR_LENGTH);
     tpool_add_work(IndexCtx.pool, index_json_func, bulk_line);
 }
@@ -337,16 +352,22 @@ void elastic_index_line(es_bulk_line_t *line) {
 
 es_indexer_t *create_indexer(const char *url, const char *index) {
 
-    char *es_url = malloc(strlen(url) + 1);
-    strcpy(es_url, url);
-
-    char *es_index = malloc(strlen(index) + 1);
-    strcpy(es_index, index);
-
     es_indexer_t *indexer = malloc(sizeof(es_indexer_t));
 
-    indexer->es_url = es_url;
-    indexer->es_index = es_index;
+    if (IndexCtx.needs_es_connection) {
+        char *es_url = malloc(strlen(url) + 1);
+        strcpy(es_url, url);
+
+        char *es_index = malloc(strlen(index) + 1);
+        strcpy(es_index, index);
+
+        indexer->es_url = es_url;
+        indexer->es_index = es_index;
+    } else {
+        indexer->es_url = NULL;
+        indexer->es_index = NULL;
+    }
+
     indexer->queued = 0;
     indexer->line_head = NULL;
     indexer->line_tail = NULL;

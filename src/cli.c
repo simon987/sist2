@@ -65,6 +65,10 @@ void index_args_destroy(index_args_t *args) {
     if (args->es_settings_path) {
         free(args->es_settings);
     }
+
+    if (args->index_path != NULL) {
+        free(args->index_path);
+    }
     free(args);
 }
 

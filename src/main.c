@@ -428,8 +428,9 @@ void sist2_index(index_args_t *args) {
     IndexCtx.es_url = args->es_url;
     IndexCtx.es_index = args->es_index;
     IndexCtx.batch_size = args->batch_size;
+    IndexCtx.needs_es_connection = !args->print;
 
-    if (!args->print) {
+    if (IndexCtx.needs_es_connection) {
         elastic_init(args->force_reset, args->es_mappings, args->es_settings);
     }
 
@@ -465,27 +466,24 @@ void sist2_index(index_args_t *args) {
         f = index_json;
     }
 
-    void (*cleanup)();
-    if (args->print) {
-        cleanup = NULL;
-    } else {
-        cleanup = elastic_cleanup;
-    }
-
-    IndexCtx.pool = tpool_create(args->threads, cleanup, FALSE, args->print == 0);
+    IndexCtx.pool = tpool_create(args->threads, elastic_cleanup, FALSE, args->print == 0);
     tpool_start(IndexCtx.pool);
 
     READ_INDICES(file_path, args->index_path, {
         read_index(file_path, desc.id, desc.type, f);
         LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type);
     }, {}, !args->incremental);
-    snprintf(file_path, PATH_MAX, "%s_index_delete.list.zst", args->index_path);
-    if (0 == access(file_path, R_OK)) {
-        read_lines(file_path, (line_processor_t) {
-            .data = NULL,
-            .func = delete_document
-        });
-        LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type)
+
+    // Only read the _delete index if we're sending data to ES
+    if (!args->print) {
+        snprintf(file_path, PATH_MAX, "%s_index_delete.list.zst", args->index_path);
+        if (0 == access(file_path, R_OK)) {
+            read_lines(file_path, (line_processor_t) {
+                    .data = NULL,
+                    .func = delete_document
+            });
+            LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type)
+        }
     }
 
     closedir(dir);
@@ -494,7 +492,7 @@ void sist2_index(index_args_t *args) {
 
     tpool_destroy(IndexCtx.pool);
 
-    if (!args->print) {
+    if (IndexCtx.needs_es_connection) {
         finish_indexer(args->script, args->async_script, desc.id);
     }
 
@@ -576,7 +574,6 @@ int main(int argc, const char *argv[]) {
     char *common_es_url = NULL;
     char *common_es_index = NULL;
     char *common_script_path = NULL;
-    char *common_incremental = NULL;
     int common_async_script = 0;
     int common_threads = 0;
 
@@ -595,7 +592,7 @@ int main(int argc, const char *argv[]) {
                         "Thumbnail size, in pixels. Use negative value to disable. DEFAULT=500"),
             OPT_INTEGER(0, "content-size", &scan_args->content_size,
                         "Number of bytes to be extracted from text documents. Use negative value to disable. DEFAULT=32768"),
-            OPT_STRING(0, "incremental", &common_incremental,
+            OPT_STRING(0, "incremental", &scan_args->incremental,
                        "Reuse an existing index and only scan modified files."),
             OPT_STRING('o', "output", &scan_args->output, "Output directory. DEFAULT=index.sist2/"),
             OPT_STRING(0, "rewrite-url", &scan_args->rewrite_url, "Serve files from this url instead of from disk."),
@@ -633,7 +630,7 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT=http://localhost:9200"),
             OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT=sist2"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
-            OPT_STRING(0, "incremental", &common_incremental,
+            OPT_BOOLEAN(0, "incremental-index", &index_args->incremental,
                        "Conduct incremental indexing, assumes that the old index is already digested by Elasticsearch."),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
             OPT_STRING(0, "mappings-file", &index_args->es_mappings_path, "Path to Elasticsearch mappings."),
@@ -690,9 +687,6 @@ int main(int argc, const char *argv[]) {
     scan_args->threads = common_threads;
     exec_args->async_script = common_async_script;
     index_args->async_script = common_async_script;
-
-    scan_args->incremental = (common_incremental == NULL) ? NULL : strdup(common_incremental);
-    index_args->incremental = (common_incremental != NULL);
 
     if (argc == 0) {
         argparse_usage(&argparse);
