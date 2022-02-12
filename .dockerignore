@@ -28,3 +28,4 @@ sist2
 **/ext_libwpd
 **/core
 *.a
+tmp_scan/

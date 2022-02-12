@@ -21,7 +21,6 @@ set(ARGPARSE_SHARED off)
 add_subdirectory(third-party/argparse)
 
 add_executable(sist2
-
         src/main.c
         src/sist.h
         src/io/walk.h src/io/walk.c
