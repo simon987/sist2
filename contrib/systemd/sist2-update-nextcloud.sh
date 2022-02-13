@@ -30,4 +30,4 @@ unset http_proxy
 unset https_proxy
 unset HTTP_PROXY
 unset HTTPS_PROXY
-sist2 index $ORIG --incremental=yes
+sist2 index $ORIG --incremental-index
