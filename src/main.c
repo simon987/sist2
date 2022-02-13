@@ -253,6 +253,7 @@ void initialize_scan_context(scan_args_t *args) {
 
     ScanCtx.threads = args->threads;
     ScanCtx.depth = args->depth;
+    ScanCtx.mem_limit = args->scan_mem_limit * 1024 * 1024;
 
     strncpy(ScanCtx.index.path, args->output, sizeof(ScanCtx.index.path));
     strncpy(ScanCtx.index.desc.name, args->name, sizeof(ScanCtx.index.desc.name));
@@ -382,10 +383,10 @@ void sist2_scan(scan_args_t *args) {
         load_incremental_index(args);
     }
 
-    ScanCtx.pool = tpool_create(args->threads, thread_cleanup, TRUE, TRUE);
+    ScanCtx.pool = tpool_create(ScanCtx.threads, thread_cleanup, TRUE, TRUE, ScanCtx.mem_limit);
     tpool_start(ScanCtx.pool);
 
-    ScanCtx.writer_pool = tpool_create(1, writer_cleanup, TRUE, FALSE);
+    ScanCtx.writer_pool = tpool_create(1, writer_cleanup, TRUE, FALSE, 0);
     tpool_start(ScanCtx.writer_pool);
 
     if (args->list_path) {
@@ -466,7 +467,7 @@ void sist2_index(index_args_t *args) {
         f = index_json;
     }
 
-    IndexCtx.pool = tpool_create(args->threads, elastic_cleanup, FALSE, args->print == 0);
+    IndexCtx.pool = tpool_create(args->threads, elastic_cleanup, FALSE, args->print == 0, 0);
     tpool_start(IndexCtx.pool);
 
     READ_INDICES(file_path, args->index_path, {
@@ -586,6 +587,7 @@ int main(int argc, const char *argv[]) {
 
             OPT_GROUP("Scan options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
+            OPT_STRING(0, "mem-throttle", &scan_args->scan_mem_limit, "Total memory threshold in MB for scan throttling. DEFAULT=0"),
             OPT_FLOAT('q', "quality", &scan_args->quality,
                       "Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=3"),
             OPT_INTEGER(0, "size", &scan_args->size,
