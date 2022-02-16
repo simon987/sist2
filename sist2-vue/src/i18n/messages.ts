@@ -1,5 +1,8 @@
 export default {
     en: {
+        filePage: {
+          notFound: "Not found"
+        },
         searchBar: {
             simple: "Search",
             advanced: "Advanced search",
@@ -162,6 +165,9 @@ export default {
         },
     },
     fr: {
+        filePage: {
+            notFound: "Ficher introuvable"
+        },
         searchBar: {
             simple: "Recherche",
             advanced: "Recherche avancée",
@@ -326,6 +332,9 @@ export default {
         },
     },
     "zh-CN": {
+        filePage: {
+            notFound: "未找到"
+        },
         searchBar: {
             simple: "搜索",
             advanced: "高级搜索",

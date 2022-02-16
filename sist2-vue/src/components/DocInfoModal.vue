@@ -2,7 +2,10 @@
   <b-modal :visible="show" size="lg" :hide-footer="true" static lazy @close="$emit('close')" @hide="$emit('close')"
   >
     <template #modal-title>
-      <h5 class="modal-title" :title="doc._source.name + ext(doc)">{{ doc._source.name + ext(doc) }}</h5>
+      <h5 class="modal-title" :title="doc._source.name + ext(doc)">
+        {{ doc._source.name + ext(doc) }}
+        <router-link :to="`/file?byId=${doc._id}`">#</router-link>
+      </h5>
     </template>
 
     <img v-if="doc._props.hasThumbnail" :src="`t/${doc._source.index}/${doc._id}`" alt="" class="fit card-img-top">

@@ -310,4 +310,8 @@ mark {
   display: inline-block;
   width: 40%;
 }
+
+.pointer {
+  cursor: pointer;
+}
 </style>

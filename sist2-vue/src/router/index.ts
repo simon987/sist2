@@ -3,6 +3,7 @@ import VueRouter, {RouteConfig} from "vue-router"
 import StatsPage from "../views/StatsPage.vue"
 import Configuration from "../views/Configuration.vue"
 import SearchPage from "@/views/SearchPage.vue";
+import FilePage from "@/views/FilePage.vue";
 
 Vue.use(VueRouter)
 
@@ -21,6 +22,11 @@ const routes: Array<RouteConfig> = [
         path: "/config",
         name: "Configuration",
         component: Configuration
+    },
+    {
+        path: "/file",
+        name: "File",
+        component: FilePage
     }
 ]
 

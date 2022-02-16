@@ -1,11 +1,13 @@
 <template>
   <b-list-group-item class="flex-column align-items-start mb-2" :class="{'sub-document': doc._props.isSubDocument}"
-                     @mouseenter="onTnEnter()" @mouseleave="onTnLeave()" >
+                     @mouseenter="onTnEnter()" @mouseleave="onTnLeave()">
 
     <!-- Info modal-->
     <DocInfoModal :show="showInfo" :doc="doc" @close="showInfo = false"></DocInfoModal>
 
     <div class="media ml-2">
+
+      <!-- Thumbnail-->
       <div v-if="doc._props.hasThumbnail" class="align-self-start mr-2 wrapper-sm">
         <div class="img-wrapper">
           <div v-if="doc._props.isPlayableVideo" class="play">
@@ -26,6 +28,7 @@
         <FileIcon></FileIcon>
       </div>
 
+      <!-- Doc line-->
       <div class="doc-line ml-3">
         <div style="display: flex">
           <span class="info-icon" @click="showInfo = true"></span>
@@ -154,6 +157,7 @@ export default {
 .list-group-item .img-wrapper {
   width: 88px;
   height: 88px;
+  position: relative;
 }
 
 .fit-sm {

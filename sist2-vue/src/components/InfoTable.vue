@@ -1,6 +1,5 @@
 <template>
   <b-table :items="tableItems" small borderless responsive="md" thead-class="hidden" class="mb-0 mt-4">
-
     <template #cell(value)="data">
       <span v-if="'html' in data.item" v-html="data.item.html"></span>
       <span v-else>{{ data.value }}</span>
@@ -33,12 +32,18 @@ function dmsToDecimal(dms, ref) {
 export default {
   name: "InfoTable",
   props: ["doc"],
+  data() {
+    return {
+      indexName: "loading..."
+    }
+  },
   computed: {
     tableItems() {
+      this.indexName;
       const src = this.doc._source;
 
       const items = [
-        {key: "index", value: `[${this.$store.getters.indexMap[src.index].name}]`},
+        {key: "index", value: `[${this.indexName}]`},
         {key: "mtime", value: humanDate(src.mtime)},
         {key: "mime", value: src.mime},
         {key: "size", value: humanFileSize(src.size)},
@@ -85,7 +90,16 @@ export default {
 
       return items;
     }
-  }
+  },
+  mounted() {
+    if (this.$store.getters.indexMap[this.doc.index]) {
+      this.indexName = this.$store.getters.indexMap[this.doc._source.index].name
+    }
+
+    window.setTimeout(() => {
+      this.indexName = this.$store.getters.indexMap[this.doc._source.index].name
+    }, 500)
+  },
 }
 </script>
 
