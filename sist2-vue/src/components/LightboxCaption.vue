@@ -3,7 +3,7 @@
     <p>
       <b>{{
           `[${$store.getters.indices.find(i => i.id === hit._source.index).name}]`
-        }}</b>{{ `/${hit._source.path}/${hit._source.name}${ext(hit)}` }}
+        }}</b>{{ `${hit._source.path === '' ? '' : '/'}${hit._source.path}/${hit._source.name}${ext(hit)}` }}
     </p>
     <p style="margin-top: -1em">
       <span v-if="hit._source.width">{{ `${hit._source.width}x${hit._source.height}`}}</span>
