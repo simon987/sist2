@@ -176,7 +176,7 @@ void parse_font(scan_font_ctx_t *ctx, vfile_t *f, document_t *doc) {
     strcpy(meta_name->str_val, font_name);
     APPEND_META(doc, meta_name)
 
-    if (ctx->enable_tn == TRUE) {
+    if (!ctx->enable_tn) {
         FT_Done_Face(face);
         free(buf);
         return;
@@ -231,7 +231,7 @@ void parse_font(scan_font_ctx_t *ctx, vfile_t *f, document_t *doc) {
     dyn_buffer_t bmp_data = dyn_buffer_create();
     bmp_format(&bmp_data, dimensions, bitmap);
 
-    APPEND_TN_META(doc, dimensions.width, dimensions.height)
+    APPEND_LONG_META(doc, MetaThumbnail, 1)
     ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) bmp_data.buf, bmp_data.cur);
 
     dyn_buffer_destroy(&bmp_data);

@@ -62,8 +62,9 @@ export interface EsHit {
         isPlayableImage: boolean
         isAudio: boolean
         hasThumbnail: boolean
-        tnW: number
-        tnH: number
+        hasVidPreview: boolean
+        /** Number of thumbnails available */
+        tnNum: number
     }
     highlight: {
         name: string[] | undefined,
@@ -134,8 +135,15 @@ class Sist2Api {
 
         if ("thumbnail" in hit._source) {
             hit._props.hasThumbnail = true;
-            hit._props.tnW = Number(hit._source.thumbnail.split(",")[0]);
-            hit._props.tnH = Number(hit._source.thumbnail.split(",")[1]);
+
+            if (Number.isNaN(Number(hit._source.thumbnail))) {
+                // Backwards compatibility
+                hit._props.tnNum = 1;
+                hit._props.hasVidPreview = false;
+            } else {
+                hit._props.tnNum = Number(hit._source.thumbnail);
+                hit._props.hasVidPreview = hit._props.tnNum > 1;
+            }
         }
 
         switch (mimeCategory) {

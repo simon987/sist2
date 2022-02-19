@@ -155,7 +155,7 @@ int render_cover(scan_ebook_ctx_t *ctx, fz_context *fzctx, document_t *doc, fz_d
     av_init_packet(&jpeg_packet);
     avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
 
-    APPEND_TN_META(doc, pixmap->w, pixmap->h)
+    APPEND_LONG_META(doc, MetaThumbnail, 1)
     ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) jpeg_packet.data, jpeg_packet.size);
 
     free(samples);
@@ -283,7 +283,7 @@ parse_ebook_mem(scan_ebook_ctx_t *ctx, void *buf, size_t buf_len, const char *mi
 
     APPEND_LONG_META(doc, MetaPages, page_count)
 
-    if (ctx->tn_size > 0) {
+    if (ctx->enable_tn) {
         if (render_cover(ctx, fzctx, doc, fzdoc) == FALSE) {
             fz_drop_stream(fzctx, stream);
             fz_drop_document(fzctx, fzdoc);
@@ -404,7 +404,7 @@ void parse_epub_fast(scan_ebook_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
     text_buffer_t content_buffer = text_buffer_create(ctx->content_size);
 
-    if (ctx->tn_size <= 0) {
+    if (!ctx->enable_tn) {
         return;
     }
 

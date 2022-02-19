@@ -5,6 +5,7 @@
 #include "../scan.h"
 
 typedef struct {
+    int enable_tn;
     long content_size;
     log_callback_t log;
     logf_callback_t logf;

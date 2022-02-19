@@ -350,9 +350,13 @@ TEST(Comic, ComicIssue160) {
     load_doc_file("libscan-test-files/test_files/ebook/comic-segfault-issue-160.cbr", &f, &doc);
 
     int tn_size_saved = comic_ctx.tn_size;
-    comic_ctx.tn_size = 0;
+    size_t size_before = store_size;
+
+    comic_ctx.enable_tn = FALSE;
     parse_comic(&comic_ctx, &f, &doc);
-    comic_ctx.tn_size = tn_size_saved;
+    comic_ctx.enable_tn = tn_size_saved;
+
+    ASSERT_EQ(store_size, size_before);
 
     cleanup(&doc, &f);
 }
@@ -668,8 +672,6 @@ TEST(Ooxml, Docx2Archive) {
     ASSERT_STREQ(get_meta(&LastSubDoc, MetaAuthor)->str_val, "liz evans");
     ASSERT_EQ(get_meta(&LastSubDoc, MetaPages)->long_val, 1);
     ASSERT_EQ(strlen(get_meta(&LastSubDoc, MetaContent)->str_val), 2780);
-
-    fprintf(stderr, "%s\n", get_meta(&LastSubDoc, MetaContent)->str_val);
 
     ooxml_500_ctx.content_size = 500;
 
@@ -1111,6 +1113,7 @@ int main(int argc, char **argv) {
     ebook_ctx.tesseract_lang = "eng";
     ebook_ctx.tesseract_path = "./tessdata";
     ebook_ctx.tn_size = 500;
+    ebook_ctx.enable_tn = TRUE;
     ebook_ctx.log = noop_log;
     ebook_ctx.logf = noop_logf;
     ebook_ctx.fast_epub_parse = 0;
@@ -1124,12 +1127,14 @@ int main(int argc, char **argv) {
 
     comic_ctx.tn_qscale = 1.0;
     comic_ctx.tn_size = 500;
+    comic_ctx.enable_tn = TRUE;
     comic_ctx.log = noop_log;
     comic_ctx.logf = noop_logf;
     comic_ctx.store = counter_store;
 
     comic_big_ctx.tn_qscale = 1.0;
     comic_big_ctx.tn_size = 5000;
+    comic_big_ctx.enable_tn = TRUE;
     comic_big_ctx.log = noop_log;
     comic_big_ctx.logf = noop_logf;
     comic_big_ctx.store = counter_store;
@@ -1138,10 +1143,12 @@ int main(int argc, char **argv) {
     media_ctx.logf = noop_logf;
     media_ctx.store = counter_store;
     media_ctx.tn_size = 500;
+    media_ctx.tn_count = 1;
     media_ctx.tn_qscale = 1.0;
     media_ctx.max_media_buffer = (long) 2000 * (long) 1024 * (long) 1024;
 
     ooxml_500_ctx.content_size = 500;
+    ooxml_500_ctx.enable_tn = TRUE;
     ooxml_500_ctx.log = noop_log;
     ooxml_500_ctx.logf = noop_logf;
     ooxml_500_ctx.store = counter_store;
@@ -1154,6 +1161,7 @@ int main(int argc, char **argv) {
     raw_ctx.logf = noop_logf;
     raw_ctx.store = counter_store;
     raw_ctx.tn_size = 500;
+    raw_ctx.enable_tn = TRUE;
     raw_ctx.tn_qscale = 5.0;
 
     msdoc_ctx.log = noop_log;
@@ -1161,12 +1169,14 @@ int main(int argc, char **argv) {
     msdoc_ctx.store = counter_store;
     msdoc_ctx.content_size = 500;
     msdoc_ctx.tn_size = 500;
+    msdoc_ctx.enable_tn = TRUE;
 
     msdoc_text_ctx.log = noop_log;
     msdoc_text_ctx.logf = noop_logf;
     msdoc_text_ctx.store = counter_store;
     msdoc_text_ctx.content_size = 500;
     msdoc_text_ctx.tn_size = 0;
+    msdoc_text_ctx.enable_tn = FALSE;
 
     wpd_ctx.log = noop_log;
     wpd_ctx.logf = noop_logf;

@@ -189,37 +189,41 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.comic_ctx.log = _log;
     ScanCtx.comic_ctx.logf = _logf;
     ScanCtx.comic_ctx.store = _store;
-    ScanCtx.comic_ctx.tn_size = args->size;
-    ScanCtx.comic_ctx.tn_qscale = args->quality;
+    ScanCtx.comic_ctx.enable_tn = args->tn_count > 0;
+    ScanCtx.comic_ctx.tn_size = args->tn_size;
+    ScanCtx.comic_ctx.tn_qscale = args->tn_quality;
     ScanCtx.comic_ctx.cbr_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/x-cbr");
     ScanCtx.comic_ctx.cbz_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/x-cbz");
 
     // Ebook
     pthread_mutex_init(&ScanCtx.ebook_ctx.mupdf_mutex, NULL);
     ScanCtx.ebook_ctx.content_size = args->content_size;
-    ScanCtx.ebook_ctx.tn_size = args->size;
+    ScanCtx.ebook_ctx.enable_tn = args->tn_count > 0;
+    ScanCtx.ebook_ctx.tn_size = args->tn_size;
     ScanCtx.ebook_ctx.tesseract_lang = args->tesseract_lang;
     ScanCtx.ebook_ctx.tesseract_path = args->tesseract_path;
     ScanCtx.ebook_ctx.log = _log;
     ScanCtx.ebook_ctx.logf = _logf;
     ScanCtx.ebook_ctx.store = _store;
     ScanCtx.ebook_ctx.fast_epub_parse = args->fast_epub;
-    ScanCtx.ebook_ctx.tn_qscale = args->quality;
+    ScanCtx.ebook_ctx.tn_qscale = args->tn_quality;
 
     // Font
-    ScanCtx.font_ctx.enable_tn = args->size > 0;
+    ScanCtx.font_ctx.enable_tn = args->tn_count > 0;
     ScanCtx.font_ctx.log = _log;
     ScanCtx.font_ctx.logf = _logf;
     ScanCtx.font_ctx.store = _store;
 
     // Media
-    ScanCtx.media_ctx.tn_qscale = args->quality;
-    ScanCtx.media_ctx.tn_size = args->size;
+    ScanCtx.media_ctx.tn_qscale = args->tn_quality;
+    ScanCtx.media_ctx.tn_size = args->tn_size;
+    ScanCtx.media_ctx.tn_count = args->tn_count;
     ScanCtx.media_ctx.log = _log;
     ScanCtx.media_ctx.logf = _logf;
     ScanCtx.media_ctx.store = _store;
     ScanCtx.media_ctx.max_media_buffer = (long) args->max_memory_buffer * 1024 * 1024;
     ScanCtx.media_ctx.read_subtitles = args->read_subtitles;
+    ScanCtx.media_ctx.read_subtitles = args->tn_count;
 
     if (args->ocr_images) {
         ScanCtx.media_ctx.tesseract_lang = args->tesseract_lang;
@@ -228,6 +232,7 @@ void initialize_scan_context(scan_args_t *args) {
     init_media();
 
     // OOXML
+    ScanCtx.ooxml_ctx.enable_tn = args->tn_count > 0;
     ScanCtx.ooxml_ctx.content_size = args->content_size;
     ScanCtx.ooxml_ctx.log = _log;
     ScanCtx.ooxml_ctx.logf = _logf;
@@ -244,7 +249,8 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.text_ctx.logf = _logf;
 
     // MSDOC
-    ScanCtx.msdoc_ctx.tn_size = args->size;
+    ScanCtx.msdoc_ctx.enable_tn = args->tn_count > 0;
+    ScanCtx.msdoc_ctx.tn_size = args->tn_size;
     ScanCtx.msdoc_ctx.content_size = args->content_size;
     ScanCtx.msdoc_ctx.log = _log;
     ScanCtx.msdoc_ctx.logf = _logf;
@@ -263,8 +269,9 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.fast = args->fast;
 
     // Raw
-    ScanCtx.raw_ctx.tn_qscale = args->quality;
-    ScanCtx.raw_ctx.tn_size = args->size;
+    ScanCtx.raw_ctx.tn_qscale = args->tn_quality;
+    ScanCtx.raw_ctx.enable_tn = args->tn_count > 0;
+    ScanCtx.raw_ctx.tn_size = args->tn_size;
     ScanCtx.raw_ctx.log = _log;
     ScanCtx.raw_ctx.logf = _logf;
     ScanCtx.raw_ctx.store = _store;
@@ -309,7 +316,8 @@ void load_incremental_index(const scan_args_t *args) {
     }
 
     READ_INDICES(file_path, args->incremental, incremental_read(ScanCtx.original_table, file_path, &original_desc),
-                 LOG_FATALF("main.c", "Could not open original main index for incremental scan: %s", strerror(errno)), 1);
+                 LOG_FATALF("main.c", "Could not open original main index for incremental scan: %s", strerror(errno)),
+                 1);
 
     LOG_INFOF("main.c", "Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table))
 }
@@ -320,7 +328,7 @@ void load_incremental_index(const scan_args_t *args) {
  *   1. Build original_table - new_table => delete_table
  *   2. Incrementally copy from old index files [(original+main) /\ copy_table] => index_original.ndjson.zst & store
  */
-void save_incremental_index(scan_args_t* args) {
+void save_incremental_index(scan_args_t *args) {
     char dst_path[PATH_MAX];
     char store_path[PATH_MAX];
     char file_path[PATH_MAX];
@@ -330,15 +338,17 @@ void save_incremental_index(scan_args_t* args) {
     store_t *source = store_create(store_path, STORE_SIZE_TN);
 
     LOG_INFOF("main.c", "incremental_delete: original size = %u, copy size = %u, new size = %u",
-        g_hash_table_size(ScanCtx.original_table),
-        g_hash_table_size(ScanCtx.copy_table),
-        g_hash_table_size(ScanCtx.new_table));
+              g_hash_table_size(ScanCtx.original_table),
+              g_hash_table_size(ScanCtx.copy_table),
+              g_hash_table_size(ScanCtx.new_table));
     snprintf(del_path, PATH_MAX, "%s_index_delete.list.zst", ScanCtx.index.path);
-    READ_INDICES(file_path, args->incremental, incremental_delete(del_path, file_path, ScanCtx.copy_table, ScanCtx.new_table),
+    READ_INDICES(file_path, args->incremental,
+                 incremental_delete(del_path, file_path, ScanCtx.copy_table, ScanCtx.new_table),
                  perror("incremental_delete"), 1);
     writer_cleanup();
 
-    READ_INDICES(file_path, args->incremental, incremental_copy(source, ScanCtx.index.store, file_path, dst_path, ScanCtx.copy_table), 
+    READ_INDICES(file_path, args->incremental,
+                 incremental_copy(source, ScanCtx.index.store, file_path, dst_path, ScanCtx.copy_table),
                  perror("incremental_copy"), 1);
     writer_cleanup();
 
@@ -412,6 +422,8 @@ void sist2_scan(scan_args_t *args) {
     LOG_DEBUGF("main.c", "Skipped files: %d", ScanCtx.dbg_skipped_files_count)
     LOG_DEBUGF("main.c", "Excluded files: %d", ScanCtx.dbg_excluded_files_count)
     LOG_DEBUGF("main.c", "Failed files: %d", ScanCtx.dbg_failed_files_count)
+    LOG_DEBUGF("main.c", "Thumbnail store size: %d", ScanCtx.stat_tn_size)
+    LOG_DEBUGF("main.c", "Index size: %d", ScanCtx.stat_index_size)
 
     if (args->incremental != NULL) {
         save_incremental_index(args);
@@ -551,11 +563,32 @@ void sist2_web(web_args_t *args) {
         WebCtx.indices[i].desc = read_index_descriptor(path_tmp);
 
         strcpy(WebCtx.indices[i].path, abs_path);
-        printf("Loaded index: %s\n", WebCtx.indices[i].desc.name);
+        LOG_INFOF("main.c", "Loaded index: [%s]", WebCtx.indices[i].desc.name)
         free(abs_path);
     }
 
     serve(args->listen_address);
+}
+
+/**
+ * Callback to handle options such that
+ *
+ *   Unspecified              -> 0: Set to default value
+ *   Specified "0"            -> -1: Disable the option (ex. don't generate thumbnails)
+ *   Negative number          -> Raise error
+ *   Specified a valid number -> Continue as normal
+ */
+int set_to_negative_if_value_is_zero(struct argparse *self, const struct argparse_option *option) {
+    int specified_value = *(int *) option->value;
+
+    if (specified_value == 0) {
+        *((int *) option->data) = OPTION_VALUE_DISABLE;
+    }
+
+    if (specified_value < 0) {
+        fprintf(stderr, "error: option `--%s` Value must be >= 0\n", option->long_name);
+        exit(1);
+    }
 }
 
 
@@ -588,12 +621,18 @@ int main(int argc, const char *argv[]) {
             OPT_GROUP("Scan options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
             OPT_STRING(0, "mem-throttle", &scan_args->scan_mem_limit, "Total memory threshold in MB for scan throttling. DEFAULT=0"),
-            OPT_FLOAT('q', "quality", &scan_args->quality,
-                      "Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=3"),
-            OPT_INTEGER(0, "size", &scan_args->size,
-                        "Thumbnail size, in pixels. Use negative value to disable. DEFAULT=500"),
+            OPT_FLOAT('q', "thumbnail-quality", &scan_args->tn_quality,
+                      "Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=1",
+                      set_to_negative_if_value_is_zero, (intptr_t) &scan_args->tn_quality),
+            OPT_INTEGER(0, "thumbnail-size", &scan_args->tn_size,
+                        "Thumbnail size, in pixels. DEFAULT=500",
+                        set_to_negative_if_value_is_zero, (intptr_t) &scan_args->tn_size),
+            OPT_INTEGER(0, "thumbnail-count", &scan_args->tn_count,
+                        "Number of thumbnails to generate. Set a value > 1 to create video previews, set to 0 to disable thumbnails. DEFAULT=1",
+                        set_to_negative_if_value_is_zero, (intptr_t) &scan_args->tn_count),
             OPT_INTEGER(0, "content-size", &scan_args->content_size,
-                        "Number of bytes to be extracted from text documents. Use negative value to disable. DEFAULT=32768"),
+                        "Number of bytes to be extracted from text documents. Set to 0 to disable. DEFAULT=32768",
+                        set_to_negative_if_value_is_zero, (intptr_t) &scan_args->content_size),
             OPT_STRING(0, "incremental", &scan_args->incremental,
                        "Reuse an existing index and only scan modified files."),
             OPT_STRING('o', "output", &scan_args->output, "Output directory. DEFAULT=index.sist2/"),
@@ -633,7 +672,7 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT=sist2"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
             OPT_BOOLEAN(0, "incremental-index", &index_args->incremental,
-                       "Conduct incremental indexing, assumes that the old index is already digested by Elasticsearch."),
+                        "Conduct incremental indexing, assumes that the old index is already digested by Elasticsearch."),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
             OPT_STRING(0, "mappings-file", &index_args->es_mappings_path, "Path to Elasticsearch mappings."),
             OPT_STRING(0, "settings-file", &index_args->es_settings_path, "Path to Elasticsearch settings."),

@@ -60,6 +60,8 @@ static const char *const Version = VERSION;
 #define SIST_PLATFORM unknown
 #endif
 
+#define EXPECTED_MONGOOSE_VERSION "7.3"
+
 #define Q(x) #x
 #define QUOTE(x) Q(x)
 

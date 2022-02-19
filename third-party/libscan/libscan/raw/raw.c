@@ -69,7 +69,7 @@ int store_thumbnail_rgb24(scan_raw_ctx_t *ctx, libraw_processed_image_t *img, do
     av_init_packet(&jpeg_packet);
     avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
 
-    APPEND_TN_META(doc, scaled_frame->width, scaled_frame->height)
+    APPEND_LONG_META(doc, MetaThumbnail, 1)
     ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) jpeg_packet.data, jpeg_packet.size);
 
     av_packet_unref(&jpeg_packet);
@@ -157,7 +157,7 @@ void parse_raw(scan_raw_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
     APPEND_STR_META(doc, MetaMediaVideoCodec, "raw")
 
-    if (ctx->tn_size <= 0) {
+    if (!ctx->enable_tn) {
         free(buf);
         libraw_close(libraw_lib);
         return;

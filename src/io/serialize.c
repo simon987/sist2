@@ -133,6 +133,7 @@ char *build_json_string(document_t *doc) {
     while (meta != NULL) {
 
         switch (meta->key) {
+            case MetaThumbnail:
             case MetaPages:
             case MetaWidth:
             case MetaHeight:
@@ -163,7 +164,6 @@ char *build_json_string(document_t *doc) {
             case MetaExifModel:
             case MetaAuthor:
             case MetaModifiedBy:
-            case MetaThumbnail:
             case MetaExifGpsLongitudeDMS:
             case MetaExifGpsLongitudeDec:
             case MetaExifGpsLongitudeRef:

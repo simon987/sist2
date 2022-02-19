@@ -5,7 +5,8 @@
 #define DEFAULT_OUTPUT "index.sist2/"
 #define DEFAULT_CONTENT_SIZE 32768
 #define DEFAULT_QUALITY 1
-#define DEFAULT_SIZE 300
+#define DEFAULT_THUMBNAIL_SIZE 500
+#define DEFAULT_THUMBNAIL_COUNT 1
 #define DEFAULT_REWRITE_URL ""
 
 #define DEFAULT_ES_URL "http://localhost:9200"
@@ -96,7 +97,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->path = abs_path;
     }
 
-    if (args->incremental != NULL) {
+    if (args->incremental != OPTION_VALUE_UNSPECIFIED) {
         args->incremental = abspath(args->incremental);
         if (abs_path == NULL) {
             sist_log("main.c", LOG_SIST_WARNING, "Could not open original index! Disabled incremental scan feature.");
@@ -104,32 +105,39 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         }
     }
 
-    if (args->quality == 0) {
-        args->quality = DEFAULT_QUALITY;
-    } else if (args->quality < 1 || args->quality > 31) {
-        fprintf(stderr, "Invalid quality: %f\n", args->quality);
+    if (args->tn_quality == OPTION_VALUE_UNSPECIFIED) {
+        args->tn_quality = DEFAULT_QUALITY;
+    } else if (args->tn_quality < 1.0f || args->tn_quality > 31.0f) {
+        fprintf(stderr, "Invalid value for --thumbnail-quality argument: %f. Must be within [1.0, 31.0].\n",
+                args->tn_quality);
         return 1;
     }
 
-    if (args->size == 0) {
-        args->size = DEFAULT_SIZE;
-    } else if (args->size > 0 && args->size < 32) {
-        printf("Invalid size: %d\n", args->content_size);
+    if (args->tn_size == OPTION_VALUE_UNSPECIFIED) {
+        args->tn_size = DEFAULT_THUMBNAIL_SIZE;
+    } else if (args->tn_size < 32) {
+        printf("Invalid value --thumbnail-size argument: %d. Must be greater than 32 pixels.\n", args->tn_size);
         return 1;
     }
 
-    if (args->content_size == 0) {
+    if (args->tn_count == OPTION_VALUE_UNSPECIFIED) {
+        args->tn_count = DEFAULT_THUMBNAIL_COUNT;
+    } else if (args->tn_count == OPTION_VALUE_DISABLE) {
+        args->tn_count = 0;
+    }
+
+    if (args->content_size == OPTION_VALUE_UNSPECIFIED) {
         args->content_size = DEFAULT_CONTENT_SIZE;
     }
 
     if (args->threads == 0) {
         args->threads = 1;
     } else if (args->threads < 0) {
-        fprintf(stderr, "Invalid threads: %d\n", args->threads);
+        fprintf(stderr, "Invalid value for --threads: %d. Must be a positive number\n", args->threads);
         return 1;
     }
 
-    if (args->output == NULL) {
+    if (args->output == OPTION_VALUE_UNSPECIFIED) {
         args->output = malloc(strlen(DEFAULT_OUTPUT) + 1);
         strcpy(args->output, DEFAULT_OUTPUT);
     } else {
@@ -148,7 +156,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->depth += 1;
     }
 
-    if (args->name == NULL) {
+    if (args->name == OPTION_VALUE_UNSPECIFIED) {
         args->name = g_path_get_basename(args->output);
     } else {
         char *tmp = malloc(strlen(args->name) + 1);
@@ -156,11 +164,11 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->name = tmp;
     }
 
-    if (args->rewrite_url == NULL) {
+    if (args->rewrite_url == OPTION_VALUE_UNSPECIFIED) {
         args->rewrite_url = DEFAULT_REWRITE_URL;
     }
 
-    if (args->archive == NULL || strcmp(args->archive, "recurse") == 0) {
+    if (args->archive == OPTION_VALUE_UNSPECIFIED || strcmp(args->archive, "recurse") == 0) {
         args->archive_mode = ARC_MODE_RECURSE;
     } else if (strcmp(args->archive, "list") == 0) {
         args->archive_mode = ARC_MODE_LIST;
@@ -173,17 +181,17 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         return 1;
     }
 
-    if (args->ocr_images && args->tesseract_lang == NULL) {
+    if (args->ocr_images && args->tesseract_lang == OPTION_VALUE_UNSPECIFIED) {
         fprintf(stderr, "You must specify --ocr-lang <LANG> to use --ocr-images");
         return 1;
     }
 
-    if (args->ocr_ebooks && args->tesseract_lang == NULL) {
+    if (args->ocr_ebooks && args->tesseract_lang == OPTION_VALUE_UNSPECIFIED) {
         fprintf(stderr, "You must specify --ocr-lang <LANG> to use --ocr-ebooks");
         return 1;
     }
 
-    if (args->tesseract_lang != NULL) {
+    if (args->tesseract_lang != OPTION_VALUE_UNSPECIFIED) {
 
         if (!args->ocr_ebooks && !args->ocr_images) {
             fprintf(stderr, "You must specify at least one of --ocr-ebooks, --ocr-images");
@@ -227,7 +235,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->tesseract_path = trained_data_path;
     }
 
-    if (args->exclude_regex != NULL) {
+    if (args->exclude_regex != OPTION_VALUE_UNSPECIFIED) {
         const char *error;
         int error_offset;
 
@@ -247,13 +255,13 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         ScanCtx.exclude = NULL;
     }
 
-    if (args->treemap_threshold_str == 0) {
+    if (args->treemap_threshold_str == OPTION_VALUE_UNSPECIFIED) {
         args->treemap_threshold = DEFAULT_TREEMAP_THRESHOLD;
     } else {
         args->treemap_threshold = atof(args->treemap_threshold_str);
     }
 
-    if (args->max_memory_buffer == 0) {
+    if (args->max_memory_buffer == OPTION_VALUE_UNSPECIFIED) {
         args->max_memory_buffer = DEFAULT_MAX_MEM_BUFFER;
     }
 
@@ -261,7 +269,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->scan_mem_limit = DEFAULT_THROTTLE_MEMORY_THRESHOLD;
     }
 
-    if (args->list_path != NULL) {
+    if (args->list_path != OPTION_VALUE_UNSPECIFIED) {
         if (strcmp(args->list_path, "-") == 0) {
             args->list_file = stdin;
             LOG_DEBUG("cli.c", "Using stdin as list file")
@@ -274,8 +282,9 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         }
     }
 
-    LOG_DEBUGF("cli.c", "arg quality=%f", args->quality)
-    LOG_DEBUGF("cli.c", "arg size=%d", args->size)
+    LOG_DEBUGF("cli.c", "arg tn_quality=%f", args->tn_quality)
+    LOG_DEBUGF("cli.c", "arg tn_size=%d", args->tn_size)
+    LOG_DEBUGF("cli.c", "arg tn_count=%d", args->tn_count)
     LOG_DEBUGF("cli.c", "arg content_size=%d", args->content_size)
     LOG_DEBUGF("cli.c", "arg threads=%d", args->threads)
     LOG_DEBUGF("cli.c", "arg incremental=%s", args->incremental)

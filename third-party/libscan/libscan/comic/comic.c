@@ -12,7 +12,7 @@ void parse_comic(scan_comic_ctx_t *ctx, vfile_t *f, document_t *doc) {
     struct archive_entry *entry = NULL;
     arc_data_t arc_data;
 
-    if (ctx->tn_size <= 0) {
+    if (!ctx->enable_tn) {
         return;
     }
 
@@ -44,7 +44,20 @@ void parse_comic(scan_comic_ctx_t *ctx, vfile_t *f, document_t *doc) {
                     break;
                 }
 
-                ret = store_image_thumbnail((scan_media_ctx_t *) ctx, buf, entry_size, doc, file_path);
+                scan_media_ctx_t media_ctx = {
+                        .tn_count = ctx->enable_tn ? 1 : 0,
+                        .tn_size = ctx->tn_size,
+                        .tn_qscale = ctx->tn_qscale,
+                        .tesseract_lang = NULL,
+                        .tesseract_path = NULL,
+                        .read_subtitles = FALSE,
+                        .max_media_buffer = 0,
+                        .log = ctx->log,
+                        .logf = ctx->logf,
+                        .store = ctx->store,
+                };
+
+                ret = store_image_thumbnail(&media_ctx, buf, entry_size, doc, file_path);
                 free(buf);
 
                 if (ret == TRUE) {

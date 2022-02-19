@@ -8,12 +8,16 @@
 
 #include <src/ctx.h>
 
+#define HTTP_SERVER_HEADER "Server: sist2/" VERSION "\r\n"
+#define HTTP_TEXT_TYPE_HEADER "Content-Type: text/plain;charset=utf-8\r\n"
+#define HTTP_REPLY_NOT_FOUND mg_http_reply(nc, 404, HTTP_SERVER_HEADER HTTP_TEXT_TYPE_HEADER, "Not found");
+
 
 static void send_response_line(struct mg_connection *nc, int status_code, size_t length, char *extra_headers) {
     mg_printf(
             nc,
             "HTTP/1.1 %d %s\r\n"
-            "Server: sist2/" VERSION "\r\n"
+            HTTP_SERVER_HEADER
             "Content-Length: %d\r\n"
             "%s\r\n\r\n",
             status_code, "OK",
@@ -60,7 +64,7 @@ void search_index(struct mg_connection *nc, struct mg_http_message *hm) {
 void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
 
     if (hm->uri.len != MD5_STR_LENGTH + 4) {
-        mg_http_reply(nc, 404, "", "");
+        HTTP_REPLY_NOT_FOUND
         return;
     }
 
@@ -70,7 +74,7 @@ void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
 
     index_t *index = get_index_by_id(arg_md5);
     if (index == NULL) {
-        mg_http_reply(nc, 404, "", "");
+        HTTP_REPLY_NOT_FOUND
         return;
     }
 
@@ -138,10 +142,16 @@ void style_vendor(struct mg_connection *nc, struct mg_http_message *hm) {
 
 void thumbnail(struct mg_connection *nc, struct mg_http_message *hm) {
 
+    int parse_tn_num = FALSE;
+
     if (hm->uri.len != 68) {
-        LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) hm->uri.len, hm->uri.ptr)
-        mg_http_reply(nc, 404, "", "Not found");
-        return;
+
+        if (hm->uri.len != 68 + 4) {
+            LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) hm->uri.len, hm->uri.ptr)
+            HTTP_REPLY_NOT_FOUND
+            return;
+        }
+        parse_tn_num = TRUE;
     }
 
     char arg_file_md5[MD5_STR_LENGTH];
@@ -158,12 +168,25 @@ void thumbnail(struct mg_connection *nc, struct mg_http_message *hm) {
     store_t *store = get_store(arg_index);
     if (store == NULL) {
         LOG_DEBUGF("serve.c", "Could not get store for index: %s", arg_index)
-        mg_http_reply(nc, 404, "", "Not found");
+        HTTP_REPLY_NOT_FOUND
         return;
     }
 
+    char *data;
     size_t data_len = 0;
-    char *data = store_read(store, (char *) md5_buf, sizeof(md5_buf), &data_len);
+
+    if (parse_tn_num) {
+        int tn_num = atoi(hm->uri.ptr + 68);
+
+        char tn_key[sizeof(md5_buf) + sizeof(int)];
+        memcpy(tn_key, md5_buf, sizeof(md5_buf));
+        memcpy(tn_key + sizeof(md5_buf), &tn_num, sizeof(tn_num));
+
+        data = store_read(store, (char *) tn_key, sizeof(tn_key), &data_len);
+    } else {
+        data = store_read(store, (char *) md5_buf, sizeof(md5_buf), &data_len);
+    }
+
     if (data_len != 0) {
         send_response_line(
                 nc, 200, data_len,
@@ -173,7 +196,7 @@ void thumbnail(struct mg_connection *nc, struct mg_http_message *hm) {
         mg_send(nc, data, data_len);
         free(data);
     } else {
-        mg_http_reply(nc, 404, "Content-Type: text/plain;charset=utf-8\r\n", "Not found");
+        HTTP_REPLY_NOT_FOUND
         return;
     }
 }
@@ -182,7 +205,7 @@ void search(struct mg_connection *nc, struct mg_http_message *hm) {
 
     if (hm->body.len == 0) {
         LOG_DEBUG("serve.c", "Client sent empty body, ignoring request")
-        mg_http_reply(nc, 500, "", "Invalid request");
+        mg_http_reply(nc, 500, HTTP_SERVER_HEADER HTTP_TEXT_TYPE_HEADER, "Invalid request");
         return;
     }
 
@@ -226,6 +249,11 @@ void serve_file_from_url(cJSON *json, index_t *idx, struct mg_connection *nc) {
 
 void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, struct mg_http_message *hm) {
 
+    if (strcmp(MG_VERSION, EXPECTED_MONGOOSE_VERSION) != 0) {
+        LOG_WARNING("serve.c", "sist2 was not linked with latest mongoose version, "
+                               "serving file from disk might not work as expected.")
+    }
+
     const char *path = cJSON_GetObjectItem(json, "path")->valuestring;
     const char *name = cJSON_GetObjectItem(json, "name")->valuestring;
     const char *ext = cJSON_GetObjectItem(json, "extension")->valuestring;
@@ -246,7 +274,7 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
 
     char disposition[8192];
     snprintf(disposition, sizeof(disposition),
-             "Content-Disposition: inline; filename=\"%s%s%s\"\r\nAccept-Ranges: bytes\r\n",
+             HTTP_SERVER_HEADER "Content-Disposition: inline; filename=\"%s%s%s\"\r\nAccept-Ranges: bytes\r\n",
              name, strlen(ext) == 0 ? "" : ".", ext);
 
     mg_http_serve_file(nc, hm, full_path, mime, disposition);
@@ -273,6 +301,7 @@ void index_info(struct mg_connection *nc) {
     cJSON *json = cJSON_CreateObject();
     cJSON *arr = cJSON_AddArrayToObject(json, "indices");
 
+    cJSON_AddStringToObject(json, "mongooseVersion", MG_VERSION);
     cJSON_AddStringToObject(json, "esIndex", WebCtx.es_index);
     cJSON_AddStringToObject(json, "version", Version);
     cJSON_AddStringToObject(json, "esVersion", format_es_version(WebCtx.es_version));
@@ -314,7 +343,7 @@ void document_info(struct mg_connection *nc, struct mg_http_message *hm) {
 
     if (hm->uri.len != MD5_STR_LENGTH + 2) {
         LOG_DEBUGF("serve.c", "Invalid document_info path: %.*s", (int) hm->uri.len, hm->uri.ptr)
-        mg_http_reply(nc, 404, "", "Not found");
+        HTTP_REPLY_NOT_FOUND
         return;
     }
 
@@ -328,14 +357,14 @@ void document_info(struct mg_connection *nc, struct mg_http_message *hm) {
     cJSON *index_id = cJSON_GetObjectItem(source, "index");
     if (index_id == NULL) {
         cJSON_Delete(doc);
-        mg_http_reply(nc, 404, "", "Not found");
+        HTTP_REPLY_NOT_FOUND
         return;
     }
 
     index_t *idx = get_index_by_id(index_id->valuestring);
     if (idx == NULL) {
         cJSON_Delete(doc);
-        mg_http_reply(nc, 404, "", "Not found");
+        HTTP_REPLY_NOT_FOUND
         return;
     }
 
@@ -350,7 +379,7 @@ void file(struct mg_connection *nc, struct mg_http_message *hm) {
 
     if (hm->uri.len != MD5_STR_LENGTH + 2) {
         LOG_DEBUGF("serve.c", "Invalid file path: %.*s", (int) hm->uri.len, hm->uri.ptr)
-        mg_http_reply(nc, 404, "", "Not found");
+        HTTP_REPLY_NOT_FOUND
         return;
     }
 
@@ -369,7 +398,7 @@ void file(struct mg_connection *nc, struct mg_http_message *hm) {
         index_id = cJSON_GetObjectItem(source, "index");
         if (index_id == NULL) {
             cJSON_Delete(doc);
-            mg_http_reply(nc, 404, "", "Not found");
+            HTTP_REPLY_NOT_FOUND
             return;
         }
         cJSON *parent = cJSON_GetObjectItem(source, "parent");
@@ -383,7 +412,7 @@ void file(struct mg_connection *nc, struct mg_http_message *hm) {
 
     if (idx == NULL) {
         cJSON_Delete(doc);
-        mg_http_reply(nc, 404, "", "Not found");
+        HTTP_REPLY_NOT_FOUND
         return;
     }
 
@@ -452,7 +481,7 @@ tag_req_t *parse_tag_request(cJSON *json) {
 void tag(struct mg_connection *nc, struct mg_http_message *hm) {
     if (hm->uri.len != MD5_STR_LENGTH + 4) {
         LOG_DEBUGF("serve.c", "Invalid tag path: %.*s", (int) hm->uri.len, hm->uri.ptr)
-        mg_http_reply(nc, 404, "", "Not found");
+        HTTP_REPLY_NOT_FOUND
         return;
     }
 
@@ -462,14 +491,14 @@ void tag(struct mg_connection *nc, struct mg_http_message *hm) {
 
     if (hm->body.len < 2 || hm->method.len != 4 || memcmp(&hm->method, "POST", 4) == 0) {
         LOG_DEBUG("serve.c", "Invalid tag request")
-        mg_http_reply(nc, 404, "", "Not found");
+        HTTP_REPLY_NOT_FOUND
         return;
     }
 
     store_t *store = get_tag_store(arg_index);
     if (store == NULL) {
         LOG_DEBUGF("serve.c", "Could not get tag store for index: %s", arg_index)
-        mg_http_reply(nc, 404, "", "Not found");
+        HTTP_REPLY_NOT_FOUND
         return;
     }
 
@@ -615,7 +644,7 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
         } else if (mg_http_match_uri(hm, "/d/*")) {
             document_info(nc, hm);
         } else {
-            mg_http_reply(nc, 404, "", "Page not found");
+            HTTP_REPLY_NOT_FOUND
         }
 
     } else if (ev == MG_EV_POLL) {
@@ -645,7 +674,8 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
                         free(tmp);
                     }
 
-                    mg_http_reply(nc, 500, "", "");
+                    mg_http_reply(nc, 500, HTTP_SERVER_HEADER HTTP_TEXT_TYPE_HEADER,
+                                  "Elasticsearch error, see server logs.");
                 }
 
                 free_response(r);
@@ -659,7 +689,7 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
 
 void serve(const char *listen_address) {
 
-    printf("Starting web server @ http://%s\n", listen_address);
+    LOG_INFOF("serve.c", "Starting web server @ http://%s", listen_address)
 
     struct mg_mgr mgr;
     mg_mgr_init(&mgr);

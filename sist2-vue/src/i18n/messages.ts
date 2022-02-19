@@ -71,7 +71,8 @@ export default {
             hideDuplicates: "Hide duplicate results based on checksum",
             hideLegacy: "Hide the 'legacyES' Elasticsearch notice",
             updateMimeMap: "Update the Media Types tree in real time",
-            useDatePicker: "Use a Date Picker component rather than a slider"
+            useDatePicker: "Use a Date Picker component rather than a slider",
+            vidPreviewInterval: "Video preview frame duration in ms"
         },
         queryMode: {
             simple: "Simple",
@@ -237,7 +238,8 @@ export default {
             hideDuplicates: "Masquer les résultats en double",
             hideLegacy: "Masquer la notice 'legacyES' Elasticsearch",
             updateMimeMap: "Mettre à jour l'arbre de Types de médias en temps réel",
-            useDatePicker: "Afficher un composant « Date Picker » plutôt qu'un slider"
+            useDatePicker: "Afficher un composant « Date Picker » plutôt qu'un slider",
+            vidPreviewInterval: "Durée des images d'aperçu video en millisecondes"
         },
         queryMode: {
             simple: "Simple",
@@ -403,7 +405,8 @@ export default {
             hideDuplicates: "使用校验码隐藏重复结果",
             hideLegacy: "隐藏'legacyES' Elasticsearch 通知",
             updateMimeMap: "媒体类型树的实时更新",
-            useDatePicker: "使用日期选择器组件而不是滑块"
+            useDatePicker: "使用日期选择器组件而不是滑块",
+            vidPreviewInterval: "视频预览帧的持续时间，以毫秒为单位"
         },
         queryMode: {
             simple: "简单",

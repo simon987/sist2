@@ -5,9 +5,12 @@
 
 #include "libscan/arc/arc.h"
 
+#define OPTION_VALUE_DISABLE (-1)
+#define OPTION_VALUE_UNSPECIFIED (0)
+
 typedef struct scan_args {
-    float quality;
-    int size;
+    float tn_quality;
+    int tn_size;
     int content_size;
     int threads;
     int scan_mem_limit;
@@ -30,6 +33,8 @@ typedef struct scan_args {
     double treemap_threshold;
     int max_memory_buffer;
     int read_subtitles;
+    /** Number of thumbnails to generate */
+    int tn_count;
     int fast_epub;
     int calculate_checksums;
     char *list_path;

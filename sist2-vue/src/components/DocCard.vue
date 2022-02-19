@@ -1,5 +1,6 @@
 <template>
-  <div class="doc-card" :class="{'sub-document': doc._props.isSubDocument}" :style="`width: ${width}px`">
+  <div class="doc-card" :class="{'sub-document': doc._props.isSubDocument}" :style="`width: ${width}px`"
+       @click="$store.commit('busTnTouchStart', null)">
     <b-card
         no-body
         img-top
