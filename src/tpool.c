@@ -154,7 +154,7 @@ static void *tpool_worker(void *arg) {
     int stuck_notified = 0;
     int throttle_ms = 0;
 
-    while (1) {
+    while (TRUE) {
         pthread_mutex_lock(&pool->work_mutex);
         if (pool->stop) {
             break;

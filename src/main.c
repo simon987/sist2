@@ -221,7 +221,7 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.media_ctx.log = _log;
     ScanCtx.media_ctx.logf = _logf;
     ScanCtx.media_ctx.store = _store;
-    ScanCtx.media_ctx.max_media_buffer = (long) args->max_memory_buffer * 1024 * 1024;
+    ScanCtx.media_ctx.max_media_buffer = (long) args->max_memory_buffer_mib * 1024 * 1024;
     ScanCtx.media_ctx.read_subtitles = args->read_subtitles;
     ScanCtx.media_ctx.read_subtitles = args->tn_count;
 
@@ -259,7 +259,7 @@ void initialize_scan_context(scan_args_t *args) {
 
     ScanCtx.threads = args->threads;
     ScanCtx.depth = args->depth;
-    ScanCtx.mem_limit = args->scan_mem_limit * 1024 * 1024;
+    ScanCtx.mem_limit = (size_t) args->scan_mem_limit_mib * 1024 * 1024;
 
     strncpy(ScanCtx.index.path, args->output, sizeof(ScanCtx.index.path));
     strncpy(ScanCtx.index.desc.name, args->name, sizeof(ScanCtx.index.desc.name));
@@ -620,7 +620,9 @@ int main(int argc, const char *argv[]) {
 
             OPT_GROUP("Scan options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
-            OPT_STRING(0, "mem-throttle", &scan_args->scan_mem_limit, "Total memory threshold in MB for scan throttling. DEFAULT=0"),
+            OPT_INTEGER(0, "mem-throttle", &scan_args->scan_mem_limit_mib,
+                        "Total memory threshold in MiB for scan throttling. DEFAULT=0",
+                        set_to_negative_if_value_is_zero, (intptr_t) &scan_args->scan_mem_limit_mib),
             OPT_FLOAT('q', "thumbnail-quality", &scan_args->tn_quality,
                       "Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=1",
                       set_to_negative_if_value_is_zero, (intptr_t) &scan_args->tn_quality),
@@ -655,8 +657,8 @@ int main(int argc, const char *argv[]) {
             OPT_BOOLEAN(0, "fast", &scan_args->fast, "Only index file names & mime type"),
             OPT_STRING(0, "treemap-threshold", &scan_args->treemap_threshold_str, "Relative size threshold for treemap "
                                                                                   "(see USAGE.md). DEFAULT: 0.0005"),
-            OPT_INTEGER(0, "mem-buffer", &scan_args->max_memory_buffer,
-                        "Maximum memory buffer size per thread in MB for files inside archives "
+            OPT_INTEGER(0, "mem-buffer", &scan_args->max_memory_buffer_mib,
+                        "Maximum memory buffer size per thread in MiB for files inside archives "
                         "(see USAGE.md). DEFAULT: 2000"),
             OPT_BOOLEAN(0, "read-subtitles", &scan_args->read_subtitles, "Read subtitles from media files."),
             OPT_BOOLEAN(0, "fast-epub", &scan_args->fast_epub,

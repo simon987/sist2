@@ -261,12 +261,12 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->treemap_threshold = atof(args->treemap_threshold_str);
     }
 
-    if (args->max_memory_buffer == OPTION_VALUE_UNSPECIFIED) {
-        args->max_memory_buffer = DEFAULT_MAX_MEM_BUFFER;
+    if (args->max_memory_buffer_mib == OPTION_VALUE_UNSPECIFIED) {
+        args->max_memory_buffer_mib = DEFAULT_MAX_MEM_BUFFER;
     }
 
-    if (args->scan_mem_limit <= 0) {
-        args->scan_mem_limit = DEFAULT_THROTTLE_MEMORY_THRESHOLD;
+    if (args->scan_mem_limit_mib == OPTION_VALUE_UNSPECIFIED || args->scan_mem_limit_mib == OPTION_VALUE_DISABLE) {
+        args->scan_mem_limit_mib = DEFAULT_THROTTLE_MEMORY_THRESHOLD;
     }
 
     if (args->list_path != OPTION_VALUE_UNSPECIFIED) {
@@ -301,7 +301,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg fast=%d", args->fast)
     LOG_DEBUGF("cli.c", "arg fast_epub=%d", args->fast_epub)
     LOG_DEBUGF("cli.c", "arg treemap_threshold=%f", args->treemap_threshold)
-    LOG_DEBUGF("cli.c", "arg max_memory_buffer=%d", args->max_memory_buffer)
+    LOG_DEBUGF("cli.c", "arg max_memory_buffer_mib=%d", args->max_memory_buffer_mib)
     LOG_DEBUGF("cli.c", "arg list_path=%s", args->list_path)
 
     return 0;

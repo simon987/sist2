@@ -13,7 +13,7 @@ typedef struct scan_args {
     int tn_size;
     int content_size;
     int threads;
-    int scan_mem_limit;
+    int scan_mem_limit_mib;
     char *incremental;
     char *output;
     char *rewrite_url;
@@ -31,7 +31,7 @@ typedef struct scan_args {
     int fast;
     const char* treemap_threshold_str;
     double treemap_threshold;
-    int max_memory_buffer;
+    int max_memory_buffer_mib;
     int read_subtitles;
     /** Number of thumbnails to generate */
     int tn_count;
