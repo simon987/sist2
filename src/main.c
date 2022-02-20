@@ -674,7 +674,7 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT=sist2"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
             OPT_BOOLEAN(0, "incremental-index", &index_args->incremental,
-                        "Conduct incremental indexing, assumes that the old index is already digested by Elasticsearch."),
+                        "Conduct incremental indexing. Assumes that the old index is already ingested in Elasticsearch."),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
             OPT_STRING(0, "mappings-file", &index_args->es_mappings_path, "Path to Elasticsearch mappings."),
             OPT_STRING(0, "settings-file", &index_args->es_settings_path, "Path to Elasticsearch settings."),

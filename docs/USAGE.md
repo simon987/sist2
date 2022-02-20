@@ -13,7 +13,6 @@
     * [options](#web-options)
     * [examples](#web-examples)
     * [rewrite_url](#rewrite_url)
-    * [link to specific indices](#link-to-specific-indices)
 * [elasticsearch](#elasticsearch)
 * [exec-script](#exec-script)
 * [tagging](#tagging)
@@ -26,62 +25,66 @@ Usage: sist2 scan [OPTION]... PATH
    or: sist2 exec-script [OPTION]... INDEX
 Lightning-fast file system indexer and search tool.
 
-    -h, --help                    show this help message and exit
-    -v, --version                 Show version and exit
-    --verbose                     Turn on logging
-    --very-verbose                Turn on debug messages
+    -h, --help                        show this help message and exit
+    -v, --version                     Show version and exit
+    --verbose                         Turn on logging
+    --very-verbose                    Turn on debug messages
 
 Scan options
-    -t, --threads=<int>           Number of threads. DEFAULT=1
-    -q, --quality=<flt>           Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=3
-    --size=<int>                  Thumbnail size, in pixels. Use negative value to disable. DEFAULT=500
-    --content-size=<int>          Number of bytes to be extracted from text documents. Use negative value to disable. DEFAULT=32768
-    --incremental=<str>           Reuse an existing index and only scan modified files.
-    -o, --output=<str>            Output directory. DEFAULT=index.sist2/
-    --rewrite-url=<str>           Serve files from this url instead of from disk.
-    --name=<str>                  Index display name. DEFAULT: (name of the directory)
-    --depth=<int>                 Scan up to DEPTH subdirectories deep. Use 0 to only scan files in PATH. DEFAULT: -1
-    --archive=<str>               Archive file mode (skip|list|shallow|recurse). skip: Don't parse, list: only get file names as text, shallow: Don't parse archives inside archives. DEFAULT: recurse
-    --archive-passphrase=<str>    Passphrase for encrypted archive files
-    --ocr-lang=<str>              Tesseract language (use 'tesseract --list-langs' to see which are installed on your machine)
-    --ocr-images                  Enable OCR'ing of image files.
-    --ocr-ebooks                  Enable OCR'ing of ebook files.
-    -e, --exclude=<str>           Files that match this regex will not be scanned
-    --fast                        Only index file names & mime type
-    --treemap-threshold=<str>     Relative size threshold for treemap (see USAGE.md). DEFAULT: 0.0005
-    --mem-buffer=<int>            Maximum memory buffer size per thread in MB for files inside archives (see USAGE.md). DEFAULT: 2000
-    --read-subtitles              Read subtitles from media files.
-    --fast-epub                   Faster but less accurate EPUB parsing (no thumbnails, metadata)
-    --checksums                   Calculate file checksums when scanning.
-    --list-file=<str>             Specify a list of newline-delimited paths to be scanned instead of normal directory traversal. Use '-' to read from stdin.
+    -t, --threads=<int>               Number of threads. DEFAULT=1
+    --mem-throttle=<int>              Total memory threshold in MiB for scan throttling. DEFAULT=0
+    -q, --thumbnail-quality=<flt>     Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=1
+    --thumbnail-size=<int>            Thumbnail size, in pixels. DEFAULT=500
+    --thumbnail-count=<int>           Number of thumbnails to generate. Set a value > 1 to create video previews, set to 0 to disable thumbnails. DEFAULT=1
+    --content-size=<int>              Number of bytes to be extracted from text documents. Set to 0 to disable. DEFAULT=32768
+    --incremental=<str>               Reuse an existing index and only scan modified files.
+    -o, --output=<str>                Output directory. DEFAULT=index.sist2/
+    --rewrite-url=<str>               Serve files from this url instead of from disk.
+    --name=<str>                      Index display name. DEFAULT: (name of the directory)
+    --depth=<int>                     Scan up to DEPTH subdirectories deep. Use 0 to only scan files in PATH. DEFAULT: -1
+    --archive=<str>                   Archive file mode (skip|list|shallow|recurse). skip: Don't parse, list: only get file names as text, shallow: Don't parse archives inside archives. DEFAULT: recurse
+    --archive-passphrase=<str>        Passphrase for encrypted archive files
+    --ocr-lang=<str>                  Tesseract language (use 'tesseract --list-langs' to see which are installed on your machine)
+    --ocr-images                      Enable OCR'ing of image files.
+    --ocr-ebooks                      Enable OCR'ing of ebook files.
+    -e, --exclude=<str>               Files that match this regex will not be scanned
+    --fast                            Only index file names & mime type
+    --treemap-threshold=<str>         Relative size threshold for treemap (see USAGE.md). DEFAULT: 0.0005
+    --mem-buffer=<int>                Maximum memory buffer size per thread in MiB for files inside archives (see USAGE.md). DEFAULT: 2000
+    --read-subtitles                  Read subtitles from media files.
+    --fast-epub                       Faster but less accurate EPUB parsing (no thumbnails, metadata)
+    --checksums                       Calculate file checksums when scanning.
+    --list-file=<str>                 Specify a list of newline-delimited paths to be scanned instead of normal directory traversal. Use '-' to read from stdin.
 
 Index options
-    -t, --threads=<int>           Number of threads. DEFAULT=1
-    --es-url=<str>                Elasticsearch url with port. DEFAULT=http://localhost:9200
-    --es-index=<str>              Elasticsearch index name. DEFAULT=sist2
-    -p, --print                   Just print JSON documents to stdout.
-    --script-file=<str>           Path to user script.
-    --mappings-file=<str>         Path to Elasticsearch mappings.
-    --settings-file=<str>         Path to Elasticsearch settings.
-    --async-script                Execute user script asynchronously.
-    --batch-size=<int>            Index batch size. DEFAULT: 100
-    -f, --force-reset             Reset Elasticsearch mappings and settings. (You must use this option the first time you use the index command)
+    -t, --threads=<int>               Number of threads. DEFAULT=1
+    --es-url=<str>                    Elasticsearch url with port. DEFAULT=http://localhost:9200
+    --es-index=<str>                  Elasticsearch index name. DEFAULT=sist2
+    -p, --print                       Just print JSON documents to stdout.
+    --incremental-index               Conduct incremental indexing, assumes that the old index is already digested by Elasticsearch.
+    --script-file=<str>               Path to user script.
+    --mappings-file=<str>             Path to Elasticsearch mappings.
+    --settings-file=<str>             Path to Elasticsearch settings.
+    --async-script                    Execute user script asynchronously.
+    --batch-size=<int>                Index batch size. DEFAULT: 100
+    -f, --force-reset                 Reset Elasticsearch mappings and settings. (You must use this option the first time you use the index command)
 
 Web options
-    --es-url=<str>                Elasticsearch url. DEFAULT=http://localhost:9200
-    --es-index=<str>              Elasticsearch index name. DEFAULT=sist2
-    --bind=<str>                  Listen on this address. DEFAULT=localhost:4090
-    --auth=<str>                  Basic auth in user:password format
-    --tag-auth=<str>              Basic auth in user:password format for tagging
-    --tagline=<str>               Tagline in navbar
-    --dev                         Serve html & js files from disk (for development)
-    --lang=<str>                  Default UI language. Can be changed by the user
+    --es-url=<str>                    Elasticsearch url. DEFAULT=http://localhost:9200
+    --es-index=<str>                  Elasticsearch index name. DEFAULT=sist2
+    --bind=<str>                      Listen on this address. DEFAULT=localhost:4090
+    --auth=<str>                      Basic auth in user:password format
+    --tag-auth=<str>                  Basic auth in user:password format for tagging
+    --tagline=<str>                   Tagline in navbar
+    --dev                             Serve html & js files from disk (for development)
+    --lang=<str>                      Default UI language. Can be changed by the user
 
 Exec-script options
-    --es-url=<str>                Elasticsearch url. DEFAULT=http://localhost:9200
-    --es-index=<str>              Elasticsearch index name. DEFAULT=sist2
-    --script-file=<str>           Path to user script.
-    --async-script                Execute user script asynchronously.
+    --es-url=<str>                    Elasticsearch url. DEFAULT=http://localhost:9200
+    --es-index=<str>                  Elasticsearch index name. DEFAULT=sist2
+    --script-file=<str>               Path to user script.
+    --async-script                    Execute user script asynchronously.
+Made by simon987 <me@simon987.net>. Released under GPL-3.0
 ```
 
 ## Scan
@@ -90,13 +93,21 @@ Exec-script options
 
 * `-t, --threads` 
       Number of threads for file parsing. **Do not set a number higher than `$(nproc)` or `$(Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors` in Windows!**
-* `-q, --quality` 
+* `--mem-throttle`
+    Total memory threshold in MiB for scan throttling. Worker threads will not start a new parse job
+    until the total memory usage of sist2 is below this threshold. Set to 0 to disable. DEFAULT=0
+* `-q, --thumbnail-quality` 
     Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best.
-* `--size` 
+* `--thumbnail-size` 
     Thumbnail size in pixels.
+* `--thumbnail-count`
+    Maximum number of thumbnails to generate. When set to a value >= 2, thumbnails for video previews
+    will be generated. The actual number of thumbnails generated depends on the length of the video (maximum 1 image 
+    every ~5s). Set to 0 to completely disable thumbnails.
 * `--content-size` 
-    Number of bytes of text to be extracted from the content of files (plain text and PDFs).
+    Number of bytes of text to be extracted from the content of files (plain text, PDFs etc.).
     Repeated whitespace and special characters do not count toward this limit.
+    Set to 0 to completely disable content parsing.
 * `--incremental`
     Specify an existing index. Information about files in this index that were not modified (based on *mtime* attribute)
     will be copied to the new index and will not be parsed again.
@@ -129,13 +140,13 @@ Exec-script options
     In effect, smaller `treemap-threshold` values will yield a more detailed 
     (but also a more cluttered and harder to read) visualization. 
     
-* `--mem-buffer` Maximum memory buffer size in MB (per thread) for files inside archives. Media files 
+* `--mem-buffer` Maximum memory buffer size in MiB (per thread) for files inside archives. Media files 
     larger than this number will be read sequentially and no *seek* operations will be supported.
 
     To check if a media file can be parsed without *seek*, execute `cat file.mp4 | ffprobe -`
 * `--read-subtitles` When enabled, will attempt to read the subtitles stream from media files.
 * `--fast-epub` Much faster but less accurate EPUB parsing. When enabled, sist2 will use a simple HTML parser to read epub files instead of the MuPDF library. No thumbnails are generated and author/title metadata are not parsed.
-* `--checksums` Calculate file checksums (sha1) when scanning files. This option does not cause any additional read 
+* `--checksums` Calculate file checksums (SHA1) when scanning files. This option does not cause any additional read 
   operations. Checksums are not calculated for all file types, unless the file is inside an archive. When enabled, duplicate
   files are hidden in the web UI (this behaviour can be toggled in the Configuration page).
 
@@ -205,6 +216,9 @@ and values are raw image bytes.
     Elasticsearch index name. DEFAULT=sist2
  * `-p, --print` 
     Print index in JSON format to stdout.
+ * `--incremental-index`
+   Conduct incremental indexing. Assumes that the old index is already ingested in Elasticsearch.
+   Only the new changes since the last scan will be sent.
  * `--script-file` 
     Path to user script. See [Scripting](scripting.md).
  * `--mappings-file`
