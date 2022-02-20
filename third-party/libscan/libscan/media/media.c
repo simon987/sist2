@@ -558,7 +558,7 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
     }
 
     if (audio_stream != -1) {
-        append_audio_meta(pFormatCtx, doc);
+        append_audio_meta(ctx, pFormatCtx, doc);
     }
 
     if (video_stream != -1 && ctx->tn_count > 0) {
