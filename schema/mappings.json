@@ -39,7 +39,7 @@
       "index": false
     },
     "thumbnail": {
-      "type": "keyword",
+      "type": "integer",
       "index": false
     },
     "videoc": {

@@ -19,11 +19,7 @@
       </b-row>
       <b-row>
         <b-col sm="6">
-          <b-row>
-            <b-col style="height: 70px;">
-              <DateSlider></DateSlider>
-            </b-col>
-          </b-row>
+          <DateSlider></DateSlider>
           <b-row>
             <b-col>
               <IndexPicker></IndexPicker>
@@ -104,6 +100,10 @@ export default Vue.extend({
     ...mapGetters(["indices", "optDisplay"]),
   },
   mounted() {
+    // Handle touch events
+    window.ontouchend = () => this.$store.commit("busTouchEnd");
+    window.ontouchcancel = this.$store.commit("busTouchEnd");
+
     this.search = _debounce(async (clear: boolean) => {
       if (clear) {
         await this.clearResults();

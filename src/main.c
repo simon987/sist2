@@ -189,37 +189,41 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.comic_ctx.log = _log;
     ScanCtx.comic_ctx.logf = _logf;
     ScanCtx.comic_ctx.store = _store;
-    ScanCtx.comic_ctx.tn_size = args->size;
-    ScanCtx.comic_ctx.tn_qscale = args->quality;
+    ScanCtx.comic_ctx.enable_tn = args->tn_count > 0;
+    ScanCtx.comic_ctx.tn_size = args->tn_size;
+    ScanCtx.comic_ctx.tn_qscale = args->tn_quality;
     ScanCtx.comic_ctx.cbr_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/x-cbr");
     ScanCtx.comic_ctx.cbz_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/x-cbz");
 
     // Ebook
     pthread_mutex_init(&ScanCtx.ebook_ctx.mupdf_mutex, NULL);
     ScanCtx.ebook_ctx.content_size = args->content_size;
-    ScanCtx.ebook_ctx.tn_size = args->size;
+    ScanCtx.ebook_ctx.enable_tn = args->tn_count > 0;
+    ScanCtx.ebook_ctx.tn_size = args->tn_size;
     ScanCtx.ebook_ctx.tesseract_lang = args->tesseract_lang;
     ScanCtx.ebook_ctx.tesseract_path = args->tesseract_path;
     ScanCtx.ebook_ctx.log = _log;
     ScanCtx.ebook_ctx.logf = _logf;
     ScanCtx.ebook_ctx.store = _store;
     ScanCtx.ebook_ctx.fast_epub_parse = args->fast_epub;
-    ScanCtx.ebook_ctx.tn_qscale = args->quality;
+    ScanCtx.ebook_ctx.tn_qscale = args->tn_quality;
 
     // Font
-    ScanCtx.font_ctx.enable_tn = args->size > 0;
+    ScanCtx.font_ctx.enable_tn = args->tn_count > 0;
     ScanCtx.font_ctx.log = _log;
     ScanCtx.font_ctx.logf = _logf;
     ScanCtx.font_ctx.store = _store;
 
     // Media
-    ScanCtx.media_ctx.tn_qscale = args->quality;
-    ScanCtx.media_ctx.tn_size = args->size;
+    ScanCtx.media_ctx.tn_qscale = args->tn_quality;
+    ScanCtx.media_ctx.tn_size = args->tn_size;
+    ScanCtx.media_ctx.tn_count = args->tn_count;
     ScanCtx.media_ctx.log = _log;
     ScanCtx.media_ctx.logf = _logf;
     ScanCtx.media_ctx.store = _store;
-    ScanCtx.media_ctx.max_media_buffer = (long) args->max_memory_buffer * 1024 * 1024;
+    ScanCtx.media_ctx.max_media_buffer = (long) args->max_memory_buffer_mib * 1024 * 1024;
     ScanCtx.media_ctx.read_subtitles = args->read_subtitles;
+    ScanCtx.media_ctx.read_subtitles = args->tn_count;
 
     if (args->ocr_images) {
         ScanCtx.media_ctx.tesseract_lang = args->tesseract_lang;
@@ -228,6 +232,7 @@ void initialize_scan_context(scan_args_t *args) {
     init_media();
 
     // OOXML
+    ScanCtx.ooxml_ctx.enable_tn = args->tn_count > 0;
     ScanCtx.ooxml_ctx.content_size = args->content_size;
     ScanCtx.ooxml_ctx.log = _log;
     ScanCtx.ooxml_ctx.logf = _logf;
@@ -244,7 +249,8 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.text_ctx.logf = _logf;
 
     // MSDOC
-    ScanCtx.msdoc_ctx.tn_size = args->size;
+    ScanCtx.msdoc_ctx.enable_tn = args->tn_count > 0;
+    ScanCtx.msdoc_ctx.tn_size = args->tn_size;
     ScanCtx.msdoc_ctx.content_size = args->content_size;
     ScanCtx.msdoc_ctx.log = _log;
     ScanCtx.msdoc_ctx.logf = _logf;
@@ -253,6 +259,7 @@ void initialize_scan_context(scan_args_t *args) {
 
     ScanCtx.threads = args->threads;
     ScanCtx.depth = args->depth;
+    ScanCtx.mem_limit = (size_t) args->scan_mem_limit_mib * 1024 * 1024;
 
     strncpy(ScanCtx.index.path, args->output, sizeof(ScanCtx.index.path));
     strncpy(ScanCtx.index.desc.name, args->name, sizeof(ScanCtx.index.desc.name));
@@ -262,8 +269,9 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.fast = args->fast;
 
     // Raw
-    ScanCtx.raw_ctx.tn_qscale = args->quality;
-    ScanCtx.raw_ctx.tn_size = args->size;
+    ScanCtx.raw_ctx.tn_qscale = args->tn_quality;
+    ScanCtx.raw_ctx.enable_tn = args->tn_count > 0;
+    ScanCtx.raw_ctx.tn_size = args->tn_size;
     ScanCtx.raw_ctx.log = _log;
     ScanCtx.raw_ctx.logf = _logf;
     ScanCtx.raw_ctx.store = _store;
@@ -282,37 +290,87 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.json_ctx.ndjson_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/ndjson");
 }
 
-
+/**
+ * Loads an existing index as the baseline for incremental scanning.
+ *   1. load old index files (original+main) => original_table
+ *   2. allocate empty table                 => copy_table
+ *   3. allocate empty table                 => new_table
+ * the original_table/copy_table/new_table will be populated in parsing/parse.c:parse
+ * and consumed in main.c:save_incremental_index
+ *
+ * Note: the existing index may or may not be of incremental index form.
+ */
 void load_incremental_index(const scan_args_t *args) {
+    char file_path[PATH_MAX];
+
     ScanCtx.original_table = incremental_get_table();
     ScanCtx.copy_table = incremental_get_table();
-
-    DIR *dir = opendir(args->incremental);
-    if (dir == NULL) {
-        LOG_FATALF("main.c", "Could not open original index for incremental scan: %s", strerror(errno))
-    }
+    ScanCtx.new_table = incremental_get_table();
 
     char descriptor_path[PATH_MAX];
-    snprintf(descriptor_path, PATH_MAX, "%s/descriptor.json", args->incremental);
+    snprintf(descriptor_path, PATH_MAX, "%sdescriptor.json", args->incremental);
     index_descriptor_t original_desc = read_index_descriptor(descriptor_path);
 
     if (strcmp(original_desc.version, Version) != 0) {
         LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s", original_desc.version, Version)
     }
 
-    struct dirent *de;
-    while ((de = readdir(dir)) != NULL) {
-        if (strncmp(de->d_name, "_index", sizeof("_index") - 1) == 0) {
-            char file_path[PATH_MAX];
-            snprintf(file_path, PATH_MAX, "%s%s", args->incremental, de->d_name);
-            incremental_read(ScanCtx.original_table, file_path, &original_desc);
-        }
-    }
-    closedir(dir);
+    READ_INDICES(file_path, args->incremental, incremental_read(ScanCtx.original_table, file_path, &original_desc),
+                 LOG_FATALF("main.c", "Could not open original main index for incremental scan: %s", strerror(errno)),
+                 1);
 
     LOG_INFOF("main.c", "Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table))
 }
 
+/**
+ * Saves an incremental index.
+ * Before calling this function, the scanner should have finished writing the main index.
+ *   1. Build original_table - new_table => delete_table
+ *   2. Incrementally copy from old index files [(original+main) /\ copy_table] => index_original.ndjson.zst & store
+ */
+void save_incremental_index(scan_args_t *args) {
+    char dst_path[PATH_MAX];
+    char store_path[PATH_MAX];
+    char file_path[PATH_MAX];
+    char del_path[PATH_MAX];
+    snprintf(store_path, PATH_MAX, "%sthumbs", args->incremental);
+    snprintf(dst_path, PATH_MAX, "%s_index_original.ndjson.zst", ScanCtx.index.path);
+    store_t *source = store_create(store_path, STORE_SIZE_TN);
+
+    LOG_INFOF("main.c", "incremental_delete: original size = %u, copy size = %u, new size = %u",
+              g_hash_table_size(ScanCtx.original_table),
+              g_hash_table_size(ScanCtx.copy_table),
+              g_hash_table_size(ScanCtx.new_table));
+    snprintf(del_path, PATH_MAX, "%s_index_delete.list.zst", ScanCtx.index.path);
+    READ_INDICES(file_path, args->incremental,
+                 incremental_delete(del_path, file_path, ScanCtx.copy_table, ScanCtx.new_table),
+                 perror("incremental_delete"), 1);
+    writer_cleanup();
+
+    READ_INDICES(file_path, args->incremental,
+                 incremental_copy(source, ScanCtx.index.store, file_path, dst_path, ScanCtx.copy_table),
+                 perror("incremental_copy"), 1);
+    writer_cleanup();
+
+    store_destroy(source);
+
+    snprintf(store_path, PATH_MAX, "%stags", args->incremental);
+    snprintf(dst_path, PATH_MAX, "%stags", ScanCtx.index.path);
+    store_t *source_tags = store_create(store_path, STORE_SIZE_TAG);
+    store_copy(source_tags, dst_path);
+    store_destroy(source_tags);
+}
+
+/**
+ * An index can be either incremental or non-incremental (initial index).
+ * For an initial index, there is only the "main" index.
+ * For an incremental index, there are, additionally:
+ *   - An "original" index, referencing all files unchanged since the previous index.
+ *   - A "delete" index, referencing all files that exist in the previous index, but deleted since then.
+ * Therefore, for an incremental index, "main"+"original" covers all the current files in the live filesystem,
+ * and is orthognal with the "delete" index. When building an incremental index upon an old incremental index,
+ * the old "delete" index can be safely ignored.
+ */
 void sist2_scan(scan_args_t *args) {
 
     ScanCtx.mime_table = mime_get_mime_table();
@@ -335,10 +393,10 @@ void sist2_scan(scan_args_t *args) {
         load_incremental_index(args);
     }
 
-    ScanCtx.pool = tpool_create(args->threads, thread_cleanup, TRUE, TRUE);
+    ScanCtx.pool = tpool_create(ScanCtx.threads, thread_cleanup, TRUE, TRUE, ScanCtx.mem_limit);
     tpool_start(ScanCtx.pool);
 
-    ScanCtx.writer_pool = tpool_create(1, writer_cleanup, TRUE, FALSE);
+    ScanCtx.writer_pool = tpool_create(1, writer_cleanup, TRUE, FALSE, 0);
     tpool_start(ScanCtx.writer_pool);
 
     if (args->list_path) {
@@ -364,35 +422,11 @@ void sist2_scan(scan_args_t *args) {
     LOG_DEBUGF("main.c", "Skipped files: %d", ScanCtx.dbg_skipped_files_count)
     LOG_DEBUGF("main.c", "Excluded files: %d", ScanCtx.dbg_excluded_files_count)
     LOG_DEBUGF("main.c", "Failed files: %d", ScanCtx.dbg_failed_files_count)
+    LOG_DEBUGF("main.c", "Thumbnail store size: %d", ScanCtx.stat_tn_size)
+    LOG_DEBUGF("main.c", "Index size: %d", ScanCtx.stat_index_size)
 
     if (args->incremental != NULL) {
-        char dst_path[PATH_MAX];
-        snprintf(store_path, PATH_MAX, "%sthumbs", args->incremental);
-        snprintf(dst_path, PATH_MAX, "%s_index_original.ndjson.zst", ScanCtx.index.path);
-        store_t *source = store_create(store_path, STORE_SIZE_TN);
-
-        DIR *dir = opendir(args->incremental);
-        if (dir == NULL) {
-            perror("opendir");
-            return;
-        }
-        struct dirent *de;
-        while ((de = readdir(dir)) != NULL) {
-            if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
-                char file_path[PATH_MAX];
-                snprintf(file_path, PATH_MAX, "%s%s", args->incremental, de->d_name);
-                incremental_copy(source, ScanCtx.index.store, file_path, dst_path, ScanCtx.copy_table);
-            }
-        }
-        closedir(dir);
-        store_destroy(source);
-        writer_cleanup();
-
-        snprintf(store_path, PATH_MAX, "%stags", args->incremental);
-        snprintf(dst_path, PATH_MAX, "%stags", ScanCtx.index.path);
-        store_t *source_tags = store_create(store_path, STORE_SIZE_TAG);
-        store_copy(source_tags, dst_path);
-        store_destroy(source_tags);
+        save_incremental_index(args);
     }
 
     generate_stats(&ScanCtx.index, args->treemap_threshold, ScanCtx.index.path);
@@ -402,17 +436,19 @@ void sist2_scan(scan_args_t *args) {
 }
 
 void sist2_index(index_args_t *args) {
+    char file_path[PATH_MAX];
 
     IndexCtx.es_url = args->es_url;
     IndexCtx.es_index = args->es_index;
     IndexCtx.batch_size = args->batch_size;
+    IndexCtx.needs_es_connection = !args->print;
 
-    if (!args->print) {
+    if (IndexCtx.needs_es_connection) {
         elastic_init(args->force_reset, args->es_mappings, args->es_settings);
     }
 
     char descriptor_path[PATH_MAX];
-    snprintf(descriptor_path, PATH_MAX, "%s/descriptor.json", args->index_path);
+    snprintf(descriptor_path, PATH_MAX, "%sdescriptor.json", args->index_path);
 
     index_descriptor_t desc = read_index_descriptor(descriptor_path);
 
@@ -428,11 +464,11 @@ void sist2_index(index_args_t *args) {
     }
 
     char path_tmp[PATH_MAX];
-    snprintf(path_tmp, sizeof(path_tmp), "%s/tags", args->index_path);
+    snprintf(path_tmp, sizeof(path_tmp), "%stags", args->index_path);
     IndexCtx.tag_store = store_create(path_tmp, STORE_SIZE_TAG);
     IndexCtx.tags = store_read_all(IndexCtx.tag_store);
 
-    snprintf(path_tmp, sizeof(path_tmp), "%s/meta", args->index_path);
+    snprintf(path_tmp, sizeof(path_tmp), "%smeta", args->index_path);
     IndexCtx.meta_store = store_create(path_tmp, STORE_SIZE_META);
     IndexCtx.meta = store_read_all(IndexCtx.meta_store);
 
@@ -443,32 +479,33 @@ void sist2_index(index_args_t *args) {
         f = index_json;
     }
 
-    void (*cleanup)();
-    if (args->print) {
-        cleanup = NULL;
-    } else {
-        cleanup = elastic_cleanup;
-    }
-
-    IndexCtx.pool = tpool_create(args->threads, cleanup, FALSE, args->print == 0);
+    IndexCtx.pool = tpool_create(args->threads, elastic_cleanup, FALSE, args->print == 0, 0);
     tpool_start(IndexCtx.pool);
 
-    struct dirent *de;
-    while ((de = readdir(dir)) != NULL) {
-        if (strncmp(de->d_name, "_index_", sizeof("_index_") - 1) == 0) {
-            char file_path[PATH_MAX];
-            snprintf(file_path, PATH_MAX, "%s/%s", args->index_path, de->d_name);
-            read_index(file_path, desc.id, desc.type, f);
+    READ_INDICES(file_path, args->index_path, {
+        read_index(file_path, desc.id, desc.type, f);
+        LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type);
+    }, {}, !args->incremental);
+
+    // Only read the _delete index if we're sending data to ES
+    if (!args->print) {
+        snprintf(file_path, PATH_MAX, "%s_index_delete.list.zst", args->index_path);
+        if (0 == access(file_path, R_OK)) {
+            read_lines(file_path, (line_processor_t) {
+                    .data = NULL,
+                    .func = delete_document
+            });
             LOG_DEBUGF("main.c", "Read index file %s (%s)", file_path, desc.type)
         }
     }
+
     closedir(dir);
 
     tpool_wait(IndexCtx.pool);
 
     tpool_destroy(IndexCtx.pool);
 
-    if (!args->print) {
+    if (IndexCtx.needs_es_connection) {
         finish_indexer(args->script, args->async_script, desc.id);
     }
 
@@ -483,7 +520,7 @@ void sist2_exec_script(exec_args_t *args) {
     LogCtx.verbose = TRUE;
 
     char descriptor_path[PATH_MAX];
-    snprintf(descriptor_path, PATH_MAX, "%s/descriptor.json", args->index_path);
+    snprintf(descriptor_path, PATH_MAX, "%sdescriptor.json", args->index_path);
     index_descriptor_t desc = read_index_descriptor(descriptor_path);
 
     IndexCtx.es_url = args->es_url;
@@ -526,11 +563,32 @@ void sist2_web(web_args_t *args) {
         WebCtx.indices[i].desc = read_index_descriptor(path_tmp);
 
         strcpy(WebCtx.indices[i].path, abs_path);
-        printf("Loaded index: %s\n", WebCtx.indices[i].desc.name);
+        LOG_INFOF("main.c", "Loaded index: [%s]", WebCtx.indices[i].desc.name)
         free(abs_path);
     }
 
     serve(args->listen_address);
+}
+
+/**
+ * Callback to handle options such that
+ *
+ *   Unspecified              -> 0: Set to default value
+ *   Specified "0"            -> -1: Disable the option (ex. don't generate thumbnails)
+ *   Negative number          -> Raise error
+ *   Specified a valid number -> Continue as normal
+ */
+int set_to_negative_if_value_is_zero(struct argparse *self, const struct argparse_option *option) {
+    int specified_value = *(int *) option->value;
+
+    if (specified_value == 0) {
+        *((int *) option->data) = OPTION_VALUE_DISABLE;
+    }
+
+    if (specified_value < 0) {
+        fprintf(stderr, "error: option `--%s` Value must be >= 0\n", option->long_name);
+        exit(1);
+    }
 }
 
 
@@ -562,12 +620,21 @@ int main(int argc, const char *argv[]) {
 
             OPT_GROUP("Scan options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
-            OPT_FLOAT('q', "quality", &scan_args->quality,
-                      "Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=3"),
-            OPT_INTEGER(0, "size", &scan_args->size,
-                        "Thumbnail size, in pixels. Use negative value to disable. DEFAULT=500"),
+            OPT_INTEGER(0, "mem-throttle", &scan_args->scan_mem_limit_mib,
+                        "Total memory threshold in MiB for scan throttling. DEFAULT=0",
+                        set_to_negative_if_value_is_zero, (intptr_t) &scan_args->scan_mem_limit_mib),
+            OPT_FLOAT('q', "thumbnail-quality", &scan_args->tn_quality,
+                      "Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=1",
+                      set_to_negative_if_value_is_zero, (intptr_t) &scan_args->tn_quality),
+            OPT_INTEGER(0, "thumbnail-size", &scan_args->tn_size,
+                        "Thumbnail size, in pixels. DEFAULT=500",
+                        set_to_negative_if_value_is_zero, (intptr_t) &scan_args->tn_size),
+            OPT_INTEGER(0, "thumbnail-count", &scan_args->tn_count,
+                        "Number of thumbnails to generate. Set a value > 1 to create video previews, set to 0 to disable thumbnails. DEFAULT=1",
+                        set_to_negative_if_value_is_zero, (intptr_t) &scan_args->tn_count),
             OPT_INTEGER(0, "content-size", &scan_args->content_size,
-                        "Number of bytes to be extracted from text documents. Use negative value to disable. DEFAULT=32768"),
+                        "Number of bytes to be extracted from text documents. Set to 0 to disable. DEFAULT=32768",
+                        set_to_negative_if_value_is_zero, (intptr_t) &scan_args->content_size),
             OPT_STRING(0, "incremental", &scan_args->incremental,
                        "Reuse an existing index and only scan modified files."),
             OPT_STRING('o', "output", &scan_args->output, "Output directory. DEFAULT=index.sist2/"),
@@ -590,8 +657,8 @@ int main(int argc, const char *argv[]) {
             OPT_BOOLEAN(0, "fast", &scan_args->fast, "Only index file names & mime type"),
             OPT_STRING(0, "treemap-threshold", &scan_args->treemap_threshold_str, "Relative size threshold for treemap "
                                                                                   "(see USAGE.md). DEFAULT: 0.0005"),
-            OPT_INTEGER(0, "mem-buffer", &scan_args->max_memory_buffer,
-                        "Maximum memory buffer size per thread in MB for files inside archives "
+            OPT_INTEGER(0, "mem-buffer", &scan_args->max_memory_buffer_mib,
+                        "Maximum memory buffer size per thread in MiB for files inside archives "
                         "(see USAGE.md). DEFAULT: 2000"),
             OPT_BOOLEAN(0, "read-subtitles", &scan_args->read_subtitles, "Read subtitles from media files."),
             OPT_BOOLEAN(0, "fast-epub", &scan_args->fast_epub,
@@ -606,6 +673,8 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT=http://localhost:9200"),
             OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT=sist2"),
             OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
+            OPT_BOOLEAN(0, "incremental-index", &index_args->incremental,
+                        "Conduct incremental indexing, assumes that the old index is already digested by Elasticsearch."),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
             OPT_STRING(0, "mappings-file", &index_args->es_mappings_path, "Path to Elasticsearch mappings."),
             OPT_STRING(0, "settings-file", &index_args->es_settings_path, "Path to Elasticsearch settings."),

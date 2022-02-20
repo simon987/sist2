@@ -6,7 +6,6 @@
 #define AVIO_BUF_SIZE 8192
 #define IS_VIDEO(fmt) ((fmt)->iformat->name && strcmp((fmt)->iformat->name, "image2") != 0)
 
-#define STREAM_IS_IMAGE (stream->nb_frames <= 1)
 
 #define STORE_AS_IS ((void*)-1)
 
@@ -398,6 +397,110 @@ void ocr_image(scan_media_ctx_t *ctx, document_t *doc, const AVCodecContext *dec
     av_frame_free(&rgb_frame);
 }
 
+#define SAVE_THUMBNAIL_OK 0
+#define SAVE_THUMBNAIL_SKIPPED 1
+#define SAVE_THUMBNAIL_FAILED 2
+
+int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, AVCodecContext *decoder,
+                                    AVStream *stream, int video_stream, document_t *doc, double seek_ratio,
+                                    int thumbnail_index) {
+
+    if (IS_VIDEO(pFormatCtx) && stream->codecpar->codec_id != AV_CODEC_ID_GIF) {
+        int seek_ok = FALSE;
+
+        double target_timestamp = (double) pFormatCtx->duration * seek_ratio;
+        long ts = (long) target_timestamp;
+
+        int seek_ret = avformat_seek_file(
+                // Allow +- 1s
+                pFormatCtx, -1, ts - AV_TIME_BASE, ts, ts + AV_TIME_BASE,
+                0
+        );
+
+        if (seek_ret == 0) {
+            seek_ok = TRUE;
+        } else {
+            CTX_LOG_DEBUGF(
+                    doc->filepath,
+                    "(media.c) Could not seek media file: %s", av_err2str(seek_ret)
+            )
+        }
+
+        if (seek_ok == FALSE && thumbnail_index != 0) {
+            CTX_LOG_WARNING(doc->filepath, "(media.c) Could not seek media file. Can't generate additional thumbnails.")
+            return SAVE_THUMBNAIL_FAILED;
+        }
+    }
+
+    frame_and_packet_t *frame_and_packet = read_frame(ctx, pFormatCtx, decoder, video_stream, doc);
+    if (frame_and_packet == NULL) {
+        return SAVE_THUMBNAIL_FAILED;
+    }
+
+    if (ctx->tesseract_lang != NULL && IS_VIDEO(pFormatCtx)) {
+        ocr_image(ctx, doc, decoder, frame_and_packet->frame);
+    }
+
+    // NOTE: OCR'd content takes precedence over exif image description
+    if (thumbnail_index == 0) {
+        append_video_meta(ctx, pFormatCtx, frame_and_packet->frame, doc, IS_VIDEO(pFormatCtx));
+    }
+
+    // Scale frame
+    AVFrame *scaled_frame = scale_frame(decoder, frame_and_packet->frame, ctx->tn_size);
+
+    if (scaled_frame == NULL) {
+        frame_and_packet_free(frame_and_packet);
+        return SAVE_THUMBNAIL_FAILED;
+    }
+
+    int return_value;
+
+    if (scaled_frame == STORE_AS_IS) {
+        return_value = SAVE_THUMBNAIL_OK;
+
+        ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) frame_and_packet->packet->data,
+                   frame_and_packet->packet->size);
+    } else {
+        // Encode frame to jpeg
+        AVCodecContext *jpeg_encoder = alloc_jpeg_encoder(scaled_frame->width, scaled_frame->height,
+                                                          ctx->tn_qscale);
+        avcodec_send_frame(jpeg_encoder, scaled_frame);
+
+        AVPacket jpeg_packet;
+        av_init_packet(&jpeg_packet);
+        avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
+
+        // Save thumbnail
+        if (thumbnail_index == 0) {
+            ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) jpeg_packet.data, jpeg_packet.size);
+            return_value = SAVE_THUMBNAIL_OK;
+
+        } else if (thumbnail_index > 1) {
+            return_value = SAVE_THUMBNAIL_OK;
+            // TO FIX: the 2nd rendered frame is always broken, just skip it until
+            //  I figure out a better fix.
+            thumbnail_index -= 1;
+
+            char tn_key[sizeof(doc->path_md5) + sizeof(int)];
+            memcpy(tn_key, doc->path_md5, sizeof(doc->path_md5));
+            memcpy(tn_key + sizeof(doc->path_md5), &thumbnail_index, sizeof(thumbnail_index));
+
+            ctx->store((char *) tn_key, sizeof(tn_key), (char *) jpeg_packet.data, jpeg_packet.size);
+        } else {
+            return_value = SAVE_THUMBNAIL_SKIPPED;
+        }
+
+        avcodec_free_context(&jpeg_encoder);
+        av_packet_unref(&jpeg_packet);
+        av_free(*scaled_frame->data);
+        av_frame_free(&scaled_frame);
+    }
+
+    frame_and_packet_free(frame_and_packet);
+    return return_value;
+}
+
 void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, document_t *doc) {
 
     int video_stream = -1;
@@ -458,7 +561,7 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
         append_audio_meta(pFormatCtx, doc);
     }
 
-    if (video_stream != -1 && ctx->tn_size > 0) {
+    if (video_stream != -1 && ctx->tn_count > 0) {
         AVStream *stream = pFormatCtx->streams[video_stream];
 
         if (stream->codecpar->width <= MIN_SIZE || stream->codecpar->height <= MIN_SIZE) {
@@ -473,69 +576,38 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
         avcodec_parameters_to_context(decoder, stream->codecpar);
         avcodec_open2(decoder, video_codec, NULL);
 
-        //Seek
-        if (!STREAM_IS_IMAGE && stream->codecpar->codec_id != AV_CODEC_ID_GIF) {
-            int seek_ret;
-            for (int i = 20; i >= 0; i--) {
-                seek_ret = av_seek_frame(pFormatCtx, video_stream,
-                                         (long) ((double) stream->duration * 0.10), 0);
-                if (seek_ret == 0) {
-                    break;
-                }
+        int video_duration_in_seconds = (int) (pFormatCtx->duration / AV_TIME_BASE);
+
+        int thumbnails_to_generate = (IS_VIDEO(pFormatCtx) && stream->codecpar->codec_id != AV_CODEC_ID_GIF && video_duration_in_seconds >= 15)
+                                     // Limit to ~1 thumbnail every 5s
+                                     ? MAX(MIN(ctx->tn_count, video_duration_in_seconds / 5 + 1), 1) + 1
+                                     : 1;
+
+        const double seek_increment = thumbnails_to_generate == 1
+                                      ? 0.10
+                                      : 1.0 / (thumbnails_to_generate + 1);
+
+        int number_of_thumbnails_generated = 0;
+        int save_thumbnail_ret;
+
+        for (int i = 0; i < thumbnails_to_generate; i++) {
+            double seek_ratio = seek_increment * i + seek_increment * 0.9;
+
+            save_thumbnail_ret = decode_frame_and_save_thumbnail(ctx, pFormatCtx, decoder, stream, video_stream, doc,
+                                                                 seek_ratio, i);
+            if (save_thumbnail_ret == SAVE_THUMBNAIL_FAILED) {
+                break;
+            }
+
+            if (save_thumbnail_ret == SAVE_THUMBNAIL_OK) {
+                number_of_thumbnails_generated += 1;
             }
         }
 
-        frame_and_packet_t *frame_and_packet = read_frame(ctx, pFormatCtx, decoder, video_stream, doc);
-        if (frame_and_packet == NULL) {
-            avcodec_free_context(&decoder);
-            avformat_close_input(&pFormatCtx);
-            avformat_free_context(pFormatCtx);
-            return;
+        if (number_of_thumbnails_generated > 0) {
+            APPEND_LONG_META(doc, MetaThumbnail, number_of_thumbnails_generated)
         }
 
-        if (ctx->tesseract_lang != NULL && STREAM_IS_IMAGE) {
-            ocr_image(ctx, doc, decoder, frame_and_packet->frame);
-        }
-
-        // NOTE: OCR'd content takes precedence over exif image description
-        append_video_meta(ctx, pFormatCtx, frame_and_packet->frame, doc, IS_VIDEO(pFormatCtx));
-
-        // Scale frame
-        AVFrame *scaled_frame = scale_frame(decoder, frame_and_packet->frame, ctx->tn_size);
-
-        if (scaled_frame == NULL) {
-            frame_and_packet_free(frame_and_packet);
-            avcodec_free_context(&decoder);
-            avformat_close_input(&pFormatCtx);
-            avformat_free_context(pFormatCtx);
-            return;
-        }
-
-        if (scaled_frame == STORE_AS_IS) {
-            APPEND_TN_META(doc, frame_and_packet->frame->width, frame_and_packet->frame->height)
-            ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) frame_and_packet->packet->data,
-                       frame_and_packet->packet->size);
-        } else {
-            // Encode frame to jpeg
-            AVCodecContext *jpeg_encoder = alloc_jpeg_encoder(scaled_frame->width, scaled_frame->height,
-                                                              ctx->tn_qscale);
-            avcodec_send_frame(jpeg_encoder, scaled_frame);
-
-            AVPacket jpeg_packet;
-            av_init_packet(&jpeg_packet);
-            avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
-
-            // Save thumbnail
-            APPEND_TN_META(doc, scaled_frame->width, scaled_frame->height)
-            ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) jpeg_packet.data, jpeg_packet.size);
-
-            avcodec_free_context(&jpeg_encoder);
-            av_packet_unref(&jpeg_packet);
-            av_free(*scaled_frame->data);
-            av_frame_free(&scaled_frame);
-        }
-
-        frame_and_packet_free(frame_and_packet);
         avcodec_free_context(&decoder);
     }
 
@@ -772,7 +844,7 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
     }
 
     if (scaled_frame == STORE_AS_IS) {
-        APPEND_TN_META(doc, frame_and_packet->frame->width, frame_and_packet->frame->height)
+        APPEND_LONG_META(doc, MetaThumbnail, 1)
         ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) frame_and_packet->packet->data,
                    frame_and_packet->packet->size);
     } else {
@@ -786,7 +858,7 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
         avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
 
         // Save thumbnail
-        APPEND_TN_META(doc, scaled_frame->width, scaled_frame->height)
+        APPEND_LONG_META(doc, MetaThumbnail, 1)
         ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) jpeg_packet.data, jpeg_packet.size);
 
         av_packet_unref(&jpeg_packet);

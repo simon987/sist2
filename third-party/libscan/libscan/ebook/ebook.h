@@ -6,6 +6,7 @@
 typedef struct {
     long content_size;
     int tn_size;
+    int enable_tn;
     const char *tesseract_lang;
     const char *tesseract_path;
     pthread_mutex_t mupdf_mutex;

@@ -1,0 +1,6 @@
+[Unit]
+Description=sist2-update
+
+[Service]
+User=yatli
+ExecStart=/bin/bash /usr/bin/sist2-update-all.sh

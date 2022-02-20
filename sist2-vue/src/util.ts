@@ -1,8 +1,12 @@
 import {EsHit} from "@/Sist2Api";
 
 export function ext(hit: EsHit) {
-    return Object.prototype.hasOwnProperty.call(hit._source, "extension")
-    && hit["_source"]["extension"] !== "" ? "." + hit["_source"]["extension"] : "";
+    return srcExt(hit._source)
+}
+
+export function srcExt(src) {
+    return Object.prototype.hasOwnProperty.call(src, "extension")
+        && src["extension"] !== "" ? "." + src["extension"] : "";
 }
 
 export function strUnescape(str: string): string {

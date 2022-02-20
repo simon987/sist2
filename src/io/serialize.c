@@ -133,6 +133,7 @@ char *build_json_string(document_t *doc) {
     while (meta != NULL) {
 
         switch (meta->key) {
+            case MetaThumbnail:
             case MetaPages:
             case MetaWidth:
             case MetaHeight:
@@ -163,7 +164,6 @@ char *build_json_string(document_t *doc) {
             case MetaExifModel:
             case MetaAuthor:
             case MetaModifiedBy:
-            case MetaThumbnail:
             case MetaExifGpsLongitudeDMS:
             case MetaExifGpsLongitudeDec:
             case MetaExifGpsLongitudeRef:
@@ -398,7 +398,7 @@ void read_index_bin_handle_line(const char *line, const char *index_id, index_fu
     }
 }
 
-void read_index_ndjson(const char *path, const char *index_id, index_func func) {
+void read_lines(const char *path, const line_processor_t processor) {
     dyn_buffer_t buf = dyn_buffer_create();
 
     // Initialize zstd things
@@ -427,7 +427,7 @@ void read_index_ndjson(const char *path, const char *index_id, index_func func) 
 
                 if (c == '\n') {
                     dyn_buffer_write_char(&buf, '\0');
-                    read_index_bin_handle_line(buf.buf, index_id, func);
+                    processor.func(buf.buf, processor.data);
                     buf.cur = 0;
                 } else {
                     dyn_buffer_write_char(&buf, c);
@@ -452,12 +452,22 @@ void read_index_ndjson(const char *path, const char *index_id, index_func func) 
 
     dyn_buffer_destroy(&buf);
     fclose(file);
+
+}
+
+void read_index_ndjson(const char *line, void* _data) {
+    void** data = _data;
+    const char* index_id = data[0];
+    index_func func = data[1];
+    read_index_bin_handle_line(line, index_id, func);
 }
 
 void read_index(const char *path, const char index_id[MD5_STR_LENGTH], const char *type, index_func func) {
-
     if (strcmp(type, INDEX_TYPE_NDJSON) == 0) {
-        read_index_ndjson(path, index_id, func);
+        read_lines(path, (line_processor_t) {
+            .data = (void*[2]){(void*)index_id, func} ,
+            .func = read_index_ndjson,
+        });
     }
 }
 
@@ -476,6 +486,7 @@ void incremental_read(GHashTable *table, const char *filepath, index_descriptor_
 }
 
 static __thread GHashTable *IncrementalCopyTable = NULL;
+static __thread GHashTable *IncrementalNewTable = NULL;
 static __thread store_t *IncrementalCopySourceStore = NULL;
 static __thread store_t *IncrementalCopyDestinationStore = NULL;
 
@@ -523,4 +534,34 @@ void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
     IncrementalCopyDestinationStore = dst_store;
 
     read_index(filepath, "", INDEX_TYPE_NDJSON, incremental_copy_handle_doc);
+}
+
+void incremental_delete_handle_doc(cJSON *document, UNUSED(const char id_str[MD5_STR_LENGTH])) {
+
+    char path_md5_n[MD5_STR_LENGTH + 1];
+    path_md5_n[MD5_STR_LENGTH] = '\0';
+    path_md5_n[MD5_STR_LENGTH - 1] = '\n';
+    const char *path_md5_str = cJSON_GetObjectItem(document, "_id")->valuestring;
+
+    // do not delete archive virtual entries
+    if (cJSON_GetObjectItem(document, "parent") == NULL 
+        && !incremental_get_str(IncrementalCopyTable, path_md5_str)
+        && !incremental_get_str(IncrementalNewTable, path_md5_str)
+        ) {
+        memcpy(path_md5_n, path_md5_str, MD5_STR_LENGTH - 1);
+        zstd_write_string(path_md5_n, MD5_STR_LENGTH);
+    }
+}
+
+void incremental_delete(const char *del_filepath, const char* index_filepath, 
+                        GHashTable *copy_table, GHashTable *new_table) {
+
+    if (WriterCtx.out_file == NULL) {
+        initialize_writer_ctx(del_filepath);
+    }
+
+    IncrementalCopyTable = copy_table;
+    IncrementalNewTable = new_table;
+
+    read_index(index_filepath, "", INDEX_TYPE_NDJSON, incremental_delete_handle_doc);
 }

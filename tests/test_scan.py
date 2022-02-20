@@ -39,7 +39,7 @@ def sist2_index(files, *args):
     return iter(sist2_index_to_dict("test_i"))
 
 
-def sist2_incremental_index(files, func=None, *args):
+def sist2_incremental_index(files, func=None, incremental_index=False, *args):
     path = copy_files(files)
 
     if func:
@@ -47,11 +47,13 @@ def sist2_incremental_index(files, func=None, *args):
 
     shutil.rmtree("test_i_inc", ignore_errors=True)
     sist2("scan", path, "-o", "test_i_inc", "--incremental", "test_i", *args)
-    return iter(sist2_index_to_dict("test_i_inc"))
+    return iter(sist2_index_to_dict("test_i_inc", incremental_index))
 
 
-def sist2_index_to_dict(index):
-    res = sist2("index", "--print", index)
+def sist2_index_to_dict(index, incremental_index=False):
+    args = ["--incremental-index"] if incremental_index else []
+
+    res = sist2("index", "--print", "--very-verbose", *args, index)
 
     for line in res.splitlines():
         if line:
@@ -75,6 +77,7 @@ class ScanTest(unittest.TestCase):
 
         file_count = sum(1 for _ in sist2_index(TEST_FILES))
         self.assertEqual(sum(1 for _ in sist2_incremental_index(TEST_FILES, remove_files)), file_count - 2)
+        self.assertEqual(sum(1 for _ in sist2_incremental_index(TEST_FILES, add_files, incremental_index=True)), 3)
         self.assertEqual(sum(1 for _ in sist2_incremental_index(TEST_FILES, add_files)), file_count + 3)
 
 

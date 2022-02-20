@@ -3,9 +3,13 @@
 
 #include "src/sist.h"
 
+#define ES_BULK_LINE_INDEX 0
+#define ES_BULK_LINE_DELETE 1
+
 typedef struct es_bulk_line {
     struct es_bulk_line *next;
     char path_md5_str[MD5_STR_LENGTH];
+    int type;
     char line[0];
 } es_bulk_line_t;
 
@@ -39,6 +43,8 @@ void elastic_index_line(es_bulk_line_t *line);
 void print_json(cJSON *document, const char index_id_str[MD5_STR_LENGTH]);
 
 void index_json(cJSON *document, const char index_id_str[MD5_STR_LENGTH]);
+
+void delete_document(const char *document_id_str, void* data);
 
 es_indexer_t *create_indexer(const char *url, const char *index);
 

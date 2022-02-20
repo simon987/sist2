@@ -17,6 +17,9 @@ typedef struct {
 
     int tn_size;
     float tn_qscale;
+    /** Number of thumbnails to generate for videos */
+    int tn_count;
+
     long max_media_buffer;
     int read_subtitles;
 

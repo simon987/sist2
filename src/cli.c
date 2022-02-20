@@ -5,7 +5,8 @@
 #define DEFAULT_OUTPUT "index.sist2/"
 #define DEFAULT_CONTENT_SIZE 32768
 #define DEFAULT_QUALITY 1
-#define DEFAULT_SIZE 300
+#define DEFAULT_THUMBNAIL_SIZE 500
+#define DEFAULT_THUMBNAIL_COUNT 1
 #define DEFAULT_REWRITE_URL ""
 
 #define DEFAULT_ES_URL "http://localhost:9200"
@@ -18,6 +19,8 @@
 #define DEFAULT_TREEMAP_THRESHOLD 0.0005
 
 #define DEFAULT_MAX_MEM_BUFFER 2000
+
+#define DEFAULT_THROTTLE_MEMORY_THRESHOLD 0
 
 const char *TESS_DATAPATHS[] = {
         "/usr/share/tessdata/",
@@ -65,6 +68,10 @@ void index_args_destroy(index_args_t *args) {
     if (args->es_settings_path) {
         free(args->es_settings);
     }
+
+    if (args->index_path != NULL) {
+        free(args->index_path);
+    }
     free(args);
 }
 
@@ -85,13 +92,12 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
     char *abs_path = abspath(argv[1]);
     if (abs_path == NULL) {
-        fprintf(stderr, "File not found: %s\n", argv[1]);
-        return 1;
+        LOG_FATALF("cli.c", "Invalid PATH argument. File not found: %s", argv[1])
     } else {
         args->path = abs_path;
     }
 
-    if (args->incremental != NULL) {
+    if (args->incremental != OPTION_VALUE_UNSPECIFIED) {
         args->incremental = abspath(args->incremental);
         if (abs_path == NULL) {
             sist_log("main.c", LOG_SIST_WARNING, "Could not open original index! Disabled incremental scan feature.");
@@ -99,32 +105,39 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         }
     }
 
-    if (args->quality == 0) {
-        args->quality = DEFAULT_QUALITY;
-    } else if (args->quality < 1 || args->quality > 31) {
-        fprintf(stderr, "Invalid quality: %f\n", args->quality);
+    if (args->tn_quality == OPTION_VALUE_UNSPECIFIED) {
+        args->tn_quality = DEFAULT_QUALITY;
+    } else if (args->tn_quality < 1.0f || args->tn_quality > 31.0f) {
+        fprintf(stderr, "Invalid value for --thumbnail-quality argument: %f. Must be within [1.0, 31.0].\n",
+                args->tn_quality);
         return 1;
     }
 
-    if (args->size == 0) {
-        args->size = DEFAULT_SIZE;
-    } else if (args->size > 0 && args->size < 32) {
-        printf("Invalid size: %d\n", args->content_size);
+    if (args->tn_size == OPTION_VALUE_UNSPECIFIED) {
+        args->tn_size = DEFAULT_THUMBNAIL_SIZE;
+    } else if (args->tn_size < 32) {
+        printf("Invalid value --thumbnail-size argument: %d. Must be greater than 32 pixels.\n", args->tn_size);
         return 1;
     }
 
-    if (args->content_size == 0) {
+    if (args->tn_count == OPTION_VALUE_UNSPECIFIED) {
+        args->tn_count = DEFAULT_THUMBNAIL_COUNT;
+    } else if (args->tn_count == OPTION_VALUE_DISABLE) {
+        args->tn_count = 0;
+    }
+
+    if (args->content_size == OPTION_VALUE_UNSPECIFIED) {
         args->content_size = DEFAULT_CONTENT_SIZE;
     }
 
     if (args->threads == 0) {
         args->threads = 1;
     } else if (args->threads < 0) {
-        fprintf(stderr, "Invalid threads: %d\n", args->threads);
+        fprintf(stderr, "Invalid value for --threads: %d. Must be a positive number\n", args->threads);
         return 1;
     }
 
-    if (args->output == NULL) {
+    if (args->output == OPTION_VALUE_UNSPECIFIED) {
         args->output = malloc(strlen(DEFAULT_OUTPUT) + 1);
         strcpy(args->output, DEFAULT_OUTPUT);
     } else {
@@ -143,7 +156,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->depth += 1;
     }
 
-    if (args->name == NULL) {
+    if (args->name == OPTION_VALUE_UNSPECIFIED) {
         args->name = g_path_get_basename(args->output);
     } else {
         char *tmp = malloc(strlen(args->name) + 1);
@@ -151,11 +164,11 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->name = tmp;
     }
 
-    if (args->rewrite_url == NULL) {
+    if (args->rewrite_url == OPTION_VALUE_UNSPECIFIED) {
         args->rewrite_url = DEFAULT_REWRITE_URL;
     }
 
-    if (args->archive == NULL || strcmp(args->archive, "recurse") == 0) {
+    if (args->archive == OPTION_VALUE_UNSPECIFIED || strcmp(args->archive, "recurse") == 0) {
         args->archive_mode = ARC_MODE_RECURSE;
     } else if (strcmp(args->archive, "list") == 0) {
         args->archive_mode = ARC_MODE_LIST;
@@ -168,17 +181,17 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         return 1;
     }
 
-    if (args->ocr_images && args->tesseract_lang == NULL) {
+    if (args->ocr_images && args->tesseract_lang == OPTION_VALUE_UNSPECIFIED) {
         fprintf(stderr, "You must specify --ocr-lang <LANG> to use --ocr-images");
         return 1;
     }
 
-    if (args->ocr_ebooks && args->tesseract_lang == NULL) {
+    if (args->ocr_ebooks && args->tesseract_lang == OPTION_VALUE_UNSPECIFIED) {
         fprintf(stderr, "You must specify --ocr-lang <LANG> to use --ocr-ebooks");
         return 1;
     }
 
-    if (args->tesseract_lang != NULL) {
+    if (args->tesseract_lang != OPTION_VALUE_UNSPECIFIED) {
 
         if (!args->ocr_ebooks && !args->ocr_images) {
             fprintf(stderr, "You must specify at least one of --ocr-ebooks, --ocr-images");
@@ -222,7 +235,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->tesseract_path = trained_data_path;
     }
 
-    if (args->exclude_regex != NULL) {
+    if (args->exclude_regex != OPTION_VALUE_UNSPECIFIED) {
         const char *error;
         int error_offset;
 
@@ -242,17 +255,21 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         ScanCtx.exclude = NULL;
     }
 
-    if (args->treemap_threshold_str == 0) {
+    if (args->treemap_threshold_str == OPTION_VALUE_UNSPECIFIED) {
         args->treemap_threshold = DEFAULT_TREEMAP_THRESHOLD;
     } else {
         args->treemap_threshold = atof(args->treemap_threshold_str);
     }
 
-    if (args->max_memory_buffer == 0) {
-        args->max_memory_buffer = DEFAULT_MAX_MEM_BUFFER;
+    if (args->max_memory_buffer_mib == OPTION_VALUE_UNSPECIFIED) {
+        args->max_memory_buffer_mib = DEFAULT_MAX_MEM_BUFFER;
     }
 
-    if (args->list_path != NULL) {
+    if (args->scan_mem_limit_mib == OPTION_VALUE_UNSPECIFIED || args->scan_mem_limit_mib == OPTION_VALUE_DISABLE) {
+        args->scan_mem_limit_mib = DEFAULT_THROTTLE_MEMORY_THRESHOLD;
+    }
+
+    if (args->list_path != OPTION_VALUE_UNSPECIFIED) {
         if (strcmp(args->list_path, "-") == 0) {
             args->list_file = stdin;
             LOG_DEBUG("cli.c", "Using stdin as list file")
@@ -265,8 +282,9 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         }
     }
 
-    LOG_DEBUGF("cli.c", "arg quality=%f", args->quality)
-    LOG_DEBUGF("cli.c", "arg size=%d", args->size)
+    LOG_DEBUGF("cli.c", "arg tn_quality=%f", args->tn_quality)
+    LOG_DEBUGF("cli.c", "arg tn_size=%d", args->tn_size)
+    LOG_DEBUGF("cli.c", "arg tn_count=%d", args->tn_count)
     LOG_DEBUGF("cli.c", "arg content_size=%d", args->content_size)
     LOG_DEBUGF("cli.c", "arg threads=%d", args->threads)
     LOG_DEBUGF("cli.c", "arg incremental=%s", args->incremental)
@@ -283,7 +301,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg fast=%d", args->fast)
     LOG_DEBUGF("cli.c", "arg fast_epub=%d", args->fast_epub)
     LOG_DEBUGF("cli.c", "arg treemap_threshold=%f", args->treemap_threshold)
-    LOG_DEBUGF("cli.c", "arg max_memory_buffer=%d", args->max_memory_buffer)
+    LOG_DEBUGF("cli.c", "arg max_memory_buffer_mib=%d", args->max_memory_buffer_mib)
     LOG_DEBUGF("cli.c", "arg list_path=%s", args->list_path)
 
     return 0;
@@ -335,11 +353,9 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
 
     char *index_path = abspath(argv[1]);
     if (index_path == NULL) {
-        fprintf(stderr, "File not found: %s\n", argv[1]);
-        return 1;
+        LOG_FATALF("cli.c", "Invalid PATH argument. File not found: %s", argv[1])
     } else {
-        args->index_path = argv[1];
-        free(index_path);
+        args->index_path = index_path;
     }
 
     if (args->es_url == NULL) {
@@ -376,8 +392,16 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
     LOG_DEBUGF("cli.c", "arg es_index=%s", args->es_index)
     LOG_DEBUGF("cli.c", "arg index_path=%s", args->index_path)
     LOG_DEBUGF("cli.c", "arg script_path=%s", args->script_path)
-    LOG_DEBUGF("cli.c", "arg async_script=%s", args->async_script)
-    LOG_DEBUGF("cli.c", "arg script=%s", args->script)
+    LOG_DEBUGF("cli.c", "arg async_script=%d", args->async_script)
+
+    if (args->script) {
+        char log_buf[5000];
+
+        strncpy(log_buf, args->script, sizeof(log_buf));
+        *(log_buf + sizeof(log_buf) - 1) = '\0';
+        LOG_DEBUGF("cli.c", "arg script=%s", log_buf)
+    }
+
     LOG_DEBUGF("cli.c", "arg print=%d", args->print)
     LOG_DEBUGF("cli.c", "arg es_mappings_path=%s", args->es_mappings_path)
     LOG_DEBUGF("cli.c", "arg es_mappings=%s", args->es_mappings)
@@ -474,8 +498,7 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     for (int i = 0; i < args->index_count; i++) {
         char *abs_path = abspath(args->indices[i]);
         if (abs_path == NULL) {
-            fprintf(stderr, "File not found: %s\n", args->indices[i]);
-            return 1;
+            LOG_FATALF("cli.c", "Index not found: %s", args->indices[i])
         }
     }
 
@@ -515,11 +538,9 @@ int exec_args_validate(exec_args_t *args, int argc, const char **argv) {
 
     char *index_path = abspath(argv[1]);
     if (index_path == NULL) {
-        fprintf(stderr, "File not found: %s\n", argv[1]);
-        return 1;
+        LOG_FATALF("cli.c", "Invalid index PATH argument. File not found: %s", argv[1])
     } else {
-        args->index_path = argv[1];
-        free(index_path);
+        args->index_path = index_path;
     }
 
     if (args->es_url == NULL) {
@@ -539,6 +560,11 @@ int exec_args_validate(exec_args_t *args, int argc, const char **argv) {
     }
 
     LOG_DEBUGF("cli.c", "arg script_path=%s", args->script_path)
-    LOG_DEBUGF("cli.c", "arg script=%s", args->script)
+
+    char log_buf[5000];
+    strncpy(log_buf, args->script, sizeof(log_buf));
+    *(log_buf + sizeof(log_buf) - 1) = '\0';
+    LOG_DEBUGF("cli.c", "arg script=%s", log_buf)
+
     return 0;
 }

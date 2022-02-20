@@ -1,0 +1,10 @@
+[Unit]
+Description=sist2-update
+
+[Timer]
+OnCalendar=*-*-* 3:00:00
+Persistent=true
+Unit=sist2-update.service
+
+[Install]
+WantedBy=timers.target

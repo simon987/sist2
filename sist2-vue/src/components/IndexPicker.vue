@@ -29,7 +29,7 @@
           :class="{active: lastClickIndex === idx}"
       >
         <div class="d-flex">
-          <b-checkbox @change="toggleIndex(idx)" :checked="isSelected(idx)"></b-checkbox>
+          <b-checkbox style="pointer-events: none" :checked="isSelected(idx)"></b-checkbox>
           {{ idx.name }}
           <span class="text-muted timestamp-text ml-2">{{ formatIdxDate(idx.timestamp) }}</span>
         </div>
@@ -167,5 +167,25 @@ export default Vue.extend({
   z-index: 2;
   background-color: inherit;
   color: inherit;
+}
+
+.theme-black .list-group-item {
+  border: 1px solid rgba(255,255,255, 0.1);
+}
+
+.theme-black .list-group-item:first-child {
+  border: 1px solid rgba(255,255,255, 0.05);
+}
+
+.theme-black .list-group-item.active {
+  z-index: 2;
+  background-color: inherit;
+  color: inherit;
+  border: 1px solid rgba(255,255,255, 0.3);
+  border-radius: 0;
+}
+
+.theme-black .list-group {
+  border-radius: 0;
 }
 </style>

@@ -41,6 +41,10 @@
           <b-form-checkbox :checked="optUpdateMimeMap" @input="setOptUpdateMimeMap">
             {{ $t("opt.updateMimeMap") }}
           </b-form-checkbox>
+
+          <b-form-checkbox :checked="optUseDatePicker" @input="setOptUseDatePicker">
+            {{ $t("opt.useDatePicker") }}
+          </b-form-checkbox>
         </b-card>
 
         <br/>
@@ -81,6 +85,10 @@
           <label>{{ $t("opt.slideDuration") }}</label>
           <b-form-input :value="optLightboxSlideDuration" type="number" min="1"
                         @input="setOptLightboxSlideDuration"></b-form-input>
+
+          <label>{{ $t("opt.vidPreviewInterval") }}</label>
+          <b-form-input :value="optVidPreviewInterval" type="number" min="50"
+                        @input="setOptVidPreviewInterval"></b-form-input>
         </b-card>
 
         <h4 class="mt-3">{{ $t("treemapOptions") }}</h4>
@@ -229,6 +237,8 @@ export default {
       "optHideDuplicates",
       "optHideLegacy",
       "optUpdateMimeMap",
+      "optUseDatePicker",
+      "optVidPreviewInterval",
     ]),
     clientWidth() {
       return window.innerWidth;
@@ -272,7 +282,9 @@ export default {
       "setOptLang",
       "setOptHideDuplicates",
       "setOptHideLegacy",
-      "setOptUpdateMimeMap"
+      "setOptUpdateMimeMap",
+      "setOptUseDatePicker",
+      "setOptVidPreviewInterval",
     ]),
     onResetClick() {
       localStorage.removeItem("sist2_configuration");

@@ -9,6 +9,7 @@ typedef struct {
     logf_callback_t logf;
     store_callback_t store;
 
+    int enable_tn;
     int tn_size;
     float tn_qscale;
 

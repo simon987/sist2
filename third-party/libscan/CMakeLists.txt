@@ -6,10 +6,26 @@ set(CMAKE_C_STANDARD 11)
 option(BUILD_TESTS "Build tests" on)
 
 add_subdirectory(third-party/antiword)
-add_compile_definitions(
-        antiword
-        NDEBUG
-)
+if (SIST_DEBUG)
+    add_compile_definitions(
+            antiword
+            DEBUG
+    )
+else()
+    add_compile_definitions(
+            antiword
+            NDEBUG
+    )
+    target_compile_options(
+            antiword
+            PRIVATE
+            -g
+            -fstack-protector
+            -fno-omit-frame-pointer
+            -fsanitize=address
+            -fno-inline
+    )
+endif()
 
 add_library(
         scan

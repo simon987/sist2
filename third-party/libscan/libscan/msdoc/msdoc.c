@@ -76,6 +76,7 @@ void parse_msdoc_pdf(scan_msdoc_ctx_t *ctx, document_t *doc, FILE *file, void *b
     scan_ebook_ctx_t ebook_ctx = {
             .content_size = ctx->content_size,
             .tn_size = ctx->tn_size,
+            .enable_tn = TRUE,
             .log = ctx->log,
             .logf = ctx->logf,
             .store = ctx->store,
@@ -137,7 +138,7 @@ void parse_msdoc(scan_msdoc_ctx_t *ctx, vfile_t *f, document_t *doc) {
         return;
     }
 
-    if (ctx->tn_size > 0) {
+    if (ctx->enable_tn) {
         char *buf_pdf = malloc(buf_len);
         memcpy(buf_pdf, buf, buf_len);
         parse_msdoc_pdf(ctx, doc, file, buf_pdf, buf_len);

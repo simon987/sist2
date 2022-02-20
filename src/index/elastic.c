@@ -15,19 +15,34 @@ typedef struct es_indexer {
 } es_indexer_t;
 
 
-static __thread es_indexer_t *Indexer;
+static __thread es_indexer_t *Indexer = NULL;
 
-void delete_queue(int max);
+void free_queue(int max);
 
 void elastic_flush();
 
-void elastic_cleanup() {
-    elastic_flush();
-    if (Indexer != NULL) {
-        free(Indexer->es_index);
-        free(Indexer->es_url);
-        free(Indexer);
+void destroy_indexer(es_indexer_t *indexer) {
+
+    if (indexer == NULL) {
+        return;
     }
+
+    LOG_DEBUG("elastic.c", "Destroying indexer")
+
+    if (indexer->es_url != NULL) {
+        free(indexer->es_url);
+        free(indexer->es_index);
+    }
+
+    free(indexer);
+}
+
+void elastic_cleanup() {
+    if (IndexCtx.needs_es_connection) {
+        elastic_flush();
+    }
+
+    destroy_indexer(Indexer);
 }
 
 void print_json(cJSON *document, const char id_str[MD5_STR_LENGTH]) {
@@ -52,11 +67,22 @@ void index_json_func(void *arg) {
     elastic_index_line(line);
 }
 
+void delete_document(const char* document_id_str, void* UNUSED(_data)) {
+    es_bulk_line_t *bulk_line = malloc(sizeof(es_bulk_line_t));
+    bulk_line->type = ES_BULK_LINE_DELETE;
+    bulk_line->next = NULL;
+
+    memcpy(bulk_line->path_md5_str, document_id_str, MD5_STR_LENGTH);
+    tpool_add_work(IndexCtx.pool, index_json_func, bulk_line);
+}
+
+
 void index_json(cJSON *document, const char index_id_str[MD5_STR_LENGTH]) {
     char *json = cJSON_PrintUnformatted(document);
 
     size_t json_len = strlen(json);
     es_bulk_line_t *bulk_line = malloc(sizeof(es_bulk_line_t) + json_len + 2);
+    bulk_line->type = ES_BULK_LINE_INDEX;
     memcpy(bulk_line->line, json, json_len);
     memcpy(bulk_line->path_md5_str, index_id_str, MD5_STR_LENGTH);
     *(bulk_line->line + json_len) = '\n';
@@ -125,30 +151,47 @@ void *create_bulk_buffer(int max, int *count, size_t *buf_len) {
     size_t buf_cur = 0;
     char *buf = malloc(8192);
     size_t buf_capacity = 8192;
+#define GROW_BUF(delta)                       \
+    while (buf_size + (delta) > buf_capacity) { \
+      buf_capacity *= 2;                        \
+      buf = realloc(buf, buf_capacity);         \
+    }                                           \
+    buf_size += (delta);                        \
 
+    // see: https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
+    // ES_BULK_LINE_INDEX: two lines, 1st action, 2nd content
+    // ES_BULK_LINE_DELETE: one line
     while (line != NULL && *count < max) {
         char action_str[256];
-        snprintf(
-                action_str, sizeof(action_str),
-                "{\"index\":{\"_id\":\"%s\",\"_type\":\"_doc\",\"_index\":\"%s\"}}\n",
-                line->path_md5_str, Indexer->es_index
-        );
+        if (line->type == ES_BULK_LINE_INDEX) {
+            snprintf(
+                    action_str, sizeof(action_str),
+                    "{\"index\":{\"_id\":\"%s\",\"_type\":\"_doc\",\"_index\":\"%s\"}}\n",
+                    line->path_md5_str, Indexer->es_index
+            );
 
-        size_t action_str_len = strlen(action_str);
-        size_t line_len = strlen(line->line);
+            size_t action_str_len = strlen(action_str);
+            size_t line_len = strlen(line->line);
 
-        while (buf_size + line_len + action_str_len > buf_capacity) {
-            buf_capacity *= 2;
-            buf = realloc(buf, buf_capacity);
+            GROW_BUF(action_str_len + line_len);
+
+            memcpy(buf + buf_cur, action_str, action_str_len);
+            buf_cur += action_str_len;
+            memcpy(buf + buf_cur, line->line, line_len);
+            buf_cur += line_len;
+
+        } else if (line->type == ES_BULK_LINE_DELETE) {
+            snprintf(
+                    action_str, sizeof(action_str),
+                    "{\"delete\":{\"_id\":\"%s\",\"_index\":\"%s\"}}\n",
+                    line->path_md5_str, Indexer->es_index
+            );
+
+            size_t action_str_len = strlen(action_str);
+            GROW_BUF(action_str_len);
+            memcpy(buf + buf_cur, action_str, action_str_len);
+            buf_cur += action_str_len;
         }
-
-        buf_size += line_len + action_str_len;
-
-        memcpy(buf + buf_cur, action_str, action_str_len);
-        buf_cur += action_str_len;
-        memcpy(buf + buf_cur, line->line, line_len);
-        buf_cur += line_len;
-
         line = line->next;
         (*count)++;
     }
@@ -223,7 +266,7 @@ void _elastic_flush(int max) {
             LOG_ERRORF("elastic.c", "Single document too large, giving up: {%s}", Indexer->line_head->path_md5_str)
             free_response(r);
             free(buf);
-            delete_queue(1);
+            free_queue(1);
             if (Indexer->queued != 0) {
                 elastic_flush();
             }
@@ -248,13 +291,13 @@ void _elastic_flush(int max) {
 
     } else if (r->status_code != 200) {
         print_errors(r);
-        delete_queue(Indexer->queued);
+        free_queue(Indexer->queued);
 
     } else {
 
         print_errors(r);
         LOG_DEBUGF("elastic.c", "Indexed %d documents (%zukB) <%d>", count, buf_len / 1024, r->status_code);
-        delete_queue(max);
+        free_queue(max);
 
         if (Indexer->queued != 0) {
             elastic_flush();
@@ -265,7 +308,7 @@ void _elastic_flush(int max) {
     free(buf);
 }
 
-void delete_queue(int max) {
+void free_queue(int max) {
     for (int i = 0; i < max; i++) {
         es_bulk_line_t *tmp = Indexer->line_head;
         Indexer->line_head = tmp->next;
@@ -309,16 +352,22 @@ void elastic_index_line(es_bulk_line_t *line) {
 
 es_indexer_t *create_indexer(const char *url, const char *index) {
 
-    char *es_url = malloc(strlen(url) + 1);
-    strcpy(es_url, url);
-
-    char *es_index = malloc(strlen(index) + 1);
-    strcpy(es_index, index);
-
     es_indexer_t *indexer = malloc(sizeof(es_indexer_t));
 
-    indexer->es_url = es_url;
-    indexer->es_index = es_index;
+    if (IndexCtx.needs_es_connection) {
+        char *es_url = malloc(strlen(url) + 1);
+        strcpy(es_url, url);
+
+        char *es_index = malloc(strlen(index) + 1);
+        strcpy(es_index, index);
+
+        indexer->es_url = es_url;
+        indexer->es_index = es_index;
+    } else {
+        indexer->es_url = NULL;
+        indexer->es_index = NULL;
+    }
+
     indexer->queued = 0;
     indexer->line_head = NULL;
     indexer->line_tail = NULL;

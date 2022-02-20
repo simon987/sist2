@@ -35,12 +35,14 @@ typedef struct {
     int threads;
     int depth;
     int calculate_checksums;
+    size_t mem_limit;
 
     size_t stat_tn_size;
     size_t stat_index_size;
 
     GHashTable *original_table;
     GHashTable *copy_table;
+    GHashTable *new_table;
     pthread_mutex_t copy_table_mu;
 
     pcre *exclude;
@@ -85,6 +87,10 @@ typedef struct {
     GHashTable *tags;
     store_t *meta_store;
     GHashTable *meta;
+    /**
+     * Set to false when using --print
+     */
+    int needs_es_connection;
 } IndexCtx_t;
 
 typedef struct {

@@ -30,6 +30,7 @@ export default {
         {key: "esIndex", value: this.$store.state.sist2Info.esIndex},
         {key: "tagline", value: this.$store.state.sist2Info.tagline},
         {key: "dev", value: this.$store.state.sist2Info.dev},
+        {key: "mongooseVersion", value: this.$store.state.sist2Info.mongooseVersion},
         {key: "esVersion", value: this.$store.state.sist2Info.esVersion},
         {key: "esVersionSupported", value: this.$store.state.sist2Info.esVersionSupported},
         {key: "esVersionLegacy", value: this.$store.state.sist2Info.esVersionLegacy},

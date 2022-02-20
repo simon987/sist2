@@ -1,5 +1,8 @@
 export default {
     en: {
+        filePage: {
+          notFound: "Not found"
+        },
         searchBar: {
             simple: "Search",
             advanced: "Advanced search",
@@ -67,7 +70,9 @@ export default {
             tagOrOperator: "Use OR operator when specifying multiple tags.",
             hideDuplicates: "Hide duplicate results based on checksum",
             hideLegacy: "Hide the 'legacyES' Elasticsearch notice",
-            updateMimeMap: "Update the Media Types tree in real time"
+            updateMimeMap: "Update the Media Types tree in real time",
+            useDatePicker: "Use a Date Picker component rather than a slider",
+            vidPreviewInterval: "Video preview frame duration in ms"
         },
         queryMode: {
             simple: "Simple",
@@ -161,6 +166,9 @@ export default {
         },
     },
     fr: {
+        filePage: {
+            notFound: "Ficher introuvable"
+        },
         searchBar: {
             simple: "Recherche",
             advanced: "Recherche avancée",
@@ -229,7 +237,9 @@ export default {
             tagOrOperator: "Utiliser l'opérateur OU lors de la spécification de plusieurs tags",
             hideDuplicates: "Masquer les résultats en double",
             hideLegacy: "Masquer la notice 'legacyES' Elasticsearch",
-            updateMimeMap: "Mettre à jour l'arbre de Types de médias en temps réel"
+            updateMimeMap: "Mettre à jour l'arbre de Types de médias en temps réel",
+            useDatePicker: "Afficher un composant « Date Picker » plutôt qu'un slider",
+            vidPreviewInterval: "Durée des images d'aperçu video en millisecondes"
         },
         queryMode: {
             simple: "Simple",
@@ -324,6 +334,9 @@ export default {
         },
     },
     "zh-CN": {
+        filePage: {
+            notFound: "未找到"
+        },
         searchBar: {
             simple: "搜索",
             advanced: "高级搜索",
@@ -391,7 +404,9 @@ export default {
             tagOrOperator: "使用或操作（OR）匹配多个标签。",
             hideDuplicates: "使用校验码隐藏重复结果",
             hideLegacy: "隐藏'legacyES' Elasticsearch 通知",
-            updateMimeMap: "媒体类型树的实时更新"
+            updateMimeMap: "媒体类型树的实时更新",
+            useDatePicker: "使用日期选择器组件而不是滑块",
+            vidPreviewInterval: "视频预览帧的持续时间，以毫秒为单位"
         },
         queryMode: {
             simple: "简单",

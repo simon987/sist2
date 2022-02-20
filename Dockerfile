@@ -3,11 +3,11 @@ MAINTAINER simon987 <me@simon987.net>
 
 WORKDIR /build/
 COPY . .
-RUN cmake -DSIST_PLATFORM=x64_linux -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake .
+RUN cmake -DSIST_PLATFORM=x64_linux -DSIST_DEBUG=on -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake .
 RUN make -j$(nproc)
-RUN strip sist2
+RUN strip sist2 || mv sist2_debug sist2
 
-FROM ubuntu:21.10
+FROM --platform="linux/amd64" ubuntu:21.10
 
 RUN apt update && apt install -y curl libasan5 && rm -rf /var/lib/apt/lists/*
 
