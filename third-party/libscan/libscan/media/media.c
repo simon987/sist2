@@ -251,7 +251,7 @@ void append_tag_meta_if_not_exists(scan_media_ctx_t *ctx, document_t *doc, AVDic
     for (; *ptr; ++ptr) *ptr = (char) tolower(*ptr);
 
 __always_inline
-static void append_audio_meta(AVFormatContext *pFormatCtx, document_t *doc) {
+static void append_audio_meta(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, document_t *doc) {
 
     AVDictionaryEntry *tag = NULL;
     while ((tag = av_dict_get(pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
@@ -269,7 +269,7 @@ static void append_audio_meta(AVFormatContext *pFormatCtx, document_t *doc) {
         } else if (strcmp(key, "album") == 0) {
             APPEND_TAG_META(MetaAlbum)
         } else if (strcmp(key, "comment") == 0) {
-            APPEND_TAG_META(MetaContent)
+            append_tag_meta_if_not_exists(ctx, doc, tag, MetaContent);
         }
     }
 }
@@ -437,7 +437,7 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
         return SAVE_THUMBNAIL_FAILED;
     }
 
-    if (ctx->tesseract_lang != NULL && IS_VIDEO(pFormatCtx)) {
+    if (ctx->tesseract_lang != NULL && IS_VIDEO(pFormatCtx) && thumbnail_index == 0) {
         ocr_image(ctx, doc, decoder, frame_and_packet->frame);
     }
 
