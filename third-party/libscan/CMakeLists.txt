@@ -11,11 +11,6 @@ if (SIST_DEBUG)
             antiword
             DEBUG
     )
-else()
-    add_compile_definitions(
-            antiword
-            NDEBUG
-    )
     target_compile_options(
             antiword
             PRIVATE
@@ -24,6 +19,11 @@ else()
             -fno-omit-frame-pointer
             -fsanitize=address
             -fno-inline
+    )
+else()
+    add_compile_definitions(
+            antiword
+            NDEBUG
     )
 endif()
 
