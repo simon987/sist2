@@ -103,7 +103,7 @@ void sig_handler(int signum) {
     exit(-1);
 }
 
-void init_dir(const char *dirpath) {
+void init_dir(const char *dirpath, scan_args_t* args) {
     char path[PATH_MAX];
     snprintf(path, PATH_MAX, "%sdescriptor.json", dirpath);
 
@@ -111,9 +111,18 @@ void init_dir(const char *dirpath) {
     strcpy(ScanCtx.index.desc.version, Version);
     strcpy(ScanCtx.index.desc.type, INDEX_TYPE_NDJSON);
 
-    unsigned char index_md5[MD5_DIGEST_LENGTH];
-    MD5((unsigned char *) &ScanCtx.index.desc.timestamp, sizeof(ScanCtx.index.desc.timestamp), index_md5);
-    buf2hex(index_md5, MD5_DIGEST_LENGTH, ScanCtx.index.desc.id);
+    if (args->incremental != NULL) {
+      // copy old index id
+      char descriptor_path[PATH_MAX];
+      snprintf(descriptor_path, PATH_MAX, "%sdescriptor.json", args->incremental);
+      index_descriptor_t original_desc = read_index_descriptor(descriptor_path);
+      memcpy(ScanCtx.index.desc.id, original_desc.id, sizeof(original_desc.id));
+    } else {
+      // genreate new index id based on timestamp
+      unsigned char index_md5[MD5_DIGEST_LENGTH];
+      MD5((unsigned char *) &ScanCtx.index.desc.timestamp, sizeof(ScanCtx.index.desc.timestamp), index_md5);
+      buf2hex(index_md5, MD5_DIGEST_LENGTH, ScanCtx.index.desc.id);
+    }
 
     write_index_descriptor(path, &ScanCtx.index.desc);
 }
@@ -378,7 +387,7 @@ void sist2_scan(scan_args_t *args) {
 
     initialize_scan_context(args);
 
-    init_dir(ScanCtx.index.path);
+    init_dir(ScanCtx.index.path, args);
 
     char store_path[PATH_MAX];
     snprintf(store_path, PATH_MAX, "%sthumbs", ScanCtx.index.path);
