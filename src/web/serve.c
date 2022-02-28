@@ -12,6 +12,13 @@
 #define HTTP_TEXT_TYPE_HEADER "Content-Type: text/plain;charset=utf-8\r\n"
 #define HTTP_REPLY_NOT_FOUND mg_http_reply(nc, 404, HTTP_SERVER_HEADER HTTP_TEXT_TYPE_HEADER, "Not found");
 
+static struct mg_http_serve_opts DefaultServeOpts = {
+        .fs = NULL,
+        .ssi_pattern = NULL,
+        .root_dir = NULL,
+        .mime_types = ""
+};
+
 
 static void send_response_line(struct mg_connection *nc, int status_code, size_t length, char *extra_headers) {
     mg_printf(
@@ -54,7 +61,7 @@ store_t *get_tag_store(const char *index_id) {
 
 void search_index(struct mg_connection *nc, struct mg_http_message *hm) {
     if (WebCtx.dev) {
-        mg_http_serve_file(nc, hm, "sist2-vue/dist/index.html", "text/html", NULL);
+        mg_http_serve_file(nc, hm, "sist2-vue/dist/index.html", &DefaultServeOpts);
     } else {
         send_response_line(nc, 200, sizeof(index_html), "Content-Type: text/html");
         mg_send(nc, index_html, sizeof(index_html));
@@ -104,12 +111,13 @@ void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
     strcpy(full_path, index->path);
     strcat(full_path, file);
 
-    mg_http_serve_file(nc, hm, full_path, "text/csv", disposition);
+    struct mg_http_serve_opts opts = {};
+    mg_http_serve_file(nc, hm, full_path, &opts);
 }
 
 void javascript(struct mg_connection *nc, struct mg_http_message *hm) {
     if (WebCtx.dev) {
-        mg_http_serve_file(nc, hm, "sist2-vue/dist/js/index.js", "application/javascript", NULL);
+        mg_http_serve_file(nc, hm, "sist2-vue/dist/js/index.js", &DefaultServeOpts);
     } else {
         send_response_line(nc, 200, sizeof(index_js), "Content-Type: application/javascript");
         mg_send(nc, index_js, sizeof(index_js));
@@ -118,7 +126,7 @@ void javascript(struct mg_connection *nc, struct mg_http_message *hm) {
 
 void javascript_vendor(struct mg_connection *nc, struct mg_http_message *hm) {
     if (WebCtx.dev) {
-        mg_http_serve_file(nc, hm, "sist2-vue/dist/js/chunk-vendors.js", "application/javascript", NULL);
+        mg_http_serve_file(nc, hm, "sist2-vue/dist/js/chunk-vendors.js", &DefaultServeOpts);
     } else {
         send_response_line(nc, 200, sizeof(chunk_vendors_js), "Content-Type: application/javascript");
         mg_send(nc, chunk_vendors_js, sizeof(chunk_vendors_js));
@@ -274,10 +282,18 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
 
     char disposition[8192];
     snprintf(disposition, sizeof(disposition),
-             HTTP_SERVER_HEADER "Content-Disposition: inline; filename=\"%s%s%s\"\r\nAccept-Ranges: bytes\r\n",
+             HTTP_SERVER_HEADER "Content-Disposition: inline; filename=\"%s%s%s\"\r\n"
+                                "Accept-Ranges: bytes\r\nCache-Control: no-store\r\n",
              name, strlen(ext) == 0 ? "" : ".", ext);
 
-    mg_http_serve_file(nc, hm, full_path, mime, disposition);
+    char mime_mapping[1024];
+    snprintf(mime_mapping, sizeof(mime_mapping), "%s=%s", ext, mime);
+
+    struct mg_http_serve_opts opts = {
+            .extra_headers = disposition,
+            .mime_types = mime_mapping
+    };
+    mg_http_serve_file(nc, hm, full_path, &opts);
 }
 
 void cache_es_version() {
