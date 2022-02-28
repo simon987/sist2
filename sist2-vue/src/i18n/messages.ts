@@ -72,7 +72,8 @@ export default {
             hideLegacy: "Hide the 'legacyES' Elasticsearch notice",
             updateMimeMap: "Update the Media Types tree in real time",
             useDatePicker: "Use a Date Picker component rather than a slider",
-            vidPreviewInterval: "Video preview frame duration in ms"
+            vidPreviewInterval: "Video preview frame duration in ms",
+            simpleLightbox: "Disable animations in image viewer",
         },
         queryMode: {
             simple: "Simple",
@@ -239,7 +240,8 @@ export default {
             hideLegacy: "Masquer la notice 'legacyES' Elasticsearch",
             updateMimeMap: "Mettre à jour l'arbre de Types de médias en temps réel",
             useDatePicker: "Afficher un composant « Date Picker » plutôt qu'un slider",
-            vidPreviewInterval: "Durée des images d'aperçu video en millisecondes"
+            vidPreviewInterval: "Durée des images d'aperçu video en millisecondes",
+            simpleLightbox: "Désactiver les animations du visualiseur d'images",
         },
         queryMode: {
             simple: "Simple",
@@ -406,7 +408,8 @@ export default {
             hideLegacy: "隐藏'legacyES' Elasticsearch 通知",
             updateMimeMap: "媒体类型树的实时更新",
             useDatePicker: "使用日期选择器组件而不是滑块",
-            vidPreviewInterval: "视频预览帧的持续时间，以毫秒为单位"
+            vidPreviewInterval: "视频预览帧的持续时间，以毫秒为单位",
+            simpleLightbox: "在图片查看器中，禁用动画",
         },
         queryMode: {
             simple: "简单",

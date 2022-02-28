@@ -1,6 +1,7 @@
 <template>
-  <div>
+  <div :class="{'disable-animations': $store.state.optSimpleLightbox}">
     <FsLightbox
+        ref="lightbox"
         :key="lightboxKey"
         :toggler="showLightbox"
         :sources="lightboxSources"
@@ -10,7 +11,7 @@
         :source-index="lightboxSlide"
         :custom-toolbar-buttons="customButtons"
         :slideshow-time="$store.getters.optLightboxSlideDuration * 1000"
-        :zoom-increment="0.5"
+        :zoom-increment="0.25"
         :load-only-current-source="$store.getters.optLightboxLoadOnlyCurrent"
         :on-close="onClose"
         :on-open="onShow"
@@ -29,6 +30,7 @@ export default {
   components: {FsLightbox},
   data() {
     return {
+      disableAnimations: true,
       customButtons: [
         {
           viewBox: "0 0 384.928 384.928",
@@ -64,7 +66,83 @@ export default {
       return this.$store.getters["uiLightboxTypes"];
     }
   },
+  mounted() {
+    const listener = document.onkeydown;
+
+    document.onkeydown = (e) => {
+
+      const ret = this.keyDownListener(e)
+
+      if (listener && ret) {
+        return listener(e);
+      }
+    };
+  },
   methods: {
+    keyDownListener(e) {
+
+      if (this.$refs.lightbox === undefined) {
+        return true;
+      }
+
+      const lightboxStore = this.$refs.lightbox.fsLightboxStore.slice(-1)[0];
+
+      switch (e.key) {
+        case " ": {
+          console.log("SPACE")
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+
+          // Find video at current slide, toggle play/pause
+          [...document.getElementsByClassName("fslightbox-absoluted")].forEach(elem => {
+            if (elem.style.transform === "translate(0px)" || elem.style.transform === "translate(0px, 0px)") {
+              const vid = elem.getElementsByTagName("video")[0];
+              console.log(elem)
+              console.log(vid)
+
+              if (vid) {
+                if (vid.paused) {
+                  vid.play();
+                  console.log("PLAY")
+                } else {
+                  vid.pause()
+                  console.log("PAUSE")
+                }
+              }
+            }
+
+            return false;
+          });
+
+          return false;
+        }
+        case "ArrowUp":
+        case "k": {
+          if (!lightboxStore.data.isThumbing) {
+            lightboxStore.core.thumbsToggler.toggleThumbs();
+          }
+          return false;
+        }
+        case "ArrowDown":
+        case "j": {
+          if (lightboxStore.data.isThumbing) {
+            lightboxStore.core.thumbsToggler.toggleThumbs();
+          }
+          return false;
+        }
+        case "h": {
+          lightboxStore.core.slideIndexChanger.jumpTo(lightboxStore.core.stageManager.getPreviousSlideIndex());
+          break;
+        }
+        case "l": {
+          lightboxStore.core.slideIndexChanger.jumpTo(lightboxStore.core.stageManager.getNextSlideIndex());
+          return false;
+        }
+      }
+
+      return true;
+    },
     onDownloadClick() {
       const url = this.lightboxSources[this.lightboxSlide];
 
@@ -124,5 +202,21 @@ export default {
 
 .fslightbox-toolbar-button:nth-child(7) {
   order: 7;
+}
+
+.disable-animations .fslightbox-container {
+  background: rgba(30,30,30,.9);
+}
+
+.disable-animations .fslightbox-transform-transition {
+  transition: none;
+}
+
+.disable-animations .fslightbox-fade-in-strong {
+  animation: none;
+}
+
+.fslightbox-container video, .fslightbox-container img {
+  cursor: unset !important;
 }
 </style>

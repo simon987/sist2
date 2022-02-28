@@ -45,6 +45,11 @@
           <b-form-checkbox :checked="optUseDatePicker" @input="setOptUseDatePicker">
             {{ $t("opt.useDatePicker") }}
           </b-form-checkbox>
+
+          <b-form-checkbox :checked="optSimpleLightbox" @input="setOptSimpleLightbox">{{
+              $t("opt.simpleLightbox")
+            }}
+          </b-form-checkbox>
         </b-card>
 
         <br/>
@@ -239,6 +244,7 @@ export default {
       "optUpdateMimeMap",
       "optUseDatePicker",
       "optVidPreviewInterval",
+      "optSimpleLightbox",
     ]),
     clientWidth() {
       return window.innerWidth;
@@ -285,6 +291,7 @@ export default {
       "setOptUpdateMimeMap",
       "setOptUseDatePicker",
       "setOptVidPreviewInterval",
+      "setOptSimpleLightbox",
     ]),
     onResetClick() {
       localStorage.removeItem("sist2_configuration");

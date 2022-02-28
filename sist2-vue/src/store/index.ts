@@ -51,6 +51,7 @@ export default new Vuex.Store({
         optUpdateMimeMap: false,
         optUseDatePicker: false,
         optVidPreviewInterval: 700,
+        optSimpleLightbox: true,
 
         _onLoadSelectedIndices: [] as string[],
         _onLoadSelectedMimeTypes: [] as string[],
@@ -161,6 +162,7 @@ export default new Vuex.Store({
         setOptUpdateMimeMap: (state, val) => state.optUpdateMimeMap = val,
         setOptUseDatePicker: (state, val) => state.optUseDatePicker = val,
         setOptVidPreviewInterval: (state, val) => state.optVidPreviewInterval = val,
+        setOptSimpleLightbox: (state, val) => state.optSimpleLightbox = val,
 
         setOptLightboxLoadOnlyCurrent: (state, val) => state.optLightboxLoadOnlyCurrent = val,
         setOptLightboxSlideDuration: (state, val) => state.optLightboxSlideDuration = val,
@@ -378,5 +380,6 @@ export default new Vuex.Store({
         optUpdateMimeMap: state => state.optUpdateMimeMap,
         optUseDatePicker: state => state.optUseDatePicker,
         optVidPreviewInterval: state => state.optVidPreviewInterval,
+        optSimpleLightbox: state => state.optSimpleLightbox,
     }
 })
