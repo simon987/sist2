@@ -23,14 +23,17 @@ void parse_sidecar(vfile_t *vfile, document_t *doc) {
     }
     char *json_str = cJSON_PrintUnformatted(json);
 
-    unsigned char path_md5[MD5_DIGEST_LENGTH];
-    MD5((unsigned char *) vfile->filepath + ScanCtx.index.desc.root_len, doc->ext - 1 - ScanCtx.index.desc.root_len,
-        path_md5);
+    char assoc_doc_id[SIST_DOC_ID_LEN];
 
-    char path_md5_str[MD5_STR_LENGTH];
-    buf2hex(path_md5, MD5_DIGEST_LENGTH, path_md5_str);
+    char rel_path[PATH_MAX];
+    size_t rel_path_len = doc->ext - 1 - ScanCtx.index.desc.root_len;
+    memcpy(rel_path, vfile->filepath + ScanCtx.index.desc.root_len, rel_path_len);
+    *(rel_path + rel_path_len) = '\0';
 
-    store_write(ScanCtx.index.meta_store, path_md5_str, MD5_STR_LENGTH, json_str, strlen(json_str) + 1);
+    generate_doc_id(rel_path, assoc_doc_id);
+
+    store_write(ScanCtx.index.meta_store, assoc_doc_id, sizeof(assoc_doc_id), json_str,
+                strlen(json_str) + 1);
 
     cJSON_Delete(json);
     free(json_str);

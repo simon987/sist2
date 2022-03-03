@@ -191,7 +191,7 @@ void read_thumbnail(scan_ooxml_ctx_t *ctx, document_t *doc, struct archive *a, s
     archive_read_data(a, buf, entry_size);
 
     APPEND_LONG_META(doc, MetaThumbnail, 1)
-    ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), buf, entry_size);
+    ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), buf, entry_size);
     free(buf);
 }
 

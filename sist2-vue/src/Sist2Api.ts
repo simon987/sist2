@@ -1,6 +1,5 @@
 import axios from "axios";
 import {ext, strUnescape, lum} from "./util";
-import CryptoES from 'crypto-es';
 
 export interface EsTag {
     id: string
@@ -30,7 +29,6 @@ export interface EsHit {
     _index: string
     _id: string
     _score: number
-    _path_md5: string
     _type: string
     _tags: Tag[]
     _seq: number
@@ -249,11 +247,6 @@ class Sist2Api {
                 res.hits.hits.forEach((hit: EsHit) => {
                     hit["_source"]["name"] = strUnescape(hit["_source"]["name"]);
                     hit["_source"]["path"] = strUnescape(hit["_source"]["path"]);
-                    hit["_path_md5"] = CryptoES.MD5(
-                        hit["_source"]["path"] +
-                        (hit["_source"]["path"] ? "/" : "") +
-                        hit["_source"]["name"] + ext(hit)
-                    ).toString();
 
                     this.setHitProps(hit);
                     this.setHitTags(hit);
@@ -380,8 +373,7 @@ class Sist2Api {
         return axios.post(`${this.baseUrl}tag/` + hit["_source"]["index"], {
             delete: false,
             name: tag,
-            doc_id: hit["_id"],
-            path_md5: hit._path_md5
+            doc_id: hit["_id"]
         });
     }
 
@@ -389,8 +381,7 @@ class Sist2Api {
         return axios.post(`${this.baseUrl}tag/` + hit["_source"]["index"], {
             delete: true,
             name: tag,
-            doc_id: hit["_id"],
-            path_md5: hit._path_md5
+            doc_id: hit["_id"]
         });
     }
 

@@ -6,26 +6,6 @@ set(CMAKE_C_STANDARD 11)
 option(BUILD_TESTS "Build tests" on)
 
 add_subdirectory(third-party/antiword)
-if (SIST_DEBUG)
-    add_compile_definitions(
-            antiword
-            DEBUG
-    )
-    target_compile_options(
-            antiword
-            PRIVATE
-            -g
-            -fstack-protector
-            -fno-omit-frame-pointer
-            -fsanitize=address
-            -fno-inline
-    )
-else()
-    add_compile_definitions(
-            antiword
-            NDEBUG
-    )
-endif()
 
 add_library(
         scan
@@ -47,6 +27,38 @@ add_library(
         third-party/utf8.h
         libscan/mobi/scan_mobi.c libscan/mobi/scan_mobi.h libscan/raw/raw.c libscan/raw/raw.h)
 set_target_properties(scan PROPERTIES LINKER_LANGUAGE C)
+
+if (SIST_DEBUG)
+    add_compile_definitions(
+            antiword
+            DEBUG
+    )
+    target_compile_options(
+            antiword
+            PRIVATE
+            -g
+            -fstack-protector
+            -fno-omit-frame-pointer
+            -fsanitize=address
+            -fno-inline
+    )
+else()
+    add_compile_definitions(
+            antiword
+            NDEBUG
+    )
+
+    target_compile_options(
+            scan
+            PRIVATE
+
+            -Ofast
+            #-march=native
+            -fno-stack-protector
+            -fomit-frame-pointer
+            #-freciprocal-math
+    )
+endif()
 
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib .so)
 

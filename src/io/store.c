@@ -52,22 +52,7 @@ void store_flush(store_t *store) {
 void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t buf_len) {
 
     if (LogCtx.very_verbose) {
-        if (key_len == MD5_DIGEST_LENGTH) {
-            char path_md5_str[MD5_STR_LENGTH];
-            buf2hex((unsigned char *) key, MD5_DIGEST_LENGTH, path_md5_str);
-
-            LOG_DEBUGF("store.c", "Store write {%s} %lu bytes", path_md5_str, buf_len)
-
-        } else if (key_len == MD5_DIGEST_LENGTH + sizeof(int)) {
-            char path_md5_str[MD5_STR_LENGTH];
-            buf2hex((unsigned char *) key, MD5_DIGEST_LENGTH, path_md5_str);
-
-            LOG_DEBUGF("store.c", "Store write {%s/%d} %lu bytes",
-                       path_md5_str, *(int *) (key + MD5_DIGEST_LENGTH), buf_len);
-
-        } else {
-            LOG_DEBUGF("store.c", "Store write {%s} %lu bytes", key, buf_len)
-        }
+        LOG_DEBUGF("store.c", "Store write %s@{%s} %lu bytes", store->path, key, buf_len)
     }
 
 #if (SIST_FAKE_STORE != 1)

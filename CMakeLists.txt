@@ -97,9 +97,12 @@ else ()
     target_compile_options(
             sist2
             PRIVATE
+
             -Ofast
+            #-march=native
             -fno-stack-protector
             -fomit-frame-pointer
+            #-freciprocal-math
     )
 endif ()
 
@@ -121,11 +124,13 @@ target_link_libraries(
         CURL::libcurl
 
         pthread
-        magic
+        #magic
 
         c
 
         scan
+
+        /usr/lib/x86_64-linux-gnu/libmagic.so.1
 )
 
 add_custom_target(

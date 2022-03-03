@@ -202,7 +202,7 @@ scan_code_t parse_archive(scan_arc_ctx_t *ctx, vfile_t *f, document_t *doc, pcre
         sub_job->vfile.logf = ctx->logf;
         sub_job->vfile.has_checksum = FALSE;
         sub_job->vfile.calculate_checksum = f->calculate_checksum;
-        memcpy(sub_job->parent, doc->path_md5, MD5_DIGEST_LENGTH);
+        strcpy(sub_job->parent, doc->doc_id);
 
         while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
             sub_job->vfile.info = *archive_entry_stat(entry);

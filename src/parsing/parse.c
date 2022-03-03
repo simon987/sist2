@@ -69,7 +69,7 @@ void parse(void *arg) {
     doc->base = (short) job->base;
 
     char *rel_path = doc->filepath + ScanCtx.index.desc.root_len;
-    MD5((unsigned char *) rel_path, strlen(rel_path), doc->path_md5);
+    generate_doc_id(rel_path, doc->doc_id);
 
     doc->meta_head = NULL;
     doc->meta_tail = NULL;
@@ -77,10 +77,10 @@ void parse(void *arg) {
     doc->size = job->vfile.info.st_size;
     doc->mtime = (int) job->vfile.info.st_mtim.tv_sec;
 
-    int inc_ts = incremental_get(ScanCtx.original_table, doc->path_md5);
+    int inc_ts = incremental_get(ScanCtx.original_table, doc->doc_id);
     if (inc_ts != 0 && inc_ts == job->vfile.info.st_mtim.tv_sec) {
         pthread_mutex_lock(&ScanCtx.copy_table_mu);
-        incremental_mark_file(ScanCtx.copy_table, doc->path_md5);
+        incremental_mark_file(ScanCtx.copy_table, doc->doc_id);
         pthread_mutex_unlock(&ScanCtx.copy_table_mu);
 
         pthread_mutex_lock(&ScanCtx.dbg_file_counts_mu);
@@ -96,16 +96,14 @@ void parse(void *arg) {
 
     if (ScanCtx.new_table != NULL) {
         pthread_mutex_lock(&ScanCtx.copy_table_mu);
-        incremental_mark_file(ScanCtx.new_table, doc->path_md5);
+        incremental_mark_file(ScanCtx.new_table, doc->doc_id);
         pthread_mutex_unlock(&ScanCtx.copy_table_mu);
     }
 
     char *buf[MAGIC_BUF_SIZE];
 
     if (LogCtx.very_verbose) {
-        char path_md5_str[MD5_STR_LENGTH];
-        buf2hex(doc->path_md5, MD5_DIGEST_LENGTH, path_md5_str);
-        LOG_DEBUGF(job->filepath, "Starting parse job {%s}", path_md5_str)
+        LOG_DEBUGF(job->filepath, "Starting parse job {%s}", doc->doc_id)
     }
 
     if (job->vfile.info.st_size == 0) {
@@ -218,10 +216,10 @@ void parse(void *arg) {
     abort:
 
     //Parent meta
-    if (!md5_digest_is_null(job->parent)) {
-        meta_line_t *meta_parent = malloc(sizeof(meta_line_t) + MD5_STR_LENGTH);
+    if (job->parent[0] != '\0') {
+        meta_line_t *meta_parent = malloc(sizeof(meta_line_t) + SIST_INDEX_ID_LEN);
         meta_parent->key = MetaParent;
-        buf2hex(job->parent, MD5_DIGEST_LENGTH, meta_parent->str_val);
+        strcpy(meta_parent->str_val, job->parent);
         APPEND_META((doc), meta_parent)
 
         doc->has_parent = TRUE;

@@ -20,7 +20,7 @@ typedef struct {
     long count;
 } agg_t;
 
-void fill_tables(cJSON *document, UNUSED(const char index_id[MD5_STR_LENGTH])) {
+void fill_tables(cJSON *document, UNUSED(const char index_id[SIST_INDEX_ID_LEN])) {
 
     if (cJSON_GetObjectItem(document, "parent") != NULL) {
         return;

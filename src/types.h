@@ -4,7 +4,7 @@
 #define INDEX_TYPE_NDJSON "ndjson"
 
 typedef struct index_descriptor {
-    char id[MD5_STR_LENGTH];
+    char id[SIST_INDEX_ID_LEN];
     char version[64];
     long timestamp;
     char root[PATH_MAX];

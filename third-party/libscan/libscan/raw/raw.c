@@ -84,7 +84,7 @@ int store_thumbnail_rgb24(scan_raw_ctx_t *ctx, libraw_processed_image_t *img, do
     avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
 
     APPEND_LONG_META(doc, MetaThumbnail, 1)
-    ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) jpeg_packet.data, jpeg_packet.size);
+    ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), (char *) jpeg_packet.data, jpeg_packet.size);
 
     av_packet_unref(&jpeg_packet);
     av_free(*scaled_frame->data);

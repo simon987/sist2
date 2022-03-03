@@ -118,7 +118,7 @@ void init_dir(const char *dirpath, scan_args_t* args) {
       index_descriptor_t original_desc = read_index_descriptor(descriptor_path);
       memcpy(ScanCtx.index.desc.id, original_desc.id, sizeof(original_desc.id));
     } else {
-      // genreate new index id based on timestamp
+      // generate new index id based on timestamp
       unsigned char index_md5[MD5_DIGEST_LENGTH];
       MD5((unsigned char *) &ScanCtx.index.desc.timestamp, sizeof(ScanCtx.index.desc.timestamp), index_md5);
       buf2hex(index_md5, MD5_DIGEST_LENGTH, ScanCtx.index.desc.id);

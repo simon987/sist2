@@ -459,7 +459,7 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
     if (scaled_frame == STORE_AS_IS) {
         return_value = SAVE_THUMBNAIL_OK;
 
-        ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) frame_and_packet->packet->data,
+        ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), (char *) frame_and_packet->packet->data,
                    frame_and_packet->packet->size);
     } else {
         // Encode frame to jpeg
@@ -473,7 +473,7 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
 
         // Save thumbnail
         if (thumbnail_index == 0) {
-            ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) jpeg_packet.data, jpeg_packet.size);
+            ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), (char *) jpeg_packet.data, jpeg_packet.size);
             return_value = SAVE_THUMBNAIL_OK;
 
         } else if (thumbnail_index > 1) {
@@ -482,9 +482,8 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
             //  I figure out a better fix.
             thumbnail_index -= 1;
 
-            char tn_key[sizeof(doc->path_md5) + sizeof(int)];
-            memcpy(tn_key, doc->path_md5, sizeof(doc->path_md5));
-            memcpy(tn_key + sizeof(doc->path_md5), &thumbnail_index, sizeof(thumbnail_index));
+            char tn_key[sizeof(doc->doc_id) + sizeof(char) * 4];
+            snprintf(tn_key, sizeof(tn_key), "%s%04d", doc->doc_id, thumbnail_index);
 
             ctx->store((char *) tn_key, sizeof(tn_key), (char *) jpeg_packet.data, jpeg_packet.size);
         } else {
@@ -579,8 +578,8 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
         int video_duration_in_seconds = (int) (pFormatCtx->duration / AV_TIME_BASE);
 
         int thumbnails_to_generate = (IS_VIDEO(pFormatCtx) && stream->codecpar->codec_id != AV_CODEC_ID_GIF && video_duration_in_seconds >= 15)
-                                     // Limit to ~1 thumbnail every 5s
-                                     ? MAX(MIN(ctx->tn_count, video_duration_in_seconds / 5 + 1), 1) + 1
+                                     // Limit to ~1 thumbnail every 7s
+                                     ? MAX(MIN(ctx->tn_count, video_duration_in_seconds / 7 + 1), 1) + 1
                                      : 1;
 
         const double seek_increment = thumbnails_to_generate == 1
@@ -845,7 +844,7 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
 
     if (scaled_frame == STORE_AS_IS) {
         APPEND_LONG_META(doc, MetaThumbnail, 1)
-        ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) frame_and_packet->packet->data,
+        ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), (char *) frame_and_packet->packet->data,
                    frame_and_packet->packet->size);
     } else {
         // Encode frame to jpeg
@@ -859,7 +858,7 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
 
         // Save thumbnail
         APPEND_LONG_META(doc, MetaThumbnail, 1)
-        ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) jpeg_packet.data, jpeg_packet.size);
+        ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), (char *) jpeg_packet.data, jpeg_packet.size);
 
         av_packet_unref(&jpeg_packet);
         avcodec_free_context(&jpeg_encoder);

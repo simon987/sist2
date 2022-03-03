@@ -22,7 +22,7 @@ parse_job_t *create_fs_parse_job(const char *filepath, const struct stat *info, 
 
     job->vfile.info = *info;
 
-    memset(job->parent, 0, MD5_DIGEST_LENGTH);
+    job->parent[0] = '\0';
 
     job->vfile.filepath = job->filepath;
     job->vfile.read = fs_read;
