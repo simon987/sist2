@@ -187,6 +187,7 @@ void thumbnail(struct mg_connection *nc, struct mg_http_message *hm) {
 
         memcpy(tn_key, arg_doc_id, sizeof(arg_doc_id));
         memcpy(tn_key + sizeof(arg_doc_id) - 1, tn_index, sizeof(char) * 4);
+        *(tn_key + sizeof(tn_key) - 1) = '\0';
 
         data = store_read(store, (char *) tn_key, sizeof(tn_key), &data_len);
     } else {
