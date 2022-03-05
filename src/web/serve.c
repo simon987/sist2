@@ -282,7 +282,7 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
     char disposition[8192];
     snprintf(disposition, sizeof(disposition),
              HTTP_SERVER_HEADER "Content-Disposition: inline; filename=\"%s%s%s\"\r\n"
-                                "Accept-Ranges: bytes\r\nCache-Control: no-store\r\n",
+             "Accept-Ranges: bytes\r\nCache-Control: no-store\r\n",
              name, strlen(ext) == 0 ? "" : ".", ext);
 
     char mime_mapping[1024];
@@ -313,13 +313,18 @@ void index_info(struct mg_connection *nc) {
 
     cache_es_version();
 
+    const char *es_version = "0.0.0";
+    if (WebCtx.es_version != NULL) {
+        es_version = format_es_version(WebCtx.es_version);
+    }
+
     cJSON *json = cJSON_CreateObject();
     cJSON *arr = cJSON_AddArrayToObject(json, "indices");
 
     cJSON_AddStringToObject(json, "mongooseVersion", MG_VERSION);
     cJSON_AddStringToObject(json, "esIndex", WebCtx.es_index);
     cJSON_AddStringToObject(json, "version", Version);
-    cJSON_AddStringToObject(json, "esVersion", format_es_version(WebCtx.es_version));
+    cJSON_AddStringToObject(json, "esVersion", es_version);
     cJSON_AddBoolToObject(json, "esVersionSupported", IS_SUPPORTED_ES_VERSION(WebCtx.es_version));
     cJSON_AddBoolToObject(json, "esVersionLegacy", USE_LEGACY_ES_SETTINGS(WebCtx.es_version));
     cJSON_AddStringToObject(json, "platform", QUOTE(SIST_PLATFORM));

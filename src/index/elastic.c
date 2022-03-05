@@ -21,6 +21,8 @@ void free_queue(int max);
 
 void elastic_flush();
 
+void print_error(response_t *r);
+
 void destroy_indexer(es_indexer_t *indexer) {
 
     if (indexer == NULL) {
@@ -413,11 +415,19 @@ es_version_t *elastic_get_version(const char *es_url) {
     *(tmp + r->size) = '\0';
     cJSON *response = cJSON_Parse(tmp);
     free(tmp);
-    free_response(r);
 
     if (response == NULL) {
         return NULL;
     }
+
+    if (cJSON_GetObjectItem(response, "error") != NULL) {
+        LOG_WARNING("elastic.c", "Could not get Elasticsearch version")
+        print_error(r);
+        free_response(r);
+        return NULL;
+    }
+
+    free_response(r);
 
     if (cJSON_GetObjectItem(response, "version") == NULL ||
         cJSON_GetObjectItem(cJSON_GetObjectItem(response, "version"), "number") == NULL) {

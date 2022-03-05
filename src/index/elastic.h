@@ -20,8 +20,8 @@ typedef struct {
 } es_version_t;
 
 #define VERSION_GE(version, maj, min) ((version)->major > (maj) || ((version)->major == (maj) && (version)->minor >= (min)))
-#define IS_SUPPORTED_ES_VERSION(es_version) VERSION_GE((es_version), 6, 8)
-#define USE_LEGACY_ES_SETTINGS(es_version) (!VERSION_GE((es_version), 7, 14))
+#define IS_SUPPORTED_ES_VERSION(es_version) ((es_version) != NULL && VERSION_GE((es_version), 6, 8))
+#define USE_LEGACY_ES_SETTINGS(es_version) ((es_version) != NULL && (!VERSION_GE((es_version), 7, 14)))
 
 __always_inline
 static const char *format_es_version(es_version_t *version) {
