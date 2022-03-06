@@ -139,7 +139,9 @@ export default Vue.extend({
         this.setSist2Info(data);
         this.setIndices(data.indices);
 
-        Sist2Api.getMimeTypes(Sist2Query.searchQuery()).then(({mimeMap}) => {
+        const doBlankSearch = !this.$store.state.optUpdateMimeMap;
+
+        Sist2Api.getMimeTypes(Sist2Query.searchQuery(doBlankSearch)).then(({mimeMap}) => {
           this.$store.commit("setUiMimeMap", mimeMap);
           this.uiLoading = false;
           this.search(true);
