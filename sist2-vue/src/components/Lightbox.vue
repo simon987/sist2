@@ -89,7 +89,6 @@ export default {
 
       switch (e.key) {
         case " ": {
-          console.log("SPACE")
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
@@ -98,16 +97,12 @@ export default {
           [...document.getElementsByClassName("fslightbox-absoluted")].forEach(elem => {
             if (elem.style.transform === "translate(0px)" || elem.style.transform === "translate(0px, 0px)") {
               const vid = elem.getElementsByTagName("video")[0];
-              console.log(elem)
-              console.log(vid)
 
               if (vid) {
                 if (vid.paused) {
                   vid.play();
-                  console.log("PLAY")
                 } else {
                   vid.pause()
-                  console.log("PAUSE")
                 }
               }
             }
@@ -119,24 +114,28 @@ export default {
         }
         case "ArrowUp":
         case "k": {
-          if (!lightboxStore.data.isThumbing) {
+          if (!lightboxStore.data.isThumbing && lightboxStore.core.thumbsToggler) {
             lightboxStore.core.thumbsToggler.toggleThumbs();
           }
           return false;
         }
         case "ArrowDown":
         case "j": {
-          if (lightboxStore.data.isThumbing) {
+          if (lightboxStore.data.isThumbing && lightboxStore.core.thumbsToggler) {
             lightboxStore.core.thumbsToggler.toggleThumbs();
           }
           return false;
         }
         case "h": {
-          lightboxStore.core.slideIndexChanger.jumpTo(lightboxStore.core.stageManager.getPreviousSlideIndex());
-          break;
+          if (lightboxStore.core.stageManager.getPreviousSlideIndex) {
+            lightboxStore.core.slideIndexChanger.jumpTo(lightboxStore.core.stageManager.getPreviousSlideIndex());
+          }
+          return false;
         }
         case "l": {
-          lightboxStore.core.slideIndexChanger.jumpTo(lightboxStore.core.stageManager.getNextSlideIndex());
+          if (lightboxStore.core.stageManager.getNextSlideIndex) {
+            lightboxStore.core.slideIndexChanger.jumpTo(lightboxStore.core.stageManager.getNextSlideIndex());
+          }
           return false;
         }
       }
