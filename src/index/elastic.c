@@ -214,7 +214,13 @@ void print_errors(response_t *r) {
     *(tmp + r->size) = '\0';
 
     cJSON *ret_json = cJSON_Parse(tmp);
-    if (cJSON_GetObjectItem(ret_json, "errors")->valueint != 0) {
+    cJSON *errors = cJSON_GetObjectItem(ret_json, "errors");
+
+    if (errors == NULL) {
+        char *str = cJSON_Print(ret_json);
+        LOG_ERRORF("elastic.c", "%s\n", str);
+        cJSON_free(str);
+    } else if (errors->valueint != 0) {
         cJSON *err;
         cJSON_ArrayForEach(err, cJSON_GetObjectItem(ret_json, "items")) {
             if (cJSON_GetObjectItem(cJSON_GetObjectItem(err, "index"), "status")->valueint != 201) {
