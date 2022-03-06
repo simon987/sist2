@@ -241,6 +241,11 @@ export default new Vuex.Store({
             }
         },
         async updateArgs({state}, router: VueRouter) {
+
+            if (router.currentRoute.path !== "/") {
+                return;
+            }
+
             await router.push({
                 query: {
                     q: state.searchText.trim() ? state.searchText.trim().replace(/\s+/g, " ") : undefined,
