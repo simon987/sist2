@@ -4,7 +4,12 @@
 
 #define MIN_SIZE 32
 #define AVIO_BUF_SIZE 8192
-#define IS_VIDEO(fmt) ((fmt)->iformat->name && strcmp((fmt)->iformat->name, "image2") != 0)
+#define IS_VIDEO(fmt) ( \
+    (fmt)->iformat->name && strcmp((fmt)->iformat->name, "image2") != 0 \
+    && strcmp((fmt)->iformat->name, "jpeg_pipe") != 0 \
+    && strcmp((fmt)->iformat->name, "webp_pipe") != 0 \
+    && strcmp((fmt)->iformat->name, "png_pipe") != 0 \
+    )
 
 
 #define STORE_AS_IS ((void*)-1)
@@ -279,18 +284,22 @@ static void
 append_video_meta(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, AVFrame *frame, document_t *doc, int is_video) {
 
     if (is_video) {
-        meta_line_t *meta_duration = malloc(sizeof(meta_line_t));
-        meta_duration->key = MetaMediaDuration;
-        meta_duration->long_val = pFormatCtx->duration / AV_TIME_BASE;
-        if (meta_duration->long_val > INT32_MAX) {
-            meta_duration->long_val = 0;
+        if (pFormatCtx->duration / AV_TIME_BASE != 0) {
+            meta_line_t *meta_duration = malloc(sizeof(meta_line_t));
+            meta_duration->key = MetaMediaDuration;
+            meta_duration->long_val = pFormatCtx->duration / AV_TIME_BASE;
+            if (meta_duration->long_val > INT32_MAX) {
+                meta_duration->long_val = 0;
+            }
+            APPEND_META(doc, meta_duration)
         }
-        APPEND_META(doc, meta_duration)
 
-        meta_line_t *meta_bitrate = malloc(sizeof(meta_line_t));
-        meta_bitrate->key = MetaMediaBitrate;
-        meta_bitrate->long_val = pFormatCtx->bit_rate;
-        APPEND_META(doc, meta_bitrate)
+        if (pFormatCtx->bit_rate != 0) {
+            meta_line_t *meta_bitrate = malloc(sizeof(meta_line_t));
+            meta_bitrate->key = MetaMediaBitrate;
+            meta_bitrate->long_val = pFormatCtx->bit_rate;
+            APPEND_META(doc, meta_bitrate)
+        }
     }
 
     AVDictionaryEntry *tag = NULL;
@@ -577,7 +586,8 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
 
         int video_duration_in_seconds = (int) (pFormatCtx->duration / AV_TIME_BASE);
 
-        int thumbnails_to_generate = (IS_VIDEO(pFormatCtx) && stream->codecpar->codec_id != AV_CODEC_ID_GIF && video_duration_in_seconds >= 15)
+        int thumbnails_to_generate = (IS_VIDEO(pFormatCtx) && stream->codecpar->codec_id != AV_CODEC_ID_GIF &&
+                                      video_duration_in_seconds >= 15)
                                      // Limit to ~1 thumbnail every 7s
                                      ? MAX(MIN(ctx->tn_count, video_duration_in_seconds / 7 + 1), 1) + 1
                                      : 1;
