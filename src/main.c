@@ -38,8 +38,8 @@ static __sighandler_t sigabrt_handler = NULL;
 
 void sig_handler(int signum) {
 
-    LogCtx.verbose = 1;
-    LogCtx.very_verbose = 1;
+    LogCtx.verbose = TRUE;
+    LogCtx.very_verbose = TRUE;
 
     LOG_ERROR("*SIGNAL HANDLER*", "=============================================\n\n");
     LOG_ERRORF("*SIGNAL HANDLER*", "Uh oh! Caught fatal signal: %s", strsignal(signum));
