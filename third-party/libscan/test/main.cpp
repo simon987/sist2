@@ -923,7 +923,6 @@ TEST(Msdoc, Test1Pdf) {
     ASSERT_TRUE(strstr(get_meta(&doc, MetaContent)->str_val, "October 2000") != nullptr);
     ASSERT_STREQ(get_meta(&doc, MetaTitle)->str_val, "INTERNATIONAL ORGANIZATION FOR STANDARDIZATION");
     ASSERT_STREQ(get_meta(&doc, MetaAuthor)->str_val, "Oliver Morgan");
-    ASSERT_EQ(get_meta(&doc, MetaPages)->long_val, 57);
     ASSERT_NEAR(strlen(get_meta(&doc, MetaContent)->str_val), msdoc_ctx.content_size, 4);
     ASSERT_NE(size_before, store_size);
 
@@ -1026,6 +1025,23 @@ TEST(Msdoc, TestUtf8Text) {
     parse_msdoc(&msdoc_text_ctx, &f, &doc);
 
     ASSERT_TRUE(strstr(get_meta(&doc, MetaContent)->str_val, "调查项目 A questionnaire") != nullptr);
+
+    cleanup(&doc, &f);
+}
+
+TEST(Msdoc, Test5Pdf) {
+    vfile_t f;
+    document_t doc;
+    load_doc_file("libscan-test-files/test_files/msdoc/test5.doc", &f, &doc);
+
+    size_t size_before = store_size;
+
+    parse_msdoc(&msdoc_ctx, &f, &doc);
+
+    ASSERT_TRUE(strstr(get_meta(&doc, MetaContent)->str_val, "орган Федеральной") != nullptr);
+    ASSERT_STREQ(get_meta(&doc, MetaAuthor)->str_val, "uswo");
+    ASSERT_NEAR(strlen(get_meta(&doc, MetaContent)->str_val), msdoc_ctx.content_size, 4);
+    ASSERT_NE(size_before, store_size);
 
     cleanup(&doc, &f);
 }
@@ -1190,3 +1206,6 @@ int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
+
+// 0x6130000d2580
+// "/mnt/Hatchery/m ain/downloads/qbittorrent/downloads/Roskomnadzor/УПРАВЛЕНИЕ РОСКОМНАДЗОРА по РБ.zip#/УПРАВЛЕНИЕ РОСКОМНАДЗОРА по РБ/Лопатин Ю.М/Секнин/2015 год/Обучение по ", <incomplete sequence \320>...
