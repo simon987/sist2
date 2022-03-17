@@ -50,6 +50,11 @@
               $t("opt.simpleLightbox")
             }}
           </b-form-checkbox>
+
+          <b-form-checkbox :checked="optShowTagPickerFilter" @input="setOptShowTagPickerFilter">{{
+              $t("opt.showTagPickerFilter")
+            }}
+          </b-form-checkbox>
         </b-card>
 
         <br/>
@@ -245,6 +250,7 @@ export default {
       "optUseDatePicker",
       "optVidPreviewInterval",
       "optSimpleLightbox",
+      "optShowTagPickerFilter",
     ]),
     clientWidth() {
       return window.innerWidth;
@@ -292,6 +298,7 @@ export default {
       "setOptUseDatePicker",
       "setOptVidPreviewInterval",
       "setOptSimpleLightbox",
+      "setOptShowTagPickerFilter",
     ]),
     onResetClick() {
       localStorage.removeItem("sist2_configuration");

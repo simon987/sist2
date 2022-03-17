@@ -32,7 +32,7 @@
               <MimePicker></MimePicker>
             </b-tab>
             <b-tab :title="$t('tags')">
-              <TagPicker></TagPicker>
+              <TagPicker :show-search-bar="$store.state.optShowTagPickerFilter"></TagPicker>
             </b-tab>
           </b-tabs>
         </b-col>

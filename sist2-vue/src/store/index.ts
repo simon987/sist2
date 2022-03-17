@@ -4,6 +4,8 @@ import VueRouter, {Route} from "vue-router";
 import {EsHit, EsResult, EsTag, Index, Tag} from "@/Sist2Api";
 import {deserializeMimes, serializeMimes} from "@/util";
 
+const CONF_VERSION = 2;
+
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -52,6 +54,7 @@ export default new Vuex.Store({
         optUseDatePicker: false,
         optVidPreviewInterval: 700,
         optSimpleLightbox: true,
+        optShowTagPickerFilter: true,
 
         _onLoadSelectedIndices: [] as string[],
         _onLoadSelectedMimeTypes: [] as string[],
@@ -163,6 +166,7 @@ export default new Vuex.Store({
         setOptUseDatePicker: (state, val) => state.optUseDatePicker = val,
         setOptVidPreviewInterval: (state, val) => state.optVidPreviewInterval = val,
         setOptSimpleLightbox: (state, val) => state.optSimpleLightbox = val,
+        setOptShowTagPickerFilter: (state, val) => state.optShowTagPickerFilter = val,
 
         setOptLightboxLoadOnlyCurrent: (state, val) => state.optLightboxLoadOnlyCurrent = val,
         setOptLightboxSlideDuration: (state, val) => state.optLightboxSlideDuration = val,
@@ -274,12 +278,19 @@ export default new Vuex.Store({
                 }
             });
 
+            conf["version"] = CONF_VERSION;
+
             localStorage.setItem("sist2_configuration", JSON.stringify(conf));
         },
         loadConfiguration({state}) {
             const confString = localStorage.getItem("sist2_configuration");
             if (confString) {
                 const conf = JSON.parse(confString);
+
+                if (!("version" in conf) || conf["version"] != CONF_VERSION) {
+                    localStorage.removeItem("sist2_configuration");
+                    window.location.reload();
+                }
 
                 Object.keys(state).forEach((key) => {
                     if (key.startsWith("opt")) {
@@ -386,5 +397,6 @@ export default new Vuex.Store({
         optUseDatePicker: state => state.optUseDatePicker,
         optVidPreviewInterval: state => state.optVidPreviewInterval,
         optSimpleLightbox: state => state.optSimpleLightbox,
+        optShowTagPickerFilter: state => state.optShowTagPickerFilter,
     }
 })
