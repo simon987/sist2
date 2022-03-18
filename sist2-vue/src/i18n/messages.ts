@@ -16,6 +16,7 @@ export default {
         pages: "pages",
         mimeTypes: "Media types",
         tags: "Tags",
+        tagFilter: "Filter tags",
         help: {
             simpleSearch: "Simple search",
             advancedSearch: "Advanced search",
@@ -74,6 +75,7 @@ export default {
             useDatePicker: "Use a Date Picker component rather than a slider",
             vidPreviewInterval: "Video preview frame duration in ms",
             simpleLightbox: "Disable animations in image viewer",
+            showTagPickerFilter: "Display the tag filter bar"
         },
         queryMode: {
             simple: "Simple",
@@ -183,6 +185,7 @@ export default {
         pages: "pages",
         mimeTypes: "Types de médias",
         tags: "Tags",
+        tagFilter: "Filtrer les tags",
         help: {
             simpleSearch: "Recherche simple",
             advancedSearch: "Recherche avancée",
@@ -242,6 +245,7 @@ export default {
             useDatePicker: "Afficher un composant « Date Picker » plutôt qu'un slider",
             vidPreviewInterval: "Durée des images d'aperçu video en millisecondes",
             simpleLightbox: "Désactiver les animations du visualiseur d'images",
+            showTagPickerFilter: "Afficher le filtre dans l'onglet Tags"
         },
         queryMode: {
             simple: "Simple",
@@ -352,6 +356,7 @@ export default {
         pages: "页",
         mimeTypes: "文件类型",
         tags: "标签",
+        tagFilter: "筛选标签",
         help: {
             simpleSearch: "简易搜索",
             advancedSearch: "高级搜索",
@@ -410,6 +415,7 @@ export default {
             useDatePicker: "使用日期选择器组件而不是滑块",
             vidPreviewInterval: "视频预览帧的持续时间，以毫秒为单位",
             simpleLightbox: "在图片查看器中，禁用动画",
+            showTagPickerFilter: "显示标签过滤栏"
         },
         queryMode: {
             simple: "简单",

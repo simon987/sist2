@@ -2,7 +2,7 @@
   <div>
     <b-input-group v-if="showSearchBar" id="tag-picker-filter-bar">
       <b-form-input :value="filter"
-                    :placeholder="'Filter tags'"
+                    :placeholder="$t('tagFilter')"
                     @input="onFilter($event)"></b-form-input>
     </b-input-group>
 
