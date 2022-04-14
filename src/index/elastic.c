@@ -139,6 +139,11 @@ void execute_update_script(const char *script, int async, const char index_id[SI
 
     if (async) {
         cJSON *task = cJSON_GetObjectItem(resp, "task");
+
+        if (task == NULL) {
+            LOG_FATALF("elastic.c", "FIXME: Could not get task id: %s", r->body);
+        }
+
         LOG_INFOF("elastic.c", "User script queued: %s/_tasks/%s", Indexer->es_url, task->valuestring);
     }
 
