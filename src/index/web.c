@@ -22,7 +22,7 @@ void free_response(response_t *resp) {
     free(resp);
 }
 
-void web_post_async_poll(subreq_ctx_t* req) {
+void web_post_async_poll(subreq_ctx_t *req) {
     fd_set fdread;
     fd_set fdwrite;
     fd_set fdexcep;
@@ -34,7 +34,7 @@ void web_post_async_poll(subreq_ctx_t* req) {
 
     CURLMcode mc = curl_multi_fdset(req->multi, &fdread, &fdwrite, &fdexcep, &maxfd);
 
-    if(mc != CURLM_OK) {
+    if (mc != CURLM_OK) {
         req->done = TRUE;
         return;
     }
@@ -47,7 +47,7 @@ void web_post_async_poll(subreq_ctx_t* req) {
     struct timeval timeout = {1, 0};
     int rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
 
-    switch(rc) {
+    switch (rc) {
         case -1:
             req->done = TRUE;
             break;
@@ -142,6 +142,9 @@ response_t *web_post(const char *url, const char *data) {
     curl_easy_setopt(curl, CURLOPT_POST, 1);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
 
+    char err_buffer[CURL_ERROR_SIZE + 1] = {};
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, err_buffer);
+
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -151,11 +154,15 @@ response_t *web_post(const char *url, const char *data) {
     curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &resp->status_code);
 
-    curl_easy_cleanup(curl);
-    curl_slist_free_all(headers);
-
     resp->body = buffer.buf;
     resp->size = buffer.cur;
+
+    if (resp->status_code == 0) {
+        LOG_ERRORF("web.c", "CURL Error: %s", err_buffer)
+    }
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
 
     return resp;
 }
@@ -175,7 +182,7 @@ response_t *web_put(const char *url, const char *data) {
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
     curl_easy_setopt(curl, CURLOPT_DNS_USE_GLOBAL_CACHE, 0);
-    curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURLOPT_DNS_LOCAL_IP4 );
+    curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURLOPT_DNS_LOCAL_IP4);
 
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");

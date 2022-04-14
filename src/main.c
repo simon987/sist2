@@ -534,6 +534,7 @@ void sist2_exec_script(exec_args_t *args) {
 
     IndexCtx.es_url = args->es_url;
     IndexCtx.es_index = args->es_index;
+    IndexCtx.needs_es_connection = TRUE;
 
     LOG_DEBUGF("main.c", "descriptor version %s (%s)", desc.version, desc.type)
 

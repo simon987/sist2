@@ -81,6 +81,11 @@ void web_args_destroy(web_args_t *args) {
 }
 
 void exec_args_destroy(exec_args_t *args) {
+
+    if (args->index_path != NULL) {
+        free(args->index_path);
+    }
+
     free(args);
 }
 

@@ -110,16 +110,16 @@ void execute_update_script(const char *script, int async, const char index_id[SI
     cJSON *term_obj = cJSON_AddObjectToObject(query, "term");
     cJSON_AddStringToObject(term_obj, "index", index_id);
 
-    char *str = cJSON_Print(body);
+    char *str = cJSON_PrintUnformatted(body);
 
-    char bulk_url[4096];
+    char url[4096];
     if (async) {
-        snprintf(bulk_url, sizeof(bulk_url), "%s/%s/_update_by_query?wait_for_completion=false", Indexer->es_url,
+        snprintf(url, sizeof(url), "%s/%s/_update_by_query?wait_for_completion=false", Indexer->es_url,
                  Indexer->es_index);
     } else {
-        snprintf(bulk_url, sizeof(bulk_url), "%s/%s/_update_by_query", Indexer->es_url, Indexer->es_index);
+        snprintf(url, sizeof(url), "%s/%s/_update_by_query", Indexer->es_url, Indexer->es_index);
     }
-    response_t *r = web_post(bulk_url, str);
+    response_t *r = web_post(url, str);
     if (!async) {
         LOG_INFOF("elastic.c", "Executed user script <%d>", r->status_code);
     }
