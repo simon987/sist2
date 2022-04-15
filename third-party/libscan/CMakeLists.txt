@@ -42,6 +42,22 @@ if (SIST_DEBUG)
             -fsanitize=address
             -fno-inline
     )
+elseif (SIST_FAST)
+    add_compile_definitions(
+            antiword
+            NDEBUG
+    )
+
+    target_compile_options(
+            scan
+            PRIVATE
+
+            -Ofast
+            -march=native
+            -fno-stack-protector
+            -fomit-frame-pointer
+            -freciprocal-math
+    )
 else()
     add_compile_definitions(
             antiword
