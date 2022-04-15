@@ -210,7 +210,7 @@ class Sist2Query {
             };
 
             if (!legacyES) {
-                q.highlight.max_analyzed_offset = 9_999_999;
+                q.highlight.max_analyzed_offset = 999_999;
             }
 
             if (getters.optSearchInPath) {
