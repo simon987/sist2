@@ -48,7 +48,6 @@ typedef int scan_code_t;
 #define CTX_LOG_FATALF(filepath, fmt, ...) ctx->logf(filepath, LEVEL_FATAL, fmt, __VA_ARGS__); exit(-1);
 #define CTX_LOG_FATAL(filepath, str) ctx->log(filepath, LEVEL_FATAL, str); exit(-1);
 
-#define MD5_STR_LENGTH 33
 #define SIST_DOC_ID_LEN MD5_STR_LENGTH
 #define SIST_INDEX_ID_LEN MD5_STR_LENGTH
 

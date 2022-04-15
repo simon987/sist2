@@ -7,6 +7,11 @@ option(BUILD_TESTS "Build tests" on)
 
 add_subdirectory(third-party/antiword)
 
+set(USE_LIBXML2 OFF)
+set(USE_XMLWRITER OFF)
+set(BUILD_SHARED_LIBS OFF)
+add_subdirectory(third-party/libmobi)
+
 add_library(
         scan
         libscan/util.c libscan/util.h
@@ -113,34 +118,14 @@ target_compile_options(
         -g
 )
 
-include(ExternalProject)
-find_program(MAKE_EXE NAMES gmake nmake make)
-ExternalProject_Add(
-        libmobi
-        GIT_REPOSITORY https://github.com/simon987/libmobi.git
-        GIT_TAG "public"
-
-        UPDATE_COMMAND ""
-        PATCH_COMMAND ""
-        TEST_COMMAND ""
-        CONFIGURE_COMMAND ./autogen.sh && ./configure
-        INSTALL_COMMAND ""
-
-        PREFIX "third-party/ext_libmobi"
-        SOURCE_DIR "third-party/ext_libmobi/src/libmobi"
-        BINARY_DIR "third-party/ext_libmobi/src/libmobi"
-
-        BUILD_COMMAND ${MAKE_EXE} -j 8 --silent
-)
-
-SET(MOBI_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/third-party/ext_libmobi/src/libmobi/src/.libs/)
-SET(MOBI_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/third-party/ext_libmobi/src/libmobi/src/)
-
 if (SIST_DEBUG)
     SET(FFMPEG_DEBUG "--enable-debug=3" "--disable-optimizations")
 else()
     SET(FFMPEG_DEBUG "")
 endif()
+
+include(ExternalProject)
+find_program(MAKE_EXE NAMES gmake nmake make)
 
 ExternalProject_Add(
         ffmpeg
@@ -187,10 +172,10 @@ SET(WPD_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/third-party/ext_libwpd/src/libwp
 
 add_dependencies(
         scan
-        libmobi
         ffmpeg
         antiword
         libwpd
+        mobi
 )
 
 target_link_libraries(
@@ -207,8 +192,6 @@ target_link_libraries(
 
         ${MUPDF_LIB}
         openjp2
-
-        ${MOBI_LIB_DIR}/libmobi.a
 
         ${WPD_LIB_DIR}/libwpd-0.9.a
         ${WPD_LIB_DIR}/libwpd-stream-0.9.a
@@ -246,6 +229,7 @@ target_link_libraries(
         ${GUMBO_LIB}
         dl
         antiword
+        mobi
         unofficial::pcre::pcre unofficial::pcre::pcre16 unofficial::pcre::pcre32 unofficial::pcre::pcrecpp
 )
 
