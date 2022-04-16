@@ -208,7 +208,7 @@ export default Vue.extend({
       this.$store.commit("setUiReachedScrollEnd", false);
     },
     async handleSearch(resp: EsResult) {
-      if (resp.hits.hits.length == 0) {
+      if (resp.hits.hits.length == 0 || resp.hits.hits.length < this.$store.state.optSize) {
         this.$store.commit("setUiReachedScrollEnd", true);
       }
 
@@ -248,6 +248,8 @@ export default Vue.extend({
       this.$store.commit("setLastQueryResult", resp);
 
       this.docs.push(...resp.hits.hits);
+
+      resp.hits.hits.forEach(hit => this.docIds.add(hit._id));
     },
     getDateRange(): Promise<{ min: number, max: number }> {
       return sist2.esQuery({

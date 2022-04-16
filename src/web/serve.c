@@ -359,42 +359,6 @@ void index_info(struct mg_connection *nc) {
 }
 
 
-void document_info(struct mg_connection *nc, struct mg_http_message *hm) {
-
-    if (hm->uri.len != SIST_DOC_ID_LEN + 2) {
-        LOG_DEBUGF("serve.c", "Invalid document_info path: %.*s", (int) hm->uri.len, hm->uri.ptr)
-        HTTP_REPLY_NOT_FOUND
-        return;
-    }
-
-    char arg_doc_id[SIST_DOC_ID_LEN];
-    memcpy(arg_doc_id, hm->uri.ptr + 3, SIST_DOC_ID_LEN);
-    *(arg_doc_id + SIST_DOC_ID_LEN - 1) = '\0';
-
-    cJSON *doc = elastic_get_document(arg_doc_id);
-    cJSON *source = cJSON_GetObjectItem(doc, "_source");
-
-    cJSON *index_id = cJSON_GetObjectItem(source, "index");
-    if (index_id == NULL) {
-        cJSON_Delete(doc);
-        HTTP_REPLY_NOT_FOUND
-        return;
-    }
-
-    index_t *idx = get_index_by_id(index_id->valuestring);
-    if (idx == NULL) {
-        cJSON_Delete(doc);
-        HTTP_REPLY_NOT_FOUND
-        return;
-    }
-
-    char *json_str = cJSON_PrintUnformatted(source);
-    send_response_line(nc, 200, (int) strlen(json_str), "Content-Type: application/json");
-    mg_send(nc, json_str, (int) strlen(json_str));
-    free(json_str);
-    cJSON_Delete(doc);
-}
-
 void file(struct mg_connection *nc, struct mg_http_message *hm) {
 
     if (hm->uri.len != SIST_DOC_ID_LEN + 2) {
@@ -653,8 +617,6 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
                 return;
             }
             tag(nc, hm);
-        } else if (mg_http_match_uri(hm, "/d/*")) {
-            document_info(nc, hm);
         } else {
             HTTP_REPLY_NOT_FOUND
         }

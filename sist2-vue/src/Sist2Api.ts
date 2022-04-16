@@ -336,10 +336,6 @@ class Sist2Api {
         };
     }
 
-    getDocInfo(docId: string) {
-        return axios.get(`${this.baseUrl}d/${docId}`);
-    }
-
     getTags() {
         return this.esQuery({
             aggs: {

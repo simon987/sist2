@@ -26,7 +26,6 @@ export default new Vuex.Store({
         sortMode: "score",
 
         fuzzy: false,
-        size: 60,
 
         optLang: "en",
         optLangIsDefault: true,
@@ -34,6 +33,7 @@ export default new Vuex.Store({
         optTheme: "light",
         optDisplay: "grid",
 
+        optSize: 60,
         optHighlight: true,
         optTagOrOperator: false,
         optFuzzy: true,
@@ -153,7 +153,7 @@ export default new Vuex.Store({
         setOptSuggestPath: (state, val) => state.optSuggestPath = val,
         setOptFragmentSize: (state, val) => state.optFragmentSize = val,
         setOptQueryMode: (state, val) => state.optQueryMode = val,
-        setOptResultSize: (state, val) => state.size = val,
+        setOptResultSize: (state, val) => state.optSize = val,
         setOptTagOrOperator: (state, val) => state.optTagOrOperator = val,
 
         setOptTreemapType: (state, val) => state.optTreemapType = val,
@@ -353,7 +353,7 @@ export default new Vuex.Store({
         searchText: state => state.searchText,
         pathText: state => state.pathText,
         fuzzy: state => state.fuzzy,
-        size: state => state.size,
+        size: state => state.optSize,
         sortMode: state => state.sortMode,
         lastQueryResult: state => state.lastQueryResults,
         lastDoc: function (state): EsHit | null {
@@ -391,7 +391,7 @@ export default new Vuex.Store({
         optTreemapColor: state => state.optTreemapColor,
         optLightboxLoadOnlyCurrent: state => state.optLightboxLoadOnlyCurrent,
         optLightboxSlideDuration: state => state.optLightboxSlideDuration,
-        optResultSize: state => state.size,
+        optResultSize: state => state.optSize,
         optHideLegacy: state => state.optHideLegacy,
         optUpdateMimeMap: state => state.optUpdateMimeMap,
         optUseDatePicker: state => state.optUseDatePicker,
