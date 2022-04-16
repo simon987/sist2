@@ -505,9 +505,9 @@ void incremental_copy_handle_doc(cJSON *document, UNUSED(const char id_str[SIST_
 
         // Copy tn store contents
         size_t buf_len;
-        char *buf = store_read(IncrementalCopySourceStore, (char *) doc_id, sizeof(doc_id), &buf_len);
+        char *buf = store_read(IncrementalCopySourceStore, (char *) doc_id, SIST_DOC_ID_LEN, &buf_len);
         if (buf_len != 0) {
-            store_write(IncrementalCopyDestinationStore, (char *) doc_id, sizeof(doc_id), buf, buf_len);
+            store_write(IncrementalCopyDestinationStore, (char *) doc_id, SIST_DOC_ID_LEN, buf, buf_len);
             free(buf);
         }
     }

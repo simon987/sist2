@@ -42,13 +42,13 @@ index_descriptor_t read_index_descriptor(char *path);
 // caller ensures char file_path[PATH_MAX]
 #define READ_INDICES(file_path, index_path, action_ok, action_main_fail, cond_original) \
     snprintf(file_path, PATH_MAX, "%s_index_main.ndjson.zst", index_path);              \
-    if (0 == access(file_path, R_OK)) {                                                 \
+    if (access(file_path, R_OK) == 0) {                                                 \
         action_ok;                                                                      \
     } else {                                                                            \
         action_main_fail;                                                               \
     }                                                                                   \
     snprintf(file_path, PATH_MAX, "%s_index_original.ndjson.zst", index_path);          \
-    if ((cond_original) && (0 == access(file_path, R_OK))) {                            \
+    if ((cond_original) && access(file_path, R_OK) == 0) {                              \
         action_ok;                                                                      \
     }                                                                                   \
 

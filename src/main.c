@@ -103,7 +103,7 @@ void sig_handler(int signum) {
     exit(-1);
 }
 
-void init_dir(const char *dirpath, scan_args_t* args) {
+void init_dir(const char *dirpath, scan_args_t *args) {
     char path[PATH_MAX];
     snprintf(path, PATH_MAX, "%sdescriptor.json", dirpath);
 
@@ -112,16 +112,16 @@ void init_dir(const char *dirpath, scan_args_t* args) {
     strcpy(ScanCtx.index.desc.type, INDEX_TYPE_NDJSON);
 
     if (args->incremental != NULL) {
-      // copy old index id
-      char descriptor_path[PATH_MAX];
-      snprintf(descriptor_path, PATH_MAX, "%sdescriptor.json", args->incremental);
-      index_descriptor_t original_desc = read_index_descriptor(descriptor_path);
-      memcpy(ScanCtx.index.desc.id, original_desc.id, sizeof(original_desc.id));
+        // copy old index id
+        char descriptor_path[PATH_MAX];
+        snprintf(descriptor_path, PATH_MAX, "%sdescriptor.json", args->incremental);
+        index_descriptor_t original_desc = read_index_descriptor(descriptor_path);
+        memcpy(ScanCtx.index.desc.id, original_desc.id, sizeof(original_desc.id));
     } else {
-      // generate new index id based on timestamp
-      unsigned char index_md5[MD5_DIGEST_LENGTH];
-      MD5((unsigned char *) &ScanCtx.index.desc.timestamp, sizeof(ScanCtx.index.desc.timestamp), index_md5);
-      buf2hex(index_md5, MD5_DIGEST_LENGTH, ScanCtx.index.desc.id);
+        // generate new index id based on timestamp
+        unsigned char index_md5[MD5_DIGEST_LENGTH];
+        MD5((unsigned char *) &ScanCtx.index.desc.timestamp, sizeof(ScanCtx.index.desc.timestamp), index_md5);
+        buf2hex(index_md5, MD5_DIGEST_LENGTH, ScanCtx.index.desc.id);
     }
 
     write_index_descriptor(path, &ScanCtx.index.desc);
@@ -324,9 +324,13 @@ void load_incremental_index(const scan_args_t *args) {
         LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s", original_desc.version, Version)
     }
 
-    READ_INDICES(file_path, args->incremental, incremental_read(ScanCtx.original_table, file_path, &original_desc),
-                 LOG_FATALF("main.c", "Could not open original main index for incremental scan: %s", strerror(errno)),
-                 1);
+    READ_INDICES(
+            file_path,
+            args->incremental,
+            incremental_read(ScanCtx.original_table, file_path, &original_desc),
+            LOG_FATALF("main.c", "Could not open original main index for incremental scan: %s", strerror(errno)),
+            TRUE
+    );
 
     LOG_INFOF("main.c", "Loaded %d items in to mtime table.", g_hash_table_size(ScanCtx.original_table))
 }
@@ -777,9 +781,8 @@ int main(int argc, const char *argv[]) {
         sist2_exec_script(exec_args);
 
     } else {
-        fprintf(stderr, "Invalid command: '%s'\n", argv[0]);
         argparse_usage(&argparse);
-        goto end;
+        LOG_FATALF("main.c", "Invalid command: '%s'\n", argv[0])
     }
     printf("\n");
 
