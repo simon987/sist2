@@ -81,7 +81,9 @@ export default {
   methods: {
     keyDownListener(e) {
 
-      if (this.$refs.lightbox === undefined) {
+      const isLightboxOpen = this.$refs.lightbox === undefined || this.$refs.lightbox.$el.tagName === undefined;
+
+      if (isLightboxOpen) {
         return true;
       }
 
