@@ -81,6 +81,11 @@ void web_args_destroy(web_args_t *args) {
 }
 
 void exec_args_destroy(exec_args_t *args) {
+
+    if (args->index_path != NULL) {
+        free(args->index_path);
+    }
+
     free(args);
 }
 
@@ -124,6 +129,9 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->tn_count = DEFAULT_THUMBNAIL_COUNT;
     } else if (args->tn_count == OPTION_VALUE_DISABLE) {
         args->tn_count = 0;
+    } else if (args->tn_count > 1000) {
+        printf("Invalid value --thumbnail-count argument: %d. Must be <= 1000.\n", args->tn_size);
+        return 1;
     }
 
     if (args->content_size == OPTION_VALUE_UNSPECIFIED) {

@@ -9,7 +9,7 @@ RUN strip sist2 || mv sist2_debug sist2
 
 FROM --platform="linux/amd64" ubuntu:21.10
 
-RUN apt update && apt install -y curl libasan5 && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y curl libasan5 libmagic1 && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /usr/share/tessdata && \
     cd /usr/share/tessdata/ && \

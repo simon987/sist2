@@ -21,6 +21,8 @@ void free_queue(int max);
 
 void elastic_flush();
 
+void print_error(response_t *r);
+
 void destroy_indexer(es_indexer_t *indexer) {
 
     if (indexer == NULL) {
@@ -45,7 +47,7 @@ void elastic_cleanup() {
     destroy_indexer(Indexer);
 }
 
-void print_json(cJSON *document, const char id_str[MD5_STR_LENGTH]) {
+void print_json(cJSON *document, const char id_str[SIST_DOC_ID_LEN]) {
 
     cJSON *line = cJSON_CreateObject();
 
@@ -72,19 +74,19 @@ void delete_document(const char* document_id_str, void* UNUSED(_data)) {
     bulk_line->type = ES_BULK_LINE_DELETE;
     bulk_line->next = NULL;
 
-    memcpy(bulk_line->path_md5_str, document_id_str, MD5_STR_LENGTH);
+    strcpy(bulk_line->doc_id, document_id_str);
     tpool_add_work(IndexCtx.pool, index_json_func, bulk_line);
 }
 
 
-void index_json(cJSON *document, const char index_id_str[MD5_STR_LENGTH]) {
+void index_json(cJSON *document, const char doc_id[SIST_DOC_ID_LEN]) {
     char *json = cJSON_PrintUnformatted(document);
 
     size_t json_len = strlen(json);
     es_bulk_line_t *bulk_line = malloc(sizeof(es_bulk_line_t) + json_len + 2);
     bulk_line->type = ES_BULK_LINE_INDEX;
     memcpy(bulk_line->line, json, json_len);
-    memcpy(bulk_line->path_md5_str, index_id_str, MD5_STR_LENGTH);
+    strcpy(bulk_line->doc_id, doc_id);
     *(bulk_line->line + json_len) = '\n';
     *(bulk_line->line + json_len + 1) = '\0';
     bulk_line->next = NULL;
@@ -93,7 +95,7 @@ void index_json(cJSON *document, const char index_id_str[MD5_STR_LENGTH]) {
     tpool_add_work(IndexCtx.pool, index_json_func, bulk_line);
 }
 
-void execute_update_script(const char *script, int async, const char index_id[MD5_STR_LENGTH]) {
+void execute_update_script(const char *script, int async, const char index_id[SIST_INDEX_ID_LEN]) {
 
     if (Indexer == NULL) {
         Indexer = create_indexer(IndexCtx.es_url, IndexCtx.es_index);
@@ -108,16 +110,16 @@ void execute_update_script(const char *script, int async, const char index_id[MD
     cJSON *term_obj = cJSON_AddObjectToObject(query, "term");
     cJSON_AddStringToObject(term_obj, "index", index_id);
 
-    char *str = cJSON_Print(body);
+    char *str = cJSON_PrintUnformatted(body);
 
-    char bulk_url[4096];
+    char url[4096];
     if (async) {
-        snprintf(bulk_url, sizeof(bulk_url), "%s/%s/_update_by_query?wait_for_completion=false", Indexer->es_url,
+        snprintf(url, sizeof(url), "%s/%s/_update_by_query?wait_for_completion=false", Indexer->es_url,
                  Indexer->es_index);
     } else {
-        snprintf(bulk_url, sizeof(bulk_url), "%s/%s/_update_by_query", Indexer->es_url, Indexer->es_index);
+        snprintf(url, sizeof(url), "%s/%s/_update_by_query", Indexer->es_url, Indexer->es_index);
     }
-    response_t *r = web_post(bulk_url, str);
+    response_t *r = web_post(url, str);
     if (!async) {
         LOG_INFOF("elastic.c", "Executed user script <%d>", r->status_code);
     }
@@ -137,6 +139,11 @@ void execute_update_script(const char *script, int async, const char index_id[MD
 
     if (async) {
         cJSON *task = cJSON_GetObjectItem(resp, "task");
+
+        if (task == NULL) {
+            LOG_FATALF("elastic.c", "FIXME: Could not get task id: %s", r->body);
+        }
+
         LOG_INFOF("elastic.c", "User script queued: %s/_tasks/%s", Indexer->es_url, task->valuestring);
     }
 
@@ -167,7 +174,7 @@ void *create_bulk_buffer(int max, int *count, size_t *buf_len) {
             snprintf(
                     action_str, sizeof(action_str),
                     "{\"index\":{\"_id\":\"%s\",\"_type\":\"_doc\",\"_index\":\"%s\"}}\n",
-                    line->path_md5_str, Indexer->es_index
+                    line->doc_id, Indexer->es_index
             );
 
             size_t action_str_len = strlen(action_str);
@@ -184,7 +191,7 @@ void *create_bulk_buffer(int max, int *count, size_t *buf_len) {
             snprintf(
                     action_str, sizeof(action_str),
                     "{\"delete\":{\"_id\":\"%s\",\"_index\":\"%s\"}}\n",
-                    line->path_md5_str, Indexer->es_index
+                    line->doc_id, Indexer->es_index
             );
 
             size_t action_str_len = strlen(action_str);
@@ -212,7 +219,13 @@ void print_errors(response_t *r) {
     *(tmp + r->size) = '\0';
 
     cJSON *ret_json = cJSON_Parse(tmp);
-    if (cJSON_GetObjectItem(ret_json, "errors")->valueint != 0) {
+    cJSON *errors = cJSON_GetObjectItem(ret_json, "errors");
+
+    if (errors == NULL) {
+        char *str = cJSON_Print(ret_json);
+        LOG_ERRORF("elastic.c", "%s\n", str);
+        cJSON_free(str);
+    } else if (errors->valueint != 0) {
         cJSON *err;
         cJSON_ArrayForEach(err, cJSON_GetObjectItem(ret_json, "items")) {
             if (cJSON_GetObjectItem(cJSON_GetObjectItem(err, "index"), "status")->valueint != 201) {
@@ -263,7 +276,7 @@ void _elastic_flush(int max) {
     if (r->status_code == 413) {
 
         if (max <= 1) {
-            LOG_ERRORF("elastic.c", "Single document too large, giving up: {%s}", Indexer->line_head->path_md5_str)
+            LOG_ERRORF("elastic.c", "Single document too large, giving up: {%s}", Indexer->line_head->doc_id)
             free_response(r);
             free(buf);
             free_queue(1);
@@ -413,11 +426,19 @@ es_version_t *elastic_get_version(const char *es_url) {
     *(tmp + r->size) = '\0';
     cJSON *response = cJSON_Parse(tmp);
     free(tmp);
-    free_response(r);
 
     if (response == NULL) {
         return NULL;
     }
+
+    if (cJSON_GetObjectItem(response, "error") != NULL) {
+        LOG_WARNING("elastic.c", "Could not get Elasticsearch version")
+        print_error(r);
+        free_response(r);
+        return NULL;
+    }
+
+    free_response(r);
 
     if (cJSON_GetObjectItem(response, "version") == NULL ||
         cJSON_GetObjectItem(cJSON_GetObjectItem(response, "version"), "number") == NULL) {

@@ -56,6 +56,22 @@ export default Vue.extend({
     onThumbnailClick() {
       window.open(`/f/${this.doc._id}`, "_blank");
     },
+    findByCustomField(field, id) {
+      return {
+        query: {
+          bool: {
+            must: [
+              {
+                match: {
+                  [field]: id
+                }
+              }
+            ]
+          }
+        },
+        size: 1
+      }
+    },
     findById(id) {
       return {
         query: {
@@ -103,6 +119,8 @@ export default Vue.extend({
       query = this.findById(this.$route.query.byId);
     } else if (this.$route.query.byName) {
       query = this.findByName(this.$route.query.byName);
+    } else if (this.$route.query.by && this.$route.query.q) {
+      query = this.findByCustomField(this.$route.query.by, this.$route.query.q)
     }
 
     if (query) {

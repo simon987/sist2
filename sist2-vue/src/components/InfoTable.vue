@@ -72,6 +72,12 @@ export default {
         }
       });
 
+      Object.keys(src).forEach(key => {
+        if (key.startsWith("mt_") || key.startsWith("int_")) {
+          items.push({key: key, value: src[key]});
+        }
+      });
+
       // Exif GPS
       if ("exif_gps_longitude_dec" in src) {
         items.push({

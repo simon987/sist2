@@ -4,6 +4,8 @@ import VueRouter, {Route} from "vue-router";
 import {EsHit, EsResult, EsTag, Index, Tag} from "@/Sist2Api";
 import {deserializeMimes, serializeMimes} from "@/util";
 
+const CONF_VERSION = 2;
+
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -24,7 +26,6 @@ export default new Vuex.Store({
         sortMode: "score",
 
         fuzzy: false,
-        size: 60,
 
         optLang: "en",
         optLangIsDefault: true,
@@ -32,6 +33,7 @@ export default new Vuex.Store({
         optTheme: "light",
         optDisplay: "grid",
 
+        optSize: 60,
         optHighlight: true,
         optTagOrOperator: false,
         optFuzzy: true,
@@ -51,6 +53,8 @@ export default new Vuex.Store({
         optUpdateMimeMap: false,
         optUseDatePicker: false,
         optVidPreviewInterval: 700,
+        optSimpleLightbox: true,
+        optShowTagPickerFilter: true,
 
         _onLoadSelectedIndices: [] as string[],
         _onLoadSelectedMimeTypes: [] as string[],
@@ -149,7 +153,7 @@ export default new Vuex.Store({
         setOptSuggestPath: (state, val) => state.optSuggestPath = val,
         setOptFragmentSize: (state, val) => state.optFragmentSize = val,
         setOptQueryMode: (state, val) => state.optQueryMode = val,
-        setOptResultSize: (state, val) => state.size = val,
+        setOptResultSize: (state, val) => state.optSize = val,
         setOptTagOrOperator: (state, val) => state.optTagOrOperator = val,
 
         setOptTreemapType: (state, val) => state.optTreemapType = val,
@@ -161,6 +165,8 @@ export default new Vuex.Store({
         setOptUpdateMimeMap: (state, val) => state.optUpdateMimeMap = val,
         setOptUseDatePicker: (state, val) => state.optUseDatePicker = val,
         setOptVidPreviewInterval: (state, val) => state.optVidPreviewInterval = val,
+        setOptSimpleLightbox: (state, val) => state.optSimpleLightbox = val,
+        setOptShowTagPickerFilter: (state, val) => state.optShowTagPickerFilter = val,
 
         setOptLightboxLoadOnlyCurrent: (state, val) => state.optLightboxLoadOnlyCurrent = val,
         setOptLightboxSlideDuration: (state, val) => state.optLightboxSlideDuration = val,
@@ -239,6 +245,11 @@ export default new Vuex.Store({
             }
         },
         async updateArgs({state}, router: VueRouter) {
+
+            if (router.currentRoute.path !== "/") {
+                return;
+            }
+
             await router.push({
                 query: {
                     q: state.searchText.trim() ? state.searchText.trim().replace(/\s+/g, " ") : undefined,
@@ -267,12 +278,19 @@ export default new Vuex.Store({
                 }
             });
 
+            conf["version"] = CONF_VERSION;
+
             localStorage.setItem("sist2_configuration", JSON.stringify(conf));
         },
         loadConfiguration({state}) {
             const confString = localStorage.getItem("sist2_configuration");
             if (confString) {
                 const conf = JSON.parse(confString);
+
+                if (!("version" in conf) || conf["version"] != CONF_VERSION) {
+                    localStorage.removeItem("sist2_configuration");
+                    window.location.reload();
+                }
 
                 Object.keys(state).forEach((key) => {
                     if (key.startsWith("opt")) {
@@ -335,7 +353,7 @@ export default new Vuex.Store({
         searchText: state => state.searchText,
         pathText: state => state.pathText,
         fuzzy: state => state.fuzzy,
-        size: state => state.size,
+        size: state => state.optSize,
         sortMode: state => state.sortMode,
         lastQueryResult: state => state.lastQueryResults,
         lastDoc: function (state): EsHit | null {
@@ -373,10 +391,12 @@ export default new Vuex.Store({
         optTreemapColor: state => state.optTreemapColor,
         optLightboxLoadOnlyCurrent: state => state.optLightboxLoadOnlyCurrent,
         optLightboxSlideDuration: state => state.optLightboxSlideDuration,
-        optResultSize: state => state.size,
+        optResultSize: state => state.optSize,
         optHideLegacy: state => state.optHideLegacy,
         optUpdateMimeMap: state => state.optUpdateMimeMap,
         optUseDatePicker: state => state.optUseDatePicker,
         optVidPreviewInterval: state => state.optVidPreviewInterval,
+        optSimpleLightbox: state => state.optSimpleLightbox,
+        optShowTagPickerFilter: state => state.optShowTagPickerFilter,
     }
 })

@@ -1,5 +1,13 @@
 <template>
-  <div id="tagTree"></div>
+  <div>
+    <b-input-group v-if="showSearchBar" id="tag-picker-filter-bar">
+      <b-form-input :value="filter"
+                    :placeholder="$t('tagFilter')"
+                    @input="onFilter($event)"></b-form-input>
+    </b-input-group>
+
+    <div id="tagTree"></div>
+  </div>
 </template>
 
 <script>
@@ -112,10 +120,12 @@ function addTag(map, tag, id, count) {
 
 export default {
   name: "TagPicker",
+  props: ["showSearchBar"],
   data() {
     return {
       tagTree: null,
       loadedFromArgs: false,
+      filter: ""
     }
   },
   mounted() {
@@ -129,6 +139,10 @@ export default {
     });
   },
   methods: {
+    onFilter(value) {
+      this.filter = value;
+      this.tagTree.search(value);
+    },
     initializeTree() {
       const tagMap = [];
       this.tagTree = new InspireTree({
@@ -163,7 +177,8 @@ export default {
       });
     },
     handleTreeClick(node, e) {
-      if (e === "indeterminate" || e === "collapsed" || e === 'rendered' || e === "focused") {
+      if (e === "indeterminate" || e === "collapsed" || e === 'rendered' || e === "focused"
+          || e === "matched" || e === "hidden") {
         return;
       }
 
@@ -180,7 +195,15 @@ export default {
 }
 </style>
 <style>
-.inspire-tree .focused>.wholerow {
+.inspire-tree .focused > .wholerow {
   border: none;
+}
+
+#tag-picker-filter-bar {
+  padding: 10px 4px 4px;
+}
+
+.theme-black .inspire-tree .matched > .wholerow {
+  background: rgba(251, 191, 41, 0.25);
 }
 </style>

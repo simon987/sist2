@@ -4,6 +4,7 @@ set(CMAKE_C_STANDARD 11)
 project(sist2 C)
 
 option(SIST_DEBUG "Build a debug executable" on)
+option(SIST_FAST "Enable more optimisation flags" off)
 option(SIST_FAKE_STORE "Disable IO operations of LMDB stores for debugging purposes" 0)
 
 add_compile_definitions(
@@ -54,6 +55,10 @@ find_package(lmdb CONFIG REQUIRED)
 find_package(cJSON CONFIG REQUIRED)
 find_package(unofficial-mongoose CONFIG REQUIRED)
 find_package(CURL CONFIG REQUIRED)
+find_library(MAGIC_LIB
+        NAMES libmagic.so.1 magic
+        PATHS /usr/lib/x86_64-linux-gnu/ /usr/lib/aarch64-linux-gnu/
+)
 
 
 target_include_directories(
@@ -93,10 +98,22 @@ if (SIST_DEBUG)
             PROPERTIES
             OUTPUT_NAME sist2_debug
     )
+elseif (SIST_FAST)
+    target_compile_options(
+            sist2
+            PRIVATE
+
+            -Ofast
+            -march=native
+            -fno-stack-protector
+            -fomit-frame-pointer
+            -freciprocal-math
+    )
 else ()
     target_compile_options(
             sist2
             PRIVATE
+
             -Ofast
             -fno-stack-protector
             -fomit-frame-pointer
@@ -121,11 +138,12 @@ target_link_libraries(
         CURL::libcurl
 
         pthread
-        magic
 
         c
 
         scan
+
+        ${MAGIC_LIB}
 )
 
 add_custom_target(

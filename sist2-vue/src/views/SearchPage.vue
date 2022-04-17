@@ -32,7 +32,7 @@
               <MimePicker></MimePicker>
             </b-tab>
             <b-tab :title="$t('tags')">
-              <TagPicker></TagPicker>
+              <TagPicker :show-search-bar="$store.state.optShowTagPickerFilter"></TagPicker>
             </b-tab>
           </b-tabs>
         </b-col>
@@ -139,7 +139,9 @@ export default Vue.extend({
         this.setSist2Info(data);
         this.setIndices(data.indices);
 
-        Sist2Api.getMimeTypes(Sist2Query.searchQuery()).then(({mimeMap}) => {
+        const doBlankSearch = !this.$store.state.optUpdateMimeMap;
+
+        Sist2Api.getMimeTypes(Sist2Query.searchQuery(doBlankSearch)).then(({mimeMap}) => {
           this.$store.commit("setUiMimeMap", mimeMap);
           this.uiLoading = false;
           this.search(true);
@@ -206,7 +208,7 @@ export default Vue.extend({
       this.$store.commit("setUiReachedScrollEnd", false);
     },
     async handleSearch(resp: EsResult) {
-      if (resp.hits.hits.length == 0) {
+      if (resp.hits.hits.length == 0 || resp.hits.hits.length < this.$store.state.optSize) {
         this.$store.commit("setUiReachedScrollEnd", true);
       }
 
@@ -246,6 +248,8 @@ export default Vue.extend({
       this.$store.commit("setLastQueryResult", resp);
 
       this.docs.push(...resp.hits.hits);
+
+      resp.hits.hits.forEach(hit => this.docIds.add(hit._id));
     },
     getDateRange(): Promise<{ min: number, max: number }> {
       return sist2.esQuery({

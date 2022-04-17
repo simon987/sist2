@@ -12,6 +12,13 @@
 #define HTTP_TEXT_TYPE_HEADER "Content-Type: text/plain;charset=utf-8\r\n"
 #define HTTP_REPLY_NOT_FOUND mg_http_reply(nc, 404, HTTP_SERVER_HEADER HTTP_TEXT_TYPE_HEADER, "Not found");
 
+static struct mg_http_serve_opts DefaultServeOpts = {
+        .fs = NULL,
+        .ssi_pattern = NULL,
+        .root_dir = NULL,
+        .mime_types = ""
+};
+
 
 static void send_response_line(struct mg_connection *nc, int status_code, size_t length, char *extra_headers) {
     mg_printf(
@@ -29,7 +36,7 @@ static void send_response_line(struct mg_connection *nc, int status_code, size_t
 
 index_t *get_index_by_id(const char *index_id) {
     for (int i = WebCtx.index_count; i >= 0; i--) {
-        if (strncmp(index_id, WebCtx.indices[i].desc.id, MD5_STR_LENGTH) == 0) {
+        if (strncmp(index_id, WebCtx.indices[i].desc.id, SIST_INDEX_ID_LEN) == 0) {
             return &WebCtx.indices[i];
         }
     }
@@ -54,7 +61,7 @@ store_t *get_tag_store(const char *index_id) {
 
 void search_index(struct mg_connection *nc, struct mg_http_message *hm) {
     if (WebCtx.dev) {
-        mg_http_serve_file(nc, hm, "sist2-vue/dist/index.html", "text/html", NULL);
+        mg_http_serve_file(nc, hm, "sist2-vue/dist/index.html", &DefaultServeOpts);
     } else {
         send_response_line(nc, 200, sizeof(index_html), "Content-Type: text/html");
         mg_send(nc, index_html, sizeof(index_html));
@@ -63,23 +70,23 @@ void search_index(struct mg_connection *nc, struct mg_http_message *hm) {
 
 void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
 
-    if (hm->uri.len != MD5_STR_LENGTH + 4) {
+    if (hm->uri.len != SIST_INDEX_ID_LEN + 4) {
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
-    char arg_md5[MD5_STR_LENGTH];
-    memcpy(arg_md5, hm->uri.ptr + 3, MD5_STR_LENGTH);
-    *(arg_md5 + MD5_STR_LENGTH - 1) = '\0';
+    char arg_index_id[SIST_INDEX_ID_LEN];
+    memcpy(arg_index_id, hm->uri.ptr + 3, SIST_INDEX_ID_LEN);
+    *(arg_index_id + SIST_INDEX_ID_LEN - 1) = '\0';
 
-    index_t *index = get_index_by_id(arg_md5);
+    index_t *index = get_index_by_id(arg_index_id);
     if (index == NULL) {
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
     const char *file;
-    switch (atoi(hm->uri.ptr + 3 + MD5_STR_LENGTH)) {
+    switch (atoi(hm->uri.ptr + 3 + SIST_INDEX_ID_LEN)) {
         case 1:
             file = "treemap.csv";
             break;
@@ -104,12 +111,13 @@ void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
     strcpy(full_path, index->path);
     strcat(full_path, file);
 
-    mg_http_serve_file(nc, hm, full_path, "text/csv", disposition);
+    struct mg_http_serve_opts opts = {};
+    mg_http_serve_file(nc, hm, full_path, &opts);
 }
 
 void javascript(struct mg_connection *nc, struct mg_http_message *hm) {
     if (WebCtx.dev) {
-        mg_http_serve_file(nc, hm, "sist2-vue/dist/js/index.js", "application/javascript", NULL);
+        mg_http_serve_file(nc, hm, "sist2-vue/dist/js/index.js", &DefaultServeOpts);
     } else {
         send_response_line(nc, 200, sizeof(index_js), "Content-Type: application/javascript");
         mg_send(nc, index_js, sizeof(index_js));
@@ -118,7 +126,7 @@ void javascript(struct mg_connection *nc, struct mg_http_message *hm) {
 
 void javascript_vendor(struct mg_connection *nc, struct mg_http_message *hm) {
     if (WebCtx.dev) {
-        mg_http_serve_file(nc, hm, "sist2-vue/dist/js/chunk-vendors.js", "application/javascript", NULL);
+        mg_http_serve_file(nc, hm, "sist2-vue/dist/js/chunk-vendors.js", &DefaultServeOpts);
     } else {
         send_response_line(nc, 200, sizeof(chunk_vendors_js), "Content-Type: application/javascript");
         mg_send(nc, chunk_vendors_js, sizeof(chunk_vendors_js));
@@ -142,28 +150,25 @@ void style_vendor(struct mg_connection *nc, struct mg_http_message *hm) {
 
 void thumbnail(struct mg_connection *nc, struct mg_http_message *hm) {
 
-    int parse_tn_num = FALSE;
+    int has_thumbnail_index = FALSE;
 
-    if (hm->uri.len != 68) {
+    if (hm->uri.len != SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 2) {
 
-        if (hm->uri.len != 68 + 4) {
+        if (hm->uri.len != SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 2 + 4) {
             LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) hm->uri.len, hm->uri.ptr)
             HTTP_REPLY_NOT_FOUND
             return;
         }
-        parse_tn_num = TRUE;
+        has_thumbnail_index = TRUE;
     }
 
-    char arg_file_md5[MD5_STR_LENGTH];
-    char arg_index[MD5_STR_LENGTH];
+    char arg_doc_id[SIST_DOC_ID_LEN];
+    char arg_index[SIST_INDEX_ID_LEN];
 
-    memcpy(arg_index, hm->uri.ptr + 3, MD5_STR_LENGTH);
-    *(arg_index + MD5_STR_LENGTH - 1) = '\0';
-    memcpy(arg_file_md5, hm->uri.ptr + 3 + MD5_STR_LENGTH, MD5_STR_LENGTH);
-    *(arg_file_md5 + MD5_STR_LENGTH - 1) = '\0';
-
-    unsigned char md5_buf[MD5_DIGEST_LENGTH];
-    hex2buf(arg_file_md5, MD5_STR_LENGTH - 1, md5_buf);
+    memcpy(arg_index, hm->uri.ptr + 3, SIST_INDEX_ID_LEN);
+    *(arg_index + SIST_INDEX_ID_LEN - 1) = '\0';
+    memcpy(arg_doc_id, hm->uri.ptr + 3 + SIST_INDEX_ID_LEN, SIST_DOC_ID_LEN);
+    *(arg_doc_id + SIST_DOC_ID_LEN - 1) = '\0';
 
     store_t *store = get_store(arg_index);
     if (store == NULL) {
@@ -175,16 +180,18 @@ void thumbnail(struct mg_connection *nc, struct mg_http_message *hm) {
     char *data;
     size_t data_len = 0;
 
-    if (parse_tn_num) {
-        int tn_num = atoi(hm->uri.ptr + 68);
+    if (has_thumbnail_index) {
+        const char *tn_index = hm->uri.ptr + SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 2;
 
-        char tn_key[sizeof(md5_buf) + sizeof(int)];
-        memcpy(tn_key, md5_buf, sizeof(md5_buf));
-        memcpy(tn_key + sizeof(md5_buf), &tn_num, sizeof(tn_num));
+        char tn_key[sizeof(arg_doc_id) + sizeof(char) * 4];
+
+        memcpy(tn_key, arg_doc_id, sizeof(arg_doc_id));
+        memcpy(tn_key + sizeof(arg_doc_id) - 1, tn_index, sizeof(char) * 4);
+        *(tn_key + sizeof(tn_key) - 1) = '\0';
 
         data = store_read(store, (char *) tn_key, sizeof(tn_key), &data_len);
     } else {
-        data = store_read(store, (char *) md5_buf, sizeof(md5_buf), &data_len);
+        data = store_read(store, (char *) arg_doc_id, sizeof(arg_doc_id), &data_len);
     }
 
     if (data_len != 0) {
@@ -274,10 +281,18 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
 
     char disposition[8192];
     snprintf(disposition, sizeof(disposition),
-             HTTP_SERVER_HEADER "Content-Disposition: inline; filename=\"%s%s%s\"\r\nAccept-Ranges: bytes\r\n",
+             HTTP_SERVER_HEADER "Content-Disposition: inline; filename=\"%s%s%s\"\r\n"
+             "Accept-Ranges: bytes\r\nCache-Control: no-store\r\n",
              name, strlen(ext) == 0 ? "" : ".", ext);
 
-    mg_http_serve_file(nc, hm, full_path, mime, disposition);
+    char mime_mapping[1024];
+    snprintf(mime_mapping, sizeof(mime_mapping), "%s=%s", ext, mime);
+
+    struct mg_http_serve_opts opts = {
+            .extra_headers = disposition,
+            .mime_types = mime_mapping
+    };
+    mg_http_serve_file(nc, hm, full_path, &opts);
 }
 
 void cache_es_version() {
@@ -298,13 +313,18 @@ void index_info(struct mg_connection *nc) {
 
     cache_es_version();
 
+    const char *es_version = "0.0.0";
+    if (WebCtx.es_version != NULL) {
+        es_version = format_es_version(WebCtx.es_version);
+    }
+
     cJSON *json = cJSON_CreateObject();
     cJSON *arr = cJSON_AddArrayToObject(json, "indices");
 
     cJSON_AddStringToObject(json, "mongooseVersion", MG_VERSION);
     cJSON_AddStringToObject(json, "esIndex", WebCtx.es_index);
     cJSON_AddStringToObject(json, "version", Version);
-    cJSON_AddStringToObject(json, "esVersion", format_es_version(WebCtx.es_version));
+    cJSON_AddStringToObject(json, "esVersion", es_version);
     cJSON_AddBoolToObject(json, "esVersionSupported", IS_SUPPORTED_ES_VERSION(WebCtx.es_version));
     cJSON_AddBoolToObject(json, "esVersionLegacy", USE_LEGACY_ES_SETTINGS(WebCtx.es_version));
     cJSON_AddStringToObject(json, "platform", QUOTE(SIST_PLATFORM));
@@ -339,55 +359,19 @@ void index_info(struct mg_connection *nc) {
 }
 
 
-void document_info(struct mg_connection *nc, struct mg_http_message *hm) {
-
-    if (hm->uri.len != MD5_STR_LENGTH + 2) {
-        LOG_DEBUGF("serve.c", "Invalid document_info path: %.*s", (int) hm->uri.len, hm->uri.ptr)
-        HTTP_REPLY_NOT_FOUND
-        return;
-    }
-
-    char arg_md5[MD5_STR_LENGTH];
-    memcpy(arg_md5, hm->uri.ptr + 3, MD5_STR_LENGTH);
-    *(arg_md5 + MD5_STR_LENGTH - 1) = '\0';
-
-    cJSON *doc = elastic_get_document(arg_md5);
-    cJSON *source = cJSON_GetObjectItem(doc, "_source");
-
-    cJSON *index_id = cJSON_GetObjectItem(source, "index");
-    if (index_id == NULL) {
-        cJSON_Delete(doc);
-        HTTP_REPLY_NOT_FOUND
-        return;
-    }
-
-    index_t *idx = get_index_by_id(index_id->valuestring);
-    if (idx == NULL) {
-        cJSON_Delete(doc);
-        HTTP_REPLY_NOT_FOUND
-        return;
-    }
-
-    char *json_str = cJSON_PrintUnformatted(source);
-    send_response_line(nc, 200, (int) strlen(json_str), "Content-Type: application/json");
-    mg_send(nc, json_str, (int) strlen(json_str));
-    free(json_str);
-    cJSON_Delete(doc);
-}
-
 void file(struct mg_connection *nc, struct mg_http_message *hm) {
 
-    if (hm->uri.len != MD5_STR_LENGTH + 2) {
+    if (hm->uri.len != SIST_DOC_ID_LEN + 2) {
         LOG_DEBUGF("serve.c", "Invalid file path: %.*s", (int) hm->uri.len, hm->uri.ptr)
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
-    char arg_md5[MD5_STR_LENGTH];
-    memcpy(arg_md5, hm->uri.ptr + 3, MD5_STR_LENGTH);
-    *(arg_md5 + MD5_STR_LENGTH - 1) = '\0';
+    char arg_doc_id[SIST_DOC_ID_LEN];
+    memcpy(arg_doc_id, hm->uri.ptr + 3, SIST_DOC_ID_LEN);
+    *(arg_doc_id + SIST_DOC_ID_LEN - 1) = '\0';
 
-    const char *next = arg_md5;
+    const char *next = arg_doc_id;
     cJSON *doc = NULL;
     cJSON *index_id = NULL;
     cJSON *source = NULL;
@@ -438,7 +422,6 @@ void status(struct mg_connection *nc) {
 typedef struct {
     char *name;
     int delete;
-    char *path_md5_str;
     char *doc_id;
 } tag_req_t;
 
@@ -458,12 +441,6 @@ tag_req_t *parse_tag_request(cJSON *json) {
         return NULL;
     }
 
-    cJSON *arg_path_md5 = cJSON_GetObjectItem(json, "path_md5");
-    if (arg_path_md5 == NULL || !cJSON_IsString(arg_path_md5) ||
-        strlen(arg_path_md5->valuestring) != MD5_STR_LENGTH - 1) {
-        return NULL;
-    }
-
     cJSON *arg_doc_id = cJSON_GetObjectItem(json, "doc_id");
     if (arg_doc_id == NULL || !cJSON_IsString(arg_doc_id)) {
         return NULL;
@@ -472,22 +449,21 @@ tag_req_t *parse_tag_request(cJSON *json) {
     tag_req_t *req = malloc(sizeof(tag_req_t));
     req->delete = arg_delete->valueint;
     req->name = arg_name->valuestring;
-    req->path_md5_str = arg_path_md5->valuestring;
     req->doc_id = arg_doc_id->valuestring;
 
     return req;
 }
 
 void tag(struct mg_connection *nc, struct mg_http_message *hm) {
-    if (hm->uri.len != MD5_STR_LENGTH + 4) {
+    if (hm->uri.len != SIST_INDEX_ID_LEN + 4) {
         LOG_DEBUGF("serve.c", "Invalid tag path: %.*s", (int) hm->uri.len, hm->uri.ptr)
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
-    char arg_index[MD5_STR_LENGTH];
-    memcpy(arg_index, hm->uri.ptr + 5, MD5_STR_LENGTH);
-    *(arg_index + MD5_STR_LENGTH - 1) = '\0';
+    char arg_index[SIST_INDEX_ID_LEN];
+    memcpy(arg_index, hm->uri.ptr + 5, SIST_INDEX_ID_LEN);
+    *(arg_index + SIST_INDEX_ID_LEN - 1) = '\0';
 
     if (hm->body.len < 2 || hm->method.len != 4 || memcmp(&hm->method, "POST", 4) == 0) {
         LOG_DEBUG("serve.c", "Invalid tag request")
@@ -519,7 +495,7 @@ void tag(struct mg_connection *nc, struct mg_http_message *hm) {
     cJSON *arr = NULL;
 
     size_t data_len = 0;
-    const char *data = store_read(store, arg_req->path_md5_str, MD5_STR_LENGTH, &data_len);
+    const char *data = store_read(store, arg_req->doc_id, SIST_DOC_ID_LEN, &data_len);
     if (data_len == 0) {
         arr = cJSON_CreateArray();
     } else {
@@ -579,7 +555,7 @@ void tag(struct mg_connection *nc, struct mg_http_message *hm) {
     }
 
     char *json_str = cJSON_PrintUnformatted(arr);
-    store_write(store, arg_req->path_md5_str, MD5_STR_LENGTH, json_str, strlen(json_str) + 1);
+    store_write(store, arg_req->doc_id, SIST_DOC_ID_LEN, json_str, strlen(json_str) + 1);
     store_flush(store);
 
     free(arg_req);
@@ -641,8 +617,6 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
                 return;
             }
             tag(nc, hm);
-        } else if (mg_http_match_uri(hm, "/d/*")) {
-            document_info(nc, hm);
         } else {
             HTTP_REPLY_NOT_FOUND
         }

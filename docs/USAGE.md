@@ -103,7 +103,7 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
 * `--thumbnail-count`
     Maximum number of thumbnails to generate. When set to a value >= 2, thumbnails for video previews
     will be generated. The actual number of thumbnails generated depends on the length of the video (maximum 1 image 
-    every ~5s). Set to 0 to completely disable thumbnails.
+    every ~7s). Set to 0 to completely disable thumbnails.
 * `--content-size` 
     Number of bytes of text to be extracted from the content of files (plain text, PDFs etc.).
     Repeated whitespace and special characters do not count toward this limit.

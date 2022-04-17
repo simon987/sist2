@@ -52,7 +52,7 @@ sist2 (Simple incremental search tool)
 Select the file corresponding to your CPU architecture and mark the binary as executable with `chmod +x` *
     2. *(or)* Download a [development snapshot](https://files.simon987.net/.gate/sist2/simon987_sist2/) *(Not
        recommended!)*
-    3. *(or)* `docker pull simon987/sist2:2.11.7-x64-linux`
+    3. *(or)* `docker pull simon987/sist2:2.12.0-x64-linux`
 
 1. See [Usage guide](docs/USAGE.md)
 

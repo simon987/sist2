@@ -20,8 +20,10 @@
 #undef ABS
 #define ABS(a) (((a) < 0) ? -(a) : (a))
 
-#define SHA1_STR_LENGTH 41
-#define SHA1_DIGEST_LENGTH 20
+#define SHA1_DIGEST_LENGTH SHA_DIGEST_LENGTH
+
+#define SHA1_STR_LENGTH (SHA1_DIGEST_LENGTH * 2 + 1)
+#define MD5_STR_LENGTH (MD5_DIGEST_LENGTH * 2 + 1)
 
 #define APPEND_STR_META(doc, keyname, value) \
     {meta_line_t *meta_str = malloc(sizeof(meta_line_t) + strlen(value)); \

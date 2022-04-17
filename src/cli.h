@@ -85,7 +85,7 @@ typedef struct web_args {
 typedef struct exec_args {
     char *es_url;
     char *es_index;
-    const char *index_path;
+    char *index_path;
     const char *script_path;
     int async_script;
     char *script;

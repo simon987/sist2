@@ -45,6 +45,16 @@
           <b-form-checkbox :checked="optUseDatePicker" @input="setOptUseDatePicker">
             {{ $t("opt.useDatePicker") }}
           </b-form-checkbox>
+
+          <b-form-checkbox :checked="optSimpleLightbox" @input="setOptSimpleLightbox">{{
+              $t("opt.simpleLightbox")
+            }}
+          </b-form-checkbox>
+
+          <b-form-checkbox :checked="optShowTagPickerFilter" @input="setOptShowTagPickerFilter">{{
+              $t("opt.showTagPickerFilter")
+            }}
+          </b-form-checkbox>
         </b-card>
 
         <br/>
@@ -239,6 +249,8 @@ export default {
       "optUpdateMimeMap",
       "optUseDatePicker",
       "optVidPreviewInterval",
+      "optSimpleLightbox",
+      "optShowTagPickerFilter",
     ]),
     clientWidth() {
       return window.innerWidth;
@@ -285,6 +297,8 @@ export default {
       "setOptUpdateMimeMap",
       "setOptUseDatePicker",
       "setOptVidPreviewInterval",
+      "setOptSimpleLightbox",
+      "setOptShowTagPickerFilter",
     ]),
     onResetClick() {
       localStorage.removeItem("sist2_configuration");

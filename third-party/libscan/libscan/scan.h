@@ -48,6 +48,9 @@ typedef int scan_code_t;
 #define CTX_LOG_FATALF(filepath, fmt, ...) ctx->logf(filepath, LEVEL_FATAL, fmt, __VA_ARGS__); exit(-1);
 #define CTX_LOG_FATAL(filepath, str) ctx->log(filepath, LEVEL_FATAL, str); exit(-1);
 
+#define SIST_DOC_ID_LEN MD5_STR_LENGTH
+#define SIST_INDEX_ID_LEN MD5_STR_LENGTH
+
 enum metakey {
     // String
     MetaContent = 1,
@@ -103,7 +106,7 @@ typedef struct meta_line {
 
 
 typedef struct document {
-    unsigned char path_md5[MD5_DIGEST_LENGTH];
+    char doc_id[SIST_DOC_ID_LEN];
     unsigned long size;
     unsigned int mime;
     int mtime;
@@ -159,7 +162,7 @@ typedef struct parse_job_t {
     int base;
     int ext;
     struct vfile vfile;
-    unsigned char parent[MD5_DIGEST_LENGTH];
+    char parent[SIST_DOC_ID_LEN];
     char filepath[1];
 } parse_job_t;
 

@@ -7,8 +7,22 @@
 
 #define MIN_SIZE 32
 
-int store_thumbnail_jpeg(scan_raw_ctx_t *ctx, libraw_processed_image_t *img, document_t *doc) {
-    return store_image_thumbnail((scan_media_ctx_t *) ctx, img->data, img->data_size, doc, "x.jpeg");
+int store_thumbnail_jpeg(scan_raw_ctx_t *ctx, libraw_thumbnail_t img, document_t *doc) {
+
+    scan_media_ctx_t media_ctx = {
+            .read_subtitles = FALSE,
+            .tn_count = 1,
+            .max_media_buffer = 0,
+            .store = ctx->store,
+            .log = ctx->log,
+            .logf = ctx->logf,
+            .tn_size = ctx->tn_size,
+            .tn_qscale = ctx->tn_qscale,
+            .tesseract_lang = NULL,
+            .tesseract_path = NULL
+    };
+
+    return store_image_thumbnail(&media_ctx, img.thumb, img.tlength, doc, "x.jpeg");
 }
 
 int store_thumbnail_rgb24(scan_raw_ctx_t *ctx, libraw_processed_image_t *img, document_t *doc) {
@@ -70,7 +84,7 @@ int store_thumbnail_rgb24(scan_raw_ctx_t *ctx, libraw_processed_image_t *img, do
     avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
 
     APPEND_LONG_META(doc, MetaThumbnail, 1)
-    ctx->store((char *) doc->path_md5, sizeof(doc->path_md5), (char *) jpeg_packet.data, jpeg_packet.size);
+    ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), (char *) jpeg_packet.data, jpeg_packet.size);
 
     av_packet_unref(&jpeg_packet);
     av_free(*scaled_frame->data);
@@ -171,24 +185,24 @@ void parse_raw(scan_raw_ctx_t *ctx, vfile_t *f, document_t *doc) {
         return;
     }
 
-    int errc = 0;
-    libraw_processed_image_t *thumb = libraw_dcraw_make_mem_thumb(libraw_lib, &errc);
-    if (errc != 0) {
-        free(buf);
-        libraw_dcraw_clear_mem(thumb);
-        libraw_close(libraw_lib);
-        return;
-    }
-
     int tn_ok = 0;
+
     if (libraw_lib->thumbnail.tformat == LIBRAW_THUMBNAIL_JPEG) {
-        tn_ok = store_thumbnail_jpeg(ctx, thumb, doc);
+        tn_ok = store_thumbnail_jpeg(ctx, libraw_lib->thumbnail, doc);
     } else if (libraw_lib->thumbnail.tformat == LIBRAW_THUMBNAIL_BITMAP) {
         // TODO: technically this should work but is currently untested
+
+        int errc = 0;
+        libraw_processed_image_t *thumb = libraw_dcraw_make_mem_thumb(libraw_lib, &errc);
+        if (errc != 0) {
+            free(buf);
+            libraw_dcraw_clear_mem(thumb);
+            libraw_close(libraw_lib);
+            return;
+        }
+
         tn_ok = store_thumbnail_rgb24(ctx, thumb, doc);
     }
-
-    libraw_dcraw_clear_mem(thumb);
 
     if (tn_ok == TRUE) {
         free(buf);
@@ -206,7 +220,7 @@ void parse_raw(scan_raw_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
     libraw_dcraw_process(libraw_lib);
 
-    errc = 0;
+    int errc = 0;
     libraw_processed_image_t *img = libraw_dcraw_make_mem_image(libraw_lib, &errc);
     if (errc != 0) {
         free(buf);

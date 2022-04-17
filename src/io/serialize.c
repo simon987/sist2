@@ -124,9 +124,7 @@ char *build_json_string(document_t *doc) {
         cJSON_AddStringToObject(json, "path", "");
     }
 
-    char md5_str[MD5_STR_LENGTH];
-    buf2hex(doc->path_md5, MD5_DIGEST_LENGTH, md5_str);
-    cJSON_AddStringToObject(json, "_id", md5_str);
+    cJSON_AddStringToObject(json, "_id", doc->doc_id);
 
     // Metadata
     meta_line_t *meta = doc->meta_head;
@@ -452,32 +450,31 @@ void read_lines(const char *path, const line_processor_t processor) {
 
     dyn_buffer_destroy(&buf);
     fclose(file);
-
 }
 
-void read_index_ndjson(const char *line, void* _data) {
-    void** data = _data;
-    const char* index_id = data[0];
+void read_index_ndjson(const char *line, void *_data) {
+    void **data = _data;
+    const char *index_id = data[0];
     index_func func = data[1];
     read_index_bin_handle_line(line, index_id, func);
 }
 
-void read_index(const char *path, const char index_id[MD5_STR_LENGTH], const char *type, index_func func) {
+void read_index(const char *path, const char index_id[SIST_INDEX_ID_LEN], const char *type, index_func func) {
     if (strcmp(type, INDEX_TYPE_NDJSON) == 0) {
         read_lines(path, (line_processor_t) {
-            .data = (void*[2]){(void*)index_id, func} ,
-            .func = read_index_ndjson,
+                .data = (void *[2]) {(void *) index_id, func},
+                .func = read_index_ndjson,
         });
     }
 }
 
 static __thread GHashTable *IncrementalReadTable = NULL;
 
-void json_put_incremental(cJSON *document, UNUSED(const char id_str[MD5_STR_LENGTH])) {
+void json_put_incremental(cJSON *document, UNUSED(const char doc_id[SIST_DOC_ID_LEN])) {
     const char *path_md5_str = cJSON_GetObjectItem(document, "_id")->valuestring;
     const int mtime = cJSON_GetObjectItem(document, "mtime")->valueint;
 
-    incremental_put_str(IncrementalReadTable, path_md5_str, mtime);
+    incremental_put(IncrementalReadTable, path_md5_str, mtime);
 }
 
 void incremental_read(GHashTable *table, const char *filepath, index_descriptor_t *desc) {
@@ -490,13 +487,11 @@ static __thread GHashTable *IncrementalNewTable = NULL;
 static __thread store_t *IncrementalCopySourceStore = NULL;
 static __thread store_t *IncrementalCopyDestinationStore = NULL;
 
-void incremental_copy_handle_doc(cJSON *document, UNUSED(const char id_str[MD5_STR_LENGTH])) {
+void incremental_copy_handle_doc(cJSON *document, UNUSED(const char id_str[SIST_DOC_ID_LEN])) {
 
-    const char *path_md5_str = cJSON_GetObjectItem(document, "_id")->valuestring;
-    unsigned char path_md5[MD5_DIGEST_LENGTH];
-    hex2buf(path_md5_str, MD5_STR_LENGTH - 1, path_md5);
+    const char *doc_id = cJSON_GetObjectItem(document, "_id")->valuestring;
 
-    if (cJSON_GetObjectItem(document, "parent") != NULL || incremental_get_str(IncrementalCopyTable, path_md5_str)) {
+    if (cJSON_GetObjectItem(document, "parent") != NULL || incremental_get(IncrementalCopyTable, doc_id)) {
         // Copy index line
         cJSON_DeleteItemFromObject(document, "index");
         char *json_str = cJSON_PrintUnformatted(document);
@@ -510,9 +505,9 @@ void incremental_copy_handle_doc(cJSON *document, UNUSED(const char id_str[MD5_S
 
         // Copy tn store contents
         size_t buf_len;
-        char *buf = store_read(IncrementalCopySourceStore, (char *) path_md5, sizeof(path_md5), &buf_len);
+        char *buf = store_read(IncrementalCopySourceStore, (char *) doc_id, SIST_DOC_ID_LEN, &buf_len);
         if (buf_len != 0) {
-            store_write(IncrementalCopyDestinationStore, (char *) path_md5, sizeof(path_md5), buf, buf_len);
+            store_write(IncrementalCopyDestinationStore, (char *) doc_id, SIST_DOC_ID_LEN, buf, buf_len);
             free(buf);
         }
     }
@@ -536,24 +531,24 @@ void incremental_copy(store_t *store, store_t *dst_store, const char *filepath,
     read_index(filepath, "", INDEX_TYPE_NDJSON, incremental_copy_handle_doc);
 }
 
-void incremental_delete_handle_doc(cJSON *document, UNUSED(const char id_str[MD5_STR_LENGTH])) {
+void incremental_delete_handle_doc(cJSON *document, UNUSED(const char id_str[SIST_DOC_ID_LEN])) {
 
-    char path_md5_n[MD5_STR_LENGTH + 1];
-    path_md5_n[MD5_STR_LENGTH] = '\0';
-    path_md5_n[MD5_STR_LENGTH - 1] = '\n';
-    const char *path_md5_str = cJSON_GetObjectItem(document, "_id")->valuestring;
+    char doc_id_n[SIST_DOC_ID_LEN + 1];
+    doc_id_n[SIST_DOC_ID_LEN] = '\0';
+    doc_id_n[SIST_DOC_ID_LEN - 1] = '\n';
+    const char *doc_id = cJSON_GetObjectItem(document, "_id")->valuestring;
 
     // do not delete archive virtual entries
     if (cJSON_GetObjectItem(document, "parent") == NULL 
-        && !incremental_get_str(IncrementalCopyTable, path_md5_str)
-        && !incremental_get_str(IncrementalNewTable, path_md5_str)
+        && !incremental_get(IncrementalCopyTable, doc_id)
+        && !incremental_get(IncrementalNewTable, doc_id)
         ) {
-        memcpy(path_md5_n, path_md5_str, MD5_STR_LENGTH - 1);
-        zstd_write_string(path_md5_n, MD5_STR_LENGTH);
+        memcpy(doc_id_n, doc_id, SIST_DOC_ID_LEN - 1);
+        zstd_write_string(doc_id, sizeof(doc_id_n));
     }
 }
 
-void incremental_delete(const char *del_filepath, const char* index_filepath, 
+void incremental_delete(const char *del_filepath, const char *index_filepath,
                         GHashTable *copy_table, GHashTable *new_table) {
 
     if (WriterCtx.out_file == NULL) {

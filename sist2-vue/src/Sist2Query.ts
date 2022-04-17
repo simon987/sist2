@@ -69,7 +69,7 @@ interface SortMode {
 
 class Sist2Query {
 
-    searchQuery(): any {
+    searchQuery(blankSearch: boolean = false): any {
 
         const getters = store.getters;
 
@@ -93,22 +93,6 @@ class Sist2Query {
             {terms: {index: selectedIndexIds}}
         ] as any[];
 
-        if (sizeMin && sizeMax) {
-            filters.push({range: {size: {gte: sizeMin, lte: sizeMax}}})
-        } else if (sizeMin) {
-            filters.push({range: {size: {gte: sizeMin}}})
-        } else if (sizeMax) {
-            filters.push({range: {size: {lte: sizeMax}}})
-        }
-
-        if (dateMin && dateMax) {
-            filters.push({range: {mtime: {gte: dateMin, lte: dateMax}}})
-        } else if (dateMin) {
-            filters.push({range: {mtime: {gte: dateMin}}})
-        } else if (dateMax) {
-            filters.push({range: {mtime: {lte: dateMax}}})
-        }
-
         const fields = [
             "name^8",
             "content^3",
@@ -128,20 +112,39 @@ class Sist2Query {
             fields.push("name.nGram^3");
         }
 
-        const path = pathText.replace(/\/$/, "").toLowerCase(); //remove trailing slashes
-        if (path !== "") {
-            filters.push({term: {path: path}})
-        }
+        if (!blankSearch) {
+            if (sizeMin && sizeMax) {
+                filters.push({range: {size: {gte: sizeMin, lte: sizeMax}}})
+            } else if (sizeMin) {
+                filters.push({range: {size: {gte: sizeMin}}})
+            } else if (sizeMax) {
+                filters.push({range: {size: {lte: sizeMax}}})
+            }
 
-        if (selectedMimeTypes.length > 0) {
-            filters.push({terms: {"mime": selectedMimeTypes}});
-        }
+            if (dateMin && dateMax) {
+                filters.push({range: {mtime: {gte: dateMin, lte: dateMax}}})
+            } else if (dateMin) {
+                filters.push({range: {mtime: {gte: dateMin}}})
+            } else if (dateMax) {
+                filters.push({range: {mtime: {lte: dateMax}}})
+            }
 
-        if (selectedTags.length > 0) {
-            if (getters.optTagOrOperator) {
-                filters.push({terms: {"tag": selectedTags}});
-            } else {
-                selectedTags.forEach((tag: string) => filters.push({term: {"tag": tag}}));
+            const path = pathText.replace(/\/$/, "").toLowerCase(); //remove trailing slashes
+
+            if (path !== "") {
+                filters.push({term: {path: path}})
+            }
+
+            if (selectedMimeTypes.length > 0) {
+                filters.push({terms: {"mime": selectedMimeTypes}});
+            }
+
+            if (selectedTags.length > 0) {
+                if (getters.optTagOrOperator) {
+                    filters.push({terms: {"tag": selectedTags}});
+                } else {
+                    selectedTags.forEach((tag: string) => filters.push({term: {"tag": tag}}));
+                }
             }
         }
 
@@ -182,7 +185,7 @@ class Sist2Query {
             size: size,
         } as any;
 
-        if (!empty) {
+        if (!empty && !blankSearch) {
             q.query.bool.must = query;
         }
 
@@ -207,7 +210,7 @@ class Sist2Query {
             };
 
             if (!legacyES) {
-                q.highlight.max_analyzed_offset = 9_999_999;
+                q.highlight.max_analyzed_offset = 999_999;
             }
 
             if (getters.optSearchInPath) {
@@ -237,7 +240,7 @@ class Sist2Query {
                 }
             }
 
-            if (!empty) {
+            if (!empty && !blankSearch) {
                 q.query.function_score.query.bool.must.push(query);
             }
         }

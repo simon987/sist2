@@ -1,6 +1,6 @@
 #include "scan_mobi.h"
 
-#include <mobi.h>
+#include "../../third-party/libmobi/src/mobi.h"
 #include <errno.h>
 #include "stdlib.h"
 
