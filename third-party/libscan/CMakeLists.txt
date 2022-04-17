@@ -7,9 +7,9 @@ option(BUILD_TESTS "Build tests" on)
 
 add_subdirectory(third-party/antiword)
 
-set(USE_LIBXML2 OFF)
-set(USE_XMLWRITER OFF)
-set(BUILD_SHARED_LIBS OFF)
+set(USE_LIBXML2 OFF CACHE BOOL "" FORCE)
+set(USE_XMLWRITER OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 add_subdirectory(third-party/libmobi)
 
 add_library(
