@@ -5,6 +5,7 @@
 #include "mime.h"
 #include "src/io/serialize.h"
 #include "src/parsing/sidecar.h"
+#include "src/magic_generated.c"
 
 #include <magic.h>
 
@@ -143,7 +144,15 @@ void parse(void *arg) {
         }
 
         magic_t magic = magic_open(MAGIC_MIME_TYPE);
-        magic_load(magic, NULL);
+
+        const char *magic_buffers[1] = {magic_database_buffer,};
+        size_t sizes[1] = {sizeof(magic_database_buffer),};
+
+        int load_ret = magic_load_buffers(magic, (void **) &magic_buffers, sizes, 1);
+
+        if (load_ret != 0) {
+            LOG_FATALF("parse.c", "Could not load libmagic database: (%d)", load_ret)
+        }
 
         const char *magic_mime_str = magic_buffer(magic, buf, bytes_read);
         if (magic_mime_str != NULL) {
