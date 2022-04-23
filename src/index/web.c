@@ -64,6 +64,10 @@ void web_post_async_poll(subreq_ctx_t *req) {
         req->response->size = req->response_buf.cur;
         curl_easy_getinfo(req->handle, CURLINFO_RESPONSE_CODE, &req->response->status_code);
 
+        if (req->response->status_code == 0) {
+            LOG_ERRORF("web.c", "CURL Error: %s", req->curl_err_buffer)
+        }
+
         curl_multi_cleanup(req->multi);
         curl_easy_cleanup(req->handle);
         curl_slist_free_all(req->headers);
@@ -71,7 +75,7 @@ void web_post_async_poll(subreq_ctx_t *req) {
     }
 }
 
-subreq_ctx_t *web_post_async(const char *url, char *data) {
+subreq_ctx_t *web_post_async(const char *url, char *data, int insecure) {
     subreq_ctx_t *req = calloc(1, sizeof(subreq_ctx_t));
     req->response = calloc(1, sizeof(response_t));
     req->data = data;
@@ -84,6 +88,11 @@ subreq_ctx_t *web_post_async(const char *url, char *data) {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
     curl_easy_setopt(curl, CURLOPT_POST, 1);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
+    if (insecure) {
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+    }
+
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, req->curl_err_buffer);
 
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");
@@ -100,7 +109,7 @@ subreq_ctx_t *web_post_async(const char *url, char *data) {
     return req;
 }
 
-response_t *web_get(const char *url, int timeout) {
+response_t *web_get(const char *url, int timeout, int insecure) {
     response_t *resp = malloc(sizeof(response_t));
 
     CURL *curl;
@@ -112,13 +121,23 @@ response_t *web_get(const char *url, int timeout) {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+    if (insecure) {
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+    }
 
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
+    char err_buffer[CURL_ERROR_SIZE + 1] = {};
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, err_buffer);
+
     curl_easy_perform(curl);
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &resp->status_code);
+
+    if (resp->status_code == 0) {
+        LOG_ERRORF("web.c", "CURL Error: %s", err_buffer)
+    }
 
     curl_easy_cleanup(curl);
     curl_slist_free_all(headers);
@@ -128,7 +147,7 @@ response_t *web_get(const char *url, int timeout) {
     return resp;
 }
 
-response_t *web_post(const char *url, const char *data) {
+response_t *web_post(const char *url, const char *data, int insecure) {
 
     response_t *resp = malloc(sizeof(response_t));
 
@@ -141,6 +160,9 @@ response_t *web_post(const char *url, const char *data) {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
     curl_easy_setopt(curl, CURLOPT_POST, 1);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
+    if (insecure) {
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+    }
 
     char err_buffer[CURL_ERROR_SIZE + 1] = {};
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, err_buffer);
@@ -168,7 +190,7 @@ response_t *web_post(const char *url, const char *data) {
 }
 
 
-response_t *web_put(const char *url, const char *data) {
+response_t *web_put(const char *url, const char *data, int insecure) {
 
     response_t *resp = malloc(sizeof(response_t));
 
@@ -183,6 +205,9 @@ response_t *web_put(const char *url, const char *data) {
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
     curl_easy_setopt(curl, CURLOPT_DNS_USE_GLOBAL_CACHE, 0);
     curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURLOPT_DNS_LOCAL_IP4);
+    if (insecure) {
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+    }
 
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");
@@ -201,7 +226,7 @@ response_t *web_put(const char *url, const char *data) {
     return resp;
 }
 
-response_t *web_delete(const char *url) {
+response_t *web_delete(const char *url, int insecure) {
 
     response_t *resp = malloc(sizeof(response_t));
 
@@ -214,6 +239,9 @@ response_t *web_delete(const char *url) {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
+    if (insecure) {
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+    }
 
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
     struct curl_slist *headers = NULL;

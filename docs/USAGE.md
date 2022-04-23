@@ -292,7 +292,7 @@ Both the `root` and `rewrite_url` fields are safe to manually modify from the
 
 # Elasticsearch
 
-Elasticsearch versions >=6.8.0, <8.0.0 are supported by sist2. 
+Elasticsearch versions >=6.8.0, 7.X.X and 8.X.X are supported by sist2. 
 
 Using a version >=7.14.0 is recommended to enable the following features:
 

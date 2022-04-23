@@ -50,6 +50,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv);
 typedef struct index_args {
     char *es_url;
     char *es_index;
+    int es_insecure_ssl;
     char *index_path;
     const char *script_path;
     char *script;
@@ -68,6 +69,7 @@ typedef struct index_args {
 typedef struct web_args {
     char *es_url;
     char *es_index;
+    int es_insecure_ssl;
     char *listen_address;
     char *credentials;
     char *tag_credentials;
@@ -85,6 +87,7 @@ typedef struct web_args {
 typedef struct exec_args {
     char *es_url;
     char *es_index;
+    int es_insecure_ssl;
     char *index_path;
     const char *script_path;
     int async_script;

@@ -79,6 +79,7 @@ typedef struct {
 
 typedef struct {
     char *es_url;
+    int es_insecure_ssl;
     es_version_t *es_version;
     char *es_index;
     int batch_size;
@@ -97,6 +98,7 @@ typedef struct {
     char *es_url;
     es_version_t *es_version;
     char *es_index;
+    int es_insecure_ssl;
     int index_count;
     char *auth_user;
     char *auth_pass;
