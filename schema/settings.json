@@ -16,7 +16,7 @@
         "delimiter": "."
       },
       "my_nGram_tokenizer": {
-        "type": "nGram",
+        "type": "ngram",
         "min_gram": 3,
         "max_gram": 3
       }
@@ -55,37 +55,5 @@
         ]
       }
     }
-  },
-  "mappings": {
-    "dynamic_templates": [
-      {
-        "keyword_fields": {
-          "match_mapping_type": "string",
-          "match":   "kw_*",
-          "mapping": {
-            "type": "keyword"
-          }
-        }
-      },
-      {
-        "integer_fields": {
-          "match_mapping_type": "*",
-          "match":   "int_*",
-          "mapping": {
-            "type": "integer"
-          }
-        }
-      },
-      {
-        "meta_fields": {
-          "match_mapping_type": "*",
-          "match":   "mt_*",
-          "mapping": {
-            "type": "keyword",
-            "index": false
-          }
-        }
-      }
-    ]
   }
 }

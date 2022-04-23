@@ -212,7 +212,7 @@ void search(struct mg_connection *nc, struct mg_http_message *hm) {
 
     if (hm->body.len == 0) {
         LOG_DEBUG("serve.c", "Client sent empty body, ignoring request")
-        mg_http_reply(nc, 500, HTTP_SERVER_HEADER HTTP_TEXT_TYPE_HEADER, "Invalid request");
+        mg_http_reply(nc, 400, HTTP_SERVER_HEADER HTTP_TEXT_TYPE_HEADER, "Invalid request");
         return;
     }
 
@@ -223,7 +223,7 @@ void search(struct mg_connection *nc, struct mg_http_message *hm) {
     char url[4096];
     snprintf(url, 4096, "%s/%s/_search", WebCtx.es_url, WebCtx.es_index);
 
-    nc->fn_data = web_post_async(url, body);
+    nc->fn_data = web_post_async(url, body, WebCtx.es_insecure_ssl);
 }
 
 void serve_file_from_url(cJSON *json, index_t *idx, struct mg_connection *nc) {
@@ -302,7 +302,7 @@ void cache_es_version() {
         return;
     }
 
-    es_version_t *es_version = elastic_get_version(WebCtx.es_url);
+    es_version_t *es_version = elastic_get_version(WebCtx.es_url, WebCtx.es_insecure_ssl);
     if (es_version != NULL) {
         WebCtx.es_version = es_version;
         is_cached = TRUE;
@@ -326,7 +326,7 @@ void index_info(struct mg_connection *nc) {
     cJSON_AddStringToObject(json, "version", Version);
     cJSON_AddStringToObject(json, "esVersion", es_version);
     cJSON_AddBoolToObject(json, "esVersionSupported", IS_SUPPORTED_ES_VERSION(WebCtx.es_version));
-    cJSON_AddBoolToObject(json, "esVersionLegacy", USE_LEGACY_ES_SETTINGS(WebCtx.es_version));
+    cJSON_AddBoolToObject(json, "esVersionLegacy", IS_LEGACY_VERSION(WebCtx.es_version));
     cJSON_AddStringToObject(json, "platform", QUOTE(SIST_PLATFORM));
     cJSON_AddStringToObject(json, "sist2Hash", Sist2CommitHash);
     cJSON_AddStringToObject(json, "lang", WebCtx.lang);
@@ -531,7 +531,7 @@ void tag(struct mg_connection *nc, struct mg_http_message *hm) {
 
         char url[4096];
         snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, arg_req->doc_id);
-        nc->fn_data = web_post_async(url, buf);
+        nc->fn_data = web_post_async(url, buf, WebCtx.es_insecure_ssl);
 
     } else {
         cJSON_AddItemToArray(arr, cJSON_CreateString(arg_req->name));
@@ -551,7 +551,7 @@ void tag(struct mg_connection *nc, struct mg_http_message *hm) {
 
         char url[4096];
         snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, arg_req->doc_id);
-        nc->fn_data = web_post_async(url, buf);
+        nc->fn_data = web_post_async(url, buf, WebCtx.es_insecure_ssl);
     }
 
     char *json_str = cJSON_PrintUnformatted(arr);

@@ -25,14 +25,15 @@ typedef struct {
     response_t *response;
     int running_handles;
     int done;
+    char curl_err_buffer[CURL_ERROR_SIZE + 1];
 } subreq_ctx_t;
 
-response_t *web_get(const char *url, int timeout);
-response_t *web_post(const char * url, const char * data);
+response_t *web_get(const char *url, int timeout, int insecure);
+response_t *web_post(const char * url, const char * data, int insecure);
 void web_post_async_poll(subreq_ctx_t* req);
-subreq_ctx_t *web_post_async(const char *url, char *data);
-response_t *web_put(const char *url, const char *data);
-response_t *web_delete(const char *url);
+subreq_ctx_t *web_post_async(const char *url, char *data, int insecure);
+response_t *web_put(const char *url, const char *data, int insecure);
+response_t *web_delete(const char *url, int insecure);
 
 void free_response(response_t *resp);
 

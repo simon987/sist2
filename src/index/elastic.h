@@ -20,8 +20,10 @@ typedef struct {
 } es_version_t;
 
 #define VERSION_GE(version, maj, min) ((version)->major > (maj) || ((version)->major == (maj) && (version)->minor >= (min)))
-#define IS_SUPPORTED_ES_VERSION(es_version) ((es_version) != NULL && VERSION_GE((es_version), 6, 8))
-#define USE_LEGACY_ES_SETTINGS(es_version) ((es_version) != NULL && (!VERSION_GE((es_version), 7, 14)))
+#define VERSION_LT(version, maj, min) (!VERSION_GE(version, maj, min))
+
+#define IS_SUPPORTED_ES_VERSION(es_version) ((es_version) != NULL && VERSION_GE((es_version), 6, 8) && VERSION_LT((es_version), 9, 0))
+#define IS_LEGACY_VERSION(es_version) ((es_version) != NULL && VERSION_LT((es_version), 7, 14))
 
 __always_inline
 static const char *format_es_version(es_version_t *version) {
@@ -57,7 +59,7 @@ cJSON *elastic_get_document(const char *id_str);
 
 char *elastic_get_status();
 
-es_version_t *elastic_get_version(const char *es_url);
+es_version_t *elastic_get_version(const char *es_url, int insecure);
 
 void execute_update_script(const char *script, int async, const char index_id[SIST_INDEX_ID_LEN]);
 
