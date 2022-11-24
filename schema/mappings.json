@@ -67,7 +67,8 @@
       "index": false
     },
     "mtime": {
-      "type": "integer"
+      "type": "date",
+      "format": "epoch_millis"
     },
     "size": {
       "type": "long"
