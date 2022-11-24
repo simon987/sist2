@@ -86,6 +86,21 @@ char *expandpath(const char *path) {
 
 int PrintingProgressBar = 0;
 
+#define BOOLEAN_STRING(x) ((x) == 0  ? "false" : "true")
+
+void progress_bar_print_json(size_t done, size_t count, size_t tn_size, size_t index_size, int waiting) {
+
+    char log_str[1024];
+
+    size_t log_len = snprintf(
+            log_str, sizeof(log_str),
+            "{\"progress\": {\"done\":%lu,\"count\":%lu,\"tn_size\":%lu,\"index_size\":%lu,\"waiting\":%s}}\n",
+            done, count, tn_size, index_size, BOOLEAN_STRING(waiting)
+    );
+
+    write(STDOUT_FILENO, log_str, log_len);
+}
+
 void progress_bar_print(double percentage, size_t tn_size, size_t index_size) {
 
     static int last_val = -1;

@@ -109,7 +109,7 @@ find_library(MUPDF_LIB NAMES liblibmupdf.a)
 find_library(CMS_LIB NAMES lcms2)
 find_library(JAS_LIB NAMES jasper)
 find_library(GUMBO_LIB NAMES gumbo)
-find_library(GOMP_LIB NAMES libgomp.a gomp PATHS /usr/lib/gcc/x86_64-linux-gnu/5/ /usr/lib/gcc/x86_64-linux-gnu/9/ /usr/lib/gcc/x86_64-linux-gnu/10/ /usr/lib/gcc/aarch64-linux-gnu/7/ /usr/lib/gcc/aarch64-linux-gnu/9/ /usr/lib/gcc/x86_64-linux-gnu/7/)
+find_library(GOMP_LIB NAMES libgomp.a gomp PATHS /usr/lib/gcc/x86_64-linux-gnu/11/ /usr/lib/gcc/x86_64-linux-gnu/5/ /usr/lib/gcc/x86_64-linux-gnu/9/ /usr/lib/gcc/x86_64-linux-gnu/10/ /usr/lib/gcc/aarch64-linux-gnu/7/ /usr/lib/gcc/aarch64-linux-gnu/9/ /usr/lib/gcc/x86_64-linux-gnu/7/)
 
 
 target_compile_options(

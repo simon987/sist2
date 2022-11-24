@@ -19,6 +19,7 @@ dyn_buffer_t url_escape(char *str);
 
 extern int PrintingProgressBar;
 
+void progress_bar_print_json(size_t done, size_t count,  size_t tn_size, size_t index_size, int waiting);
 void progress_bar_print(double percentage, size_t tn_size, size_t index_size);
 
 GHashTable *incremental_get_table();

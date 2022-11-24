@@ -328,7 +328,7 @@ void load_incremental_index(const scan_args_t *args) {
             file_path,
             args->incremental,
             incremental_read(ScanCtx.original_table, file_path, &original_desc),
-            LOG_FATALF("main.c", "Could not open original main index for incremental scan: %s", strerror(errno)),
+            LOG_DEBUG("main.c", "The base index for incremental scan does not have a main index"),
             TRUE
     );
 
@@ -635,6 +635,7 @@ int main(int argc, const char *argv[]) {
             OPT_BOOLEAN('v', "version", &arg_version, "Show version and exit"),
             OPT_BOOLEAN(0, "verbose", &LogCtx.verbose, "Turn on logging"),
             OPT_BOOLEAN(0, "very-verbose", &LogCtx.very_verbose, "Turn on debug messages"),
+            OPT_BOOLEAN(0, "json-logs", &LogCtx.json_logs, "Output logs in JSON format."),
 
             OPT_GROUP("Scan options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
