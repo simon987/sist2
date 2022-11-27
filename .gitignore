@@ -10,6 +10,9 @@ Makefile
 LOG
 sist2*
 !sist2-vue/
+!sist2-admin
+!sist2_admin
+!sist2.py
 *.sist2/
 bundle*.css
 bundle.js
@@ -26,3 +29,7 @@ test_i_inc
 node_modules/
 .cmake/
 i_inc/
+state.db
+*.pyc
+!sist2-admin/frontend/dist
+*.js.map

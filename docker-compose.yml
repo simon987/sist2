@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  elasticsearch:
+    image: elasticsearch:7.14.0
+    container_name: sist2-es
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+  sist2-admin:
+    build:
+      context: .
+    container_name: sist2-admin
+    volumes:
+      - /mnt/array/sist2-admin-data/:/sist2-admin/
+      - /:/host
+    ports:
+      # NOTE: Don't export this port publicly!
+      - 8080:8080
+      - 4090:4090
+    working_dir: /root/sist2-admin/
+    entrypoint: python3
+    command:
+      - /root/sist2-admin/sist2_admin/app.py

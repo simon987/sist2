@@ -29,3 +29,7 @@ sist2
 **/core
 *.a
 tmp_scan/
+Dockerfile
+Dockerfile.arm64
+docker-compose.yml
+state.db
