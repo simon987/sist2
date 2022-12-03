@@ -21,7 +21,7 @@ WORKDIR /root
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
-ENTRYPOINT ["sist2"]
+ENTRYPOINT ["/root/sist2"]
 
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y curl libasan5 libmagic1 python3  \
     python3-pip git tesseract-ocr && rm -rf /var/lib/apt/lists/*
