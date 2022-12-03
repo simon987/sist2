@@ -75,6 +75,7 @@ typedef struct {
     int verbose;
     int very_verbose;
     int no_color;
+    int json_logs;
 } LogCtx_t;
 
 typedef struct {

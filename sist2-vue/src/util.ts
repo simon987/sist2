@@ -163,3 +163,7 @@ export function decompressMime(mime: string): string {
         .replace(",", "+")
         .replace("X", "x-")
 }
+
+export function randomSeed(): number {
+    return Math.round(Math.random() * 100000);
+}

@@ -42,6 +42,8 @@
 </template>
 
 <script>
+import {randomSeed} from "@/util";
+
 export default {
   name: "SortSelect",
   computed: {
@@ -52,7 +54,7 @@ export default {
   methods: {
     onSelect(sortMode) {
       if (sortMode === "random") {
-        this.$store.commit("setSeed", Math.round(Math.random() * 100000));
+        this.$store.commit("setSeed", randomSeed());
       }
       this.$store.commit("setSortMode", sortMode);
     }

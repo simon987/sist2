@@ -60,7 +60,6 @@ export default {
   color: #222 !important;
   font-size: 1.75rem;
   padding: 0;
-  font-family: Hack;
 }
 
 .navbar-brand:hover {

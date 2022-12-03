@@ -1,4 +1,5 @@
 #include "log.h"
+#include "ctx.h"
 
 #include <pthread.h>
 #include <stdarg.h>
@@ -30,6 +31,30 @@ void vsist_logf(const char *filepath, int level, char *format, va_list ap) {
     strftime(datetime, sizeof(datetime), "%Y-%m-%d %H:%M:%S", &result);
 
     int log_len;
+    if (LogCtx.json_logs) {
+        vsnprintf(log_str, sizeof(log_str), format, ap);
+
+        cJSON *log_str_json = cJSON_CreateString(log_str);
+        char *log_str_json_str = cJSON_PrintUnformatted(log_str_json);
+
+        cJSON *filepath_json = cJSON_CreateString(filepath);
+        char *filepath_json_str = cJSON_PrintUnformatted(filepath_json);
+
+        log_len = snprintf(
+                log_str, sizeof(log_str),
+                "{\"thread\":\"%04llX\",\"datetime\":\"%s\",\"level\":\"%s\",\"filepath\":%s,\"message\":%s}\n",
+                pid, datetime, log_levels[level], filepath_json_str, log_str_json_str
+        );
+
+        cJSON_Delete(filepath_json);
+        cJSON_Delete(log_str_json);
+        free(log_str_json_str);
+        free(filepath_json_str);
+
+        write(STDOUT_FILENO, log_str, log_len);
+        return;
+    }
+
     if (is_tty) {
         log_len = snprintf(
                 log_str, sizeof(log_str),
@@ -97,6 +122,28 @@ void sist_log(const char *filepath, int level, char *str) {
     strftime(datetime, sizeof(datetime), "%Y-%m-%d %H:%M:%S", &result);
 
     int log_len;
+
+    if (LogCtx.json_logs) {
+        cJSON *log_str_json = cJSON_CreateString(str);
+        char *log_str_json_str = cJSON_PrintUnformatted(log_str_json);
+
+        cJSON *filepath_json = cJSON_CreateString(filepath);
+        char *filepath_json_str = cJSON_PrintUnformatted(filepath_json);
+
+        log_len = snprintf(
+                log_str, sizeof(log_str),
+                "{\"thread\":\"%04llX\",\"datetime\":\"%s\",\"level\":\"%s\",\"filepath\":%s,\"message\":%s}\n",
+                pid, datetime, log_levels[level], filepath_json_str, log_str_json_str
+        );
+
+        cJSON_Delete(log_str_json);
+        cJSON_Delete(filepath_json);
+        free(log_str_json_str);
+        free(filepath_json_str);
+
+        write(STDOUT_FILENO, log_str, log_len);
+        return;
+    }
     if (is_tty) {
         log_len = snprintf(
                 log_str, sizeof(log_str),

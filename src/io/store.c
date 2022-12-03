@@ -87,7 +87,7 @@ void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t bu
     }
 
     if (db_full) {
-        LOG_INFOF("store.c", "Updating mdb mapsize to %lu bytes", store->size)
+        LOG_DEBUGF("store.c", "Updating mdb mapsize to %lu bytes", store->size)
 
         if (should_abort_transaction) {
             mdb_txn_abort(txn);
@@ -116,7 +116,7 @@ void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t bu
                        store->path, mdb_strerror(ret), ret,
                        put_ret, put_ret_retry);
         }
-        LOG_INFOF("store.c", "Updated mdb mapsize to %lu bytes", store->size)
+        LOG_DEBUGF("store.c", "Updated mdb mapsize to %lu bytes", store->size)
     } else if (put_ret != 0) {
         LOG_ERROR("store.c", mdb_strerror(put_ret))
     }

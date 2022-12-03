@@ -1,0 +1,5 @@
+fastapi
+git+https://github.com/simon987/hexlib.git
+uvicorn
+websockets
+pycron

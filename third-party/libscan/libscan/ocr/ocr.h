@@ -28,6 +28,8 @@ ocr_extract_text(const char *tesseract_path, const char *tesseract_lang,
     TessBaseAPI *api = TessBaseAPICreate();
     TessBaseAPIInit3(api, tesseract_path, tesseract_lang);
 
+    TessBaseAPISetPageSegMode(api, PSM_AUTO_OSD);
+
     TessBaseAPISetImage(api, img_buf, img_w, img_h, img_bpp, img_stride);
     TessBaseAPISetSourceResolution(api, img_xres);
 

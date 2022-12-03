@@ -500,9 +500,6 @@ void incremental_copy_handle_doc(cJSON *document, UNUSED(const char id_str[SIST_
         json_str = realloc(json_str, json_str_len + 1);
         *(json_str + json_str_len) = '\n';
 
-        zstd_write_string(json_str, json_str_len + 1);
-        free(json_str);
-
         // Copy tn store contents
         size_t buf_len;
         char *buf = store_read(IncrementalCopySourceStore, (char *) doc_id, SIST_DOC_ID_LEN, &buf_len);
@@ -510,6 +507,26 @@ void incremental_copy_handle_doc(cJSON *document, UNUSED(const char id_str[SIST_
             store_write(IncrementalCopyDestinationStore, (char *) doc_id, SIST_DOC_ID_LEN, buf, buf_len);
             free(buf);
         }
+
+        // Also copy additional thumbnails
+        if (cJSON_GetObjectItem(document, "thumbnail") != NULL) {
+            const int thumbnail_count = cJSON_GetObjectItem(document, "thumbnail")->valueint;
+
+            for (int i = 1; i < thumbnail_count; i++) {
+                char tn_key[SIST_DOC_ID_LEN + sizeof(char) * 4];
+
+                snprintf(tn_key, sizeof(tn_key), "%s%04d", doc_id, i);
+
+                buf = store_read(IncrementalCopySourceStore, tn_key, sizeof(tn_key), &buf_len);
+                if (buf_len != 0) {
+                    store_write(IncrementalCopyDestinationStore, tn_key, sizeof(tn_key), buf, buf_len);
+                    free(buf);
+                }
+            }
+        }
+
+        zstd_write_string(json_str, json_str_len + 1);
+        free(json_str);
     }
 }
 

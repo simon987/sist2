@@ -2,7 +2,7 @@ import Vue from "vue"
 import Vuex from "vuex"
 import VueRouter, {Route} from "vue-router";
 import {EsHit, EsResult, EsTag, Index, Tag} from "@/Sist2Api";
-import {deserializeMimes, serializeMimes} from "@/util";
+import {deserializeMimes, randomSeed, serializeMimes} from "@/util";
 
 const CONF_VERSION = 2;
 
@@ -241,6 +241,9 @@ export default new Vuex.Store({
 
             if (route.query.sort) {
                 commit("setSortMode", route.query.sort);
+                if (route.query.sort === "random" && route.query.seed === undefined) {
+                    route.query.seed = randomSeed().toString();
+                }
                 commit("setSeed", Number(route.query.seed));
             }
         },

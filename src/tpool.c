@@ -34,6 +34,7 @@ typedef struct tpool {
 
     int free_arg;
     int stop;
+    int waiting;
 
     int print_progress;
 
@@ -121,22 +122,22 @@ int tpool_add_work(tpool_t *pool, thread_func_t func, void *arg) {
  * see: https://github.com/htop-dev/htop/blob/f782f821f7f8081cb43bbad1c37f32830a260a81/linux/LinuxProcessList.c
  */
 __always_inline
-static size_t _get_total_mem(tpool_t* pool) {
-    FILE* statmfile = fopen("/proc/self/statm", "r");
+static size_t _get_total_mem(tpool_t *pool) {
+    FILE *statmfile = fopen("/proc/self/statm", "r");
     if (!statmfile)
-      return 0;
+        return 0;
 
     long int dummy, dummy2, dummy3, dummy4, dummy5, dummy6;
     long int m_resident;
 
     int r = fscanf(statmfile, "%ld %ld %ld %ld %ld %ld %ld",
-        &dummy, /* m_virt */
-        &m_resident,
-        &dummy2, /* m_share */
-        &dummy3, /* m_trs */
-        &dummy4, /* unused since Linux 2.6; always 0 */
-        &dummy5, /* m_drs */
-        &dummy6); /* unused since Linux 2.6; always 0 */
+                   &dummy, /* m_virt */
+                   &m_resident,
+                   &dummy2, /* m_share */
+                   &dummy3, /* m_trs */
+                   &dummy4, /* unused since Linux 2.6; always 0 */
+                   &dummy5, /* m_drs */
+                   &dummy6); /* unused since Linux 2.6; always 0 */
     fclose(statmfile);
 
     if (r == 7) {
@@ -174,7 +175,7 @@ static void *tpool_worker(void *arg) {
         if (work != NULL) {
             stuck_notified = 0;
             throttle_ms = 0;
-            while(!pool->stop && pool->mem_limit > 0 && _get_total_mem(pool) >= pool->mem_limit) {
+            while (!pool->stop && pool->mem_limit > 0 && _get_total_mem(pool) >= pool->mem_limit) {
                 if (!stuck_notified && throttle_ms >= 90000) {
                     // notify the pool that this thread is stuck.
                     pthread_mutex_lock(&(pool->work_mutex));
@@ -215,7 +216,13 @@ static void *tpool_worker(void *arg) {
         }
 
         if (pool->print_progress) {
-            progress_bar_print((double) pool->done_cnt / pool->work_cnt, ScanCtx.stat_tn_size, ScanCtx.stat_index_size);
+            if (LogCtx.json_logs) {
+                progress_bar_print_json(pool->done_cnt, pool->work_cnt, ScanCtx.stat_tn_size,
+                                        ScanCtx.stat_index_size, pool->waiting);
+            } else {
+                progress_bar_print((double) pool->done_cnt / pool->work_cnt, ScanCtx.stat_tn_size,
+                                   ScanCtx.stat_index_size);
+            }
         }
 
         if (pool->work_head == NULL) {
@@ -238,6 +245,9 @@ static void *tpool_worker(void *arg) {
 void tpool_wait(tpool_t *pool) {
     LOG_DEBUG("tpool.c", "Waiting for worker threads to finish")
     pthread_mutex_lock(&(pool->work_mutex));
+
+    pool->waiting = TRUE;
+
     while (TRUE) {
         if (pool->done_cnt < pool->work_cnt) {
             pthread_cond_wait(&(pool->working_cond), &(pool->work_mutex));
@@ -250,7 +260,7 @@ void tpool_wait(tpool_t *pool) {
             }
         }
     }
-    if (pool->print_progress) {
+    if (pool->print_progress && !LogCtx.json_logs) {
         progress_bar_print(1.0, ScanCtx.stat_tn_size, ScanCtx.stat_index_size);
     }
     pthread_mutex_unlock(&(pool->work_mutex));
@@ -312,6 +322,7 @@ tpool_t *tpool_create(int thread_cnt, void cleanup_func(), int free_arg, int pri
     pool->throttle_stuck_cnt = 0;
     pool->mem_limit = mem_limit;
     pool->stop = FALSE;
+    pool->waiting = FALSE;
     pool->free_arg = free_arg;
     pool->cleanup_func = cleanup_func;
     pool->threads = calloc(sizeof(pthread_t), thread_cnt);

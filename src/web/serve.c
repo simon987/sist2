@@ -20,6 +20,13 @@ static struct mg_http_serve_opts DefaultServeOpts = {
 };
 
 
+__always_inline
+static char *address_to_string(struct mg_addr *addr) {
+    static char address_to_string_buf[INET6_ADDRSTRLEN];
+
+    return mg_ntoa(addr, address_to_string_buf, sizeof(address_to_string_buf));
+}
+
 static void send_response_line(struct mg_connection *nc, int status_code, size_t length, char *extra_headers) {
     mg_printf(
             nc,
@@ -285,8 +292,12 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
              "Accept-Ranges: bytes\r\nCache-Control: no-store\r\n",
              name, strlen(ext) == 0 ? "" : ".", ext);
 
-    char mime_mapping[1024];
-    snprintf(mime_mapping, sizeof(mime_mapping), "%s=%s", ext, mime);
+    char mime_mapping[8192];
+    if (strlen(ext) == 0) {
+        snprintf(mime_mapping, sizeof(mime_mapping), "%s=%s", full_path, mime);
+    } else {
+        snprintf(mime_mapping, sizeof(mime_mapping), "%s=%s", ext, mime);
+    }
 
     struct mg_http_serve_opts opts = {
             .extra_headers = disposition,
@@ -587,6 +598,11 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
                 return;
             }
         }
+
+        LOG_DEBUGF("serve.c", "<%s> GET %s",
+                   address_to_string(&(nc->rem)),
+                   hm->uri
+        )
 
         if (mg_http_match_uri(hm, "/")) {
             search_index(nc, hm);
