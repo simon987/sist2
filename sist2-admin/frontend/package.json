@@ -11,7 +11,7 @@
     "axios": "^0.27.2",
     "bootstrap-vue": "^2.21.2",
     "core-js": "^3.6.5",
-    "moment": "^2.29.3",
+    "moment": "^2.29.4",
     "socket.io-client": "^4.5.1",
     "vue": "^2.6.14",
     "vue-i18n": "^8.24.4",
