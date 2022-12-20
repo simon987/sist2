@@ -13,7 +13,6 @@ class Sist2Frontend(BaseModel):
     running: bool = False
 
     auto_start: bool = False
-    enable_monitoring: bool = True
     extra_query_args: str = ""
     custom_url: str = None
 

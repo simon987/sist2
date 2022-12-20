@@ -42,8 +42,6 @@ export default {
         runJobConfirmationTitle: "Task queued",
         runJobConfirmation: "Check the Tasks page to monitor the status.",
 
-        monitoring: "Monitoring",
-        enableMonitoring: "Enable monitoring",
         extraQueryArgs: "Extra query arguments when launching from sist2-admin",
         customUrl: "Custom URL when launching from sist2-admin",
 

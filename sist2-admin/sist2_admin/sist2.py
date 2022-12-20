@@ -251,7 +251,7 @@ class Sist2:
 
     @staticmethod
     def _consume_logs_stderr(logs_cb, proc):
-        pipe_wrapper = TextIOWrapper(proc.stderr, encoding="utf8")
+        pipe_wrapper = TextIOWrapper(proc.stderr, encoding="utf8", errors="ignore")
         try:
             for line in pipe_wrapper:
                 if line.strip() == "":
@@ -263,7 +263,7 @@ class Sist2:
 
     @staticmethod
     def _consume_logs_stdout(logs_cb, proc):
-        pipe_wrapper = TextIOWrapper(proc.stdout, encoding="utf8")
+        pipe_wrapper = TextIOWrapper(proc.stdout, encoding="utf8", errors="ignore")
         try:
             for line in pipe_wrapper:
                 if line.strip() == "":

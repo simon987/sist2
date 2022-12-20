@@ -33,10 +33,6 @@
           {{ $t("autoStart") }}
         </b-form-checkbox>
 
-        <b-form-checkbox v-model="frontend.enable_monitoring" @change="update()">
-          {{ $t("enableMonitoring") }}
-        </b-form-checkbox>
-
         <label>{{ $t("extraQueryArgs") }}</label>
         <b-form-input v-model="frontend.extra_query_args" @change="update()"></b-form-input>
 
