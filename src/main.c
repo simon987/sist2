@@ -209,8 +209,10 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.ebook_ctx.content_size = args->content_size;
     ScanCtx.ebook_ctx.enable_tn = args->tn_count > 0;
     ScanCtx.ebook_ctx.tn_size = args->tn_size;
-    ScanCtx.ebook_ctx.tesseract_lang = args->tesseract_lang;
-    ScanCtx.ebook_ctx.tesseract_path = args->tesseract_path;
+    if (args->ocr_ebooks) {
+        ScanCtx.ebook_ctx.tesseract_lang = args->tesseract_lang;
+        ScanCtx.ebook_ctx.tesseract_path = args->tesseract_path;
+    }
     ScanCtx.ebook_ctx.log = _log;
     ScanCtx.ebook_ctx.logf = _logf;
     ScanCtx.ebook_ctx.store = _store;

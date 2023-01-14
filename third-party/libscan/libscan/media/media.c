@@ -446,7 +446,7 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
         return SAVE_THUMBNAIL_FAILED;
     }
 
-    if (ctx->tesseract_lang != NULL && IS_VIDEO(pFormatCtx) && thumbnail_index == 0) {
+    if (ctx->tesseract_lang != NULL && thumbnail_index == 0) {
         ocr_image(ctx, doc, decoder, frame_and_packet->frame);
     }
 

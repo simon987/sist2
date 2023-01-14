@@ -14,7 +14,7 @@ RUN cmake -DSIST_PLATFORM=x64_linux -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_T
 RUN make -j$(nproc)
 RUN strip sist2 || mv sist2_debug sist2
 
-FROM --platform="linux/amd64" ubuntu@sha256:b25ef49a40b7797937d0d23eca3b0a41701af6757afca23d504d50826f0b37ce
+FROM --platform="linux/amd64" ubuntu@sha256:965fbcae990b0467ed5657caceaec165018ef44a4d2d46c7cdea80a9dff0d1ea
 
 WORKDIR /root
 
@@ -33,7 +33,9 @@ RUN mkdir -p /usr/share/tessdata && \
     curl -o /usr/share/tessdata/eng.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/eng.traineddata &&\
     curl -o /usr/share/tessdata/fra.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/fra.traineddata &&\
     curl -o /usr/share/tessdata/rus.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/rus.traineddata &&\
-    curl -o /usr/share/tessdata/spa.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/spa.traineddata
+    curl -o /usr/share/tessdata/osd.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/osd.traineddata &&\
+    curl -o /usr/share/tessdata/spa.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/spa.traineddata &&\
+    curl -o /usr/share/tessdata/chi_sim.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/chi_sim.traineddata
 
 # sist2
 COPY --from=build /build/sist2 /root/sist2
