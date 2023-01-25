@@ -48,7 +48,7 @@
 
       <br/>
 
-      <h4>{{ $t("jobOptions.title") }}</h4>
+      <h4>{{ $t("webOptions.title") }}</h4>
       <b-card>
         <WebOptions :options="frontend.web_options" :frontend-name="$route.params.name" @change="update()"></WebOptions>
       </b-card>

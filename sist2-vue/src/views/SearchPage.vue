@@ -130,25 +130,18 @@ export default Vue.extend({
       });
     });
 
+    this.setIndices(this.$store.getters["sist2Info"].indices)
 
     this.getDateRange().then((range: { min: number, max: number }) => {
       this.setDateBoundsMin(range.min);
       this.setDateBoundsMax(range.max);
 
-      sist2.getSist2Info().then(data => {
-        this.setSist2Info(data);
-        this.setIndices(data.indices);
+      const doBlankSearch = !this.$store.state.optUpdateMimeMap;
 
-        const doBlankSearch = !this.$store.state.optUpdateMimeMap;
-
-        Sist2Api.getMimeTypes(Sist2Query.searchQuery(doBlankSearch)).then(({mimeMap}) => {
-          this.$store.commit("setUiMimeMap", mimeMap);
-          this.uiLoading = false;
-          this.search(true);
-        });
-
-      }).catch(() => {
-        this.showErrorToast();
+      Sist2Api.getMimeTypes(Sist2Query.searchQuery(doBlankSearch)).then(({mimeMap}) => {
+        this.$store.commit("setUiMimeMap", mimeMap);
+        this.uiLoading = false;
+        this.search(true);
       });
     });
   },

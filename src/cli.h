@@ -77,6 +77,12 @@ typedef struct web_args {
     char *lang;
     char auth_user[256];
     char auth_pass[256];
+    int auth0_enabled;
+    char *auth0_audience;
+    char *auth0_domain;
+    char *auth0_client_id;
+    char *auth0_public_key_path;
+    char *auth0_public_key;
     int auth_enabled;
     int tag_auth_enabled;
     int index_count;

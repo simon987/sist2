@@ -3,6 +3,7 @@ import Vuex from "vuex"
 import VueRouter, {Route} from "vue-router";
 import {EsHit, EsResult, EsTag, Index, Tag} from "@/Sist2Api";
 import {deserializeMimes, randomSeed, serializeMimes} from "@/util";
+import {getInstance} from "@/plugins/auth0.js";
 
 const CONF_VERSION = 2;
 
@@ -82,7 +83,9 @@ export default new Vuex.Store({
         uiDetailsMimeAgg: null,
         uiShowDetails: false,
 
-        uiMimeMap: [] as any[]
+        uiMimeMap: [] as any[],
+
+        auth0Token: null
     },
     mutations: {
         setUiShowDetails: (state, val) => state.uiShowDetails = val,
@@ -188,6 +191,7 @@ export default new Vuex.Store({
         busTnTouchStart: (doc_id) => {
             // noop
         },
+        setAuth0Token: (state, val) => state.auth0Token = val,
     },
     actions: {
         setSist2Info: (store, val) => {
@@ -332,6 +336,14 @@ export default new Vuex.Store({
             commit("setUiLightboxCaptions", []);
             commit("setUiLightboxKey", 0);
             commit("setUiDetailsMimeAgg", null);
+        },
+        async loadAuth0Token({commit}) {
+            const authService = getInstance();
+
+            const accessToken = await authService.getTokenSilently()
+            commit("setAuth0Token", accessToken);
+
+            document.cookie = `sist2-auth0=${accessToken};`;
         }
     },
     modules: {},

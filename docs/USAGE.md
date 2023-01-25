@@ -74,6 +74,10 @@ Web options
     --es-index=<str>                  Elasticsearch index name. DEFAULT=sist2
     --bind=<str>                      Listen on this address. DEFAULT=localhost:4090
     --auth=<str>                      Basic auth in user:password format
+    --auth0-audience=<str>            API audience/identifier
+    --auth0-domain=<str>              Application domain
+    --auth0-client-id=<str>           Application client ID
+    --auth0-public-key-file=<str>     Path to Auth0 public key file extracted from <domain>/pem
     --tag-auth=<str>                  Basic auth in user:password format for tagging
     --tagline=<str>                   Tagline in navbar
     --dev                             Serve html & js files from disk (for development)
@@ -268,6 +272,7 @@ sist2 index --print ./my_index/ | jq | less
  * `--dev` Serve html & js files from disk (for development, used to modify frontend files without having to recompile)
  * `--lang=<str>` Set the default web UI language (See #180 for a list of supported languages, default
    is `en`). The user can change the language in the configuration page
+ * `--auth0-audience`, `--auth0-domain`, `--auth0-client-id`, `--auth0-public-key-file` See [Authentication with Auth0](auth0.md)
 
 ### Web examples
 

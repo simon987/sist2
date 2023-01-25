@@ -501,6 +501,37 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
         args->tag_auth_enabled = FALSE;
     }
 
+    if (args->auth0_public_key_path != NULL || args->auth0_audience != NULL || args->auth0_client_id ||
+        args->auth0_domain) {
+
+        if (args->auth0_public_key_path == NULL) {
+            fprintf(stderr, "Missing --auth0-public-key-file argument");
+            return 1;
+        }
+        if (args->auth0_audience == NULL) {
+            fprintf(stderr, "Missing --auth0-audience argument");
+            return 1;
+        }
+        if (args->auth0_client_id == NULL) {
+            fprintf(stderr, "Missing --auth0-client-id argument");
+            return 1;
+        }
+        if (args->auth0_domain == NULL) {
+            fprintf(stderr, "Missing --auth0-domain argument");
+            return 1;
+        }
+    }
+
+    if (args->auth0_public_key_path != NULL) {
+        if (load_external_file(args->auth0_public_key_path, &args->auth0_public_key) != 0) {
+            return 1;
+        }
+
+        args->auth0_enabled = TRUE;
+    } else {
+        args->auth0_enabled = FALSE;
+    }
+
     args->index_count = argc - 1;
     args->indices = argv + 1;
 

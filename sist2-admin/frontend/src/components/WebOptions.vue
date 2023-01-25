@@ -34,6 +34,22 @@
     <label>{{ $t("webOptions.tagAuth") }}</label>
     <b-form-input v-model="options.tag_auth" @change="update()"></b-form-input>
 
+    <br>
+    <h5>Auth0 options</h5>
+    <label>{{ $t("webOptions.auth0Audience") }}</label>
+    <b-form-input v-model="options.auth0_audience" @change="update()"></b-form-input>
+
+    <label>{{ $t("webOptions.auth0Domain") }}</label>
+    <b-form-input v-model="options.auth0_domain" @change="update()"></b-form-input>
+
+    <label>{{ $t("webOptions.auth0ClientId") }}</label>
+    <b-form-input v-model="options.auth0_client_id" @change="update()"></b-form-input>
+
+    <label>{{ $t("webOptions.auth0PublicKey") }}</label>
+    <b-textarea rows="10" v-model="options.auth0_public_key" @change="update()"></b-textarea>
+
+
+
   </div>
 </template>
 

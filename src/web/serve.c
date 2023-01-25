@@ -5,6 +5,7 @@
 #include "static_generated.c"
 #include "src/index/elastic.h"
 #include "src/index/web.h"
+#include "src/auth0/auth0_c_api.h"
 
 #include <src/ctx.h>
 
@@ -342,6 +343,14 @@ void index_info(struct mg_connection *nc) {
     cJSON_AddStringToObject(json, "sist2Hash", Sist2CommitHash);
     cJSON_AddStringToObject(json, "lang", WebCtx.lang);
     cJSON_AddBoolToObject(json, "dev", WebCtx.dev);
+
+    cJSON_AddBoolToObject(json, "auth0Enabled", WebCtx.auth0_enabled);
+    if (WebCtx.auth0_enabled) {
+        cJSON_AddStringToObject(json, "auth0Domain", WebCtx.auth0_domain);
+        cJSON_AddStringToObject(json, "auth0ClientId", WebCtx.auth0_client_id);
+        cJSON_AddStringToObject(json, "auth0Audience", WebCtx.auth0_audience);
+    }
+
 #ifdef SIST_DEBUG
     cJSON_AddBoolToObject(json, "debug", TRUE);
 #else
@@ -588,6 +597,42 @@ int validate_auth(struct mg_connection *nc, struct mg_http_message *hm) {
     return TRUE;
 }
 
+int check_auth0(struct mg_http_message *hm) {
+
+    struct mg_str *cookie = mg_http_get_header(hm, "Cookie");
+    if (cookie == NULL) {
+        LOG_WARNING("serve.c", "Unauthorized request (no auth cookie)")
+        return FALSE;
+    }
+
+    struct mg_str token = mg_str("");
+    char *token_str = NULL;
+
+    token = mg_http_get_header_var(*cookie, mg_str("sist2-auth0"));
+    if (token.len == 0) {
+        LOG_WARNING("serve.c", "Unauthorized request (no auth cookie)")
+        return FALSE;
+    }
+
+    token_str = malloc(token.len + 1);
+    strncpy(token_str, token.ptr, token.len);
+    *(token_str + token.len) = '\0';
+
+    int res = auth0_verify_jwt(
+            WebCtx.auth0_public_key,
+            token_str,
+            WebCtx.auth0_audience
+    );
+    free(token_str);
+
+    if (res != AUTH0_OK) {
+        LOG_WARNINGF("serve.c", "Unauthorized request (JWT validation error: %d)", res);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(void *fn_data)) {
 
     if (ev == MG_EV_HTTP_MSG) {
@@ -606,20 +651,34 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
 
         if (mg_http_match_uri(hm, "/")) {
             search_index(nc, hm);
+            return;
         } else if (mg_http_match_uri(hm, "/favicon.ico")) {
             favicon(nc, hm);
+            return;
         } else if (mg_http_match_uri(hm, "/css/index.css")) {
             style(nc, hm);
+            return;
         } else if (mg_http_match_uri(hm, "/css/chunk-vendors.css")) {
             style_vendor(nc, hm);
+            return;
         } else if (mg_http_match_uri(hm, "/js/index.js")) {
             javascript(nc, hm);
+            return;
         } else if (mg_http_match_uri(hm, "/js/chunk-vendors.js")) {
             javascript_vendor(nc, hm);
-        } else if (mg_http_match_uri(hm, "/es")) {
-            search(nc, hm);
+            return;
         } else if (mg_http_match_uri(hm, "/i")) {
             index_info(nc);
+            return;
+        }
+
+        if (WebCtx.auth0_enabled && !check_auth0(hm)) {
+            mg_http_reply(nc, 403, HTTP_SERVER_HEADER HTTP_TEXT_TYPE_HEADER, "Unauthorized (auth0 error)");
+            return;
+        }
+
+        if (mg_http_match_uri(hm, "/es")) {
+            search(nc, hm);
         } else if (mg_http_match_uri(hm, "/status")) {
             status(nc);
         } else if (mg_http_match_uri(hm, "/f/*")) {

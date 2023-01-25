@@ -47,6 +47,7 @@ export default {
 
         selectJobs: "Select jobs",
         webOptions: {
+            title: "Web options",
             esUrl: "Elasticsearch URL",
             esIndex: "Elasticsearch index name",
             esInsecure: "Do not verify SSL connections to Elasticsearch.",

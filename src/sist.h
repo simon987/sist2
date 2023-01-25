@@ -49,7 +49,7 @@
 #include <ctype.h>
 #include "git_hash.h"
 
-#define VERSION "2.13.0"
+#define VERSION "2.13.1"
 static const char *const Version = VERSION;
 
 #ifndef SIST_PLATFORM

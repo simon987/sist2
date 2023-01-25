@@ -1,19 +1,33 @@
 <template>
-  <div id="app" :class="getClass()">
+  <div id="app" :class="getClass()" v-if="!authLoading">
     <NavBar></NavBar>
     <router-view v-if="!configLoading"/>
+  </div>
+  <div class="loading-page" v-else>
+    <div class="loading-spinners">
+      <b-spinner type="grow" variant="primary"></b-spinner>
+      <b-spinner type="grow" variant="primary"></b-spinner>
+      <b-spinner type="grow" variant="primary"></b-spinner>
+    </div>
+    <div class="loading-text">
+      Loading • Chargement • 装载
+    </div>
   </div>
 </template>
 
 <script>
 import NavBar from "@/components/NavBar";
-import {mapGetters} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
+import Sist2Api from "@/Sist2Api";
+import {setupAuth0} from "@/main";
 
 export default {
   components: {NavBar},
   data() {
     return {
-      configLoading: false
+      configLoading: false,
+      authLoading: true,
+      sist2InfoLoading: true
     }
   },
   computed: {
@@ -30,9 +44,43 @@ export default {
         this.configLoading = true;
         window.setTimeout(() => this.configLoading = false, 10);
       }
+
+      if (mutation.type === "setAuth0Token") {
+        this.authLoading = false;
+      }
+    });
+
+    Sist2Api.getSist2Info().then(data => {
+
+      if (data.auth0Enabled) {
+        this.authLoading = true;
+        setupAuth0(data.auth0Domain, data.auth0ClientId, data.auth0Audience)
+
+        this.$auth.$watch("loading", loading => {
+          if (loading === false) {
+
+            if (!this.$auth.isAuthenticated) {
+              this.$auth.loginWithRedirect();
+              return;
+            }
+
+            // Remove "code" param
+            window.history.replaceState({}, "", "/" + window.location.hash);
+
+            this.$store.dispatch("loadAuth0Token");
+          }
+        });
+      } else {
+        this.authLoading = false;
+      }
+
+      this.setSist2Info(data);
+      this.setIndices(data.indices)
     });
   },
   methods: {
+    ...mapActions(["setSist2Info",]),
+    ...mapMutations(["setIndices",]),
     getClass() {
       return {
         "theme-light": this.optTheme === "light",
@@ -313,5 +361,23 @@ mark {
 
 .pointer {
   cursor: pointer;
+}
+
+.loading-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100%;
+  gap: 15px
+}
+
+.loading-spinners {
+  display: flex;
+  gap: 10px;
+}
+
+.loading-text {
+  text-align: center;
 }
 </style>
