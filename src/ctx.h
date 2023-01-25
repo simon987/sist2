@@ -105,6 +105,13 @@ typedef struct {
     char *auth_pass;
     int auth_enabled;
     int tag_auth_enabled;
+
+    int auth0_enabled;
+    char *auth0_public_key;
+    char *auth0_audience;
+    char *auth0_domain;
+    char *auth0_client_id;
+
     char *tagline;
     struct index_t indices[256];
     char lang[10];

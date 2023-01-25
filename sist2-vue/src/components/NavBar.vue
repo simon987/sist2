@@ -9,13 +9,15 @@
 
     <span class="badge badge-pill version" v-if="$store && $store.state.sist2Info">
       v{{ sist2Version() }}<span v-if="isDebug()">-dbg</span><span v-if="isLegacy() && !hideLegacy()">-<a
-        href="https://github.com/simon987/sist2/blob/master/docs/USAGE.md#elasticsearch" target="_blank">legacyES</a></span>
+        href="https://github.com/simon987/sist2/blob/master/docs/USAGE.md#elasticsearch"
+        target="_blank">legacyES</a></span>
     </span>
 
     <span v-if="$store && $store.state.sist2Info" class="tagline" v-html="tagline()"></span>
 
     <b-button class="ml-auto" to="stats" variant="link">{{ $t("stats") }}</b-button>
     <b-button to="config" variant="link">{{ $t("config") }}</b-button>
+    <b-button v-if="$auth && $auth.isAuthenticated" variant="link" @click="onLogoutClick()">logout</b-button>
   </b-navbar>
 </template>
 
@@ -40,6 +42,9 @@ export default {
     },
     hideLegacy() {
       return this.$store.state.optHideLegacy;
+    },
+    onLogoutClick() {
+      this.$auth.logout();
     }
   }
 }

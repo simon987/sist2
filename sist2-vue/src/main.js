@@ -3,13 +3,29 @@ import 'mutationobserver-shim'
 import Vue from 'vue'
 import './plugins/bootstrap-vue'
 import App from './App.vue'
-import router from './router'
+import router, {setUseAuth0} from './router'
 import store from './store'
 import VueI18n from "vue-i18n";
 import messages from "@/i18n/messages";
-
+import { Auth0Plugin } from './plugins/auth0';
 
 import VueRouter from "vue-router";
+
+Vue.config.productionTip = false;
+
+export function setupAuth0(domain, clientId, audience) {
+
+    setUseAuth0(true);
+
+    Vue.use(Auth0Plugin, {
+        domain,
+        clientId,
+        audience,
+        onRedirectCallback: appState => {}
+    });
+}
+
+Vue.prototype.$auth = null;
 
 Vue.config.productionTip = false;
 

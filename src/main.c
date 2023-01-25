@@ -13,6 +13,7 @@
 #include "web/serve.h"
 #include "parsing/mime.h"
 #include "parsing/parse.h"
+#include "auth0/auth0_c_api.h"
 
 #include <signal.h>
 #include <unistd.h>
@@ -562,6 +563,11 @@ void sist2_web(web_args_t *args) {
     WebCtx.tag_auth_enabled = args->tag_auth_enabled;
     WebCtx.tagline = args->tagline;
     WebCtx.dev = args->dev;
+    WebCtx.auth0_enabled = args->auth0_enabled;
+    WebCtx.auth0_public_key = args->auth0_public_key;
+    WebCtx.auth0_client_id = args->auth0_client_id;
+    WebCtx.auth0_domain = args->auth0_domain;
+    WebCtx.auth0_audience = args->auth0_audience;
     strcpy(WebCtx.lang, args->lang);
 
     for (int i = 0; i < args->index_count; i++) {
@@ -711,6 +717,10 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT=sist2"),
             OPT_STRING(0, "bind", &web_args->listen_address, "Listen on this address. DEFAULT=localhost:4090"),
             OPT_STRING(0, "auth", &web_args->credentials, "Basic auth in user:password format"),
+            OPT_STRING(0, "auth0-audience", &web_args->auth0_audience, "API audience/identifier"),
+            OPT_STRING(0, "auth0-domain", &web_args->auth0_domain, "Application domain"),
+            OPT_STRING(0, "auth0-client-id", &web_args->auth0_client_id, "Application client ID"),
+            OPT_STRING(0, "auth0-public-key-file", &web_args->auth0_public_key_path, "Path to Auth0 public key file extracted from <domain>/pem"),
             OPT_STRING(0, "tag-auth", &web_args->tag_credentials, "Basic auth in user:password format for tagging"),
             OPT_STRING(0, "tagline", &web_args->tagline, "Tagline in navbar"),
             OPT_BOOLEAN(0, "dev", &web_args->dev, "Serve html & js files from disk (for development)"),

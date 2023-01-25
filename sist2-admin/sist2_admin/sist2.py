@@ -37,6 +37,11 @@ class WebOptions(BaseModel):
     tagline: str = "Lightning-fast file system indexer and search tool"
     dev: bool = False
     lang: str = "en"
+    auth0_audience: str = None
+    auth0_domain: str = None
+    auth0_client_id: str = None
+    auth0_public_key: str = None
+    auth0_public_key_file: str = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -45,6 +50,14 @@ class WebOptions(BaseModel):
         args = ["web", f"--es-url={self.es_url}", f"--bind={self.bind}",
                 f"--tagline={self.tagline}", f"--lang={self.lang}"]
 
+        if self.auth0_audience:
+            args.append(f"--auth0-audience={self.auth0_audience}")
+        if self.auth0_domain:
+            args.append(f"--auth0-domain={self.auth0_domain}")
+        if self.auth0_client_id:
+            args.append(f"--auth0-client-id={self.auth0_client_id}")
+        if self.auth0_public_key_file:
+            args.append(f"--auth0-public-key-file={self.auth0_public_key_file}")
         if self.es_insecure_ssl:
             args.append(f"--es-insecure-ssl")
         if self.auth:
@@ -283,6 +296,14 @@ class Sist2:
             # pipe_wrapper.close()
 
     def web(self, options: WebOptions, name: str):
+
+        if options.auth0_public_key:
+            with NamedTemporaryFile("w", prefix="sist2-admin", suffix=".txt", delete=False) as f:
+                f.write(options.auth0_public_key)
+            options.auth0_public_key_file = f.name
+        else:
+            options.auth0_public_key_file = None
+
         args = [
             self._bin_path,
             *options.args()

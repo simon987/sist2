@@ -335,8 +335,8 @@ export default {
         indexPicker: {
             selectNone: "Sélectionner aucun",
             selectAll: "Sélectionner tout",
-            selectedIndex: "indice sélectionné",
-            selectedIndices: "indices sélectionnés",
+            selectedIndex: "index sélectionné",
+            selectedIndices: "index sélectionnés",
         },
     },
     "zh-CN": {

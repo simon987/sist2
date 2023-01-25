@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
-set(CMAKE_C_STANDARD 11)
 
-project(sist2 C)
+project(sist2)
+set(CMAKE_C_STANDARD 11)
 
 option(SIST_DEBUG "Build a debug executable" on)
 option(SIST_FAST "Enable more optimisation flags" off)
@@ -40,9 +40,12 @@ add_executable(sist2
         src/stats.c src/stats.h src/ctx.c
         src/parsing/sidecar.c src/parsing/sidecar.h
 
+        src/auth0/auth0_c_api.h src/auth0/auth0_c_api.cpp
+
         # argparse
         third-party/argparse/argparse.h third-party/argparse/argparse.c
         )
+set_target_properties(sist2 PROPERTIES LINKER_LANGUAGE C)
 
 target_link_directories(sist2 PRIVATE BEFORE ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/)
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)

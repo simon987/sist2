@@ -153,7 +153,7 @@ export default {
   components: {LanguageIcon, GearIcon, DebugInfo, Preloader},
   data() {
     return {
-      loading: true,
+      loading: false,
       configLoading: false,
       langOptions: [
         {value: "en", text: this.$t("lang.en")},
@@ -257,11 +257,6 @@ export default {
     }
   },
   mounted() {
-    sist2.getSist2Info().then(data => {
-      this.setSist2Info(data);
-      this.loading = false;
-    });
-
     this.$store.subscribe((mutation) => {
       if (mutation.type.startsWith("setOpt")) {
         this.$store.dispatch("updateConfiguration");

@@ -107,13 +107,6 @@ export default Vue.extend({
 
   },
   mounted() {
-    if (this.$store.state.sist2Info === null) {
-      sist2.getSist2Info().then(data => {
-        this.$store.dispatch("setSist2Info", data);
-        this.$store.commit("setIndices", data.indices);
-      });
-    }
-
     let query = null;
     if (this.$route.query.byId) {
       query = this.findById(this.$route.query.byId);
