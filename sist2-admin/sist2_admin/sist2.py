@@ -118,7 +118,7 @@ class ScanOptions(BaseModel):
     depth: int = -1
     archive: str = ARCHIVE_RECURSE
     archive_passphrase: str = None
-    ocr_lang: bool = None
+    ocr_lang: str = None
     ocr_images: bool = False
     ocr_ebooks: bool = False
     exclude: str = None
