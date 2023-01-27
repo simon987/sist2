@@ -160,9 +160,13 @@ export default {
     },
     onSlideChange() {
       // Pause all videos when changing slide
-      document.getElementsByTagName("video").forEach((el) => {
+      const videos = document.getElementsByTagName("video");
+      if (videos.length === 0) {
+        return
+      }
+      for (let el of videos) {
         el.pause();
-      });
+      }
     },
   }
 
