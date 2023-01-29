@@ -160,7 +160,7 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
 See chart below for rough estimate of thumbnail size vs. thumbnail size & quality arguments:
 
 For example, `--thumbnail-size=500`, `--thumbnail-quality=2` for a directory with 8 million images will create a thumbnail database 
-that is about `8000000 * 6kB = 288GB`.
+that is about `8000000 * 36kB = 288GB`.
 
 ![thumbnail_size](thumbnail_size.png)
 
