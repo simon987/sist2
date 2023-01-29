@@ -16,7 +16,7 @@ typedef struct {
     store_callback_t store;
 
     int tn_size;
-    float tn_qscale;
+    int tn_qscale;
     /** Number of thumbnails to generate for videos */
     int tn_count;
 
@@ -28,7 +28,7 @@ typedef struct {
 } scan_media_ctx_t;
 
 __always_inline
-static AVCodecContext *alloc_jpeg_encoder(int w, int h, float qscale) {
+static AVCodecContext *alloc_jpeg_encoder(int w, int h, int qscale) {
 
     const AVCodec *jpeg_codec = avcodec_find_encoder(AV_CODEC_ID_MJPEG);
     AVCodecContext *jpeg = avcodec_alloc_context3(jpeg_codec);
@@ -36,7 +36,7 @@ static AVCodecContext *alloc_jpeg_encoder(int w, int h, float qscale) {
     jpeg->height = h;
     jpeg->time_base.den = 1000000;
     jpeg->time_base.num = 1;
-    jpeg->i_quant_factor = qscale;
+    jpeg->i_quant_factor = (float) qscale;
 
     jpeg->pix_fmt = AV_PIX_FMT_YUVJ420P;
     int ret = avcodec_open2(jpeg, jpeg_codec, NULL);
@@ -49,7 +49,7 @@ static AVCodecContext *alloc_jpeg_encoder(int w, int h, float qscale) {
 }
 
 
-void parse_media(scan_media_ctx_t *ctx, vfile_t *f, document_t *doc, const char*mime_str);
+void parse_media(scan_media_ctx_t *ctx, vfile_t *f, document_t *doc, const char *mime_str);
 
 void init_media();
 

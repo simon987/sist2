@@ -4,7 +4,7 @@
 
 #define DEFAULT_OUTPUT "index.sist2/"
 #define DEFAULT_CONTENT_SIZE 32768
-#define DEFAULT_QUALITY 1
+#define DEFAULT_QUALITY 2
 #define DEFAULT_THUMBNAIL_SIZE 500
 #define DEFAULT_THUMBNAIL_COUNT 1
 #define DEFAULT_REWRITE_URL ""
@@ -112,8 +112,8 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
     if (args->tn_quality == OPTION_VALUE_UNSPECIFIED) {
         args->tn_quality = DEFAULT_QUALITY;
-    } else if (args->tn_quality < 1.0f || args->tn_quality > 31.0f) {
-        fprintf(stderr, "Invalid value for --thumbnail-quality argument: %f. Must be within [1.0, 31.0].\n",
+    } else if (args->tn_quality < 2 || args->tn_quality > 31) {
+        fprintf(stderr, "Invalid value for --thumbnail-quality argument: %d. Must be within [2, 31].\n",
                 args->tn_quality);
         return 1;
     }

@@ -15,7 +15,7 @@ typedef struct {
     logf_callback_t logf;
     store_callback_t store;
     int fast_epub_parse;
-    float tn_qscale;
+    int tn_qscale;
 } scan_ebook_ctx_t;
 
 void parse_ebook(scan_ebook_ctx_t *ctx, vfile_t *f, const char *mime_str, document_t *doc);

@@ -9,7 +9,7 @@
 #define OPTION_VALUE_UNSPECIFIED (0)
 
 typedef struct scan_args {
-    float tn_quality;
+    int tn_quality;
     int tn_size;
     int content_size;
     int threads;

@@ -10,7 +10,7 @@ typedef struct {
 
     int enable_tn;
     int tn_size;
-    float tn_qscale;
+    int tn_qscale;
 } scan_raw_ctx_t;
 
 void parse_raw(scan_raw_ctx_t *ctx, vfile_t *f, document_t *doc);

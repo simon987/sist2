@@ -1133,7 +1133,7 @@ int main(int argc, char **argv) {
     ebook_ctx.log = noop_log;
     ebook_ctx.logf = noop_logf;
     ebook_ctx.fast_epub_parse = 0;
-    ebook_ctx.tn_qscale = 1.0;
+    ebook_ctx.tn_qscale = 2;
 
     ebook_500_ctx = ebook_ctx;
     ebook_500_ctx.content_size = 500;
@@ -1141,14 +1141,14 @@ int main(int argc, char **argv) {
     ebook_fast_ctx = ebook_500_ctx;
     ebook_fast_ctx.fast_epub_parse = 1;
 
-    comic_ctx.tn_qscale = 1.0;
+    comic_ctx.tn_qscale = 2;
     comic_ctx.tn_size = 500;
     comic_ctx.enable_tn = TRUE;
     comic_ctx.log = noop_log;
     comic_ctx.logf = noop_logf;
     comic_ctx.store = counter_store;
 
-    comic_big_ctx.tn_qscale = 1.0;
+    comic_big_ctx.tn_qscale = 2;
     comic_big_ctx.tn_size = 5000;
     comic_big_ctx.enable_tn = TRUE;
     comic_big_ctx.log = noop_log;
@@ -1160,7 +1160,7 @@ int main(int argc, char **argv) {
     media_ctx.store = counter_store;
     media_ctx.tn_size = 500;
     media_ctx.tn_count = 1;
-    media_ctx.tn_qscale = 1.0;
+    media_ctx.tn_qscale = 2;
     media_ctx.max_media_buffer = (long) 2000 * (long) 1024 * (long) 1024;
 
     ooxml_500_ctx.content_size = 500;

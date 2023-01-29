@@ -11,7 +11,7 @@ typedef struct {
 
     int enable_tn;
     int tn_size;
-    float tn_qscale;
+    int tn_qscale;
 
     unsigned int cbr_mime;
     unsigned int cbz_mime;

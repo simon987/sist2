@@ -33,7 +33,7 @@ Lightning-fast file system indexer and search tool.
 Scan options
     -t, --threads=<int>               Number of threads. DEFAULT=1
     --mem-throttle=<int>              Total memory threshold in MiB for scan throttling. DEFAULT=0
-    -q, --thumbnail-quality=<flt>     Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best. DEFAULT=1
+    -q, --thumbnail-quality=<int>     Thumbnail quality, on a scale of 2 to 31, 2 being the best. DEFAULT=2
     --thumbnail-size=<int>            Thumbnail size, in pixels. DEFAULT=500
     --thumbnail-count=<int>           Number of thumbnails to generate. Set a value > 1 to create video previews, set to 0 to disable thumbnails. DEFAULT=1
     --content-size=<int>              Number of bytes to be extracted from text documents. Set to 0 to disable. DEFAULT=32768
@@ -101,7 +101,7 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
     Total memory threshold in MiB for scan throttling. Worker threads will not start a new parse job
     until the total memory usage of sist2 is below this threshold. Set to 0 to disable. DEFAULT=0
 * `-q, --thumbnail-quality` 
-    Thumbnail quality, on a scale of 1.0 to 31.0, 1.0 being the best.
+    Thumbnail quality, on a scale of 2 to 32, 2 being the best. See section below for a rough estimate of thumbnail database size
 * `--thumbnail-size` 
     Thumbnail size in pixels.
 * `--thumbnail-count`
@@ -154,6 +154,16 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
   operations. Checksums are not calculated for all file types, unless the file is inside an archive. When enabled, duplicate
   files are hidden in the web UI (this behaviour can be toggled in the Configuration page).
 
+
+#### Thumbnail database size estimation
+
+See chart below for rough estimate of thumbnail size vs. thumbnail size & quality arguments:
+
+For example, `--thumbnail-size=500`, `--thumbnail-quality=2` for a directory with 8 million images will create a thumbnail database 
+that is about `8000000 * 6kB = 288GB`.
+
+![thumbnail_size](thumbnail_size.png)
+
 ### Scan examples
 
 Simple scan
@@ -161,7 +171,7 @@ Simple scan
 sist2 scan ~/Documents
 
 sist2 scan \
-    --threads 4 --content-size 16000000 --quality 1.0 --archive shallow \
+    --threads 4 --content-size 16000000 --thumbnail-quality 2 --archive shallow \
     --name "My Documents" --rewrite-url "http://nas.domain.local/My Documents/" \
     ~/Documents -o ./documents.idx/
 ```

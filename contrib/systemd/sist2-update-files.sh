@@ -12,7 +12,7 @@ REWRITE_URL=""
 sist2 scan \
   --threads 14 \
   --mem-throttle 32768 \
-  --quality 1.0 \
+  --thumbnail-quality 2 \
   --name $NAME \
   --ocr-lang=eng+chi_sim \
   --ocr-ebooks \

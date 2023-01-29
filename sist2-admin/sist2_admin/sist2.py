@@ -111,7 +111,7 @@ class ScanOptions(BaseModel):
     path: str
     threads: int = 1
     mem_throttle: int = 0
-    thumbnail_quality: float = 1.0
+    thumbnail_quality: int = 2
     thumbnail_size: int = 500
     thumbnail_count: int = 1
     content_size: int = 32768
