@@ -83,6 +83,7 @@ export default {
         },
         lang: {
             en: "English",
+            de: "Deutsch",
             fr: "Français",
             "zh-CN": "简体中文",
         },
@@ -183,7 +184,7 @@ export default {
         and: "und",
         page: "Seite",
         pages: "Seiten",
-        mimeTypes: "Media types",
+        mimeTypes: "Medientypen",
         tags: "Tags",
         tagFilter: "Tags filtern",
         help: {
@@ -194,57 +195,57 @@ export default {
             and: "UND Operator",
             or: "ODER Operator",
             not: "negiert einen einzelnen Begriff",
-            quotes: "will match the enclosed sequence of terms in that specific order",
-            prefix: "will match any term with a given prefix when used at the end of a word",
-            parens: "used to group expressions",
-            tildeTerm: "match a term with a given edit distance",
-            tildePhrase: "match a phrase with a given number of allowed intervening unmatched words",
+            quotes: "liefert Treffer, wenn die Abfolge in der genauen Reihenfolge gefunden wird",
+            prefix: "liefert Treffer, wenn die Abfolge einen solchen Präfix hat",
+            parens: "gruppiert Ausdrücke",
+            tildeTerm: "liefert Treffert, im gegebenen 'Editierabstand'",
+            tildePhrase: "liefert Treffer, mit dem Ausdruck. Erfolgt die gegebene Anzahl zwischenstehnde Nicht-Treffer-Wörter.",
             example1:
-                "For example: <code>\"fried eggs\" +(eggplant | potato) -frittata</code> will match the " +
-                "phrase <i>fried eggs</i> and either <i>eggplant</i> or <i>potato</i>, but will ignore results " +
-                "containing <i>frittata</i>.",
+                "Zum Beispiel: <code>\"fried eggs\" +(eggplant | potato) -frittata</code> wird " +
+                "<i>fried eggs</i> und <i>eggplant</i> oder <i>potato</i> finden, aber keine Ergebnisse, " +
+                "die <i>frittata</i> enthalten.",
             defaultOperator:
-                "When neither <code>+</code> or <code>|</code> is specified, the default operator is " +
-                "<code>+</code> (and).",
+                "Wenn weder <code>+</code> noch <code>|</code> angegeben sind, ist " +
+                "<code>+</code> (and) der Standard.",
             fuzzy:
-                "When the <b>Fuzzy</b> option is checked, partial matches based on 3-grams are also returned.",
-            moreInfoSimple: "For more information, see <a target=\"_blank\" " +
-                "rel=\"noreferrer\" href=\"//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html\">Elasticsearch documentation</a>",
-            moreInfoAdvanced: "For documentation about the advanced search mode, see <a target=\"_blank\" rel=\"noreferrer\" href=\"//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax\">Elasticsearch documentation</a>"
+                "Wenn <b>Fuzzy</b> aktiviert ist, werden teilweise Treffe (3-grams) ebenfalls akzeptiert.",
+            moreInfoSimple: "Für weitere Informationen s.<a target=\"_blank\" " +
+                "rel=\"noreferrer\" href=\"//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html\">Elasticsearch Dokumentation</a>",
+            moreInfoAdvanced: "Für die Dokumentation der erweiterten Suche s. <a target=\"_blank\" rel=\"noreferrer\" href=\"//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax\">Elasticsearch Dokumentation</a>"
         },
         config: "Konfiguration",
         configDescription: "Konfiguration wird in Echtzeit für diesen Browser gespeichert.",
         configReset: "Konfiguration zurücksetzen",
         searchOptions: "Such-Optionen",
-        treemapOptions: "Kacheldiagramme-Optionen",
+        treemapOptions: "Kacheldiagramm-Optionen",
         displayOptions: "Anzeige-Optionen",
         opt: {
             lang: "Sprache",
-            highlight: "Enable highlighting",
-            fuzzy: "Set fuzzy search by default",
-            searchInPath: "Enable matching query against document path",
-            suggestPath: "Enable auto-complete in path filter bar",
-            fragmentSize: "Highlight context size in characters",
-            queryMode: "Search mode",
-            displayMode: "Display",
-            columns: "Column count",
-            treemapType: "Treemap type",
-            treemapTiling: "Treemap tiling",
-            treemapColorGroupingDepth: "Treemap color grouping depth (flat)",
-            treemapColor: "Treemap color (cascaded)",
+            highlight: "Aktiviere Hervorhebung von Treffern",
+            fuzzy: "Aktiviere Fuzzy-Suche standardmäßig",
+            searchInPath: "Abgleich der Abfrage mit dem Dokumentpfad aktivieren",
+            suggestPath: "Aktiviere Auto-Vervollständigung in Pfadfilter-Leiste",
+            fragmentSize: "Kontextgröße in Zeichen hervorheben",
+            queryMode: "Such-Modus",
+            displayMode: "Ansicht",
+            columns: "Anzahl Spalten",
+            treemapType: "Kacheldiagramme Typ",
+            treemapTiling: "Kacheldiagramm Tiling",
+            treemapColorGroupingDepth: "Kacheldiagramme Gruppierungsfarbe Tiefe (flach)",
+            treemapColor: "Kacheldiagramme Farbe (kaskadiert)",
             treemapSize: "Kacheldiagramm Größe",
             theme: "Theme",
-            lightboxLoadOnlyCurrent: "Do not preload full-size images for adjacent slides in image viewer.",
-            slideDuration: "Slide duration",
-            resultSize: "Number of results per page",
-            tagOrOperator: "Use OR operator when specifying multiple tags.",
-            hideDuplicates: "Hide duplicate results based on checksum",
-            hideLegacy: "Hide the 'legacyES' Elasticsearch notice",
-            updateMimeMap: "Update the Media Types tree in real time",
-            useDatePicker: "Use a Date Picker component rather than a slider",
-            vidPreviewInterval: "Video preview frame duration in ms",
-            simpleLightbox: "Disable animations in image viewer",
-            showTagPickerFilter: "Display the tag filter bar"
+            lightboxLoadOnlyCurrent: "keine Bilder in voller Größe für benachbachte Slides im Image-Viewer vorab laden.",
+            slideDuration: "Slide Dauer",
+            resultSize: "Anzahl Treffer pro Seite",
+            tagOrOperator: "Verwende ODER Operator bei der Angabe mehrere Tags.",
+            hideDuplicates: "Verstecke Duplikate baiserend auf der Prüfsumme",
+            hideLegacy: "Verstecke die 'legacyES' Elasticsearch Notiz",
+            updateMimeMap: "Aktualisiere Medientyp-Baum in Echtzeit",
+            useDatePicker: "Benutzer Datumswähler statt -schieber",
+            vidPreviewInterval: "Videovorschau Framedauer in ms",
+            simpleLightbox: "Schalte Animationen im Image-Viewer ab",
+            showTagPickerFilter: "Zeige die Tag-Filter-Leiste"
         },
         queryMode: {
             simple: "Einfach",
@@ -264,45 +265,45 @@ export default {
             auto: "Auto"
         },
         treemapType: {
-            cascaded: "Cascaded",
-            flat: "Flat (compact)"
+            cascaded: "kaskadiert",
+            flat: "flach (kompakt)"
         },
         treemapSize: {
-            small: "Small",
-            medium: "Medium",
-            large: "Large",
-            xLarge: "xLarge",
-            xxLarge: "xxLarge",
-            custom: "Custom",
+            small: "klein",
+            medium: "mittel",
+            large: "groß",
+            xLarge: "sehr groß",
+            xxLarge: "riesig",
+            custom: "eigene",
         },
         treemapTiling: {
-            binary: "Binary",
-            squarify: "Squarify",
+            binary: "binär",
+            squarify: "quadratisch",
             slice: "Slice",
             dice: "Dice",
             sliceDice: "Slice & Dice",
         },
         theme: {
-            light: "Light",
-            black: "Black"
+            light: "Hell",
+            black: "Dunkel"
         },
-        hit: "hit",
-        hits: "hits",
+        hit: "Treffer",
+        hits: "Treffer",
         details: "Details",
-        stats: "Stats",
-        queryTime: "Query time",
-        totalSize: "Total size",
+        stats: "Statistiken",
+        queryTime: "Abfragedauer",
+        totalSize: "Gesamtgröße",
         pathBar: {
-            placeholder: "Filter path",
-            modalTitle: "Select path"
+            placeholder: "Filter Pfad",
+            modalTitle: "Wähle Pfad"
         },
-        debug: "Debug information",
-        debugDescription: "Information useful for debugging. If you encounter bugs or have suggestions for" +
-            " new features, please submit a new issue <a href='https://github.com/simon987/sist2/issues/new/choose'>here</a>.",
+        debug: "Debug Informationen",
+        debugDescription: "Informationen für das Debugging. Wenn du Bugs gefunden oder Anregungen für " +
+            "neue Features hast, poste bitte <a href='https://github.com/simon987/sist2/issues/new/choose'>hier</a>.",
         tagline: "Tagline",
         toast: {
-            esConnErrTitle: "Elasticsearch connection error",
-            esConnErr: "sist2 Web-Moudl stellte einen Fehler beim Verbinden mit Elasticsearch fest." +
+            esConnErrTitle: "Elasticsearch Verbindungsfehler",
+            esConnErr: "sist2 Web-Modul stellte einen Fehler beim Verbinden mit Elasticsearch fest. " +
                 "Schau in die Server-Logs für weitere Informationen.",
             esQueryErrTitle: "Query Fehler",
             esQueryErr: "Konnte Query nicht verarbeiten/ausführen, bitte schaue in die Dokumentation zur erweiterten Suche. " +
@@ -314,7 +315,7 @@ export default {
         saveTagModalTitle: "Tag hinzufügen",
         saveTagPlaceholder: "Tag Name",
         confirm: "Bestätigen",
-        indexPickerPlaceholder: "Wähle einen Index",
+        indexPickerPlaceholder: "Index auswählen",
         sort: {
             relevance: "Relevanz",
             dateAsc: "Datum (älteste zuerst)",
@@ -423,6 +424,7 @@ export default {
         },
         lang: {
             en: "English",
+            de: "Deutsch",
             fr: "Français",
             "zh-CN": "简体中文",
         },
@@ -593,6 +595,7 @@ export default {
         },
         lang: {
             en: "English",
+            de: "Deutsch",
             fr: "Français",
             "zh-CN": "简体中文",
         },
