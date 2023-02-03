@@ -4,8 +4,6 @@
 #include <sys/mman.h>
 #include "../../third-party/antiword/src/antiword.h"
 
-#include "../ebook/ebook.h"
-
 void parse_msdoc_text(scan_msdoc_ctx_t *ctx, document_t *doc, FILE *file_in, void *buf, size_t buf_len) {
 
     // Open word doc
@@ -71,57 +69,6 @@ void parse_msdoc_text(scan_msdoc_ctx_t *ctx, document_t *doc, FILE *file_in, voi
     free(out_buf);
 }
 
-void parse_msdoc_pdf(scan_msdoc_ctx_t *ctx, document_t *doc, FILE *file, void *buf, size_t buf_len) {
-
-    scan_ebook_ctx_t ebook_ctx = {
-            .content_size = ctx->content_size,
-            .tn_size = ctx->tn_size,
-            .enable_tn = TRUE,
-            .log = ctx->log,
-            .logf = ctx->logf,
-            .store = ctx->store,
-    };
-
-    // Open word doc
-    options_type *opts = direct_vGetOptions();
-    opts->iParagraphBreak = 74;
-    opts->eConversionType = conversion_pdf;
-    opts->bHideHiddenText = 1;
-    opts->bRemoveRemovedText = 1;
-    opts->bUseLandscape = 0;
-    opts->eEncoding = encoding_latin_1;
-    opts->iPageHeight = 842; // A4
-    opts->iPageWidth = 595;
-    opts->eImageLevel = level_ps_3;
-
-    int doc_word_version = iGuessVersionNumber(file, (int) buf_len);
-    if (doc_word_version < 0 || doc_word_version == 3) {
-        free(buf);
-        return;
-    }
-    rewind(file);
-
-    size_t out_len;
-    char *out_buf;
-
-    FILE *file_out = open_memstream(&out_buf, &out_len);
-
-    diagram_type *diag = pCreateDiagram("antiword", NULL, file_out);
-    if (diag == NULL) {
-        return;
-    }
-
-    bWordDecryptor(file, (int) buf_len, diag);
-    vDestroyDiagram(diag);
-
-    fclose(file_out);
-
-    parse_ebook_mem(&ebook_ctx, out_buf, out_len, "application/pdf", doc, TRUE);
-
-    free(buf);
-    free(out_buf);
-}
-
 void parse_msdoc(scan_msdoc_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
     size_t buf_len;
@@ -138,11 +85,6 @@ void parse_msdoc(scan_msdoc_ctx_t *ctx, vfile_t *f, document_t *doc) {
         return;
     }
 
-    if (ctx->enable_tn) {
-        char *buf_pdf = malloc(buf_len);
-        memcpy(buf_pdf, buf, buf_len);
-        parse_msdoc_pdf(ctx, doc, file, buf_pdf, buf_len);
-    }
     parse_msdoc_text(ctx, doc, file, buf, buf_len);
     fclose(file);
 }

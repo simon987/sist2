@@ -916,15 +916,12 @@ TEST(Msdoc, Test1Pdf) {
     document_t doc;
     load_doc_file("libscan-test-files/test_files/msdoc/test1.doc", &f, &doc);
 
-    size_t size_before = store_size;
-
     parse_msdoc(&msdoc_ctx, &f, &doc);
 
     ASSERT_TRUE(strstr(get_meta(&doc, MetaContent)->str_val, "October 2000") != nullptr);
     ASSERT_STREQ(get_meta(&doc, MetaTitle)->str_val, "INTERNATIONAL ORGANIZATION FOR STANDARDIZATION");
     ASSERT_STREQ(get_meta(&doc, MetaAuthor)->str_val, "Oliver Morgan");
     ASSERT_NEAR(strlen(get_meta(&doc, MetaContent)->str_val), msdoc_ctx.content_size, 4);
-    ASSERT_NE(size_before, store_size);
 
     cleanup(&doc, &f);
 }
@@ -934,15 +931,12 @@ TEST(Msdoc, Test1Text) {
     document_t doc;
     load_doc_file("libscan-test-files/test_files/msdoc/test1.doc", &f, &doc);
 
-    size_t size_before = store_size;
-
     parse_msdoc(&msdoc_text_ctx, &f, &doc);
 
     ASSERT_TRUE(strstr(get_meta(&doc, MetaContent)->str_val, "October 2000") != nullptr);
     ASSERT_STREQ(get_meta(&doc, MetaTitle)->str_val, "INTERNATIONAL ORGANIZATION FOR STANDARDIZATION");
     ASSERT_STREQ(get_meta(&doc, MetaAuthor)->str_val, "Oliver Morgan");
     ASSERT_NEAR(strlen(get_meta(&doc, MetaContent)->str_val), msdoc_ctx.content_size, 4);
-    ASSERT_EQ(size_before, store_size);
 
     cleanup(&doc, &f);
 }
@@ -952,15 +946,12 @@ TEST(Msdoc, Test2Pdf) {
     document_t doc;
     load_doc_file("libscan-test-files/test_files/msdoc/test2.doc", &f, &doc);
 
-    size_t size_before = store_size;
-
     parse_msdoc(&msdoc_ctx, &f, &doc);
 
     ASSERT_TRUE(strstr(get_meta(&doc, MetaContent)->str_val, "GNU Free Documentation License") != nullptr);
     ASSERT_STREQ(get_meta(&doc, MetaTitle)->str_val, "DWARF Debugging Information Format");
     ASSERT_STREQ(get_meta(&doc, MetaAuthor)->str_val, "Ron Brender");
     ASSERT_NEAR(strlen(get_meta(&doc, MetaContent)->str_val), msdoc_ctx.content_size, 4);
-    ASSERT_NE(size_before, store_size);
 
     cleanup(&doc, &f);
 }
@@ -970,15 +961,12 @@ TEST(Msdoc, Test3Pdf) {
     document_t doc;
     load_doc_file("libscan-test-files/test_files/msdoc/test3.doc", &f, &doc);
 
-    size_t size_before = store_size;
-
     parse_msdoc(&msdoc_ctx, &f, &doc);
 
     ASSERT_TRUE(strstr(get_meta(&doc, MetaContent)->str_val, "INTERNATIONAL PATENT CLASSIFICATION") != nullptr);
     ASSERT_STREQ(get_meta(&doc, MetaTitle)->str_val, "IPC Fixed Texts Specification");
     ASSERT_STREQ(get_meta(&doc, MetaAuthor)->str_val, "Fievet");
     ASSERT_NEAR(strlen(get_meta(&doc, MetaContent)->str_val), msdoc_ctx.content_size, 4);
-    ASSERT_NE(size_before, store_size);
 
     cleanup(&doc, &f);
 }
@@ -988,15 +976,12 @@ TEST(Msdoc, Test4Pdf) {
     document_t doc;
     load_doc_file("libscan-test-files/test_files/msdoc/test4.doc", &f, &doc);
 
-    size_t size_before = store_size;
-
     parse_msdoc(&msdoc_ctx, &f, &doc);
 
     ASSERT_TRUE(strstr(get_meta(&doc, MetaContent)->str_val, "SQL Server international data types") != nullptr);
     ASSERT_STREQ(get_meta(&doc, MetaTitle)->str_val, "MSDN Authoring Template");
     ASSERT_STREQ(get_meta(&doc, MetaAuthor)->str_val, "Brenda Yen");
     ASSERT_NEAR(strlen(get_meta(&doc, MetaContent)->str_val), msdoc_ctx.content_size, 4);
-    ASSERT_NE(size_before, store_size);
 
     cleanup(&doc, &f);
 }
@@ -1012,7 +997,6 @@ TEST(Msdoc, TestUtf8Pdf) {
 
     ASSERT_NE(get_meta(&doc, MetaContent), nullptr);
     ASSERT_TRUE(strstr(get_meta(&doc, MetaContent)->str_val, "调查项目 A questionnaire") != nullptr);
-    ASSERT_NE(size_before, store_size);
 
     cleanup(&doc, &f);
 }
@@ -1034,14 +1018,11 @@ TEST(Msdoc, Test5Pdf) {
     document_t doc;
     load_doc_file("libscan-test-files/test_files/msdoc/test5.doc", &f, &doc);
 
-    size_t size_before = store_size;
-
     parse_msdoc(&msdoc_ctx, &f, &doc);
 
     ASSERT_TRUE(strstr(get_meta(&doc, MetaContent)->str_val, "орган Федеральной") != nullptr);
     ASSERT_STREQ(get_meta(&doc, MetaAuthor)->str_val, "uswo");
     ASSERT_NEAR(strlen(get_meta(&doc, MetaContent)->str_val), msdoc_ctx.content_size, 4);
-    ASSERT_NE(size_before, store_size);
 
     cleanup(&doc, &f);
 }
@@ -1184,15 +1165,11 @@ int main(int argc, char **argv) {
     msdoc_ctx.logf = noop_logf;
     msdoc_ctx.store = counter_store;
     msdoc_ctx.content_size = 500;
-    msdoc_ctx.tn_size = 500;
-    msdoc_ctx.enable_tn = TRUE;
 
     msdoc_text_ctx.log = noop_log;
     msdoc_text_ctx.logf = noop_logf;
     msdoc_text_ctx.store = counter_store;
     msdoc_text_ctx.content_size = 500;
-    msdoc_text_ctx.tn_size = 0;
-    msdoc_text_ctx.enable_tn = FALSE;
 
     wpd_ctx.log = noop_log;
     wpd_ctx.logf = noop_logf;

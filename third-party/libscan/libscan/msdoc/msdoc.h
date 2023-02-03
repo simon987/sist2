@@ -5,8 +5,6 @@
 
 typedef struct {
     long content_size;
-    int enable_tn;
-    int tn_size;
     log_callback_t log;
     logf_callback_t logf;
     store_callback_t store;

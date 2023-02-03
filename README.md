@@ -81,7 +81,7 @@ See [Usage guide](docs/USAGE.md) for more details
 | html, xml                                                                 | [libscan](https://github.com/simon987/sist2/tree/master/third-party/libscan) | yes      | no          | -                                                                                                                                      |
 | tar, zip, rar, 7z, ar ...                                                 | Libarchive                                                                   | yes\*    | -           | no                                                                                                                                     |
 | docx, xlsx, pptx                                                          | [libscan](https://github.com/simon987/sist2/tree/master/third-party/libscan) | yes      | if embedded | creator, modified_by, title                                                                                                            |
-| doc (MS Word 97-2003)                                                     | antiword                                                                     | yes      | yes         | author, title                                                                                                                          |
+| doc (MS Word 97-2003)                                                     | antiword                                                                     | yes      | no          | author, title                                                                                                                          |
 | mobi, azw, azw3                                                           | libmobi                                                                      | yes      | no          | author, title                                                                                                                          |
 | wpd (WordPerfect)                                                         | libwpd                                                                       | yes      | no          | *planned*                                                                                                                              |
 | json, jsonl, ndjson                                                       | [libscan](https://github.com/simon987/sist2/tree/master/third-party/libscan) | yes      | -           | -                                                                                                                                      |
@@ -141,7 +141,7 @@ docker run --rm --entrypoint cat my-sist2-image /root/sist2 > sist2-x64-linux
 1. Install compile-time dependencies
 
    ```bash
-   apt install gcc g++ python3 yasm ragel automake autotools-dev wget libtool libssl-dev curl zip unzip tar xorg-dev libglu1-mesa-dev libxcursor-dev libxml2-dev libxinerama-dev gettext nasm git
+   apt install gcc g++ python3 yasm ragel automake autotools-dev wget libtool libssl-dev curl zip unzip tar xorg-dev libglu1-mesa-dev libxcursor-dev libxml2-dev libxinerama-dev gettext nasm git nodejs
    ```
 
 1. Apply vcpkg patches, as per [sist2-build](https://github.com/simon987/sist2-build) Dockerfile
@@ -156,6 +156,8 @@ docker run --rm --entrypoint cat my-sist2-image /root/sist2 > sist2-x64-linux
 1. Build
     ```bash
     git clone --recursive https://github.com/simon987/sist2/
+    (cd sist2-vue; npm install; npm run build)
+    (cd sist2-admin/frontend; npm install; npm run build)
     cmake -DSIST_DEBUG=off -DCMAKE_TOOLCHAIN_FILE=<VCPKG_ROOT>/scripts/buildsystems/vcpkg.cmake .
     make
     ```
