@@ -83,6 +83,7 @@ export default {
         },
         lang: {
             en: "English",
+            de: "Deutsch",
             fr: "Français",
             "zh-CN": "简体中文",
         },
@@ -166,6 +167,176 @@ export default {
             selectAll: "Select All",
             selectedIndex: "selected index",
             selectedIndices: "selected indices",
+        },
+    },
+    de: {
+        filePage: {
+          notFound: "Nicht gefunden"
+        },
+        searchBar: {
+            simple: "Suche",
+            advanced: "Erweiterte Suche",
+            fuzzy: "Fuzzy"
+        },
+        addTag: "Hinzufügen",
+        deleteTag: "Löschen",
+        download: "Herunterladen",
+        and: "und",
+        page: "Seite",
+        pages: "Seiten",
+        mimeTypes: "Medientypen",
+        tags: "Tags",
+        tagFilter: "Tags filtern",
+        help: {
+            simpleSearch: "Einfache Suche",
+            advancedSearch: "Erweiterte Suche",
+            help: "Hilfe",
+            term: "<BEGRIFF>",
+            and: "UND Operator",
+            or: "ODER Operator",
+            not: "negiert einen einzelnen Begriff",
+            quotes: "liefert Treffer, wenn die Abfolge in der genauen Reihenfolge gefunden wird",
+            prefix: "liefert Treffer, wenn die Abfolge einen solchen Präfix hat",
+            parens: "gruppiert Ausdrücke",
+            tildeTerm: "liefert Treffer, im gegebenen 'Editierabstand'",
+            tildePhrase: "liefert Treffer, mit dem Ausdruck. Erfolgt die gegebene Anzahl zwischenstehnde Nicht-Treffer-Wörter.",
+            example1:
+                "Zum Beispiel: <code>\"fried eggs\" +(eggplant | potato) -frittata</code> wird " +
+                "<i>fried eggs</i> und <i>eggplant</i> oder <i>potato</i> finden, aber keine Ergebnisse, " +
+                "die <i>frittata</i> enthalten.",
+            defaultOperator:
+                "Wenn weder <code>+</code> noch <code>|</code> angegeben sind, ist " +
+                "<code>+</code> (and) der Standard.",
+            fuzzy:
+                "Wenn <b>Fuzzy</b> aktiviert ist, werden Teil-Treffer (3-grams) ebenfalls akzeptiert.",
+            moreInfoSimple: "Für weitere Informationen s.<a target=\"_blank\" " +
+                "rel=\"noreferrer\" href=\"//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html\">Elasticsearch Dokumentation</a>",
+            moreInfoAdvanced: "Für die Dokumentation der erweiterten Suche s. <a target=\"_blank\" rel=\"noreferrer\" href=\"//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax\">Elasticsearch Dokumentation</a>"
+        },
+        config: "Konfiguration",
+        configDescription: "Konfiguration wird in Echtzeit für diesen Browser gespeichert.",
+        configReset: "Konfiguration zurücksetzen",
+        searchOptions: "Such-Optionen",
+        treemapOptions: "Kacheldiagramm-Optionen",
+        displayOptions: "Anzeige-Optionen",
+        opt: {
+            lang: "Sprache",
+            highlight: "Aktiviere Hervorhebung von Treffern",
+            fuzzy: "Aktiviere Fuzzy-Suche standardmäßig",
+            searchInPath: "Abgleich der Abfrage mit dem Dokumentpfad aktivieren",
+            suggestPath: "Aktiviere Auto-Vervollständigung in Pfadfilter-Leiste",
+            fragmentSize: "Kontextgröße in Zeichen hervorheben",
+            queryMode: "Such-Modus",
+            displayMode: "Ansicht",
+            columns: "Anzahl Spalten",
+            treemapType: "Kacheldiagramme Typ",
+            treemapTiling: "Kacheldiagramm Tiling",
+            treemapColorGroupingDepth: "Kacheldiagramme Gruppierungsfarbe Tiefe (flach)",
+            treemapColor: "Kacheldiagramme Farbe (kaskadiert)",
+            treemapSize: "Kacheldiagramm Größe",
+            theme: "Theme",
+            lightboxLoadOnlyCurrent: "keine Bilder in voller Größe für benachbachte Slides im Image-Viewer vorab laden.",
+            slideDuration: "Slide Dauer",
+            resultSize: "Anzahl Treffer pro Seite",
+            tagOrOperator: "Verwende ODER Operator bei der Angabe mehrere Tags.",
+            hideDuplicates: "Verstecke Duplikate basierend auf der Prüfsumme",
+            hideLegacy: "Verstecke die 'legacyES' Elasticsearch Notiz",
+            updateMimeMap: "Aktualisiere Medientyp-Baum in Echtzeit",
+            useDatePicker: "Benutze Datumswähler statt Schieber",
+            vidPreviewInterval: "Videovorschau Framedauer in ms",
+            simpleLightbox: "Schalte Animationen im Image-Viewer ab",
+            showTagPickerFilter: "Zeige die Tag-Filter-Leiste"
+        },
+        queryMode: {
+            simple: "Einfach",
+            advanced: "Erweitert",
+        },
+        lang: {
+            en: "English",
+            de: "Deutsch",
+            fr: "Français",
+            "zh-CN": "简体中文",
+        },
+        displayMode: {
+            grid: "Gitter",
+            list: "Liste",
+        },
+        columns: {
+            auto: "Auto"
+        },
+        treemapType: {
+            cascaded: "kaskadiert",
+            flat: "flach (kompakt)"
+        },
+        treemapSize: {
+            small: "klein",
+            medium: "mittel",
+            large: "groß",
+            xLarge: "sehr groß",
+            xxLarge: "riesig",
+            custom: "eigene",
+        },
+        treemapTiling: {
+            binary: "binär",
+            squarify: "quadratisch",
+            slice: "Slice",
+            dice: "Dice",
+            sliceDice: "Slice & Dice",
+        },
+        theme: {
+            light: "Hell",
+            black: "Dunkel"
+        },
+        hit: "Treffer",
+        hits: "Treffer",
+        details: "Details",
+        stats: "Statistiken",
+        queryTime: "Abfragedauer",
+        totalSize: "Gesamtgröße",
+        pathBar: {
+            placeholder: "Filter Pfad",
+            modalTitle: "Wähle Pfad"
+        },
+        debug: "Debug Informationen",
+        debugDescription: "Informationen für das Debugging. Wenn du Bugs gefunden oder Anregungen für " +
+            "neue Features hast, poste sie bitte <a href='https://github.com/simon987/sist2/issues/new/choose'>hier</a>.",
+        tagline: "Tagline",
+        toast: {
+            esConnErrTitle: "Elasticsearch Verbindungsfehler",
+            esConnErr: "sist2 Web-Modul stellte einen Fehler beim Verbinden mit Elasticsearch fest. " +
+                "Schau in die Server-Logs für weitere Informationen.",
+            esQueryErrTitle: "Query Fehler",
+            esQueryErr: "Konnte Query nicht verarbeiten/ausführen, bitte schaue in die Dokumentation zur erweiterten Suche. " +
+                "Schau in die Server-Logs für weitere Informationen.",
+            dupeTagTitle: "Tag Duplikat",
+            dupeTag: "Dieser Tag existiert bereits für das Dokument.",
+            copiedToClipboard: "In die Zwischenablage kopiert."
+        },
+        saveTagModalTitle: "Tag hinzufügen",
+        saveTagPlaceholder: "Tag Name",
+        confirm: "Bestätigen",
+        indexPickerPlaceholder: "Index auswählen",
+        sort: {
+            relevance: "Relevanz",
+            dateAsc: "Datum (älteste zuerst)",
+            dateDesc: "Datum (neuste zuerst)",
+            sizeAsc: "Größe (kleinste zuerst)",
+            sizeDesc: "Größe (größte zuerst)",
+            nameAsc: "Name (A-z)",
+            nameDesc: "Name (Z-a)",
+            random: "zufällig",
+        },
+        d3: {
+            mimeCount: "Anzahlverteilung nach Medientyp",
+            mimeSize: "Größenverteilung nach Medientyp",
+            dateHistogram: "Verteilung der Änderungszeiten",
+            sizeHistogram: "Verteilung der Dateigrößen",
+        },
+        indexPicker: {
+            selectNone: "keinen auswählen",
+            selectAll: "alle auswählen",
+            selectedIndex: "ausgewählter Index",
+            selectedIndices: "ausgewählte Indizes",
         },
     },
     fr: {
@@ -253,6 +424,7 @@ export default {
         },
         lang: {
             en: "English",
+            de: "Deutsch",
             fr: "Français",
             "zh-CN": "简体中文",
         },
@@ -423,6 +595,7 @@ export default {
         },
         lang: {
             en: "English",
+            de: "Deutsch",
             fr: "Français",
             "zh-CN": "简体中文",
         },
