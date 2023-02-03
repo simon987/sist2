@@ -109,7 +109,7 @@ Download the language data files with your package manager (`apt install tessera
 directly [from Github](https://github.com/tesseract-ocr/tesseract/wiki/Data-Files).
 
 The `simon987/sist2` image comes with common languages
-(hin, jpn, eng, fra, rus, spa) pre-installed.
+(hin, jpn, eng, fra, rus, spa, chi_sim, deu) pre-installed.
 
 You can use the `+` separator to specify multiple languages. The language
 name must be identical to the `*.traineddata` file installed on your system 

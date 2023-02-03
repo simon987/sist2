@@ -159,6 +159,7 @@ export default {
         {value: "en", text: this.$t("lang.en")},
         {value: "fr", text: this.$t("lang.fr")},
         {value: "zh-CN", text: this.$t("lang.zh-CN")},
+        {value: "de", text: this.$t("lang.de")},
       ],
       queryModeOptions: [
         {value: "simple", text: this.$t("queryMode.simple")},
