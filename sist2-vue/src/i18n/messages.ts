@@ -198,7 +198,7 @@ export default {
             quotes: "liefert Treffer, wenn die Abfolge in der genauen Reihenfolge gefunden wird",
             prefix: "liefert Treffer, wenn die Abfolge einen solchen Präfix hat",
             parens: "gruppiert Ausdrücke",
-            tildeTerm: "liefert Treffert, im gegebenen 'Editierabstand'",
+            tildeTerm: "liefert Treffer, im gegebenen 'Editierabstand'",
             tildePhrase: "liefert Treffer, mit dem Ausdruck. Erfolgt die gegebene Anzahl zwischenstehnde Nicht-Treffer-Wörter.",
             example1:
                 "Zum Beispiel: <code>\"fried eggs\" +(eggplant | potato) -frittata</code> wird " +
@@ -208,7 +208,7 @@ export default {
                 "Wenn weder <code>+</code> noch <code>|</code> angegeben sind, ist " +
                 "<code>+</code> (and) der Standard.",
             fuzzy:
-                "Wenn <b>Fuzzy</b> aktiviert ist, werden teilweise Treffe (3-grams) ebenfalls akzeptiert.",
+                "Wenn <b>Fuzzy</b> aktiviert ist, werden Teil-Treffer (3-grams) ebenfalls akzeptiert.",
             moreInfoSimple: "Für weitere Informationen s.<a target=\"_blank\" " +
                 "rel=\"noreferrer\" href=\"//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html\">Elasticsearch Dokumentation</a>",
             moreInfoAdvanced: "Für die Dokumentation der erweiterten Suche s. <a target=\"_blank\" rel=\"noreferrer\" href=\"//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax\">Elasticsearch Dokumentation</a>"
@@ -239,10 +239,10 @@ export default {
             slideDuration: "Slide Dauer",
             resultSize: "Anzahl Treffer pro Seite",
             tagOrOperator: "Verwende ODER Operator bei der Angabe mehrere Tags.",
-            hideDuplicates: "Verstecke Duplikate baiserend auf der Prüfsumme",
+            hideDuplicates: "Verstecke Duplikate basierend auf der Prüfsumme",
             hideLegacy: "Verstecke die 'legacyES' Elasticsearch Notiz",
             updateMimeMap: "Aktualisiere Medientyp-Baum in Echtzeit",
-            useDatePicker: "Benutzer Datumswähler statt -schieber",
+            useDatePicker: "Benutze Datumswähler statt Schieber",
             vidPreviewInterval: "Videovorschau Framedauer in ms",
             simpleLightbox: "Schalte Animationen im Image-Viewer ab",
             showTagPickerFilter: "Zeige die Tag-Filter-Leiste"
@@ -299,7 +299,7 @@ export default {
         },
         debug: "Debug Informationen",
         debugDescription: "Informationen für das Debugging. Wenn du Bugs gefunden oder Anregungen für " +
-            "neue Features hast, poste bitte <a href='https://github.com/simon987/sist2/issues/new/choose'>hier</a>.",
+            "neue Features hast, poste sie bitte <a href='https://github.com/simon987/sist2/issues/new/choose'>hier</a>.",
         tagline: "Tagline",
         toast: {
             esConnErrTitle: "Elasticsearch Verbindungsfehler",
