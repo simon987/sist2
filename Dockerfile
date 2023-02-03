@@ -1,6 +1,11 @@
 FROM simon987/sist2-build as build
 MAINTAINER simon987 <me@simon987.net>
 
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash
+RUN apt update -y; apt install -y nodejs && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /build/
 
 COPY scripts scripts
@@ -9,6 +14,10 @@ COPY CMakeLists.txt .
 COPY third-party third-party
 COPY src src
 COPY sist2-vue sist2-vue
+COPY sist2-admin sist2-admin
+
+RUN cd sist2-vue/ && npm install && npm run build
+RUN cd sist2-admin/frontend/ && npm install && npm run build
 
 RUN cmake -DSIST_PLATFORM=x64_linux -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake .
 RUN make -j$(nproc)
@@ -43,4 +52,4 @@ COPY --from=build /build/sist2 /root/sist2
 # sist2-admin
 COPY sist2-admin/requirements.txt sist2-admin/
 RUN python3 -m pip install --no-cache -r sist2-admin/requirements.txt
-COPY sist2-admin/ sist2-admin/
+COPY --from=build /build/sist2-admin/ sist2-admin/

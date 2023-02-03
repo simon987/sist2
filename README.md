@@ -141,7 +141,7 @@ docker run --rm --entrypoint cat my-sist2-image /root/sist2 > sist2-x64-linux
 1. Install compile-time dependencies
 
    ```bash
-   apt install gcc g++ python3 yasm ragel automake autotools-dev wget libtool libssl-dev curl zip unzip tar xorg-dev libglu1-mesa-dev libxcursor-dev libxml2-dev libxinerama-dev gettext nasm git
+   apt install gcc g++ python3 yasm ragel automake autotools-dev wget libtool libssl-dev curl zip unzip tar xorg-dev libglu1-mesa-dev libxcursor-dev libxml2-dev libxinerama-dev gettext nasm git nodejs
    ```
 
 1. Apply vcpkg patches, as per [sist2-build](https://github.com/simon987/sist2-build) Dockerfile
@@ -156,6 +156,8 @@ docker run --rm --entrypoint cat my-sist2-image /root/sist2 > sist2-x64-linux
 1. Build
     ```bash
     git clone --recursive https://github.com/simon987/sist2/
+    (cd sist2-vue; npm install; npm run build)
+    (cd sist2-admin/frontend; npm install; npm run build)
     cmake -DSIST_DEBUG=off -DCMAKE_TOOLCHAIN_FILE=<VCPKG_ROOT>/scripts/buildsystems/vcpkg.cmake .
     make
     ```

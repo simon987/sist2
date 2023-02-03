@@ -261,8 +261,6 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.text_ctx.logf = _logf;
 
     // MSDOC
-    ScanCtx.msdoc_ctx.enable_tn = args->tn_count > 0;
-    ScanCtx.msdoc_ctx.tn_size = args->tn_size;
     ScanCtx.msdoc_ctx.content_size = args->content_size;
     ScanCtx.msdoc_ctx.log = _log;
     ScanCtx.msdoc_ctx.logf = _logf;

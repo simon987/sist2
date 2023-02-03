@@ -33,3 +33,11 @@ state.db
 *.pyc
 !sist2-admin/frontend/dist
 *.js.map
+sist2-vue/dist
+sist2-admin/frontend/dist
+.ninja_deps
+.ninja_log
+build.ninja
+src/web/static_generated.c
+src/magic_generated.c
+src/index/static_generated.c
