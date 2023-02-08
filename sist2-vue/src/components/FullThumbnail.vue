@@ -6,13 +6,13 @@
     </div>
 
     <div
-        v-if="doc._props.isImage && !hover && doc._props.tnW / doc._props.tnH < 5"
+        v-if="doc._props.isImage && doc._props.imageAspectRatio < 5"
         class="card-img-overlay"
         :class="{'small-badge': smallBadge}">
       <span class="badge badge-resolution">{{ `${doc._source.width}x${doc._source.height}` }}</span>
     </div>
 
-    <div v-if="(doc._props.isVideo || doc._props.isGif) && doc._source.duration > 0 && !hover"
+    <div v-if="(doc._props.isVideo || doc._props.isGif) && doc._source.duration > 0"
          class="card-img-overlay"
          :class="{'small-badge': smallBadge}">
       <span class="badge badge-resolution">{{ humanTime(doc._source.duration) }}</span>
@@ -152,17 +152,18 @@ export default {
 }
 
 .badge-resolution {
-  color: #212529;
-  background-color: #FFC107;
+  color: #c6c6c6;
+  background-color: #272727CC;
+  padding: 2px 3px;
 }
 
 .card-img-overlay {
   pointer-events: none;
-  padding: 0.75rem;
-  bottom: unset;
-  top: 0;
+  padding: 2px 6px;
+  bottom: 4px;
+  top: unset;
   left: unset;
-  right: unset;
+  right: 0;
 }
 
 .small-badge {

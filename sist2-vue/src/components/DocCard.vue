@@ -133,4 +133,8 @@ export default {
 .sub-document .fit {
   padding: 4px 4px 0 4px;
 }
+
+.featured-line {
+  font-size: 92%;
+}
 </style>

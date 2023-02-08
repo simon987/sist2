@@ -61,6 +61,7 @@ export interface EsHit {
         isAudio: boolean
         hasThumbnail: boolean
         hasVidPreview: boolean
+        imageAspectRatio: number
         /** Number of thumbnails available */
         tnNum: number
     }
@@ -154,6 +155,9 @@ class Sist2Api {
                 if ("width" in hit._source && !hit._props.isSubDocument && hit._source.videoc !== "tiff"
                     && hit._source.videoc !== "raw" && hit._source.videoc !== "ppm") {
                     hit._props.isPlayableImage = true;
+                }
+                if ("width" in hit._source && "height" in hit._source) {
+                    hit._props.imageAspectRatio = hit._source.width / hit._source.height;
                 }
                 break;
             case "video":

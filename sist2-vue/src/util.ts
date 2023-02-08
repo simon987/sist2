@@ -57,6 +57,14 @@ export function humanTime(sec_num: number): string {
     const minutes = Math.floor((sec_num - (hours * 3600)) / 60);
     const seconds = sec_num - (hours * 3600) - (minutes * 60);
 
+    if (sec_num < 60) {
+        return `${sec_num}s`
+    }
+
+    if (sec_num < 3600) {
+        return `${minutes < 10 ? "0" : ""}${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+    }
+
     return `${hours < 10 ? "0" : ""}${hours}:${minutes < 10 ? "0" : ""}${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
 }
 
