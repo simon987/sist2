@@ -10,7 +10,7 @@
       <b-spinner type="grow" variant="primary"></b-spinner>
     </div>
     <div class="loading-text">
-      Loading • Chargement • 装载
+      Loading • Chargement • 装载 • Wird geladen
     </div>
   </div>
 </template>
