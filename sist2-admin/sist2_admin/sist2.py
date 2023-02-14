@@ -63,7 +63,7 @@ class WebOptions(BaseModel):
         if self.auth:
             args.append(f"--auth={self.auth}")
         if self.tag_auth:
-            args.append(f"--tag_auth={self.tag_auth}")
+            args.append(f"--tag-auth={self.tag_auth}")
         if self.dev:
             args.append(f"--dev")
 
