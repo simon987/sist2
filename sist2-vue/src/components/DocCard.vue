@@ -27,6 +27,11 @@
           <DocFileTitle :doc="doc"></DocFileTitle>
         </div>
 
+        <!-- Featured line -->
+        <div style="display: flex">
+          <FeaturedFieldsLine :doc="doc"></FeaturedFieldsLine>
+        </div>
+
         <!-- Tags -->
         <div class="card-text">
           <TagContainer :hit="doc"></TagContainer>
@@ -43,10 +48,11 @@ import DocFileTitle from "@/components/DocFileTitle.vue";
 import DocInfoModal from "@/components/DocInfoModal.vue";
 import ContentDiv from "@/components/ContentDiv.vue";
 import FullThumbnail from "@/components/FullThumbnail";
+import FeaturedFieldsLine from "@/components/FeaturedFieldsLine";
 
 
 export default {
-  components: {FullThumbnail, ContentDiv, DocInfoModal, DocFileTitle, TagContainer},
+  components: {FeaturedFieldsLine, FullThumbnail, ContentDiv, DocInfoModal, DocFileTitle, TagContainer},
   props: ["doc", "width"],
   data() {
     return {
@@ -132,9 +138,5 @@ export default {
 
 .sub-document .fit {
   padding: 4px 4px 0 4px;
-}
-
-.featured-line {
-  font-size: 92%;
 }
 </style>

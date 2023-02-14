@@ -50,6 +50,11 @@
           <span v-if="doc._source.author && doc._source.pages" class="mx-1">-</span>
           <span v-if="doc._source.author">{{ doc._source.author }}</span>
         </div>
+
+        <!-- Featured line -->
+        <div style="display: flex">
+          <FeaturedFieldsLine :doc="doc"></FeaturedFieldsLine>
+        </div>
       </div>
     </div>
   </b-list-group-item>
@@ -61,10 +66,11 @@ import DocFileTitle from "@/components/DocFileTitle";
 import DocInfoModal from "@/components/DocInfoModal";
 import ContentDiv from "@/components/ContentDiv";
 import FileIcon from "@/components/icons/FileIcon";
+import FeaturedFieldsLine from "@/components/FeaturedFieldsLine";
 
 export default {
   name: "DocListItem",
-  components: {FileIcon, ContentDiv, DocInfoModal, DocFileTitle, TagContainer},
+  components: {FileIcon, ContentDiv, DocInfoModal, DocFileTitle, TagContainer, FeaturedFieldsLine},
   props: ["doc"],
   data() {
     return {

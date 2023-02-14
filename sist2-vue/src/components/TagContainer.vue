@@ -40,6 +40,7 @@
 
 
     <template v-for="tag in hit._tags">
+      <!-- User tag-->
       <div v-if="tag.userTag" :key="tag.rawText" style="display: inline-block">
         <span
             :id="hit._id+tag.rawText"
@@ -51,7 +52,7 @@
         >{{ tag.text.split(".").pop() }}</span>
 
         <b-popover :target="hit._id+tag.rawText" triggers="focus blur" placement="top">
-          <b-button variant="danger" @click="onTagDeleteClick(tag, $event)">{{$t("deleteTag")}}</b-button>
+          <b-button variant="danger" @click="onTagDeleteClick(tag, $event)">{{ $t("deleteTag") }}</b-button>
         </b-popover>
       </div>
 
@@ -66,7 +67,7 @@
     <small v-if="showAddButton" class="badge add-tag-button" @click="tagAdd()">{{$t("addTag")}}</small>
 
     <!-- Size tag-->
-    <small v-else class="text-muted badge-size">{{
+    <small v-else class="text-muted badge-size" style="padding-left: 2px">{{
         humanFileSize(hit._source.size)
       }}</small>
   </div>
@@ -211,7 +212,7 @@ export default Vue.extend({
 
       return matches.sort().map(match => {
         return {
-          title: match.split(".").slice(0,-1).join("."),
+          title: match.split(".").slice(0, -1).join("."),
           id: match
         }
       });

@@ -8,7 +8,7 @@ export default {
             advanced: "Advanced search",
             fuzzy: "Fuzzy"
         },
-        addTag: "Add",
+        addTag: "Tag",
         deleteTag: "Delete",
         download: "Download",
         and: "and",
@@ -17,6 +17,7 @@ export default {
         mimeTypes: "Media types",
         tags: "Tags",
         tagFilter: "Filter tags",
+        forExample: "For example:",
         help: {
             simpleSearch: "Simple search",
             advancedSearch: "Advanced search",
@@ -75,7 +76,9 @@ export default {
             useDatePicker: "Use a Date Picker component rather than a slider",
             vidPreviewInterval: "Video preview frame duration in ms",
             simpleLightbox: "Disable animations in image viewer",
-            showTagPickerFilter: "Display the tag filter bar"
+            showTagPickerFilter: "Display the tag filter bar",
+            featuredFields: "Featured fields Javascript template string. Will appear in the search results.",
+            featuredFieldsList: "Available variables"
         },
         queryMode: {
             simple: "Simple",
@@ -178,7 +181,7 @@ export default {
             advanced: "Erweiterte Suche",
             fuzzy: "Fuzzy"
         },
-        addTag: "Hinzufügen",
+        addTag: "Tag",
         deleteTag: "Löschen",
         download: "Herunterladen",
         and: "und",
@@ -187,6 +190,7 @@ export default {
         mimeTypes: "Medientypen",
         tags: "Tags",
         tagFilter: "Tags filtern",
+        forExample: "Zum Beispiel:",
         help: {
             simpleSearch: "Einfache Suche",
             advancedSearch: "Erweiterte Suche",
@@ -245,7 +249,9 @@ export default {
             useDatePicker: "Benutze Datumswähler statt Schieber",
             vidPreviewInterval: "Videovorschau Framedauer in ms",
             simpleLightbox: "Schalte Animationen im Image-Viewer ab",
-            showTagPickerFilter: "Zeige die Tag-Filter-Leiste"
+            showTagPickerFilter: "Zeige die Tag-Filter-Leiste",
+            featuredFields: "Ausgewählte Felder Javascript Vorlage String. Wird in den Suchergebnissen angezeigt.",
+            featuredFieldsList: "Verfügbare Variablen"
         },
         queryMode: {
             simple: "Einfach",
@@ -348,7 +354,7 @@ export default {
             advanced: "Recherche avancée",
             fuzzy: "Approximatif"
         },
-        addTag: "Ajouter",
+        addTag: "Taguer",
         deleteTag: "Supprimer",
         download: "Télécharger",
         and: "et",
@@ -357,6 +363,7 @@ export default {
         mimeTypes: "Types de médias",
         tags: "Tags",
         tagFilter: "Filtrer les tags",
+        forExample: "Par exemple:",
         help: {
             simpleSearch: "Recherche simple",
             advancedSearch: "Recherche avancée",
@@ -416,7 +423,9 @@ export default {
             useDatePicker: "Afficher un composant « Date Picker » plutôt qu'un slider",
             vidPreviewInterval: "Durée des images d'aperçu video en millisecondes",
             simpleLightbox: "Désactiver les animations du visualiseur d'images",
-            showTagPickerFilter: "Afficher le filtre dans l'onglet Tags"
+            showTagPickerFilter: "Afficher le filtre dans l'onglet Tags",
+            featuredFields: "Expression Javascript pour les variables mises en évidence. Sera affiché dans les résultats de recherche.",
+            featuredFieldsList: "Variables disponibles"
         },
         queryMode: {
             simple: "Simple",
@@ -520,7 +529,7 @@ export default {
             advanced: "高级搜索",
             fuzzy: "模糊搜索"
         },
-        addTag: "添加",
+        addTag: "签条",
         deleteTag: "删除",
         download: "下载",
         and: "与",
@@ -529,6 +538,7 @@ export default {
         mimeTypes: "文件类型",
         tags: "标签",
         tagFilter: "筛选标签",
+        forExample: "例如:",
         help: {
             simpleSearch: "简易搜索",
             advancedSearch: "高级搜索",
@@ -587,7 +597,9 @@ export default {
             useDatePicker: "使用日期选择器组件而不是滑块",
             vidPreviewInterval: "视频预览帧的持续时间，以毫秒为单位",
             simpleLightbox: "在图片查看器中，禁用动画",
-            showTagPickerFilter: "显示标签过滤栏"
+            showTagPickerFilter: "显示标签过滤栏",
+            featuredFields: "特色领域的Javascript模板字符串。将出现在搜索结果中。",
+            featuredFieldsList: "可利用的变量"
         },
         queryMode: {
             simple: "简单",

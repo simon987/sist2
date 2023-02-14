@@ -16,7 +16,9 @@
 
         <b-card>
 
-          <label><LanguageIcon/><span style="vertical-align: middle">&nbsp;{{ $t("opt.lang") }}</span></label>
+          <label>
+            <LanguageIcon/>
+            <span style="vertical-align: middle">&nbsp;{{ $t("opt.lang") }}</span></label>
           <b-form-select :options="langOptions" :value="optLang" @input="setOptLang"></b-form-select>
 
           <label>{{ $t("opt.theme") }}</label>
@@ -55,6 +57,62 @@
               $t("opt.showTagPickerFilter")
             }}
           </b-form-checkbox>
+
+          <br/>
+          <label>{{ $t("opt.featuredFields") }}</label>
+
+          <br>
+          <b-button v-b-toggle.collapse-1 variant="secondary" class="dropdown-toggle">{{
+              $t("opt.featuredFieldsList")
+            }}
+          </b-button>
+          <b-collapse id="collapse-1" class="mt-2">
+            <ul>
+              <li><code>doc.checksum</code></li>
+              <li><code>doc.path</code></li>
+              <li><code>doc.mime</code></li>
+              <li><code>doc.videoc</code></li>
+              <li><code>doc.audioc</code></li>
+              <li><code>doc.pages</code></li>
+              <li><code>doc.mtime</code></li>
+              <li><code>doc.font_name</code></li>
+              <li><code>doc.album</code></li>
+              <li><code>doc.artist</code></li>
+              <li><code>doc.title</code></li>
+              <li><code>doc.genre</code></li>
+              <li><code>doc.album_artist</code></li>
+              <li><code>doc.exif_make</code></li>
+              <li><code>doc.exif_model</code></li>
+              <li><code>doc.exif_software</code></li>
+              <li><code>doc.exif_exposure_time</code></li>
+              <li><code>doc.exif_fnumber</code></li>
+              <li><code>doc.exif_iso_speed_ratings</code></li>
+              <li><code>doc.exif_focal_length</code></li>
+              <li><code>doc.exif_user_comment</code></li>
+              <li><code>doc.exif_user_comment</code></li>
+              <li><code>doc.exif_gps_longitude_ref</code></li>
+              <li><code>doc.exif_gps_longitude_dms</code></li>
+              <li><code>doc.exif_gps_longitude_dec</code></li>
+              <li><code>doc.exif_gps_latitude_ref</code></li>
+              <li><code>doc.exif_gps_latitude_dec</code></li>
+              <li><code>humanDate()</code></li>
+              <li><code>humanFileSize()</code></li>
+            </ul>
+
+            <p>{{ $t("forExample") }}</p>
+
+            <ul>
+              <li>
+                <code>&lt;b&gt;${humanDate(doc.mtime)}&lt;/b&gt; • ${doc.videoc || ''}</code>
+              </li>
+              <li>
+                <code>${doc.pages ? (doc.pages + ' pages') : ''}</code>
+              </li>
+            </ul>
+          </b-collapse>
+          <br/>
+          <br/>
+          <b-textarea rows="3" :value="optFeaturedFields" @input="setOptFeaturedFields"></b-textarea>
         </b-card>
 
         <br/>
@@ -252,6 +310,7 @@ export default {
       "optVidPreviewInterval",
       "optSimpleLightbox",
       "optShowTagPickerFilter",
+      "optFeaturedFields",
     ]),
     clientWidth() {
       return window.innerWidth;
@@ -295,6 +354,7 @@ export default {
       "setOptVidPreviewInterval",
       "setOptSimpleLightbox",
       "setOptShowTagPickerFilter",
+      "setOptFeaturedFields",
     ]),
     onResetClick() {
       localStorage.removeItem("sist2_configuration");

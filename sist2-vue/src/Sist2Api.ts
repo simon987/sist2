@@ -191,30 +191,6 @@ class Sist2Api {
     setHitTags(hit: EsHit): void {
         const tags = [] as Tag[];
 
-        const mimeCategory = hit._source.mime == null ? null : hit._source.mime.split("/")[0];
-
-        switch (mimeCategory) {
-            case "image":
-            case "video":
-                if ("videoc" in hit._source && hit._source.videoc) {
-                    tags.push({
-                        style: "video",
-                        text: hit._source.videoc.replace(" ", ""),
-                        userTag: false
-                    } as Tag);
-                }
-                break
-            case "audio":
-                if ("audioc" in hit._source && hit._source.audioc) {
-                    tags.push({
-                        style: "audio",
-                        text: hit._source.audioc,
-                        userTag: false
-                    } as Tag);
-                }
-                break;
-        }
-
         // User tags
         if ("tag" in hit._source) {
             hit._source.tag.forEach(tag => {

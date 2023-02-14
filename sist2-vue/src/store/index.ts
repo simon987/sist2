@@ -33,6 +33,7 @@ export default new Vuex.Store({
         optHideDuplicates: true,
         optTheme: "light",
         optDisplay: "grid",
+        optFeaturedFields: "",
 
         optSize: 60,
         optHighlight: true,
@@ -158,6 +159,7 @@ export default new Vuex.Store({
         setOptQueryMode: (state, val) => state.optQueryMode = val,
         setOptResultSize: (state, val) => state.optSize = val,
         setOptTagOrOperator: (state, val) => state.optTagOrOperator = val,
+        setOptFeaturedFields: (state, val) => state.optFeaturedFields = val,
 
         setOptTreemapType: (state, val) => state.optTreemapType = val,
         setOptTreemapTiling: (state, val) => state.optTreemapTiling = val,
@@ -413,5 +415,6 @@ export default new Vuex.Store({
         optVidPreviewInterval: state => state.optVidPreviewInterval,
         optSimpleLightbox: state => state.optSimpleLightbox,
         optShowTagPickerFilter: state => state.optShowTagPickerFilter,
+        optFeaturedFields: state => state.optFeaturedFields,
     }
 })
