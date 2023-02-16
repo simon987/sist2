@@ -236,7 +236,7 @@ class Sist2:
 
         output_dir = os.path.join(
             self._data_dir,
-            f"scan-{datetime.now()}.sist2"
+            f"scan-{options.name.replace('/', '_')}-{datetime.now()}.sist2"
         )
         options.output = output_dir
 
