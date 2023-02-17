@@ -40,6 +40,39 @@ import TaskListItem from "@/components/TaskListItem";
 import Sist2AdminApi from "@/Sist2AdminApi";
 import moment from "moment";
 
+const DAY = 3600 * 24;
+const HOUR = 3600;
+const MINUTE = 60;
+
+function humanDuration(sec_num) {
+  sec_num = sec_num / 1000;
+  const days = Math.floor(sec_num / DAY);
+  sec_num -= days * DAY;
+  const hours = Math.floor(sec_num / HOUR);
+  sec_num -= hours * HOUR;
+  const minutes = Math.floor(sec_num / MINUTE);
+  sec_num -= minutes * MINUTE;
+  const seconds = Math.floor(sec_num);
+
+  if (days > 0) {
+    return `${days} days ${hours}h ${minutes}m ${seconds}s`;
+  }
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  }
+
+  if (seconds > 0) {
+    return `${seconds}s`;
+  }
+
+  return "<0s";
+}
+
 export default {
   name: 'Tasks',
   components: {TaskListItem},
@@ -100,17 +133,10 @@ export default {
       })
     },
     taskDuration(task) {
-      const start = moment(task.started);
-      const end = moment(task.ended);
+      const start = moment.utc(task.started);
+      const end = moment.utc(task.ended);
 
-      let duration = moment.utc(end.diff(start)).format("HH[h] mm[m] ss[s]");
-
-      duration = duration.replace("00h ", "");
-      duration = duration.replace(/^00m /, "");
-      duration = duration.replace(/00s/, "<1s");
-      duration = duration.replace(/^0/, "");
-
-      return duration;
+      return humanDuration(end.diff(start))
     }
   }
 }
