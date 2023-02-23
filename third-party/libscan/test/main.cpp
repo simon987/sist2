@@ -19,6 +19,7 @@ extern "C" {
 static scan_arc_ctx_t arc_recurse_media_ctx;
 static scan_arc_ctx_t arc_list_ctx;
 static scan_arc_ctx_t arc_recurse_ooxml_ctx;
+static scan_arc_ctx_t arc_recurse_noop_ctx;
 
 static scan_text_ctx_t text_500_ctx;
 
@@ -56,6 +57,12 @@ void _parse_media(parse_job_t *job) {
 
 void _parse_ooxml(parse_job_t *job) {
     parse_ooxml(&ooxml_500_ctx, &job->vfile, &LastSubDoc);
+}
+
+void _parse_noop(parse_job_t *job) {
+    char buf[1024];
+
+    while (job->vfile.read(&job->vfile, buf, sizeof(buf)) != 0) {}
 }
 
 
@@ -752,6 +759,16 @@ TEST(Mobi, Azw3) {
 }
 
 /* Arc */
+TEST(Arc, ZipBomp) {
+    vfile_t f;
+    document_t doc;
+    load_doc_file("libscan-test-files/test_files/arc/bomb.zip", &f, &doc);
+
+    parse_archive(&arc_recurse_noop_ctx, &f, &doc, nullptr, nullptr);
+
+    cleanup(&doc, &f);
+}
+
 TEST(Arc, Utf8) {
     vfile_t f;
     document_t doc;
@@ -1095,6 +1112,12 @@ int main(int argc, char **argv) {
     arc_recurse_ooxml_ctx.store = counter_store;
     arc_recurse_ooxml_ctx.mode = ARC_MODE_RECURSE;
     arc_recurse_ooxml_ctx.parse = _parse_ooxml;
+
+    arc_recurse_noop_ctx.log = noop_log;
+    arc_recurse_noop_ctx.logf = noop_logf;
+    arc_recurse_noop_ctx.store = counter_store;
+    arc_recurse_noop_ctx.mode = ARC_MODE_RECURSE;
+    arc_recurse_noop_ctx.parse = _parse_noop;
 
     arc_list_ctx.log = noop_log;
     arc_list_ctx.logf = noop_logf;

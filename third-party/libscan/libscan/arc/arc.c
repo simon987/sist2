@@ -7,6 +7,7 @@
 #include <openssl/evp.h>
 #include <pcre.h>
 
+#define MAX_DECOMPRESSED_SIZE_RATIO 40.0
 
 int should_parse_filtered_file(const char *filepath, int ext) {
     char tmp[PATH_MAX * 2];
@@ -206,6 +207,13 @@ scan_code_t parse_archive(scan_arc_ctx_t *ctx, vfile_t *f, document_t *doc, pcre
 
         while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
             sub_job->vfile.info = *archive_entry_stat(entry);
+
+            double decompressed_size_ratio = (double) sub_job->vfile.info.st_size / (double) f->info.st_size;
+            if (decompressed_size_ratio > MAX_DECOMPRESSED_SIZE_RATIO) {
+                CTX_LOG_DEBUGF("arc.c", "Skipped %s, possible zip bomb (decompressed_size_ratio=%f)", sub_job->filepath, decompressed_size_ratio)
+                continue;
+            }
+
             if (S_ISREG(sub_job->vfile.info.st_mode)) {
 
                 const char *utf8_name = archive_entry_pathname_utf8(entry);
