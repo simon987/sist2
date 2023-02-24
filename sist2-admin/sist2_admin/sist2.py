@@ -277,23 +277,17 @@ class Sist2:
     @staticmethod
     def _consume_logs_stdout(logs_cb, proc):
         pipe_wrapper = TextIOWrapper(proc.stdout, encoding="utf8", errors="ignore")
-        try:
-            for line in pipe_wrapper:
+        for line in pipe_wrapper:
+            try:
                 if line.strip() == "":
                     continue
                 log_object = json.loads(line)
                 logs_cb(log_object)
-        except Exception as e:
-            proc.kill()
-            try:
-                print(line)
-            except NameError:
-                pass
-            print(traceback.format_exc())
-        finally:
-            pass
-            # proc.wait()
-            # pipe_wrapper.close()
+            except Exception as e:
+                try:
+                    logs_cb({"sist2-admin": f"Could not decode log line: {line}; {e}"})
+                except NameError:
+                    pass
 
     def web(self, options: WebOptions, name: str):
 
