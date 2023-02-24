@@ -63,6 +63,11 @@ export default {
   },
   computed: {
     tnSrc() {
+      return this.getThumbnailSrc(this.currentThumbnailNum);
+    },
+  },
+  methods: {
+    getThumbnailSrc(thumbnailNum) {
       const doc = this.doc;
       const props = doc._props;
       if (props.isGif && this.hover) {
@@ -70,10 +75,8 @@ export default {
       }
       return (this.currentThumbnailNum === 0)
           ? `t/${doc._source.index}/${doc._id}`
-          : `t/${doc._source.index}/${doc._id}${String(this.currentThumbnailNum).padStart(4, "0")}`;
+          : `t/${doc._source.index}/${doc._id}${String(thumbnailNum).padStart(4, "0")}`;
     },
-  },
-  methods: {
     humanTime: humanTime,
     onThumbnailClick() {
       this.$emit("onThumbnailClick");
@@ -86,9 +89,14 @@ export default {
     },
     onTnEnter() {
       this.hover = true;
+      const start = Date.now()
       if (this.doc._props.hasVidPreview) {
-        this.currentThumbnailNum += 1;
-        this.scheduleNextTnNum();
+        let img = new Image();
+        img.src = this.getThumbnailSrc(this.currentThumbnailNum + 1);
+        img.onload = () => {
+          this.currentThumbnailNum += 1;
+          this.scheduleNextTnNum(Date.now() - start);
+        }
       }
     },
     onTnLeave() {
@@ -99,17 +107,23 @@ export default {
         this.timeoutId = null;
       }
     },
-    scheduleNextTnNum() {
-      const INTERVAL = this.$store.state.optVidPreviewInterval ?? 700;
+    scheduleNextTnNum(offset = 0) {
+      const INTERVAL = (this.$store.state.optVidPreviewInterval ?? 700) - offset;
       this.timeoutId = window.setTimeout(() => {
+        const start = Date.now();
         if (!this.hover) {
           return;
         }
-        this.scheduleNextTnNum();
         if (this.currentThumbnailNum === this.doc._props.tnNum - 1) {
           this.currentThumbnailNum = 0;
+          this.scheduleNextTnNum();
         } else {
-          this.currentThumbnailNum += 1;
+          let img = new Image();
+          img.src = this.getThumbnailSrc(this.currentThumbnailNum + 1);
+          img.onload = () => {
+            this.currentThumbnailNum += 1;
+            this.scheduleNextTnNum(Date.now() - start);
+          }
         }
       }, INTERVAL);
     },
