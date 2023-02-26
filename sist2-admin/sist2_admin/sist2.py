@@ -140,8 +140,9 @@ class ScanOptions(BaseModel):
     def args(self):
         args = ["scan", self.path, f"--threads={self.threads}", f"--mem-throttle={self.mem_throttle}",
                 f"--thumbnail-quality={self.thumbnail_quality}", f"--thumbnail-count={self.thumbnail_count}",
-                f"--content-size={self.content_size}", f"--output={self.output}", f"--depth={self.depth}",
-                f"--archive={self.archive}", f"--mem-buffer={self.mem_buffer}"]
+                f"--thumbnail-size={self.thumbnail_size}", f"--content-size={self.content_size}",
+                f"--output={self.output}", f"--depth={self.depth}", f"--archive={self.archive}",
+                f"--mem-buffer={self.mem_buffer}"]
 
         if self.incremental:
             args.append(f"--incremental={self.incremental}")

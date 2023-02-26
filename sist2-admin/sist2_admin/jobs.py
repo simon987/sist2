@@ -58,10 +58,10 @@ class Sist2Job(BaseModel):
             cron_expression="0 0 * * *"
         )
 
-    @validator("etag", always=True)
-    def validate_etag(cls, value, values):
-        s = values["name"] + values["scan_options"].json() + values["index_options"].json() + values["cron_expression"]
-        return md5(s.encode()).hexdigest()
+    # @validator("etag", always=True)
+    # def validate_etag(cls, value, values):
+    #     s = values["name"] + values["scan_options"].json() + values["index_options"].json() + values["cron_expression"]
+    #     return md5(s.encode()).hexdigest()
 
 
 class Sist2TaskProgress:
@@ -147,7 +147,7 @@ class Sist2ScanTask(Sist2Task):
             self.job.last_index = index.path
             self.job.last_index_date = datetime.now()
             self.job.do_full_scan = False
-            db["jobs"][self.job.name] = {"job": self.job}
+            db["jobs"][self.job.name] = self.job
             self._logger.info(json.dumps({"sist2-admin": f"Save last_index={self.job.last_index}"}))
 
         logger.info(f"Completed {self.display_name} ({return_code=})")
@@ -185,7 +185,7 @@ class Sist2IndexTask(Sist2Task):
 
         # Update status
         self.job.status = JobStatus("indexed") if ok else JobStatus("failed")
-        db["jobs"][self.job.name] = {"job": self.job}
+        db["jobs"][self.job.name] = self.job
 
         self._logger.info(json.dumps({"sist2-admin": f"Sist2Scan task finished {return_code=}, {duration=}"}))
 
@@ -195,7 +195,7 @@ class Sist2IndexTask(Sist2Task):
 
     def restart_running_frontends(self, db: PersistentState, sist2: Sist2):
         for frontend_name, pid in RUNNING_FRONTENDS.items():
-            frontend = db["frontends"][frontend_name]["frontend"]
+            frontend = db["frontends"][frontend_name]
             frontend: Sist2Frontend
 
             os.kill(pid, signal.SIGTERM)
@@ -204,7 +204,7 @@ class Sist2IndexTask(Sist2Task):
             except ChildProcessError:
                 pass
 
-            frontend.web_options.indices = map(lambda j: db["jobs"][j]["job"].last_index, frontend.jobs)
+            frontend.web_options.indices = map(lambda j: db["jobs"][j].last_index, frontend.jobs)
 
             pid = sist2.web(frontend.web_options, frontend.name)
             RUNNING_FRONTENDS[frontend_name] = pid

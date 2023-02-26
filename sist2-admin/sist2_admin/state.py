@@ -1,6 +1,8 @@
 from typing import Dict
+import shutil
 
-from hexlib.db import Table
+from deprecated import deprecated
+from hexlib.db import Table, PersistentState
 import pickle
 
 from tesseract import get_tesseract_langs
@@ -9,7 +11,7 @@ RUNNING_FRONTENDS: Dict[str, int] = {}
 
 TESSERACT_LANGS = get_tesseract_langs()
 
-DB_SCHEMA_VERSION = "1"
+DB_SCHEMA_VERSION = "2"
 
 from pydantic import BaseModel
 
@@ -28,6 +30,7 @@ def _deserialize(item):
     return item
 
 
+@deprecated("Use default table factory in hexlib 1.83+")
 class PickleTable(Table):
 
     def __getitem__(self, item):
@@ -48,3 +51,31 @@ class PickleTable(Table):
         for row in super().sql(where_clause, *params):
             yield dict((k, _deserialize(v)) for k, v in row.items())
 
+
+def migrate_v1_to_v2(db: PersistentState):
+
+    shutil.copy(db.dbfile, db.dbfile + "-before-migrate-v2.bak")
+
+    # Frontends
+    db._table_factory = PickleTable
+    frontends = [row["frontend"] for row in db["frontends"]]
+    del db["frontends"]
+
+    db._table_factory = Table
+    for frontend in frontends:
+        db["frontends"][frontend.name] = frontend
+    list(db["frontends"])
+
+    # Jobs
+    db._table_factory = PickleTable
+    jobs = [row["job"] for row in db["jobs"]]
+    del db["jobs"]
+
+    db._table_factory = Table
+    for job in jobs:
+        db["jobs"][job.name] = job
+    list(db["jobs"])
+
+    db["sist2_admin"]["info"] = {
+        "version": "2"
+    }

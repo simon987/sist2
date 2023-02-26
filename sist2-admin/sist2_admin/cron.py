@@ -10,7 +10,7 @@ from jobs import Sist2Job
 
 
 def _check_schedule(db: PersistentState, run_job):
-    for job in (row["job"] for row in db["jobs"]):
+    for job in db["jobs"]:
         job: Sist2Job
 
         if job.schedule_enabled:
