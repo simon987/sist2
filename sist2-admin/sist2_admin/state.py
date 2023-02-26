@@ -1,7 +1,6 @@
 from typing import Dict
 import shutil
 
-from deprecated import deprecated
 from hexlib.db import Table, PersistentState
 import pickle
 
@@ -30,7 +29,6 @@ def _deserialize(item):
     return item
 
 
-@deprecated("Use default table factory in hexlib 1.83+")
 class PickleTable(Table):
 
     def __getitem__(self, item):
