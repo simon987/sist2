@@ -61,7 +61,6 @@ void parse(void *arg) {
     parse_job_t *job = arg;
 
     document_t *doc = malloc(sizeof(document_t));
-    doc->filepath = malloc(strlen(job->filepath) + 1);
 
     set_dbg_current_file(job);
 
@@ -230,10 +229,6 @@ void parse(void *arg) {
         meta_parent->key = MetaParent;
         strcpy(meta_parent->str_val, job->parent);
         APPEND_META((doc), meta_parent)
-
-        doc->has_parent = TRUE;
-    } else {
-        doc->has_parent = FALSE;
     }
 
     CLOSE_FILE(job->vfile)

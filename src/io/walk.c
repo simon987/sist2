@@ -9,7 +9,7 @@
 __always_inline
 parse_job_t *create_fs_parse_job(const char *filepath, const struct stat *info, int base) {
     int len = (int) strlen(filepath);
-    parse_job_t *job = malloc(sizeof(parse_job_t) + len);
+    parse_job_t *job = malloc(sizeof(parse_job_t));
 
     strcpy(job->filepath, filepath);
     job->base = base;

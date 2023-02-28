@@ -248,7 +248,6 @@ void write_document_func(void *arg) {
     zstd_write_string(json_str, json_str_len + 1);
 
     free(json_str);
-    free(doc->filepath);
 }
 
 void zstd_close() {

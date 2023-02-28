@@ -112,10 +112,9 @@ typedef struct document {
     int mtime;
     short base;
     short ext;
-    char has_parent;
     meta_line_t *meta_head;
     meta_line_t *meta_tail;
-    char *filepath;
+    char filepath[PATH_MAX];
 } document_t;
 
 typedef struct vfile vfile_t;
@@ -163,7 +162,7 @@ typedef struct parse_job_t {
     int ext;
     struct vfile vfile;
     char parent[SIST_DOC_ID_LEN];
-    char filepath[1];
+    char filepath[PATH_MAX];
 } parse_job_t;
 
 
