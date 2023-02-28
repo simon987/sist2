@@ -250,8 +250,8 @@ export default {
             vidPreviewInterval: "Videovorschau Framedauer in ms",
             simpleLightbox: "Schalte Animationen im Image-Viewer ab",
             showTagPickerFilter: "Zeige die Tag-Filter-Leiste",
-            featuredFields: "Ausgewählte Felder Javascript Vorlage String. Wird in den Suchergebnissen angezeigt.",
-            featuredFieldsList: "Verfügbare Variablen"
+            featuredFields: "Variablen, welche zusätzlich in den Suchergebnissen angezeigt werden können.",
+            featuredFieldsList: "verfügbare Variablen"
         },
         queryMode: {
             simple: "Einfach",
@@ -333,10 +333,10 @@ export default {
             random: "zufällig",
         },
         d3: {
-            mimeCount: "Anzahlverteilung nach Medientyp",
-            mimeSize: "Größenverteilung nach Medientyp",
-            dateHistogram: "Verteilung der Änderungszeiten",
-            sizeHistogram: "Verteilung der Dateigrößen",
+            mimeCount: "Anzahl nach Medientyp",
+            mimeSize: "Größen nach Medientyp",
+            dateHistogram: "Änderungszeiten",
+            sizeHistogram: "Dateigrößen",
         },
         indexPicker: {
             selectNone: "keinen auswählen",
