@@ -51,6 +51,8 @@ typedef int scan_code_t;
 #define SIST_DOC_ID_LEN MD5_STR_LENGTH
 #define SIST_INDEX_ID_LEN MD5_STR_LENGTH
 
+#define EBOOK_LOCKS 0
+
 enum metakey {
     // String
     MetaContent = 1,
@@ -100,7 +102,6 @@ typedef struct meta_line {
     union {
         char str_val[0];
         unsigned long long_val;
-        double double_val;
     };
 } meta_line_t;
 
@@ -114,7 +115,7 @@ typedef struct document {
     short ext;
     meta_line_t *meta_head;
     meta_line_t *meta_tail;
-    char filepath[PATH_MAX];
+    char filepath[PATH_MAX * 2 + 1];
 } document_t;
 
 typedef struct vfile vfile_t;
@@ -139,8 +140,11 @@ typedef struct vfile {
     int is_fs_file;
     int has_checksum;
     int calculate_checksum;
-    const char *filepath;
-    struct stat info;
+    char filepath[PATH_MAX * 2 + 1];
+
+    int mtime;
+    size_t st_size;
+    unsigned int st_mode;
 
     SHA_CTX sha1_ctx;
     unsigned char sha1_digest[SHA1_DIGEST_LENGTH];
@@ -162,7 +166,7 @@ typedef struct parse_job_t {
     int ext;
     struct vfile vfile;
     char parent[SIST_DOC_ID_LEN];
-    char filepath[PATH_MAX];
+    char filepath[PATH_MAX * 2 + 1];
 } parse_job_t;
 
 

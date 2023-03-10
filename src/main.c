@@ -188,7 +188,7 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.arc_ctx.mode = args->archive_mode;
     ScanCtx.arc_ctx.log = _log;
     ScanCtx.arc_ctx.logf = _logf;
-    ScanCtx.arc_ctx.parse = (parse_callback_t) parse;
+    ScanCtx.arc_ctx.parse = (parse_callback_t) parse_job;
     if (args->archive_passphrase != NULL) {
         strcpy(ScanCtx.arc_ctx.passphrase, args->archive_passphrase);
     } else {
@@ -206,7 +206,6 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.comic_ctx.cbz_mime = mime_get_mime_by_string(ScanCtx.mime_table, "application/x-cbz");
 
     // Ebook
-    pthread_mutex_init(&ScanCtx.ebook_ctx.mupdf_mutex, NULL);
     ScanCtx.ebook_ctx.content_size = args->content_size;
     ScanCtx.ebook_ctx.enable_tn = args->tn_count > 0;
     ScanCtx.ebook_ctx.tn_size = args->tn_size;
@@ -407,11 +406,11 @@ void sist2_scan(scan_args_t *args) {
         load_incremental_index(args);
     }
 
-    ScanCtx.pool = tpool_create(ScanCtx.threads, thread_cleanup, TRUE, TRUE, ScanCtx.mem_limit);
-    tpool_start(ScanCtx.pool);
-
-    ScanCtx.writer_pool = tpool_create(1, writer_cleanup, TRUE, FALSE, 0);
+    ScanCtx.writer_pool = tpool_create(1, writer_cleanup, FALSE, 0);
     tpool_start(ScanCtx.writer_pool);
+
+    ScanCtx.pool = tpool_create(ScanCtx.threads, thread_cleanup, TRUE, ScanCtx.mem_limit);
+    tpool_start(ScanCtx.pool);
 
     if (args->list_path) {
         // Scan using file list
@@ -494,7 +493,7 @@ void sist2_index(index_args_t *args) {
         f = index_json;
     }
 
-    IndexCtx.pool = tpool_create(args->threads, elastic_cleanup, FALSE, args->print == 0, 0);
+    IndexCtx.pool = tpool_create(args->threads, elastic_cleanup, args->print == 0, 0);
     tpool_start(IndexCtx.pool);
 
     READ_INDICES(file_path, args->index_path, {
@@ -616,8 +615,8 @@ int set_to_negative_if_value_is_zero(struct argparse *self, const struct argpars
 
 
 int main(int argc, const char *argv[]) {
-    sigsegv_handler = signal(SIGSEGV, sig_handler);
-    sigabrt_handler = signal(SIGABRT, sig_handler);
+//    sigsegv_handler = signal(SIGSEGV, sig_handler);
+//    sigabrt_handler = signal(SIGABRT, sig_handler);
 
     setlocale(LC_ALL, "");
 

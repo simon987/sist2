@@ -39,6 +39,7 @@ add_executable(sist2
         src/cli.c src/cli.h
         src/stats.c src/stats.h src/ctx.c
         src/parsing/sidecar.c src/parsing/sidecar.h
+        src/mempool/mempool.c src/mempool/mempool.h
 
         src/auth0/auth0_c_api.h src/auth0/auth0_c_api.cpp
 

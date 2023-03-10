@@ -10,14 +10,20 @@
 #define STORE_SIZE_TAG (1024 * 1024)
 #define STORE_SIZE_META STORE_SIZE_TAG
 
+
 typedef struct store_t {
     char path[PATH_MAX];
-    char *tmp_path;
-    MDB_dbi dbi;
-    MDB_env *env;
-    size_t size;
     size_t chunk_size;
-    pthread_rwlock_t lock;
+    void *shared_memory;
+
+    struct {
+        MDB_dbi dbi;
+        MDB_env *env;
+    } proc;
+
+    struct {
+        size_t size;
+    } *shm;
 } store_t;
 
 store_t *store_create(const char *path, size_t chunk_size);
@@ -28,7 +34,7 @@ void store_write(store_t *store, char *key, size_t key_len, char *buf, size_t bu
 
 void store_flush(store_t *store);
 
-char *store_read(store_t *store, char *key, size_t key_len, size_t *ret_vallen);
+char *store_read(store_t *store, char *key, size_t key_len, size_t *return_value_len);
 
 GHashTable *store_read_all(store_t *store);
 

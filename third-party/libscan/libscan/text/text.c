@@ -2,7 +2,7 @@
 
 scan_code_t parse_text(scan_text_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
-    int to_read = MIN(ctx->content_size, f->info.st_size);
+    int to_read = MIN(ctx->content_size, f->st_size);
 
     if (to_read <= 2) {
         return SCAN_OK;
@@ -39,7 +39,7 @@ scan_code_t parse_text(scan_text_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
 scan_code_t parse_markup(scan_text_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
-    int to_read = MIN(MAX_MARKUP_SIZE, f->info.st_size);
+    int to_read = MIN(MAX_MARKUP_SIZE, f->st_size);
 
     char *buf = malloc(to_read + 1);
     int ret = f->read(f, buf, to_read);

@@ -50,14 +50,20 @@ void cleanup(document_t *doc, vfile_t *f) {
 }
 
 void load_file(const char *filepath, vfile_t *f) {
-    stat(filepath, &f->info);
+    struct stat info = {};
+    stat(filepath, &info);
+
+    f->mtime = (int)info.st_mtim.tv_sec;
+    f->st_size = info.st_size;
+    f->st_mode = info.st_mode;
+
     f->fd = open(filepath, O_RDONLY);
 
     if (f->fd == -1) {
         FAIL() << FILE_NOT_FOUND_ERR;
     }
 
-    f->filepath = filepath;
+    memcpy(f->filepath, filepath, sizeof(f->filepath));
     f->read = fs_read;
     f->close = fs_close;
     f->is_fs_file = TRUE;
@@ -66,9 +72,9 @@ void load_file(const char *filepath, vfile_t *f) {
 }
 
 void load_mem(void *mem, size_t size, vfile_t *f) {
-    f->filepath = "_mem_";
+    memcpy(f->filepath, "_mem_", strlen("_mem_"));
     f->_test_data = mem;
-    f->info.st_size = (int) size;
+    f->st_size = size;
     f->read = mem_read;
     f->close = nullptr;
     f->is_fs_file = TRUE;

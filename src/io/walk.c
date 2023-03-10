@@ -20,11 +20,13 @@ parse_job_t *create_fs_parse_job(const char *filepath, const struct stat *info, 
         job->ext = len;
     }
 
-    job->vfile.info = *info;
+    job->vfile.st_size = info->st_size;
+    job->vfile.st_mode = info->st_mode;
+    job->vfile.mtime = (int) info->st_mtim.tv_sec;
 
     job->parent[0] = '\0';
 
-    job->vfile.filepath = job->filepath;
+    memcpy(job->vfile.filepath, job->filepath, sizeof(job->vfile.filepath));
     job->vfile.read = fs_read;
     // Filesystem reads are always rewindable
     job->vfile.read_rewindable = fs_read;
@@ -68,7 +70,12 @@ int handle_entry(const char *filepath, const struct stat *info, int typeflag, st
 
     if (typeflag == FTW_F && S_ISREG(info->st_mode)) {
         parse_job_t *job = create_fs_parse_job(filepath, info, ftw->base);
-        tpool_add_work(ScanCtx.pool, parse, job);
+
+        tpool_work_arg_t arg = {
+            .arg_size = sizeof(parse_job_t),
+            .arg = job
+        };
+        tpool_add_work(ScanCtx.pool, parse, &arg);
     }
 
     return FTW_CONTINUE;
@@ -128,7 +135,12 @@ int iterate_file_list(void *input_file) {
 
         parse_job_t *job = create_fs_parse_job(absolute_path, &info, base);
         free(absolute_path);
-        tpool_add_work(ScanCtx.pool, parse, job);
+
+        tpool_work_arg_t arg = {
+            .arg = job,
+            .arg_size = sizeof(parse_job_t)
+        };
+        tpool_add_work(ScanCtx.pool, parse, &arg);
     }
 
     return 0;

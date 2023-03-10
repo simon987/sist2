@@ -56,9 +56,20 @@ void set_dbg_current_file(parse_job_t *job) {
     pthread_mutex_unlock(&ScanCtx.dbg_current_files_mu);
 }
 
-void parse(void *arg) {
+void parse_job(parse_job_t *job) {
+    tpool_work_arg_shm_t *arg = malloc(sizeof(tpool_work_arg_shm_t) + sizeof(*job));
 
-    parse_job_t *job = arg;
+    memcpy(arg->arg, job, sizeof(*job));
+    arg->arg_size = -1;
+
+    parse(arg);
+
+    free(arg);
+}
+
+void parse(tpool_work_arg_shm_t *arg) {
+
+    parse_job_t *job = (void*)arg->arg;
 
     document_t *doc = malloc(sizeof(document_t));
 
@@ -74,11 +85,11 @@ void parse(void *arg) {
     doc->meta_head = NULL;
     doc->meta_tail = NULL;
     doc->mime = 0;
-    doc->size = job->vfile.info.st_size;
-    doc->mtime = (int) job->vfile.info.st_mtim.tv_sec;
+    doc->size = job->vfile.st_size;
+    doc->mtime = (int) job->vfile.mtime;
 
     int inc_ts = incremental_get(ScanCtx.original_table, doc->doc_id);
-    if (inc_ts != 0 && inc_ts == job->vfile.info.st_mtim.tv_sec) {
+    if (inc_ts != 0 && inc_ts == job->vfile.mtime) {
         pthread_mutex_lock(&ScanCtx.copy_table_mu);
         incremental_mark_file(ScanCtx.copy_table, doc->doc_id);
         pthread_mutex_unlock(&ScanCtx.copy_table_mu);
@@ -88,7 +99,6 @@ void parse(void *arg) {
         pthread_mutex_unlock(&ScanCtx.dbg_file_counts_mu);
 
         CLOSE_FILE(job->vfile)
-        free(doc->filepath);
         free(doc);
 
         return;
@@ -106,12 +116,15 @@ void parse(void *arg) {
         LOG_DEBUGF(job->filepath, "Starting parse job {%s}", doc->doc_id)
     }
 
-    if (job->vfile.info.st_size == 0) {
+    if (job->ext > 4096) {
+        fprintf(stderr, "Ext is %d, filename is %s\n", job->ext, job->filepath);
+    }
+
+    if (job->vfile.st_size == 0) {
         doc->mime = MIME_EMPTY;
     } else if (*(job->filepath + job->ext) != '\0' && (job->ext - job->base != 1)) {
         doc->mime = mime_get_mime_by_ext(ScanCtx.ext_table, job->filepath + job->ext);
     }
-
 
     if (doc->mime == 0 && !ScanCtx.fast) {
 
@@ -136,7 +149,6 @@ void parse(void *arg) {
             pthread_mutex_unlock(&ScanCtx.dbg_file_counts_mu);
 
             CLOSE_FILE(job->vfile)
-            free(doc->filepath);
             free(doc);
 
             return;
@@ -210,7 +222,6 @@ void parse(void *arg) {
     } else if (doc->mime == MIME_SIST2_SIDECAR) {
         parse_sidecar(&job->vfile, doc);
         CLOSE_FILE(job->vfile)
-        free(doc->filepath);
         free(doc);
         return;
     } else if (is_msdoc(&ScanCtx.msdoc_ctx, doc->mime)) {

@@ -64,18 +64,26 @@ void print_json(cJSON *document, const char id_str[SIST_DOC_ID_LEN]) {
     cJSON_Delete(line);
 }
 
-void index_json_func(void *arg) {
-    es_bulk_line_t *line = arg;
+void index_json_func(tpool_work_arg_shm_t *arg) {
+    // Copy arg to heap because it's going to be free immediately after this function returns
+    es_bulk_line_t *line = malloc(arg->arg_size);
+    memcpy(line, arg->arg, arg->arg_size);
+
     elastic_index_line(line);
 }
 
-void delete_document(const char* document_id_str, void* UNUSED(_data)) {
+void delete_document(const char *document_id_str, void *UNUSED(_data)) {
     es_bulk_line_t *bulk_line = malloc(sizeof(es_bulk_line_t));
+
     bulk_line->type = ES_BULK_LINE_DELETE;
     bulk_line->next = NULL;
-
     strcpy(bulk_line->doc_id, document_id_str);
-    tpool_add_work(IndexCtx.pool, index_json_func, bulk_line);
+
+    tpool_work_arg_t arg = {
+            .arg_size = sizeof(es_bulk_line_t),
+            .arg = bulk_line
+    };
+    tpool_add_work(IndexCtx.pool, index_json_func, &arg);
 }
 
 
@@ -92,7 +100,11 @@ void index_json(cJSON *document, const char doc_id[SIST_DOC_ID_LEN]) {
     bulk_line->next = NULL;
 
     cJSON_free(json);
-    tpool_add_work(IndexCtx.pool, index_json_func, bulk_line);
+    tpool_work_arg_t arg = {
+            .arg_size = sizeof(es_bulk_line_t) + json_len + 2,
+            .arg = bulk_line
+    };
+    tpool_add_work(IndexCtx.pool, index_json_func, &arg);
 }
 
 void execute_update_script(const char *script, int async, const char index_id[SIST_INDEX_ID_LEN]) {
@@ -538,7 +550,8 @@ void elastic_init(int force_reset, const char *user_mappings, const char *user_s
         free_response(r);
 
         if (IS_LEGACY_VERSION(es_version)) {
-            snprintf(url, sizeof(url), "%s/%s/_mappings/_doc?include_type_name=true", IndexCtx.es_url, IndexCtx.es_index);
+            snprintf(url, sizeof(url), "%s/%s/_mappings/_doc?include_type_name=true", IndexCtx.es_url,
+                     IndexCtx.es_index);
         } else {
             snprintf(url, sizeof(url), "%s/%s/_mappings", IndexCtx.es_url, IndexCtx.es_index);
         }

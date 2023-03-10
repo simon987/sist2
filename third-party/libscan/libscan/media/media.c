@@ -687,7 +687,7 @@ long memfile_seek(void *ptr, long offset, int whence) {
 }
 
 int memfile_open(vfile_t *f, memfile_t *mem) {
-    mem->size = f->info.st_size;
+    mem->size = f->st_size;
 
     mem->buf = malloc(mem->size);
     if (mem->buf == NULL) {
@@ -737,16 +737,16 @@ void parse_media_vfile(scan_media_ctx_t *ctx, struct vfile *f, document_t *doc, 
 
     const char *filepath = get_filepath_with_ext(doc, f->filepath, mime_str);
 
-    if (f->info.st_size <= ctx->max_media_buffer) {
+    if (f->st_size <= ctx->max_media_buffer) {
         int ret = memfile_open(f, &memfile);
         if (ret == 0) {
-            CTX_LOG_DEBUGF(f->filepath, "Loading media file in memory (%ldB)", f->info.st_size)
+            CTX_LOG_DEBUGF(f->filepath, "Loading media file in memory (%ldB)", f->st_size)
             io_ctx = avio_alloc_context(buffer, AVIO_BUF_SIZE, 0, &memfile, memfile_read, NULL, memfile_seek);
         }
     }
 
     if (io_ctx == NULL) {
-        CTX_LOG_DEBUGF(f->filepath, "Reading media file without seek support", f->info.st_size)
+        CTX_LOG_DEBUGF(f->filepath, "Reading media file without seek support", f->st_size)
         io_ctx = avio_alloc_context(buffer, AVIO_BUF_SIZE, 0, f, vfile_read, NULL, NULL);
     }
 

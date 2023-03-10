@@ -1,28 +1,34 @@
 #include "ebook.h"
 #include <mupdf/fitz.h>
-#include <pthread.h>
 #include <tesseract/capi.h>
 
 #include "../media/media.h"
 #include "../arc/arc.h"
 #include "../ocr/ocr.h"
 
+#if EBOOK_LOCKS
+#include <pthread.h>
+pthread_mutex_t Mutex;
+#endif
+
 /* fill_image callback doesn't let us pass opaque pointers unless I create my own device */
 __thread text_buffer_t thread_buffer;
 __thread scan_ebook_ctx_t thread_ctx;
 
-pthread_mutex_t Mutex;
-
 static void my_fz_lock(UNUSED(void *user), int lock) {
+#if EBOOK_LOCKS
     if (lock == FZ_LOCK_FREETYPE) {
         pthread_mutex_lock(&Mutex);
     }
+#endif
 }
 
 static void my_fz_unlock(UNUSED(void *user), int lock) {
+#if EBOOK_LOCKS
     if (lock == FZ_LOCK_FREETYPE) {
         pthread_mutex_unlock(&Mutex);
     }
+#endif
 }
 
 
@@ -187,11 +193,13 @@ void fz_warn_callback(void *user, const char *message) {
 static void init_fzctx(fz_context *fzctx, document_t *doc) {
     fz_register_document_handlers(fzctx);
 
+#if EBOOK_LOCKS
     static int mu_is_initialized = FALSE;
     if (!mu_is_initialized) {
         pthread_mutex_init(&Mutex, NULL);
         mu_is_initialized = TRUE;
     }
+#endif
 
     fzctx->warn.print_user = doc;
     fzctx->warn.print = fz_warn_callback;

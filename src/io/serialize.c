@@ -197,7 +197,7 @@ static struct {
 
     ZSTD_CCtx *cctx;
 } WriterCtx = {
-        .out_file =  NULL
+    .out_file =  NULL
 };
 
 #define ZSTD_COMPRESSION_LEVEL 10
@@ -229,7 +229,9 @@ void zstd_write_string(const char *string, const size_t len) {
     } while (input.pos != input.size);
 }
 
-void write_document_func(void *arg) {
+void write_document_func(tpool_work_arg_shm_t *arg) {
+
+    const char *json_str = arg->arg;
 
     if (WriterCtx.out_file == NULL) {
         char dstfile[PATH_MAX];
@@ -237,17 +239,7 @@ void write_document_func(void *arg) {
         initialize_writer_ctx(dstfile);
     }
 
-    document_t *doc = arg;
-
-    char *json_str = build_json_string(doc);
-    const size_t json_str_len = strlen(json_str);
-
-    json_str = realloc(json_str, json_str_len + 1);
-    *(json_str + json_str_len) = '\n';
-
-    zstd_write_string(json_str, json_str_len + 1);
-
-    free(json_str);
+    zstd_write_string(json_str, arg->arg_size);
 }
 
 void zstd_close() {
@@ -345,7 +337,19 @@ index_descriptor_t read_index_descriptor(char *path) {
 
 
 void write_document(document_t *doc) {
-    tpool_add_work(ScanCtx.writer_pool, write_document_func, doc);
+    char *json_str = build_json_string(doc);
+    free(doc);
+    const size_t json_str_len = strlen(json_str);
+
+    json_str = realloc(json_str, json_str_len + 1);
+    *(json_str + json_str_len) = '\n';
+
+    tpool_work_arg_t arg = {
+        .arg_size = json_str_len + 1,
+        .arg = json_str
+    };
+
+    tpool_add_work(ScanCtx.writer_pool, write_document_func, &arg);
 }
 
 void thread_cleanup() {

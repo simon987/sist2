@@ -325,10 +325,10 @@ static int text_buffer_append_markup(text_buffer_t *buf, const char *markup) {
 }
 
 static void *read_all(vfile_t *f, size_t *size) {
-    void *buf = malloc(f->info.st_size);
-    *size = f->read(f, buf, f->info.st_size);
+    void *buf = malloc(f->st_size);
+    *size = f->read(f, buf, f->st_size);
 
-    if (*size != f->info.st_size) {
+    if (*size != f->st_size) {
         free(buf);
         return NULL;
     }

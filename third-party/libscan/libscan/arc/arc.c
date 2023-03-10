@@ -188,14 +188,13 @@ scan_code_t parse_archive(scan_arc_ctx_t *ctx, vfile_t *f, document_t *doc, pcre
 
     } else {
 
-        parse_job_t *sub_job = malloc(sizeof(parse_job_t) + PATH_MAX * 2);
+        parse_job_t *sub_job = malloc(sizeof(parse_job_t));
 
         sub_job->vfile.close = arc_close;
         sub_job->vfile.read = arc_read;
         sub_job->vfile.read_rewindable = arc_read_rewindable;
         sub_job->vfile.reset = NULL;
         sub_job->vfile.arc = a;
-        sub_job->vfile.filepath = sub_job->filepath;
         sub_job->vfile.is_fs_file = FALSE;
         sub_job->vfile.rewind_buffer_size = 0;
         sub_job->vfile.rewind_buffer = NULL;
@@ -206,22 +205,29 @@ scan_code_t parse_archive(scan_arc_ctx_t *ctx, vfile_t *f, document_t *doc, pcre
         strcpy(sub_job->parent, doc->doc_id);
 
         while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
-            sub_job->vfile.info = *archive_entry_stat(entry);
+            struct stat entry_stat = *archive_entry_stat(entry);
+            sub_job->vfile.st_mode = entry_stat.st_mode;
+            sub_job->vfile.st_size = entry_stat.st_size;
+            sub_job->vfile.mtime = (int) entry_stat.st_mtim.tv_sec;
 
-            double decompressed_size_ratio = (double) sub_job->vfile.info.st_size / (double) f->info.st_size;
+            double decompressed_size_ratio = (double) sub_job->vfile.st_size / (double) f->st_size;
             if (decompressed_size_ratio > MAX_DECOMPRESSED_SIZE_RATIO) {
-                CTX_LOG_DEBUGF("arc.c", "Skipped %s, possible zip bomb (decompressed_size_ratio=%f)", sub_job->filepath, decompressed_size_ratio)
+                CTX_LOG_DEBUGF("arc.c", "Skipped %s, possible zip bomb (decompressed_size_ratio=%f)", sub_job->filepath,
+                               decompressed_size_ratio)
                 continue;
             }
 
-            if (S_ISREG(sub_job->vfile.info.st_mode)) {
+            if (S_ISREG(sub_job->vfile.st_mode)) {
 
                 const char *utf8_name = archive_entry_pathname_utf8(entry);
 
                 if (utf8_name == NULL) {
-                    sprintf(sub_job->filepath, "%s#/%s", f->filepath, archive_entry_pathname(entry));
+                    snprintf(sub_job->filepath, sizeof(sub_job->filepath), "%s#/%s", f->filepath,
+                             archive_entry_pathname(entry));
+                    strcpy(sub_job->vfile.filepath, sub_job->filepath);
                 } else {
-                    sprintf(sub_job->filepath, "%s#/%s", f->filepath, utf8_name);
+                    snprintf(sub_job->filepath, sizeof(sub_job->filepath), "%s#/%s", f->filepath, utf8_name);
+                    strcpy(sub_job->vfile.filepath, sub_job->filepath);
                 }
                 sub_job->base = (int) (strrchr(sub_job->filepath, '/') - sub_job->filepath) + 1;
 

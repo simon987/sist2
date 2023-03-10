@@ -140,8 +140,8 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
     if (args->threads == 0) {
         args->threads = 1;
-    } else if (args->threads < 0) {
-        fprintf(stderr, "Invalid value for --threads: %d. Must be a positive number\n", args->threads);
+    } else if (args->threads < 0 || args->threads > 256) {
+        fprintf(stderr, "Invalid value for --threads: %d. Must be a positive number <= 256\n", args->threads);
         return 1;
     }
 
