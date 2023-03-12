@@ -37,6 +37,11 @@
     sist_log(filepath, LOG_SIST_FATAL, str);\
     exit(-1);
 
+#define LOG_FATALF_NO_EXIT(filepath, fmt, ...) \
+    sist_logf(filepath, LOG_SIST_FATAL, fmt, __VA_ARGS__);
+#define LOG_FATAL_NO_EXIT(filepath, str) \
+    sist_log(filepath, LOG_SIST_FATAL, str);
+
 #include "sist.h"
 
 void sist_logf(const char *filepath, int level, char *format, ...);

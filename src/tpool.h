@@ -18,7 +18,7 @@ typedef struct {
 
 typedef void (*thread_func_t)(tpool_work_arg_shm_t *arg);
 
-tpool_t *tpool_create(int num, void (*cleanup_func)(), int print_progress, size_t mem_limit);
+tpool_t *tpool_create(int num, void (*cleanup_func)(), int print_progress);
 
 void tpool_start(tpool_t *pool);
 

@@ -34,8 +34,7 @@ store_t *store_create(const char *path, size_t chunk_size) {
 #if (SIST_FAKE_STORE != 1)
     store->chunk_size = chunk_size;
 
-    store->shared_memory = mmap(NULL, sizeof(*store->shm), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    store->shm = store->shared_memory;
+    store->shm = mmap(NULL, sizeof(*store->shm), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
     open_env(path, &env, &dbi);
 
@@ -53,7 +52,7 @@ void store_destroy(store_t *store) {
 
     LOG_DEBUG("store.c", "store_destroy()")
 #if (SIST_FAKE_STORE != 1)
-    munmap(store->shared_memory, sizeof(*store->shm));
+    munmap(store->shm, sizeof(*store->shm));
 
     mdb_dbi_close(store->proc.env, store->proc.dbi);
     mdb_env_close(store->proc.env);

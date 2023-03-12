@@ -37,12 +37,12 @@ sist2 (Simple incremental search tool)
     1. Download [from official website](https://www.elastic.co/downloads/elasticsearch)
     1. *(or)* Run using docker:
         ```bash
-        docker run -d -p 9200:9200 -e "discovery.type=single-node" elasticsearch:7.14.0
+        docker run -d -p 9200:9200 -e "discovery.type=single-node" elasticsearch:7.17.9
         ```
     1. *(or)* Run using docker-compose:
         ```yaml
           elasticsearch:
-            image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
+            image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
             environment:
               - discovery.type=single-node
               - "ES_JAVA_OPTS=-Xms1G -Xmx2G"

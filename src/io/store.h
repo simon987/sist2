@@ -14,7 +14,6 @@
 typedef struct store_t {
     char path[PATH_MAX];
     size_t chunk_size;
-    void *shared_memory;
 
     struct {
         MDB_dbi dbi;

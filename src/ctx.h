@@ -35,7 +35,6 @@ typedef struct {
     int threads;
     int depth;
     int calculate_checksums;
-    size_t mem_limit;
 
     size_t stat_tn_size;
     size_t stat_index_size;

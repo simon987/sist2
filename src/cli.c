@@ -273,10 +273,6 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->max_memory_buffer_mib = DEFAULT_MAX_MEM_BUFFER;
     }
 
-    if (args->scan_mem_limit_mib == OPTION_VALUE_UNSPECIFIED || args->scan_mem_limit_mib == OPTION_VALUE_DISABLE) {
-        args->scan_mem_limit_mib = DEFAULT_THROTTLE_MEMORY_THRESHOLD;
-    }
-
     if (args->list_path != OPTION_VALUE_UNSPECIFIED) {
         if (strcmp(args->list_path, "-") == 0) {
             args->list_file = stdin;

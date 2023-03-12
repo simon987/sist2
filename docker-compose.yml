@@ -2,7 +2,7 @@ version: "3"
 
 services:
   elasticsearch:
-    image: elasticsearch:7.14.0
+    image: elasticsearch:7.17.9
     container_name: sist2-es
     environment:
       - "discovery.type=single-node"
@@ -15,9 +15,9 @@ services:
       - /mnt/array/sist2-admin-data/:/sist2-admin/
       - /:/host
     ports:
+      - 4090:4090
       # NOTE: Don't export this port publicly!
       - 8080:8080
-      - 4090:4090
     working_dir: /root/sist2-admin/
     entrypoint: python3
     command:

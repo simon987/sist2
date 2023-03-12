@@ -17,6 +17,7 @@
 
 #include <signal.h>
 #include <unistd.h>
+#include <sys/mman.h>
 
 #include "stats.h"
 
@@ -268,7 +269,6 @@ void initialize_scan_context(scan_args_t *args) {
 
     ScanCtx.threads = args->threads;
     ScanCtx.depth = args->depth;
-    ScanCtx.mem_limit = (size_t) args->scan_mem_limit_mib * 1024 * 1024;
 
     strncpy(ScanCtx.index.path, args->output, sizeof(ScanCtx.index.path));
     strncpy(ScanCtx.index.desc.name, args->name, sizeof(ScanCtx.index.desc.name));
@@ -406,10 +406,10 @@ void sist2_scan(scan_args_t *args) {
         load_incremental_index(args);
     }
 
-    ScanCtx.writer_pool = tpool_create(1, writer_cleanup, FALSE, 0);
+    ScanCtx.writer_pool = tpool_create(1, writer_cleanup, FALSE);
     tpool_start(ScanCtx.writer_pool);
 
-    ScanCtx.pool = tpool_create(ScanCtx.threads, thread_cleanup, TRUE, ScanCtx.mem_limit);
+    ScanCtx.pool = tpool_create(ScanCtx.threads, thread_cleanup, TRUE);
     tpool_start(ScanCtx.pool);
 
     if (args->list_path) {
@@ -493,7 +493,7 @@ void sist2_index(index_args_t *args) {
         f = index_json;
     }
 
-    IndexCtx.pool = tpool_create(args->threads, elastic_cleanup, args->print == 0, 0);
+    IndexCtx.pool = tpool_create(args->threads, elastic_cleanup, args->print == 0);
     tpool_start(IndexCtx.pool);
 
     READ_INDICES(file_path, args->index_path, {
@@ -644,9 +644,6 @@ int main(int argc, const char *argv[]) {
 
             OPT_GROUP("Scan options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
-            OPT_INTEGER(0, "mem-throttle", &scan_args->scan_mem_limit_mib,
-                        "Total memory threshold in MiB for scan throttling. DEFAULT=0",
-                        set_to_negative_if_value_is_zero, (intptr_t) &scan_args->scan_mem_limit_mib),
             OPT_INTEGER('q', "thumbnail-quality", &scan_args->tn_quality,
                       "Thumbnail quality, on a scale of 2 to 31, 2 being the best. DEFAULT=2",
                       set_to_negative_if_value_is_zero, (intptr_t) &scan_args->tn_quality),

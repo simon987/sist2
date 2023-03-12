@@ -65,7 +65,7 @@ void print_json(cJSON *document, const char id_str[SIST_DOC_ID_LEN]) {
 }
 
 void index_json_func(tpool_work_arg_shm_t *arg) {
-    // Copy arg to heap because it's going to be free immediately after this function returns
+    // Copy arg to heap because it's going to be freed immediately after this function returns
     es_bulk_line_t *line = malloc(arg->arg_size);
     memcpy(line, arg->arg, arg->arg_size);
 
