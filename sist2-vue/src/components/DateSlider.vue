@@ -70,21 +70,37 @@ export default {
           return;
         }
 
-        const dateMax = this.$store.state.dateBoundsMax;
-        const dateMin = this.$store.state.dateBoundsMin;
+        // Compute slider bound dates (seconds since EPOCH)
+        let bDateMin = this.$store.state.dateBoundsMin;
+        let bDateMax = this.$store.state.dateBoundsMax;
+        if (!bDateMin || !bDateMax || bDateMax <= bDateMin) {
+          // if initialization of $store.state values outside this function failed
+          let today = new Date()
+          let todayP1 = new Date();
+          todayP1.setFullYear(today.getFullYear()+1);
+          let todayM20 = new Date()
+          todayM20.setFullYear(today.getFullYear()-20);
+          bDateMax = todayP1.getTime()/1000; // today plus 1 year
+          bDateMin = todayM20.getTime()/1000; // today minus 20 year
+        }
+
+        // Compute initail slider dates (seconds since EPOCH)
+        let cDateMin = this.$store.state.dateMin ? this.$store.state.dateMin : bDateMin;
+        let cDateMax = this.$store.state.dateMax ? this.$store.state.dateMax : bDateMax;
+        if (cDateMax <= cDateMin) {
+          // if initialization out of $store.state values outside this function failed
+          cDateMin = bDateMin;
+          cDateMax = bDateMax;
+        }
 
         const slider = noUiSlider.create(elem, {
-          start: [
-            this.$store.state.dateMin ? this.$store.state.dateMin : dateMin,
-            this.$store.state.dateMax ? this.$store.state.dateMax : dateMax
-          ],
-
+          start: [ cDateMin, cDateMax],
           tooltips: [true, true],
           behaviour: "drag-tap",
           connect: true,
           range: {
-            "min": dateMin,
-            "max": dateMax,
+            "min": bDateMin,
+            "max": bDateMax,
           },
           format: {
             to: x => humanDate(x),
@@ -98,9 +114,9 @@ export default {
 
         slider.on("set", (values, handle, unencoded) => {
           if (handle === 0) {
-            this.$store.commit("setDateMin", unencoded[0] === dateMin ? undefined : Math.round(unencoded[0]));
+            this.$store.commit("setDateMin", unencoded[0] === bDateMin ? undefined : Math.round(unencoded[0]));
           } else {
-            this.$store.commit("setDateMax", unencoded[1] >= dateMax ? undefined : Math.round(unencoded[1]));
+            this.$store.commit("setDateMax", unencoded[1] >= bDateMax ? undefined : Math.round(unencoded[1]));
           }
         });
       }
