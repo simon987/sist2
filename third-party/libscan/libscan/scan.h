@@ -6,6 +6,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
@@ -16,7 +17,7 @@
 
 #define UNUSED(x) __attribute__((__unused__))  x
 
-typedef void (*store_callback_t)(char *key, size_t key_len, char *buf, size_t buf_len);
+typedef void (*store_callback_t)(char *key, int num, void *buf, size_t buf_len);
 
 typedef void (*logf_callback_t)(const char *filepath, int level, char *format, ...);
 
@@ -111,8 +112,8 @@ typedef struct document {
     unsigned long size;
     unsigned int mime;
     int mtime;
-    short base;
-    short ext;
+    int base;
+    int ext;
     meta_line_t *meta_head;
     meta_line_t *meta_tail;
     char filepath[PATH_MAX * 2 + 1];
@@ -144,7 +145,6 @@ typedef struct vfile {
 
     int mtime;
     size_t st_size;
-    unsigned int st_mode;
 
     SHA_CTX sha1_ctx;
     unsigned char sha1_digest[SHA1_DIGEST_LENGTH];
@@ -161,7 +161,7 @@ typedef struct vfile {
     logf_callback_t logf;
 } vfile_t;
 
-typedef struct parse_job_t {
+typedef struct {
     int base;
     int ext;
     struct vfile vfile;

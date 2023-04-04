@@ -97,7 +97,6 @@ find_package(LibLZMA REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(unofficial-pcre CONFIG REQUIRED)
 
-
 find_library(JBIG2DEC_LIB NAMES jbig2decd jbig2dec)
 find_library(HARFBUZZ_LIB NAMES harfbuzz harfbuzzd)
 find_library(FREETYPE_LIB NAMES freetype freetyped)
@@ -110,6 +109,7 @@ find_library(CMS_LIB NAMES lcms2)
 find_library(JAS_LIB NAMES jasper)
 find_library(GUMBO_LIB NAMES gumbo)
 find_library(GOMP_LIB NAMES libgomp.a gomp PATHS /usr/lib/gcc/x86_64-linux-gnu/11/ /usr/lib/gcc/x86_64-linux-gnu/5/ /usr/lib/gcc/x86_64-linux-gnu/9/ /usr/lib/gcc/x86_64-linux-gnu/10/ /usr/lib/gcc/aarch64-linux-gnu/7/ /usr/lib/gcc/aarch64-linux-gnu/9/ /usr/lib/gcc/x86_64-linux-gnu/7/)
+find_package(Leptonica CONFIG REQUIRED)
 
 
 target_compile_options(
@@ -231,6 +231,7 @@ target_link_libraries(
         antiword
         mobi
         unofficial::pcre::pcre unofficial::pcre::pcre16 unofficial::pcre::pcre32 unofficial::pcre::pcrecpp
+        leptonica
 )
 
 target_include_directories(

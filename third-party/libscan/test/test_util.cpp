@@ -55,7 +55,6 @@ void load_file(const char *filepath, vfile_t *f) {
 
     f->mtime = (int)info.st_mtim.tv_sec;
     f->st_size = info.st_size;
-    f->st_mode = info.st_mode;
 
     f->fd = open(filepath, O_RDONLY);
 

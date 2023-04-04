@@ -468,8 +468,7 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
     if (scaled_frame == STORE_AS_IS) {
         return_value = SAVE_THUMBNAIL_OK;
 
-        ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), (char *) frame_and_packet->packet->data,
-                   frame_and_packet->packet->size);
+        ctx->store(doc->doc_id, 0, frame_and_packet->packet->data, frame_and_packet->packet->size);
     } else {
         // Encode frame to jpeg
         AVCodecContext *jpeg_encoder = alloc_jpeg_encoder(scaled_frame->width, scaled_frame->height,
@@ -482,19 +481,17 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
 
         // Save thumbnail
         if (thumbnail_index == 0) {
-            ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), (char *) jpeg_packet.data, jpeg_packet.size);
+            ctx->store(doc->doc_id, 0, jpeg_packet.data, jpeg_packet.size);
             return_value = SAVE_THUMBNAIL_OK;
 
         } else if (thumbnail_index > 1) {
-            return_value = SAVE_THUMBNAIL_OK;
             // TO FIX: the 2nd rendered frame is always broken, just skip it until
             //  I figure out a better fix.
             thumbnail_index -= 1;
 
-            char tn_key[sizeof(doc->doc_id) + sizeof(char) * 4];
-            snprintf(tn_key, sizeof(tn_key), "%s%04d", doc->doc_id, thumbnail_index);
+            ctx->store(doc->doc_id, thumbnail_index, jpeg_packet.data, jpeg_packet.size);
 
-            ctx->store((char *) tn_key, sizeof(tn_key), (char *) jpeg_packet.data, jpeg_packet.size);
+            return_value = SAVE_THUMBNAIL_OK;
         } else {
             return_value = SAVE_THUMBNAIL_SKIPPED;
         }
@@ -854,8 +851,7 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
 
     if (scaled_frame == STORE_AS_IS) {
         APPEND_LONG_META(doc, MetaThumbnail, 1)
-        ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), (char *) frame_and_packet->packet->data,
-                   frame_and_packet->packet->size);
+        ctx->store(doc->doc_id, 0, frame_and_packet->packet->data, frame_and_packet->packet->size);
     } else {
         // Encode frame to jpeg
         AVCodecContext *jpeg_encoder = alloc_jpeg_encoder(scaled_frame->width, scaled_frame->height,
@@ -868,7 +864,7 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
 
         // Save thumbnail
         APPEND_LONG_META(doc, MetaThumbnail, 1)
-        ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), (char *) jpeg_packet.data, jpeg_packet.size);
+        ctx->store(doc->doc_id, 0, jpeg_packet.data, jpeg_packet.size);
 
         av_packet_unref(&jpeg_packet);
         avcodec_free_context(&jpeg_encoder);

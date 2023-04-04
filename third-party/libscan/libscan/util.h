@@ -358,4 +358,37 @@ static void safe_sha1_update(SHA_CTX *ctx, void *buf, size_t size) {
     }
 }
 
+static parse_job_t *create_parse_job(const char *filepath, int mtime, size_t st_size) {
+    parse_job_t *job = (parse_job_t *) malloc(sizeof(parse_job_t));
+
+    job->parent[0] = '\0';
+
+    strcpy(job->filepath, filepath);
+    strcpy(job->vfile.filepath, filepath);
+    job->vfile.st_size = st_size;
+    job->vfile.mtime = mtime;
+
+    const char *slash = strrchr(filepath, '/');
+    if (slash == NULL) {
+        job->base = 0;
+    } else {
+        job->base = (int) (slash - filepath + 1);
+    }
+
+    const char *dot = strrchr(filepath + job->base, '.');
+    if (dot == NULL) {
+        job->ext = (int) strlen(filepath);
+    } else {
+        job->ext = (int) (dot - filepath + 1);
+    }
+
+    job->vfile.fd = -1;
+    job->vfile.is_fs_file = TRUE;
+    job->vfile.has_checksum = FALSE;
+    job->vfile.rewind_buffer_size = 0;
+    job->vfile.rewind_buffer = NULL;
+
+    return job;
+}
+
 #endif

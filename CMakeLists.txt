@@ -22,38 +22,39 @@ set(ARGPARSE_SHARED off)
 add_subdirectory(third-party/argparse)
 
 add_executable(sist2
+        # argparse
+        third-party/argparse/argparse.h third-party/argparse/argparse.c
+
         src/main.c
         src/sist.h
         src/io/walk.h src/io/walk.c
-        src/io/store.h src/io/store.c
         src/tpool.h src/tpool.c
         src/parsing/parse.h src/parsing/parse.c
+        src/parsing/magic_util.c src/parsing/magic_util.h
         src/io/serialize.h src/io/serialize.c
         src/parsing/mime.h src/parsing/mime.c src/parsing/mime_generated.c
         src/index/web.c src/index/web.h
         src/web/serve.c src/web/serve.h
+        src/web/web_util.c src/web/web_util.h
         src/index/elastic.c src/index/elastic.h
         src/util.c src/util.h
-        src/ctx.h src/types.h
+        src/ctx.c src/ctx.h
+        src/types.h
         src/log.c src/log.h
         src/cli.c src/cli.h
-        src/stats.c src/stats.h src/ctx.c
         src/parsing/sidecar.c src/parsing/sidecar.h
-        src/mempool/mempool.c src/mempool/mempool.h
+        src/database/database.c src/database/database.h
+        src/parsing/fs_util.h
 
         src/auth0/auth0_c_api.h src/auth0/auth0_c_api.cpp
 
-        # argparse
-        third-party/argparse/argparse.h third-party/argparse/argparse.c
-        )
+        src/database/database_stats.c src/database/database_stats.h src/database/database_schema.c)
 set_target_properties(sist2 PROPERTIES LINKER_LANGUAGE C)
 
 target_link_directories(sist2 PRIVATE BEFORE ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/)
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
 
 find_package(PkgConfig REQUIRED)
-
-pkg_search_module(GLIB REQUIRED glib-2.0)
 
 find_package(lmdb CONFIG REQUIRED)
 find_package(cJSON CONFIG REQUIRED)
@@ -63,6 +64,7 @@ find_library(MAGIC_LIB
         NAMES libmagic.so.1 magic
         PATHS /usr/lib/x86_64-linux-gnu/ /usr/lib/aarch64-linux-gnu/
 )
+find_package(unofficial-sqlite3 CONFIG REQUIRED)
 
 
 target_include_directories(
@@ -71,7 +73,6 @@ target_include_directories(
         ${CMAKE_SOURCE_DIR}/third-party/utf8.h/
         ${CMAKE_SOURCE_DIR}/third-party/libscan/
         ${CMAKE_SOURCE_DIR}/
-        ${GLIB_INCLUDE_DIRS}
 )
 
 target_compile_options(
@@ -90,6 +91,7 @@ if (SIST_DEBUG)
             -fsanitize=address
             -fno-inline
 #            -O2
+            -w
     )
     target_link_options(
             sist2
@@ -121,6 +123,7 @@ else ()
             -Ofast
             -fno-stack-protector
             -fomit-frame-pointer
+            -w
     )
 endif ()
 
@@ -137,17 +140,15 @@ target_link_libraries(
         lmdb
         cjson
         argparse
-        ${GLIB_LDFLAGS}
         unofficial::mongoose::mongoose
         CURL::libcurl
 
         pthread
 
-        c
-
         scan
 
         ${MAGIC_LIB}
+        unofficial::sqlite3::sqlite3
 )
 
 add_custom_target(

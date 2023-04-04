@@ -13,7 +13,7 @@ typedef struct scan_args {
     int tn_size;
     int content_size;
     int threads;
-    char *incremental;
+    int incremental;
     char *output;
     char *rewrite_url;
     char *name;

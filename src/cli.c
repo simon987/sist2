@@ -2,16 +2,17 @@
 #include "ctx.h"
 #include <tesseract/capi.h>
 
-#define DEFAULT_OUTPUT "index.sist2/"
+#define DEFAULT_OUTPUT "index.sist2"
+#define DEFAULT_NAME "index"
 #define DEFAULT_CONTENT_SIZE 32768
 #define DEFAULT_QUALITY 2
-#define DEFAULT_THUMBNAIL_SIZE 500
+#define DEFAULT_THUMBNAIL_SIZE 552
 #define DEFAULT_THUMBNAIL_COUNT 1
 #define DEFAULT_REWRITE_URL ""
 
 #define DEFAULT_ES_URL "http://localhost:9200"
 #define DEFAULT_ES_INDEX "sist2"
-#define DEFAULT_BATCH_SIZE 100
+#define DEFAULT_BATCH_SIZE 70
 #define DEFAULT_TAGLINE "Lightning-fast file system indexer and search tool"
 #define DEFAULT_LANG "en"
 
@@ -19,8 +20,6 @@
 #define DEFAULT_TREEMAP_THRESHOLD 0.0005
 
 #define DEFAULT_MAX_MEM_BUFFER 2000
-
-#define DEFAULT_THROTTLE_MEMORY_THRESHOLD 0
 
 const char *TESS_DATAPATHS[] = {
         "/usr/share/tessdata/",
@@ -48,9 +47,6 @@ void scan_args_destroy(scan_args_t *args) {
     if (args->name != NULL) {
         free(args->name);
     }
-    if (args->incremental != NULL) {
-        free(args->incremental);
-    }
     if (args->path != NULL) {
         free(args->path);
     }
@@ -61,7 +57,6 @@ void scan_args_destroy(scan_args_t *args) {
 }
 
 void index_args_destroy(index_args_t *args) {
-    //todo
     if (args->es_mappings_path) {
         free(args->es_mappings);
     }
@@ -76,7 +71,6 @@ void index_args_destroy(index_args_t *args) {
 }
 
 void web_args_destroy(web_args_t *args) {
-    //todo
     free(args);
 }
 
@@ -97,17 +91,11 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
     char *abs_path = abspath(argv[1]);
     if (abs_path == NULL) {
-        LOG_FATALF("cli.c", "Invalid PATH argument. File not found: %s", argv[1])
+        LOG_FATALF("cli.c", "Invalid PATH argument. File not found: %s", argv[1]);
     } else {
+        abs_path = realloc(abs_path, strlen(abs_path) + 2);
+        strcat(abs_path, "/");
         args->path = abs_path;
-    }
-
-    if (args->incremental != OPTION_VALUE_UNSPECIFIED) {
-        args->incremental = abspath(args->incremental);
-        if (abs_path == NULL) {
-            sist_log("main.c", LOG_SIST_WARNING, "Could not open original index! Disabled incremental scan feature.");
-            args->incremental = NULL;
-        }
     }
 
     if (args->tn_quality == OPTION_VALUE_UNSPECIFIED) {
@@ -152,20 +140,24 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         args->output = expandpath(args->output);
     }
 
-    int ret = mkdir(args->output, S_IRUSR | S_IWUSR | S_IXUSR);
-    if (ret != 0) {
-        fprintf(stderr, "Invalid output: '%s' (%s).\n", args->output, strerror(errno));
-        return 1;
+    char *abs_output = abspath(args->output);
+    if (args->incremental && abs_output == NULL) {
+        LOG_WARNINGF("main.c", "Could not open original index for incremental scan: %s. Will not perform incremental scan.", abs_output);
+        args->incremental = FALSE;
+    } else if (!args->incremental && abs_output != NULL) {
+        LOG_FATALF("main.c", "Index already exists: %s. If you wish to perform incremental scan, you must specify --incremental", abs_output);
     }
+    free(abs_output);
 
     if (args->depth <= 0) {
-        args->depth = G_MAXINT32;
+        args->depth = 2147483647;
     } else {
         args->depth += 1;
     }
 
     if (args->name == OPTION_VALUE_UNSPECIFIED) {
-        args->name = g_path_get_basename(args->output);
+        args->name = malloc(strlen(DEFAULT_NAME) + 1);
+        strcpy(args->name, DEFAULT_NAME);
     } else {
         char *tmp = malloc(strlen(args->name) + 1);
         strcpy(tmp, args->name);
@@ -224,7 +216,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
             }
             if (trained_data_path != NULL && path != trained_data_path) {
                 LOG_FATAL("cli.c", "When specifying more than one tesseract language, all the traineddata "
-                                   "files must be in the same folder")
+                                   "files must be in the same folder");
             }
             trained_data_path = path;
 
@@ -232,7 +224,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         }
         free(lang);
 
-        ret = TessBaseAPIInit3(api, trained_data_path, args->tesseract_lang);
+        int ret = TessBaseAPIInit3(api, trained_data_path, args->tesseract_lang);
         if (ret != 0) {
             fprintf(stderr, "Could not initialize tesseract with lang '%s'\n", args->tesseract_lang);
             return 1;
@@ -249,12 +241,12 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
         pcre *re = pcre_compile(args->exclude_regex, 0, &error, &error_offset, 0);
         if (error != NULL) {
-            LOG_FATALF("cli.c", "pcre_compile returned error: %s (offset:%d)", error, error_offset)
+            LOG_FATALF("cli.c", "pcre_compile returned error: %s (offset:%d)", error, error_offset);
         }
 
         pcre_extra *re_extra = pcre_study(re, 0, &error);
         if (error != NULL) {
-            LOG_FATALF("cli.c", "pcre_study returned error: %s", error)
+            LOG_FATALF("cli.c", "pcre_study returned error: %s", error);
         }
 
         ScanCtx.exclude = re;
@@ -276,7 +268,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (args->list_path != OPTION_VALUE_UNSPECIFIED) {
         if (strcmp(args->list_path, "-") == 0) {
             args->list_file = stdin;
-            LOG_DEBUG("cli.c", "Using stdin as list file")
+            LOG_DEBUG("cli.c", "Using stdin as list file");
         } else {
             args->list_file = fopen(args->list_path, "r");
 
@@ -286,27 +278,27 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
         }
     }
 
-    LOG_DEBUGF("cli.c", "arg tn_quality=%f", args->tn_quality)
-    LOG_DEBUGF("cli.c", "arg tn_size=%d", args->tn_size)
-    LOG_DEBUGF("cli.c", "arg tn_count=%d", args->tn_count)
-    LOG_DEBUGF("cli.c", "arg content_size=%d", args->content_size)
-    LOG_DEBUGF("cli.c", "arg threads=%d", args->threads)
-    LOG_DEBUGF("cli.c", "arg incremental=%s", args->incremental)
-    LOG_DEBUGF("cli.c", "arg output=%s", args->output)
-    LOG_DEBUGF("cli.c", "arg rewrite_url=%s", args->rewrite_url)
-    LOG_DEBUGF("cli.c", "arg name=%s", args->name)
-    LOG_DEBUGF("cli.c", "arg depth=%d", args->depth)
-    LOG_DEBUGF("cli.c", "arg path=%s", args->path)
-    LOG_DEBUGF("cli.c", "arg archive=%s", args->archive)
-    LOG_DEBUGF("cli.c", "arg archive_passphrase=%s", args->archive_passphrase)
-    LOG_DEBUGF("cli.c", "arg tesseract_lang=%s", args->tesseract_lang)
-    LOG_DEBUGF("cli.c", "arg tesseract_path=%s", args->tesseract_path)
-    LOG_DEBUGF("cli.c", "arg exclude=%s", args->exclude_regex)
-    LOG_DEBUGF("cli.c", "arg fast=%d", args->fast)
-    LOG_DEBUGF("cli.c", "arg fast_epub=%d", args->fast_epub)
-    LOG_DEBUGF("cli.c", "arg treemap_threshold=%f", args->treemap_threshold)
-    LOG_DEBUGF("cli.c", "arg max_memory_buffer_mib=%d", args->max_memory_buffer_mib)
-    LOG_DEBUGF("cli.c", "arg list_path=%s", args->list_path)
+    LOG_DEBUGF("cli.c", "arg tn_quality=%f", args->tn_quality);
+    LOG_DEBUGF("cli.c", "arg tn_size=%d", args->tn_size);
+    LOG_DEBUGF("cli.c", "arg tn_count=%d", args->tn_count);
+    LOG_DEBUGF("cli.c", "arg content_size=%d", args->content_size);
+    LOG_DEBUGF("cli.c", "arg threads=%d", args->threads);
+    LOG_DEBUGF("cli.c", "arg incremental=%d", args->incremental);
+    LOG_DEBUGF("cli.c", "arg output=%s", args->output);
+    LOG_DEBUGF("cli.c", "arg rewrite_url=%s", args->rewrite_url);
+    LOG_DEBUGF("cli.c", "arg name=%s", args->name);
+    LOG_DEBUGF("cli.c", "arg depth=%d", args->depth);
+    LOG_DEBUGF("cli.c", "arg path=%s", args->path);
+    LOG_DEBUGF("cli.c", "arg archive=%s", args->archive);
+    LOG_DEBUGF("cli.c", "arg archive_passphrase=%s", args->archive_passphrase);
+    LOG_DEBUGF("cli.c", "arg tesseract_lang=%s", args->tesseract_lang);
+    LOG_DEBUGF("cli.c", "arg tesseract_path=%s", args->tesseract_path);
+    LOG_DEBUGF("cli.c", "arg exclude=%s", args->exclude_regex);
+    LOG_DEBUGF("cli.c", "arg fast=%d", args->fast);
+    LOG_DEBUGF("cli.c", "arg fast_epub=%d", args->fast_epub);
+    LOG_DEBUGF("cli.c", "arg treemap_threshold=%f", args->treemap_threshold);
+    LOG_DEBUGF("cli.c", "arg max_memory_buffer_mib=%d", args->max_memory_buffer_mib);
+    LOG_DEBUGF("cli.c", "arg list_path=%s", args->list_path);
 
     return 0;
 }
@@ -316,20 +308,20 @@ int load_external_file(const char *file_path, char **dst) {
     int res = stat(file_path, &info);
 
     if (res == -1) {
-        LOG_ERRORF("cli.c", "Error opening file '%s': %s\n", file_path, strerror(errno))
+        LOG_ERRORF("cli.c", "Error opening file '%s': %s\n", file_path, strerror(errno));
         return 1;
     }
 
     int fd = open(file_path, O_RDONLY);
     if (fd == -1) {
-        LOG_ERRORF("cli.c", "Error opening file '%s': %s\n", file_path, strerror(errno))
+        LOG_ERRORF("cli.c", "Error opening file '%s': %s\n", file_path, strerror(errno));
         return 1;
     }
 
     *dst = malloc(info.st_size + 1);
     res = read(fd, *dst, info.st_size);
     if (res < 0) {
-        LOG_ERRORF("cli.c", "Error reading file '%s': %s\n", file_path, strerror(errno))
+        LOG_ERRORF("cli.c", "Error reading file '%s': %s\n", file_path, strerror(errno));
         return 1;
     }
 
@@ -357,7 +349,7 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
 
     char *index_path = abspath(argv[1]);
     if (index_path == NULL) {
-        LOG_FATALF("cli.c", "Invalid PATH argument. File not found: %s", argv[1])
+        LOG_FATALF("cli.c", "Invalid PATH argument. File not found: %s", argv[1]);
     } else {
         args->index_path = index_path;
     }
@@ -392,28 +384,28 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
         args->batch_size = DEFAULT_BATCH_SIZE;
     }
 
-    LOG_DEBUGF("cli.c", "arg es_url=%s", args->es_url)
-    LOG_DEBUGF("cli.c", "arg es_index=%s", args->es_index)
-    LOG_DEBUGF("cli.c", "arg es_insecure_ssl=%d", args->es_insecure_ssl)
-    LOG_DEBUGF("cli.c", "arg index_path=%s", args->index_path)
-    LOG_DEBUGF("cli.c", "arg script_path=%s", args->script_path)
-    LOG_DEBUGF("cli.c", "arg async_script=%d", args->async_script)
+    LOG_DEBUGF("cli.c", "arg es_url=%s", args->es_url);
+    LOG_DEBUGF("cli.c", "arg es_index=%s", args->es_index);
+    LOG_DEBUGF("cli.c", "arg es_insecure_ssl=%d", args->es_insecure_ssl);
+    LOG_DEBUGF("cli.c", "arg index_path=%s", args->index_path);
+    LOG_DEBUGF("cli.c", "arg script_path=%s", args->script_path);
+    LOG_DEBUGF("cli.c", "arg async_script=%d", args->async_script);
 
     if (args->script) {
         char log_buf[5000];
 
         strncpy(log_buf, args->script, sizeof(log_buf));
         *(log_buf + sizeof(log_buf) - 1) = '\0';
-        LOG_DEBUGF("cli.c", "arg script=%s", log_buf)
+        LOG_DEBUGF("cli.c", "arg script=%s", log_buf);
     }
 
-    LOG_DEBUGF("cli.c", "arg print=%d", args->print)
-    LOG_DEBUGF("cli.c", "arg es_mappings_path=%s", args->es_mappings_path)
-    LOG_DEBUGF("cli.c", "arg es_mappings=%s", args->es_mappings)
-    LOG_DEBUGF("cli.c", "arg es_settings_path=%s", args->es_settings_path)
-    LOG_DEBUGF("cli.c", "arg es_settings=%s", args->es_settings)
-    LOG_DEBUGF("cli.c", "arg batch_size=%d", args->batch_size)
-    LOG_DEBUGF("cli.c", "arg force_reset=%d", args->force_reset)
+    LOG_DEBUGF("cli.c", "arg print=%d", args->print);
+    LOG_DEBUGF("cli.c", "arg es_mappings_path=%s", args->es_mappings_path);
+    LOG_DEBUGF("cli.c", "arg es_mappings=%s", args->es_mappings);
+    LOG_DEBUGF("cli.c", "arg es_settings_path=%s", args->es_settings_path);
+    LOG_DEBUGF("cli.c", "arg es_settings=%s", args->es_settings);
+    LOG_DEBUGF("cli.c", "arg batch_size=%d", args->batch_size);
+    LOG_DEBUGF("cli.c", "arg force_reset=%d", args->force_reset);
 
     return 0;
 }
@@ -534,23 +526,24 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     for (int i = 0; i < args->index_count; i++) {
         char *abs_path = abspath(args->indices[i]);
         if (abs_path == NULL) {
-            LOG_FATALF("cli.c", "Index not found: %s", args->indices[i])
+            LOG_FATALF("cli.c", "Index not found: %s", args->indices[i]);
         }
+        free(abs_path);
     }
 
-    LOG_DEBUGF("cli.c", "arg es_url=%s", args->es_url)
-    LOG_DEBUGF("cli.c", "arg es_index=%s", args->es_index)
-    LOG_DEBUGF("cli.c", "arg es_insecure_ssl=%d", args->es_insecure_ssl)
-    LOG_DEBUGF("cli.c", "arg tagline=%s", args->tagline)
-    LOG_DEBUGF("cli.c", "arg dev=%d", args->dev)
-    LOG_DEBUGF("cli.c", "arg listen=%s", args->listen_address)
-    LOG_DEBUGF("cli.c", "arg credentials=%s", args->credentials)
-    LOG_DEBUGF("cli.c", "arg tag_credentials=%s", args->tag_credentials)
-    LOG_DEBUGF("cli.c", "arg auth_user=%s", args->auth_user)
-    LOG_DEBUGF("cli.c", "arg auth_pass=%s", args->auth_pass)
-    LOG_DEBUGF("cli.c", "arg index_count=%d", args->index_count)
+    LOG_DEBUGF("cli.c", "arg es_url=%s", args->es_url);
+    LOG_DEBUGF("cli.c", "arg es_index=%s", args->es_index);
+    LOG_DEBUGF("cli.c", "arg es_insecure_ssl=%d", args->es_insecure_ssl);
+    LOG_DEBUGF("cli.c", "arg tagline=%s", args->tagline);
+    LOG_DEBUGF("cli.c", "arg dev=%d", args->dev);
+    LOG_DEBUGF("cli.c", "arg listen=%s", args->listen_address);
+    LOG_DEBUGF("cli.c", "arg credentials=%s", args->credentials);
+    LOG_DEBUGF("cli.c", "arg tag_credentials=%s", args->tag_credentials);
+    LOG_DEBUGF("cli.c", "arg auth_user=%s", args->auth_user);
+    LOG_DEBUGF("cli.c", "arg auth_pass=%s", args->auth_pass);
+    LOG_DEBUGF("cli.c", "arg index_count=%d", args->index_count);
     for (int i = 0; i < args->index_count; i++) {
-        LOG_DEBUGF("cli.c", "arg indices[%d]=%s", i, args->indices[i])
+        LOG_DEBUGF("cli.c", "arg indices[%d]=%s", i, args->indices[i]);
     }
 
     return 0;
@@ -575,7 +568,7 @@ int exec_args_validate(exec_args_t *args, int argc, const char **argv) {
 
     char *index_path = abspath(argv[1]);
     if (index_path == NULL) {
-        LOG_FATALF("cli.c", "Invalid index PATH argument. File not found: %s", argv[1])
+        LOG_FATALF("cli.c", "Invalid index PATH argument. File not found: %s", argv[1]);
     } else {
         args->index_path = index_path;
     }
@@ -596,12 +589,12 @@ int exec_args_validate(exec_args_t *args, int argc, const char **argv) {
         return 1;
     }
 
-    LOG_DEBUGF("cli.c", "arg script_path=%s", args->script_path)
+    LOG_DEBUGF("cli.c", "arg script_path=%s", args->script_path);
 
     char log_buf[5000];
     strncpy(log_buf, args->script, sizeof(log_buf));
     *(log_buf + sizeof(log_buf) - 1) = '\0';
-    LOG_DEBUGF("cli.c", "arg script=%s", log_buf)
+    LOG_DEBUGF("cli.c", "arg script=%s", log_buf);
 
     return 0;
 }

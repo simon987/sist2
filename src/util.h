@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <glib.h>
-
 #include "third-party/utf8.h/utf8.h"
 #include "libscan/scan.h"
 
@@ -21,9 +19,6 @@ extern int PrintingProgressBar;
 
 void progress_bar_print_json(size_t done, size_t count,  size_t tn_size, size_t index_size, int waiting);
 void progress_bar_print(double percentage, size_t tn_size, size_t index_size);
-
-GHashTable *incremental_get_table();
-
 
 const char *find_file_in_paths(const char **paths, const char *filename);
 
@@ -100,31 +95,23 @@ static void generate_doc_id(const char *rel_path, char *doc_id) {
     buf2hex(md, sizeof(md), doc_id);
 }
 
-__always_inline
-static void incremental_put(GHashTable *table, const char doc_id[SIST_DOC_ID_LEN], int mtime) {
-    char *ptr = malloc(SIST_DOC_ID_LEN);
-    strcpy(ptr, doc_id);
-    g_hash_table_insert(table, ptr, GINT_TO_POINTER(mtime));
-}
+#define MILLISECOND 1000
 
-__always_inline
-static int incremental_get(GHashTable *table, const char doc_id[SIST_DOC_ID_LEN]) {
-    if (table != NULL) {
-        return GPOINTER_TO_INT(g_hash_table_lookup(table, doc_id));
-    } else {
-        return 0;
-    }
-}
+struct timespec timespec_add(struct timespec ts1, long usec);
 
-/**
- * Marks a file by adding it to a table.
- * !!Not thread safe.
- */
-__always_inline
-static int incremental_mark_file(GHashTable *table, const char doc_id[SIST_DOC_ID_LEN]) {
-    char *ptr = malloc(SIST_DOC_ID_LEN);
-    strcpy(ptr, doc_id);
-    return g_hash_table_insert(table, ptr, GINT_TO_POINTER(1));
-}
+#define TIMER_INIT() struct timespec timer_begin
+#define TIMER_START() clock_gettime(CLOCK_REALTIME, &timer_begin)
+#define TIMER_END(x) do { \
+    struct timespec timer_end;                   \
+    clock_gettime(CLOCK_REALTIME, &timer_end);   \
+    x = (timer_end.tv_sec - timer_begin.tv_sec) * 1000000 + (timer_end.tv_nsec - timer_begin.tv_nsec) / 1000; \
+} while (0)
+
+#define pthread_cond_timedwait_ms(cond, mutex, delay_ms) do {\
+        struct timespec now; \
+        clock_gettime(CLOCK_REALTIME, &now); \
+        struct timespec end_time = timespec_add(now, MILLISECOND * delay_ms); \
+        pthread_cond_timedwait(cond, mutex, &end_time); \
+    } while (0)
 
 #endif

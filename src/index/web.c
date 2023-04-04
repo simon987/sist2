@@ -65,7 +65,7 @@ void web_post_async_poll(subreq_ctx_t *req) {
         curl_easy_getinfo(req->handle, CURLINFO_RESPONSE_CODE, &req->response->status_code);
 
         if (req->response->status_code == 0) {
-            LOG_ERRORF("web.c", "CURL Error: %s", req->curl_err_buffer)
+            LOG_ERRORF("web.c", "CURL Error: %s", req->curl_err_buffer);
         }
 
         curl_multi_cleanup(req->multi);
@@ -104,7 +104,7 @@ subreq_ctx_t *web_post_async(const char *url, char *data, int insecure) {
     curl_multi_add_handle(req->multi, curl);
     curl_multi_perform(req->multi, &req->running_handles);
 
-    LOG_DEBUGF("web.c", "async request POST %s", url)
+    LOG_DEBUGF("web.c", "async request POST %s", url);
 
     return req;
 }
@@ -136,7 +136,7 @@ response_t *web_get(const char *url, int timeout, int insecure) {
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &resp->status_code);
 
     if (resp->status_code == 0) {
-        LOG_ERRORF("web.c", "CURL Error: %s", err_buffer)
+        LOG_ERRORF("web.c", "CURL Error: %s", err_buffer);
     }
 
     curl_easy_cleanup(curl);
@@ -180,7 +180,7 @@ response_t *web_post(const char *url, const char *data, int insecure) {
     resp->size = buffer.cur;
 
     if (resp->status_code == 0) {
-        LOG_ERRORF("web.c", "CURL Error: %s", err_buffer)
+        LOG_ERRORF("web.c", "CURL Error: %s", err_buffer);
     }
 
     curl_easy_cleanup(curl);

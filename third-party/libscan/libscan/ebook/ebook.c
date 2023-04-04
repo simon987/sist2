@@ -162,7 +162,7 @@ int render_cover(scan_ebook_ctx_t *ctx, fz_context *fzctx, document_t *doc, fz_d
     avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
 
     APPEND_LONG_META(doc, MetaThumbnail, 1)
-    ctx->store(doc->doc_id, sizeof(doc->doc_id), (char *) jpeg_packet.data, jpeg_packet.size);
+    ctx->store(doc->doc_id, 0, (char *) jpeg_packet.data, jpeg_packet.size);
 
     free(samples);
     av_packet_unref(&jpeg_packet);

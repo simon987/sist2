@@ -1,12 +1,13 @@
 #ifndef SIST2_AUTH0_C_API_H
 #define SIST2_AUTH0_C_API_H
 
-#include "stdlib.h"
 
 #ifdef __cplusplus
 #define EXTERNC extern "C"
+#include "cstdlib"
 #else
 #define EXTERNC
+#include "stdlib.h"
 #endif
 
 #define AUTH0_OK (0)
