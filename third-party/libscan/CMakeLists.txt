@@ -78,6 +78,7 @@ else()
             -fno-stack-protector
             -fomit-frame-pointer
             #-freciprocal-math
+            -w
     )
 endif()
 
@@ -99,17 +100,17 @@ find_package(unofficial-pcre CONFIG REQUIRED)
 
 find_library(JBIG2DEC_LIB NAMES jbig2decd jbig2dec)
 find_library(HARFBUZZ_LIB NAMES harfbuzz harfbuzzd)
-find_library(FREETYPE_LIB NAMES freetype freetyped)
-find_package(unofficial-brotli CONFIG REQUIRED)
 find_library(LZO2_LIB NAMES lzo2)
 
-find_library(RAW_LIB NAMES libraw.a)
 find_library(MUPDF_LIB NAMES liblibmupdf.a)
 find_library(CMS_LIB NAMES lcms2)
 find_library(JAS_LIB NAMES jasper)
 find_library(GUMBO_LIB NAMES gumbo)
 find_library(GOMP_LIB NAMES libgomp.a gomp PATHS /usr/lib/gcc/x86_64-linux-gnu/11/ /usr/lib/gcc/x86_64-linux-gnu/5/ /usr/lib/gcc/x86_64-linux-gnu/9/ /usr/lib/gcc/x86_64-linux-gnu/10/ /usr/lib/gcc/aarch64-linux-gnu/7/ /usr/lib/gcc/aarch64-linux-gnu/9/ /usr/lib/gcc/x86_64-linux-gnu/7/)
 find_package(Leptonica CONFIG REQUIRED)
+find_package(FFMPEG REQUIRED)
+find_package(libraw CONFIG REQUIRED)
+find_package(Freetype REQUIRED)
 
 
 target_compile_options(
@@ -118,39 +119,7 @@ target_compile_options(
         -g
 )
 
-if (SIST_DEBUG)
-    SET(FFMPEG_DEBUG "--enable-debug=3" "--disable-optimizations")
-else()
-    SET(FFMPEG_DEBUG "")
-endif()
-
 include(ExternalProject)
-find_program(MAKE_EXE NAMES gmake nmake make)
-
-ExternalProject_Add(
-        ffmpeg
-        GIT_REPOSITORY https://git.ffmpeg.org/ffmpeg.git
-        GIT_TAG "n4.4"
-
-        UPDATE_COMMAND ""
-        PATCH_COMMAND ""
-        TEST_COMMAND ""
-        CONFIGURE_COMMAND ./configure --disable-shared --enable-static --disable-ffmpeg --disable-ffplay
-        --disable-ffprobe --disable-doc --disable-manpages --disable-postproc --disable-avfilter --disable-alsa
-        --disable-lzma --disable-xlib --disable-vdpau --disable-vaapi --disable-sdl2
-        --disable-network  ${FFMPEG_DEBUG}
-        INSTALL_COMMAND ""
-
-        PREFIX "third-party/ext_ffmpeg"
-        SOURCE_DIR "third-party/ext_ffmpeg/src/ffmpeg"
-        BINARY_DIR "third-party/ext_ffmpeg/src/ffmpeg"
-
-        BUILD_COMMAND ${MAKE_EXE} -j33 --silent
-)
-
-SET(FFMPEG_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/third-party/ext_ffmpeg/src/ffmpeg)
-SET(FFMPEG_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/third-party/ext_ffmpeg/src/ffmpeg)
-
 ExternalProject_Add(
         libwpd
         URL http://prdownloads.sourceforge.net/libwpd/libwpd-0.9.9.tar.gz
@@ -165,19 +134,20 @@ ExternalProject_Add(
         SOURCE_DIR "third-party/ext_libwpd/src/libwpd"
         BINARY_DIR "third-party/ext_libwpd/src/libwpd"
 
-        BUILD_COMMAND ${MAKE_EXE} -j33
+        BUILD_COMMAND make -j33
 )
 SET(WPD_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/third-party/ext_libwpd/src/libwpd/src/lib/.libs/)
 SET(WPD_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/third-party/ext_libwpd/src/libwpd/inc/)
 
 add_dependencies(
         scan
-        ffmpeg
         antiword
         libwpd
         mobi
 )
 
+
+target_link_directories(scan PUBLIC ${FFMPEG_LIBRARY_DIRS})
 target_link_libraries(
         scan
         PUBLIC
@@ -202,36 +172,26 @@ target_link_libraries(
 
         stdc++
 
-        -Wl,--whole-archive
-        m
-        -Wl,--no-whole-archive
-
         ${JPEG_LIBRARIES}
         ${Tesseract_LIBRARIES}
         ${LIBXML2_LIBRARIES}
-        ${FREETYPE_LIB}
-        unofficial::brotli::brotlidec-static
-
-        ${FFMPEG_LIB_DIR}/libavformat/libavformat.a
-        ${FFMPEG_LIB_DIR}/libavcodec/libavcodec.a
-        ${FFMPEG_LIB_DIR}/libavutil/libavutil.a
-        ${FFMPEG_LIB_DIR}/libswresample/libswresample.a
-        ${FFMPEG_LIB_DIR}/libswscale/libswscale.a
+        Freetype::Freetype
 
         z
 
         ${CMAKE_THREAD_LIBS_INIT}
 
-        ${RAW_LIB}
         ${GOMP_LIB}
         ${CMS_LIB}
         ${JAS_LIB}
         ${GUMBO_LIB}
-        dl
+
         antiword
         mobi
         unofficial::pcre::pcre unofficial::pcre::pcre16 unofficial::pcre::pcre32 unofficial::pcre::pcrecpp
         leptonica
+        libraw::raw
+        ${FFMPEG_LIBRARIES}
 )
 
 target_include_directories(
@@ -243,6 +203,7 @@ target_include_directories(
         ${FFMPEG_INCLUDE_DIR}
         ${MOBI_INCLUDE_DIR}
         ${WPD_INCLUDE_DIR}
+        ${FFMPEG_INCLUDE_DIRS}
 )
 
 if (BUILD_TESTS)

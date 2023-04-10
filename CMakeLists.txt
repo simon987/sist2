@@ -5,7 +5,6 @@ set(CMAKE_C_STANDARD 11)
 
 option(SIST_DEBUG "Build a debug executable" on)
 option(SIST_FAST "Enable more optimisation flags" off)
-option(SIST_FAKE_STORE "Disable IO operations of LMDB stores for debugging purposes" 0)
 
 add_compile_definitions(
         "SIST_PLATFORM=${SIST_PLATFORM}"
@@ -56,14 +55,10 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES .a .lib)
 
 find_package(PkgConfig REQUIRED)
 
-find_package(lmdb CONFIG REQUIRED)
 find_package(cJSON CONFIG REQUIRED)
 find_package(unofficial-mongoose CONFIG REQUIRED)
 find_package(CURL CONFIG REQUIRED)
-find_library(MAGIC_LIB
-        NAMES libmagic.so.1 magic
-        PATHS /usr/lib/x86_64-linux-gnu/ /usr/lib/aarch64-linux-gnu/
-)
+find_library(MAGIC_LIB NAMES libmagic.a REQUIRED)
 find_package(unofficial-sqlite3 CONFIG REQUIRED)
 
 
@@ -91,7 +86,6 @@ if (SIST_DEBUG)
             -fsanitize=address
             -fno-inline
 #            -O2
-            -w
     )
     target_link_options(
             sist2
@@ -137,8 +131,6 @@ target_link_libraries(
         sist2
 
         z
-        lmdb
-        cjson
         argparse
         unofficial::mongoose::mongoose
         CURL::libcurl
