@@ -251,7 +251,7 @@ def check_es_version(es_url: str, insecure: bool):
 
 
 def start_frontend_(frontend: Sist2Frontend):
-    frontend.web_options.indices = list(map(lambda j: db["jobs"][j].last_index, frontend.jobs))
+    frontend.web_options.indices = list(map(lambda j: db["jobs"][j].index_path, frontend.jobs))
 
     pid = sist2.web(frontend.web_options, frontend.name)
     RUNNING_FRONTENDS[frontend.name] = pid
@@ -378,6 +378,9 @@ if __name__ == '__main__':
     if db["sist2_admin"]["info"]["version"] == "1":
         logger.info("Migrating to v2 database schema")
         migrate_v1_to_v2(db)
+    if db["sist2_admin"]["info"]["version"] == "2":
+        logger.error("Cannot migrate database from v2 to v3. Delete state.db to proceed.")
+        exit(-1)
 
     start_frontends()
     cron.initialize(db, _run_job)

@@ -2,7 +2,6 @@ import datetime
 import json
 import logging
 import os.path
-import traceback
 from datetime import datetime
 from io import TextIOWrapper
 from logging import FileHandler
@@ -78,10 +77,10 @@ class IndexOptions(BaseModel):
     es_url: str = "http://elasticsearch:9200"
     es_insecure_ssl: bool = False
     es_index: str = "sist2"
-    incremental_index: bool = False
+    incremental_index: bool = True
     script: str = ""
     script_file: str = None
-    batch_size: int = 100
+    batch_size: int = 70
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -110,9 +109,8 @@ ARCHIVE_RECURSE = "recurse"
 class ScanOptions(BaseModel):
     path: str
     threads: int = 1
-    mem_throttle: int = 0
     thumbnail_quality: int = 2
-    thumbnail_size: int = 500
+    thumbnail_size: int = 552
     thumbnail_count: int = 1
     content_size: int = 32768
     depth: int = -1
@@ -128,7 +126,8 @@ class ScanOptions(BaseModel):
     read_subtitles: bool = False
     fast_epub: bool = False
     checksums: bool = False
-    incremental: str = None
+    incremental: bool = True
+    optimize_index: bool = False
     output: str = None
     name: str = None
     rewrite_url: str = None
@@ -138,14 +137,15 @@ class ScanOptions(BaseModel):
         super().__init__(**kwargs)
 
     def args(self):
-        args = ["scan", self.path, f"--threads={self.threads}", f"--mem-throttle={self.mem_throttle}",
-                f"--thumbnail-quality={self.thumbnail_quality}", f"--thumbnail-count={self.thumbnail_count}",
-                f"--thumbnail-size={self.thumbnail_size}", f"--content-size={self.content_size}",
-                f"--output={self.output}", f"--depth={self.depth}", f"--archive={self.archive}",
-                f"--mem-buffer={self.mem_buffer}"]
+        args = ["scan", self.path, f"--threads={self.threads}", f"--thumbnail-quality={self.thumbnail_quality}",
+                f"--thumbnail-count={self.thumbnail_count}", f"--thumbnail-size={self.thumbnail_size}",
+                f"--content-size={self.content_size}", f"--output={self.output}", f"--depth={self.depth}",
+                f"--archive={self.archive}", f"--mem-buffer={self.mem_buffer}"]
 
         if self.incremental:
-            args.append(f"--incremental={self.incremental}")
+            args.append(f"--incremental")
+        if self.optimize_index:
+            args.append(f"--optimize-index")
         if self.rewrite_url:
             args.append(f"--rewrite-url={self.rewrite_url}")
         if self.name:
@@ -235,11 +235,11 @@ class Sist2:
 
     def scan(self, options: ScanOptions, logs_cb, set_pid_cb):
 
-        output_dir = os.path.join(
-            self._data_dir,
-            f"scan-{options.name.replace('/', '_')}-{datetime.now()}.sist2"
-        )
-        options.output = output_dir
+        if options.output is None:
+            options.output = os.path.join(
+                self._data_dir,
+                f"scan-{options.name.replace('/', '_')}-{datetime.now()}.sist2"
+            )
 
         args = [
             self._bin_path,

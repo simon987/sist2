@@ -56,6 +56,10 @@ export default {
             tagline: "Tagline in navbar",
             auth: "Basic auth in user:password format",
             tagAuth: "Basic auth in user:password format for tagging",
+            auth0Audience: "Auth0 audience",
+            auth0Domain: "Auth0 domain",
+            auth0ClientId: "Auth0 client ID",
+            auth0PublicKey: "Auth0 public key",
         },
         scanOptions: {
             title: "Scanning options",
@@ -80,7 +84,8 @@ export default {
             checksums: "Calculate file checksums when scanning",
             readSubtitles: "Read subtitles from media files",
             memBuffer: "Maximum memory buffer size per thread in MiB for files inside archives",
-            treemapThreshold: "Relative size threshold for treemap"
+            treemapThreshold: "Relative size threshold for treemap",
+            optimizeIndex: "Defragment index file after scan to reduce its file size."
         },
         indexOptions: {
             title: "Indexing options",

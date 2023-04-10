@@ -75,7 +75,7 @@ export default {
       }
       return (this.currentThumbnailNum === 0)
           ? `t/${doc._source.index}/${doc._id}`
-          : `t/${doc._source.index}/${doc._id}${String(thumbnailNum).padStart(4, "0")}`;
+          : `t/${doc._source.index}/${doc._id}/${String(thumbnailNum).padStart(4, "0")}`;
     },
     humanTime: humanTime,
     onThumbnailClick() {

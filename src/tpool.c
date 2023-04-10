@@ -277,10 +277,6 @@ void tpool_destroy(tpool_t *pool) {
 
     database_close(ProcData.ipc_db, FALSE);
 
-    int count = 0;
-
-    LOG_DEBUGF("tpool.c", "Destroyed %d jobs", count);
-
     pthread_mutex_lock(&pool->shm->mutex);
     pthread_cond_broadcast(&pool->shm->ipc_ctx.has_work_cond);
     pthread_mutex_unlock(&pool->shm->mutex);

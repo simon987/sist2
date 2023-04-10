@@ -1,7 +1,6 @@
 #include "serve.h"
 
 #include "src/sist.h"
-//#include "src/io/store.h"
 #include "src/index/elastic.h"
 #include "src/index/web.h"
 #include "src/auth0/auth0_c_api.h"
@@ -145,7 +144,7 @@ void thumbnail_with_num(struct mg_connection *nc, struct mg_http_message *hm) {
     *(arg_index + SIST_INDEX_ID_LEN - 1) = '\0';
     memcpy(arg_doc_id, hm->uri.ptr + 3 + SIST_INDEX_ID_LEN, SIST_DOC_ID_LEN);
     *(arg_doc_id + SIST_DOC_ID_LEN - 1) = '\0';
-    memcpy(arg_num, hm->uri.ptr + SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 2, 4);
+    memcpy(arg_num, hm->uri.ptr + SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 3, 4);
 
     int num = (int) strtol(arg_num, NULL, 10);
 

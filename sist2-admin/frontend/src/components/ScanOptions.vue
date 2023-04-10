@@ -6,9 +6,6 @@
     <label>{{ $t("scanOptions.threads") }}</label>
     <b-form-input type="number" min="1" v-model="options.threads" @change="update()"></b-form-input>
 
-    <label>{{ $t("scanOptions.memThrottle") }}</label>
-    <b-form-input type="number" min="0" v-model="options.mem_throttle" @change="update()"></b-form-input>
-
     <label>{{ $t("scanOptions.thumbnailQuality") }}</label>
     <b-form-input type="number" min="1" max="31" v-model="options.thumbnail_quality" @change="update()"></b-form-input>
 
@@ -70,8 +67,9 @@
       {{ $t("scanOptions.readSubtitles") }}
     </b-form-checkbox>
 
-    <label>{{ $t("scanOptions.memBuffer") }}</label>
-    <b-form-input type="number" min="0" v-model="options.mem_buffer" @change="update()"></b-form-input>
+    <b-form-checkbox v-model="options.optimize_index" @change="update()">
+        {{ $t("scanOptions.optimizeIndex") }}
+    </b-form-checkbox>
 
     <label>{{ $t("scanOptions.treemapThreshold") }}</label>
     <b-form-input type="number" min="0" v-model="options.treemap_threshold" @change="update()"></b-form-input>
