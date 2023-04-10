@@ -18,7 +18,7 @@ void parse_comic(scan_comic_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
     int ret = arc_open(&arc_ctx, f, &a, &arc_data, TRUE);
     if (ret != ARCHIVE_OK) {
-        CTX_LOG_ERRORF(f->filepath, "(cbr.c) [%d] %s", ret, archive_error_string(a))
+        CTX_LOG_ERRORF(f->filepath, "(cbr.c) [%d] %s", ret, archive_error_string(a));
         archive_read_free(a);
         return;
     }
@@ -38,7 +38,7 @@ void parse_comic(scan_comic_ctx_t *ctx, vfile_t *f, document_t *doc) {
                 if (read != entry_size) {
                     const char *err_str = archive_error_string(a);
                     if (err_str) {
-                        CTX_LOG_ERRORF("comic.c", "Error while reading entry: %s", err_str)
+                        CTX_LOG_ERRORF("comic.c", "Error while reading entry: %s", err_str);
                     }
                     free(buf);
                     break;

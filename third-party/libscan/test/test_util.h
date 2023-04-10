@@ -21,7 +21,7 @@ static void noop_log(const char *filepath, int level, char *str) {
 
 static size_t store_size = 0;
 
-static void counter_store(char* key, size_t key_len, char *value, size_t value_len) {
+static void counter_store(char* key, int num, void *value, size_t value_len) {
     store_size += value_len;
 //    char id[37];
 //    char tmp[PATH_MAX];

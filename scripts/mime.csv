@@ -1,3 +1,4 @@
+application/x-matlab-data,mat
 application/arj, arj
 application/base64, mme
 application/binhex, hqx
@@ -29,7 +30,7 @@ application/mime, aps
 application/mspowerpoint, ppz
 application/msword, doc|dot|w6w|wiz|word
 application/netmc, mcp
-application/octet-stream, bin|dump|gpg
+application/octet-stream, bin|dump|gpg|pack|idx
 application/oda, oda
 application/ogg, ogv
 application/pdf, pdf
@@ -243,7 +244,7 @@ audio/make, funk|my|pfunk
 audio/midi, kar
 audio/mid, rmi
 audio/mp4, m4b
-audio/mpeg, m2a|mpa
+audio/mpeg, m2a|mpa|mpga
 audio/ogg, ogg
 audio/s3m, s3m
 audio/tsp-audio, tsi
@@ -346,6 +347,8 @@ text/mcf, mcf
 text/pascal, pas
 text/PGP,
 text/plain, com|cmd|conf|def|g|idc|list|lst|mar|sdml|text|txt|md|groovy|license|properties|desktop|ini|rst|cmake|ipynb|readme|less|lo|go|yml|d|cs|hpp|srt|nfo|sfv|m3u|csv|eml|make|log|markdown|yaml
+text/x-script.python, pyx
+text/csv,
 application/vnd.coffeescript, coffee
 text/richtext, rt|rtf|rtx
 text/rtf,
@@ -382,7 +385,7 @@ text/x-pascal, p
 text/x-perl, pl
 text/x-php, php
 text/x-po, po
-text/x-python, py
+text/x-python, py|pyi
 text/x-ruby, rb
 text/x-sass, sass
 text/x-scss, scss

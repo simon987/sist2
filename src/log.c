@@ -21,8 +21,6 @@ void vsist_logf(const char *filepath, int level, char *format, va_list ap) {
 
     char log_str[LOG_MAX_LENGTH];
 
-    unsigned long long pid = (unsigned long long) pthread_self();
-
     char datetime[32];
     time_t t;
     struct tm result;
@@ -42,8 +40,8 @@ void vsist_logf(const char *filepath, int level, char *format, va_list ap) {
 
         log_len = snprintf(
                 log_str, sizeof(log_str),
-                "{\"thread\":\"%04llX\",\"datetime\":\"%s\",\"level\":\"%s\",\"filepath\":%s,\"message\":%s}\n",
-                pid, datetime, log_levels[level], filepath_json_str, log_str_json_str
+                "{\"thread\":\"T%d\",\"datetime\":\"%s\",\"level\":\"%s\",\"filepath\":%s,\"message\":%s}\n",
+                ProcData.thread_id, datetime, log_levels[level], filepath_json_str, log_str_json_str
         );
 
         cJSON_Delete(filepath_json);
@@ -58,15 +56,15 @@ void vsist_logf(const char *filepath, int level, char *format, va_list ap) {
     if (is_tty) {
         log_len = snprintf(
                 log_str, sizeof(log_str),
-                "\033[%dm[%04llX]%s [%s] [%s %s] ",
-                31 + ((unsigned int) (pid)) % 7, pid, log_colors[level],
+                "\033[%dmT%d%s [%s] [%s %s] ",
+                31 + ProcData.thread_id % 7, ProcData.thread_id, log_colors[level],
                 datetime, log_levels[level], filepath
         );
     } else {
         log_len = snprintf(
                 log_str, sizeof(log_str),
-                "[%04llX] [%s] [%s %s] ",
-                pid, datetime, log_levels[level], filepath
+                "T%d [%s] [%s %s] ",
+                ProcData.thread_id, datetime, log_levels[level], filepath
         );
     }
 
@@ -112,8 +110,6 @@ void sist_log(const char *filepath, int level, char *str) {
 
     char log_str[LOG_MAX_LENGTH];
 
-    unsigned long long pid = (unsigned long long) pthread_self();
-
     char datetime[32];
     time_t t;
     struct tm result;
@@ -132,8 +128,8 @@ void sist_log(const char *filepath, int level, char *str) {
 
         log_len = snprintf(
                 log_str, sizeof(log_str),
-                "{\"thread\":\"%04llX\",\"datetime\":\"%s\",\"level\":\"%s\",\"filepath\":%s,\"message\":%s}\n",
-                pid, datetime, log_levels[level], filepath_json_str, log_str_json_str
+                "{\"thread\":\"T%d\",\"datetime\":\"%s\",\"level\":\"%s\",\"filepath\":%s,\"message\":%s}\n",
+                ProcData.thread_id, datetime, log_levels[level], filepath_json_str, log_str_json_str
         );
 
         cJSON_Delete(log_str_json);
@@ -147,16 +143,16 @@ void sist_log(const char *filepath, int level, char *str) {
     if (is_tty) {
         log_len = snprintf(
                 log_str, sizeof(log_str),
-                "\033[%dm[%04llX]%s [%s] [%s %s] %s \033[0m\n",
-                31 + ((unsigned int) (pid)) % 7, pid, log_colors[level],
+                "\033[%dmT%d%s [%s] [%s %s] %s \033[0m\n",
+                31 + ProcData.thread_id % 7, ProcData.thread_id, log_colors[level],
                 datetime, log_levels[level], filepath,
                 str
         );
     } else {
         log_len = snprintf(
                 log_str, sizeof(log_str),
-                "[%04llX] [%s] [%s %s] %s \n",
-                pid, datetime, log_levels[level], filepath,
+                "T%d [%s] [%s %s] %s \n",
+                ProcData.thread_id, datetime, log_levels[level], filepath,
                 str
         );
     }

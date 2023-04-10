@@ -28,16 +28,22 @@ export default {
       return this.$store.state.jobDesktopNotificationMap[this.job.name];
     }
   },
-  methods: {
+    mounted() {
+      this.cronValid = this.checkCron(this.job.cron_expression)
+    },
+    methods: {
+      checkCron(expression) {
+          return /((((\d+,)+\d+|(\d+([/-])\d+)|\d+|\*) ?){5,7})/.test(expression);
+      },
     updateNotifications(value) {
       this.$store.dispatch("setJobDesktopNotification", {
         job: this.job.name,
         enabled: value
-      })
+      });
     },
     update() {
       if (this.job.schedule_enabled) {
-        this.cronValid = /((((\d+,)+\d+|(\d+([/-])\d+)|\d+|\*) ?){5,7})/.test(this.job.cron_expression);
+        this.cronValid = this.checkCron(this.job.cron_expression);
       } else {
         this.cronValid = undefined;
       }

@@ -15,7 +15,6 @@ Makefile
 **/*.cbp
 VERSION
 **/node_modules/
-.git/
 sist2-*-linux-debug
 sist2-*-linux
 sist2_debug
@@ -34,3 +33,8 @@ Dockerfile
 Dockerfile.arm64
 docker-compose.yml
 state.db
+*-journal
+build/
+__pycache__/
+sist2-vue/dist
+sist2-admin/frontend/dist

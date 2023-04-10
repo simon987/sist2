@@ -1,23 +1,21 @@
 import json
 import logging
 import os.path
-import shutil
 import signal
 import uuid
 from datetime import datetime
 from enum import Enum
-from hashlib import md5
 from logging import FileHandler
 from threading import Lock, Thread
 from time import sleep
 from uuid import uuid4, UUID
 
 from hexlib.db import PersistentState
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 
 from config import logger, LOG_FOLDER
 from notifications import Notifications
-from sist2 import ScanOptions, IndexOptions, Sist2, Sist2Index
+from sist2 import ScanOptions, IndexOptions, Sist2
 from state import RUNNING_FRONTENDS
 from web import Sist2Frontend
 
@@ -38,7 +36,8 @@ class Sist2Job(BaseModel):
     schedule_enabled: bool = False
 
     previous_index: str = None
-    last_index: str = None
+    index_path: str = None
+    previous_index_path: str = None
     last_index_date: datetime = None
     status: JobStatus = JobStatus("created")
     last_modified: datetime
@@ -124,10 +123,10 @@ class Sist2ScanTask(Sist2Task):
 
         self.job.scan_options.name = self.job.name
 
-        if self.job.last_index and os.path.exists(self.job.last_index) and not self.job.do_full_scan:
-            self.job.scan_options.incremental = self.job.last_index
+        if self.job.index_path is not None and not self.job.do_full_scan:
+            self.job.scan_options.output = self.job.index_path
         else:
-            self.job.scan_options.incremental = None
+            self.job.scan_options.output = None
 
         def set_pid(pid):
             self.pid = pid
@@ -139,18 +138,25 @@ class Sist2ScanTask(Sist2Task):
             self._logger.error(json.dumps({"sist2-admin": f"Process returned non-zero exit code ({return_code})"}))
             logger.info(f"Task {self.display_name} failed ({return_code})")
         else:
-            index = Sist2Index(self.job.scan_options.output)
-
-            # Save latest index
-            self.job.previous_index = self.job.last_index
-
-            self.job.last_index = index.path
+            self.job.index_path = self.job.scan_options.output
             self.job.last_index_date = datetime.now()
             self.job.do_full_scan = False
             db["jobs"][self.job.name] = self.job
-            self._logger.info(json.dumps({"sist2-admin": f"Save last_index={self.job.last_index}"}))
+            self._logger.info(json.dumps({"sist2-admin": f"Save last_index_date={self.job.last_index_date}"}))
 
         logger.info(f"Completed {self.display_name} ({return_code=})")
+
+        # Remove old index
+        if return_code == 0:
+            if self.job.previous_index_path is not None and self.job.previous_index_path != self.job.index_path:
+                self._logger.info(json.dumps({"sist2-admin": f"Remove {self.job.previous_index_path=}"}))
+                try:
+                    os.remove(self.job.previous_index_path)
+                except FileNotFoundError:
+                    pass
+
+            self.job.previous_index_path = self.job.index_path
+            db["jobs"][self.job.name] = self.job
 
         return return_code
 
@@ -173,18 +179,11 @@ class Sist2IndexTask(Sist2Task):
         ok = return_code == 0
 
         if ok:
-            # Remove old index
-            if self.job.previous_index is not None:
-                self._logger.info(json.dumps({"sist2-admin": f"Remove {self.job.previous_index=}"}))
-                try:
-                    shutil.rmtree(self.job.previous_index)
-                except FileNotFoundError:
-                    pass
-
             self.restart_running_frontends(db, sist2)
 
         # Update status
         self.job.status = JobStatus("indexed") if ok else JobStatus("failed")
+        self.job.previous_index_path = self.job.index_path
         db["jobs"][self.job.name] = self.job
 
         self._logger.info(json.dumps({"sist2-admin": f"Sist2Scan task finished {return_code=}, {duration=}"}))
@@ -198,13 +197,16 @@ class Sist2IndexTask(Sist2Task):
             frontend = db["frontends"][frontend_name]
             frontend: Sist2Frontend
 
-            os.kill(pid, signal.SIGTERM)
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
             try:
                 os.wait()
             except ChildProcessError:
                 pass
 
-            frontend.web_options.indices = map(lambda j: db["jobs"][j].last_index, frontend.jobs)
+            frontend.web_options.indices = map(lambda j: db["jobs"][j].index_path, frontend.jobs)
 
             pid = sist2.web(frontend.web_options, frontend.name)
             RUNNING_FRONTENDS[frontend_name] = pid

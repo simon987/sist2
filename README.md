@@ -37,12 +37,12 @@ sist2 (Simple incremental search tool)
     1. Download [from official website](https://www.elastic.co/downloads/elasticsearch)
     1. *(or)* Run using docker:
         ```bash
-        docker run -d -p 9200:9200 -e "discovery.type=single-node" elasticsearch:7.14.0
+        docker run -d -p 9200:9200 -e "discovery.type=single-node" elasticsearch:7.17.9
         ```
     1. *(or)* Run using docker-compose:
         ```yaml
           elasticsearch:
-            image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
+            image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
             environment:
               - discovery.type=single-node
               - "ES_JAVA_OPTS=-Xms1G -Xmx2G"
@@ -149,8 +149,7 @@ docker run --rm --entrypoint cat my-sist2-image /root/sist2 > sist2-x64-linux
 1. Install vcpkg dependencies
 
     ```bash
-    vcpkg install curl[core,openssl]
-    vcpkg install lmdb cjson glib brotli libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 libmupdf gtest mongoose libmagic libraw jasper lcms gumbo
+    vcpkg install curl[core,openssl] sqlite3 cpp-jwt pcre cjson brotli libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 libmupdf gtest mongoose libmagic libraw gumbo ffmpeg[core,avcodec,avformat,swscale,swresample]
     ```
 
 1. Build

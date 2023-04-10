@@ -25,7 +25,6 @@ dyn_buffer_t url_escape(char *str) {
 }
 
 char *abspath(const char *path) {
-
     char *expanded = expandpath(path);
 
     char *abs = realpath(expanded, NULL);
@@ -34,8 +33,7 @@ char *abspath(const char *path) {
         return NULL;
     }
     if (strlen(abs) > 1) {
-        abs = realloc(abs, strlen(abs) + 2);
-        strcat(abs, "/");
+        abs = realloc(abs, strlen(abs) + 1);
     }
 
     return abs;
@@ -76,9 +74,8 @@ char *expandpath(const char *path) {
         }
     }
 
-    char *expanded = malloc(strlen(tmp) + 2);
+    char *expanded = malloc(strlen(tmp) + 1);
     strcpy(expanded, tmp);
-    strcat(expanded, "/");
 
     wordfree(&w);
     return expanded;
@@ -103,7 +100,13 @@ void progress_bar_print_json(size_t done, size_t count, size_t tn_size, size_t i
 
 void progress_bar_print(double percentage, size_t tn_size, size_t index_size) {
 
+    if (isnan(percentage)) {
+        return;
+    }
+
+    // TODO: Fix this with shm/ctx
     static int last_val = -1;
+
     int val = (int) (percentage * 100);
     if (last_val == val || val > 100) {
         return;
@@ -148,10 +151,6 @@ void progress_bar_print(double percentage, size_t tn_size, size_t index_size) {
     PrintingProgressBar = TRUE;
 }
 
-GHashTable *incremental_get_table() {
-    GHashTable *file_table = g_hash_table_new_full(g_str_hash, g_str_equal, free, NULL);
-    return file_table;
-}
 
 const char *find_file_in_paths(const char *paths[], const char *filename) {
 
@@ -165,7 +164,7 @@ const char *find_file_in_paths(const char *paths[], const char *filename) {
         char path[PATH_MAX];
         snprintf(path, sizeof(path), "%s%s", apath, filename);
 
-        LOG_DEBUGF("util.c", "Looking for '%s' in folder '%s'", filename, apath)
+        LOG_DEBUGF("util.c", "Looking for '%s' in folder '%s'", filename, apath);
         free(apath);
 
         struct stat info;
@@ -267,3 +266,39 @@ void str_unescape(char *dst, const char *str) {
     }
     *cur = '\0';
 }
+
+#define NSEC_PER_SEC 1000000000
+
+struct timespec timespec_normalise(struct timespec ts) {
+    while (ts.tv_nsec >= NSEC_PER_SEC) {
+        ts.tv_sec += 1;
+        ts.tv_nsec -= NSEC_PER_SEC;
+    }
+
+    while (ts.tv_nsec <= -NSEC_PER_SEC) {
+        ts.tv_sec -= 1;
+        ts.tv_nsec += NSEC_PER_SEC;
+    }
+
+    if (ts.tv_nsec < 0) {
+        ts.tv_sec -= 1;
+        ts.tv_nsec = (NSEC_PER_SEC + ts.tv_nsec);
+    }
+
+    return ts;
+}
+
+struct timespec timespec_add(struct timespec ts1, long usec) {
+    ts1 = timespec_normalise(ts1);
+
+    struct timespec ts2 = timespec_normalise((struct timespec) {
+            .tv_sec = 0,
+            .tv_nsec = usec * 1000
+    });
+
+    ts1.tv_sec += ts2.tv_sec;
+    ts1.tv_nsec += ts2.tv_nsec;
+
+    return timespec_normalise(ts1);
+}
+

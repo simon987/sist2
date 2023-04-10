@@ -8,7 +8,7 @@ void parse_mobi(scan_mobi_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
     MOBIData *m = mobi_init();
     if (m == NULL) {
-        CTX_LOG_ERROR(f->filepath, "mobi_init() failed")
+        CTX_LOG_ERROR(f->filepath, "mobi_init() failed");
         return;
     }
 
@@ -16,7 +16,7 @@ void parse_mobi(scan_mobi_ctx_t *ctx, vfile_t *f, document_t *doc) {
     char* buf = read_all(f, &buf_len);
     if (buf == NULL) {
         mobi_free(m);
-        CTX_LOG_ERROR(f->filepath, "read_all() failed")
+        CTX_LOG_ERROR(f->filepath, "read_all() failed");
         return;
     }
 
@@ -24,7 +24,7 @@ void parse_mobi(scan_mobi_ctx_t *ctx, vfile_t *f, document_t *doc) {
     if (file == NULL) {
         mobi_free(m);
         free(buf);
-        CTX_LOG_ERRORF(f->filepath, "fmemopen() failed (%d)", errno)
+        CTX_LOG_ERRORF(f->filepath, "fmemopen() failed (%d)", errno);
         return;
     }
 
@@ -33,25 +33,25 @@ void parse_mobi(scan_mobi_ctx_t *ctx, vfile_t *f, document_t *doc) {
     if (mobi_ret != MOBI_SUCCESS) {
         mobi_free(m);
         free(buf);
-        CTX_LOG_ERRORF(f->filepath, "mobi_laod_file() returned error code [%d]", mobi_ret)
+        CTX_LOG_ERRORF(f->filepath, "mobi_laod_file() returned error code [%d]", mobi_ret);
         return;
     }
 
     char *author = mobi_meta_get_author(m);
     if (author != NULL) {
-        APPEND_STR_META(doc, MetaAuthor, author)
+        APPEND_STR_META(doc, MetaAuthor, author);
         free(author);
     }
     char *title = mobi_meta_get_title(m);
     if (title != NULL) {
-        APPEND_STR_META(doc, MetaTitle, title)
+        APPEND_STR_META(doc, MetaTitle, title);
         free(title);
     }
 
     const size_t maxlen = mobi_get_text_maxsize(m);
     if (maxlen == MOBI_NOTSET) {
         free(buf);
-        CTX_LOG_DEBUGF("%s", "Invalid text maxsize: %zu", maxlen)
+        CTX_LOG_DEBUGF("%s", "Invalid text maxsize: %zu", maxlen);
         return;
     }
 
@@ -62,7 +62,7 @@ void parse_mobi(scan_mobi_ctx_t *ctx, vfile_t *f, document_t *doc) {
         mobi_free(m);
         free(content_str);
         free(buf);
-        CTX_LOG_ERRORF(f->filepath, "mobi_get_rawml() returned error code [%d]", mobi_ret)
+        CTX_LOG_ERRORF(f->filepath, "mobi_get_rawml() returned error code [%d]", mobi_ret);
         return;
     }
 
@@ -70,7 +70,7 @@ void parse_mobi(scan_mobi_ctx_t *ctx, vfile_t *f, document_t *doc) {
     text_buffer_append_markup(&tex, content_str);
     text_buffer_terminate_string(&tex);
 
-    APPEND_STR_META(doc, MetaContent, tex.dyn_buffer.buf)
+    APPEND_STR_META(doc, MetaContent, tex.dyn_buffer.buf);
 
     free(content_str);
     free(buf);

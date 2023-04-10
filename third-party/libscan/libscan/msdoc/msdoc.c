@@ -39,12 +39,12 @@ void parse_msdoc_text(scan_msdoc_ctx_t *ctx, document_t *doc, FILE *file_in, voi
     iInitDocument(file_in, (int) buf_len);
     const char *author = szGetAuthor();
     if (author != NULL) {
-        APPEND_UTF8_META(doc, MetaAuthor, author)
+        APPEND_UTF8_META(doc, MetaAuthor, author);
     }
 
     const char *title = szGetTitle();
     if (title != NULL) {
-        APPEND_UTF8_META(doc, MetaTitle, title)
+        APPEND_UTF8_META(doc, MetaTitle, title);
     }
     vFreeDocument();
 
@@ -60,7 +60,7 @@ void parse_msdoc_text(scan_msdoc_ctx_t *ctx, document_t *doc, FILE *file_in, voi
         meta_line_t *meta_content = malloc(sizeof(meta_line_t) + tex.dyn_buffer.cur);
         meta_content->key = MetaContent;
         memcpy(meta_content->str_val, tex.dyn_buffer.buf, tex.dyn_buffer.cur);
-        APPEND_META(doc, meta_content)
+        APPEND_META(doc, meta_content);
 
         text_buffer_destroy(&tex);
     }
@@ -74,14 +74,14 @@ void parse_msdoc(scan_msdoc_ctx_t *ctx, vfile_t *f, document_t *doc) {
     size_t buf_len;
     char *buf = read_all(f, &buf_len);
     if (buf == NULL) {
-        CTX_LOG_ERROR(f->filepath, "read_all() failed")
+        CTX_LOG_ERROR(f->filepath, "read_all() failed");
         return;
     }
 
     FILE *file = fmemopen(buf, buf_len, "rb");
     if (file == NULL) {
         free(buf);
-        CTX_LOG_ERRORF(f->filepath, "fmemopen() failed (%d)", errno)
+        CTX_LOG_ERRORF(f->filepath, "fmemopen() failed (%d)", errno);
         return;
     }
 

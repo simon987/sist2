@@ -6,6 +6,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
@@ -16,7 +17,7 @@
 
 #define UNUSED(x) __attribute__((__unused__))  x
 
-typedef void (*store_callback_t)(char *key, size_t key_len, char *buf, size_t buf_len);
+typedef void (*store_callback_t)(char *key, int num, void *buf, size_t buf_len);
 
 typedef void (*logf_callback_t)(const char *filepath, int level, char *format, ...);
 
@@ -33,23 +34,25 @@ typedef int scan_code_t;
 #define LEVEL_ERROR 3
 #define LEVEL_FATAL 4
 
-#define CTX_LOG_DEBUGF(filepath, fmt, ...) ctx->logf(filepath, LEVEL_DEBUG, fmt, __VA_ARGS__);
-#define CTX_LOG_DEBUG(filepath, str) ctx->log(filepath, LEVEL_DEBUG, str);
+#define CTX_LOG_DEBUGF(filepath, fmt, ...) ctx->logf(filepath, LEVEL_DEBUG, fmt, __VA_ARGS__)
+#define CTX_LOG_DEBUG(filepath, str) ctx->log(filepath, LEVEL_DEBUG, str)
 
-#define CTX_LOG_INFOF(filepath, fmt, ...) ctx->logf(filepath, LEVEL_INFO, fmt, __VA_ARGS__);
-#define CTX_LOG_INFO(filepath, str) ctx->log(filepath, LEVEL_INFO, str);
+#define CTX_LOG_INFOF(filepath, fmt, ...) ctx->logf(filepath, LEVEL_INFO, fmt, __VA_ARGS__)
+#define CTX_LOG_INFO(filepath, str) ctx->log(filepath, LEVEL_INFO, str)
 
-#define CTX_LOG_WARNINGF(filepath, fmt, ...) ctx->logf(filepath, LEVEL_WARNING, fmt, __VA_ARGS__);
-#define CTX_LOG_WARNING(filepath, str) ctx->log(filepath, LEVEL_WARNING, str);
+#define CTX_LOG_WARNINGF(filepath, fmt, ...) ctx->logf(filepath, LEVEL_WARNING, fmt, __VA_ARGS__)
+#define CTX_LOG_WARNING(filepath, str) ctx->log(filepath, LEVEL_WARNING, str)
 
-#define CTX_LOG_ERRORF(filepath, fmt, ...) ctx->logf(filepath, LEVEL_ERROR, fmt, __VA_ARGS__);
-#define CTX_LOG_ERROR(filepath, str) ctx->log(filepath, LEVEL_ERROR, str);
+#define CTX_LOG_ERRORF(filepath, fmt, ...) ctx->logf(filepath, LEVEL_ERROR, fmt, __VA_ARGS__)
+#define CTX_LOG_ERROR(filepath, str) ctx->log(filepath, LEVEL_ERROR, str)
 
-#define CTX_LOG_FATALF(filepath, fmt, ...) ctx->logf(filepath, LEVEL_FATAL, fmt, __VA_ARGS__); exit(-1);
-#define CTX_LOG_FATAL(filepath, str) ctx->log(filepath, LEVEL_FATAL, str); exit(-1);
+#define CTX_LOG_FATALF(filepath, fmt, ...) ctx->logf(filepath, LEVEL_FATAL, fmt, __VA_ARGS__); exit(-1)
+#define CTX_LOG_FATAL(filepath, str) ctx->log(filepath, LEVEL_FATAL, str); exit(-1)
 
 #define SIST_DOC_ID_LEN MD5_STR_LENGTH
 #define SIST_INDEX_ID_LEN MD5_STR_LENGTH
+
+#define EBOOK_LOCKS 0
 
 enum metakey {
     // String
@@ -100,7 +103,6 @@ typedef struct meta_line {
     union {
         char str_val[0];
         unsigned long long_val;
-        double double_val;
     };
 } meta_line_t;
 
@@ -110,12 +112,11 @@ typedef struct document {
     unsigned long size;
     unsigned int mime;
     int mtime;
-    short base;
-    short ext;
-    char has_parent;
+    int base;
+    int ext;
     meta_line_t *meta_head;
     meta_line_t *meta_tail;
-    char *filepath;
+    char filepath[PATH_MAX * 2 + 1];
 } document_t;
 
 typedef struct vfile vfile_t;
@@ -140,8 +141,10 @@ typedef struct vfile {
     int is_fs_file;
     int has_checksum;
     int calculate_checksum;
-    const char *filepath;
-    struct stat info;
+    char filepath[PATH_MAX * 2 + 1];
+
+    int mtime;
+    size_t st_size;
 
     SHA_CTX sha1_ctx;
     unsigned char sha1_digest[SHA1_DIGEST_LENGTH];
@@ -158,12 +161,12 @@ typedef struct vfile {
     logf_callback_t logf;
 } vfile_t;
 
-typedef struct parse_job_t {
+typedef struct {
     int base;
     int ext;
     struct vfile vfile;
     char parent[SIST_DOC_ID_LEN];
-    char filepath[1];
+    char filepath[PATH_MAX * 2 + 1];
 } parse_job_t;
 
 

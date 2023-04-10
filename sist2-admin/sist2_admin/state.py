@@ -10,7 +10,7 @@ RUNNING_FRONTENDS: Dict[str, int] = {}
 
 TESSERACT_LANGS = get_tesseract_langs()
 
-DB_SCHEMA_VERSION = "2"
+DB_SCHEMA_VERSION = "3"
 
 from pydantic import BaseModel
 

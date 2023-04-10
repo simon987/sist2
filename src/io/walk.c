@@ -1,44 +1,12 @@
 #include "walk.h"
 #include "src/ctx.h"
-#include "src/parsing/parse.h"
+#include "src/parsing/fs_util.h"
 
 #include <ftw.h>
+#include <pthread.h>
 
 #define STR_STARTS_WITH(x, y) (strncmp(y, x, strlen(y) - 1) == 0)
 
-__always_inline
-parse_job_t *create_fs_parse_job(const char *filepath, const struct stat *info, int base) {
-    int len = (int) strlen(filepath);
-    parse_job_t *job = malloc(sizeof(parse_job_t) + len);
-
-    strcpy(job->filepath, filepath);
-    job->base = base;
-    char *p = strrchr(filepath + base, '.');
-    if (p != NULL) {
-        job->ext = (int) (p - filepath + 1);
-    } else {
-        job->ext = len;
-    }
-
-    job->vfile.info = *info;
-
-    job->parent[0] = '\0';
-
-    job->vfile.filepath = job->filepath;
-    job->vfile.read = fs_read;
-    // Filesystem reads are always rewindable
-    job->vfile.read_rewindable = fs_read;
-    job->vfile.reset = fs_reset;
-    job->vfile.close = fs_close;
-    job->vfile.fd = -1;
-    job->vfile.is_fs_file = TRUE;
-    job->vfile.has_checksum = FALSE;
-    job->vfile.rewind_buffer_size = 0;
-    job->vfile.rewind_buffer = NULL;
-    job->vfile.calculate_checksum = ScanCtx.calculate_checksums;
-
-    return job;
-}
 
 int sub_strings[30];
 #define EXCLUDED(str) (pcre_exec(ScanCtx.exclude, ScanCtx.exclude_extra, str, strlen(str), 0, 0, sub_strings, sizeof(sub_strings)) >= 0)
@@ -53,12 +21,9 @@ int handle_entry(const char *filepath, const struct stat *info, int typeflag, st
     }
 
     if (ScanCtx.exclude != NULL && EXCLUDED(filepath)) {
-        LOG_DEBUGF("walk.c", "Excluded: %s", filepath)
+        LOG_DEBUGF("walk.c", "Excluded: %s", filepath);
 
         if (typeflag == FTW_F && S_ISREG(info->st_mode)) {
-            pthread_mutex_lock(&ScanCtx.dbg_file_counts_mu);
-            ScanCtx.dbg_excluded_files_count += 1;
-            pthread_mutex_unlock(&ScanCtx.dbg_file_counts_mu);
         } else if (typeflag == FTW_D) {
             return FTW_SKIP_SUBTREE;
         }
@@ -67,8 +32,13 @@ int handle_entry(const char *filepath, const struct stat *info, int typeflag, st
     }
 
     if (typeflag == FTW_F && S_ISREG(info->st_mode)) {
-        parse_job_t *job = create_fs_parse_job(filepath, info, ftw->base);
-        tpool_add_work(ScanCtx.pool, parse, job);
+        parse_job_t *job = create_parse_job(filepath, (int) info->st_mtim.tv_sec, info->st_size);
+
+        tpool_add_work(ScanCtx.pool, &(job_t) {
+                .type = JOB_PARSE_JOB,
+                .parse_job = job
+        });
+        free(job);
     }
 
     return FTW_CONTINUE;
@@ -109,14 +79,7 @@ int iterate_file_list(void *input_file) {
         }
 
         if (ScanCtx.exclude != NULL && EXCLUDED(absolute_path)) {
-            LOG_DEBUGF("walk.c", "Excluded: %s", absolute_path)
-
-            if (S_ISREG(info.st_mode)) {
-                pthread_mutex_lock(&ScanCtx.dbg_file_counts_mu);
-                ScanCtx.dbg_excluded_files_count += 1;
-                pthread_mutex_unlock(&ScanCtx.dbg_file_counts_mu);
-            }
-
+            LOG_DEBUGF("walk.c", "Excluded: %s", absolute_path);
             continue;
         }
 
@@ -124,11 +87,14 @@ int iterate_file_list(void *input_file) {
             LOG_FATALF("walk.c", "File is not a children of root folder (%s): %s", ScanCtx.index.desc.root, buf);
         }
 
-        int base = (int) (strrchr(buf, '/') - buf) + 1;
-
-        parse_job_t *job = create_fs_parse_job(absolute_path, &info, base);
+        parse_job_t *job = create_parse_job(absolute_path, (int) info.st_mtim.tv_sec, info.st_size);
         free(absolute_path);
-        tpool_add_work(ScanCtx.pool, parse, job);
+
+        tpool_add_work(ScanCtx.pool, &(job_t) {
+                .type = JOB_PARSE_JOB,
+                .parse_job = job
+        });
+        free(job);
     }
 
     return 0;

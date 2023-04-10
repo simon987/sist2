@@ -16,46 +16,27 @@
 #include "libscan/msdoc/msdoc.h"
 #include "libscan/wpd/wpd.h"
 #include "libscan/json/json.h"
-#include "src/io/store.h"
+#include "src/database/database.h"
 #include "src/index/elastic.h"
+#include "sqlite3.h"
 
-#include <glib.h>
 #include <pcre.h>
 
 typedef struct {
     struct index_t index;
 
-    GHashTable *mime_table;
-    GHashTable *ext_table;
-
     tpool_t *pool;
-
-    tpool_t *writer_pool;
 
     int threads;
     int depth;
     int calculate_checksums;
-    size_t mem_limit;
 
     size_t stat_tn_size;
     size_t stat_index_size;
 
-    GHashTable *original_table;
-    GHashTable *copy_table;
-    GHashTable *new_table;
-    pthread_mutex_t copy_table_mu;
-
     pcre *exclude;
     pcre_extra *exclude_extra;
     int fast;
-
-    GHashTable *dbg_current_files;
-    pthread_mutex_t dbg_current_files_mu;
-
-    int dbg_failed_files_count;
-    int dbg_skipped_files_count;
-    int dbg_excluded_files_count;
-    pthread_mutex_t dbg_file_counts_mu;
 
     scan_arc_ctx_t arc_ctx;
     scan_comic_ctx_t comic_ctx;
@@ -85,10 +66,6 @@ typedef struct {
     char *es_index;
     int batch_size;
     tpool_t *pool;
-    store_t *tag_store;
-    GHashTable *tags;
-    store_t *meta_store;
-    GHashTable *meta;
     /**
      * Set to false when using --print
      */
@@ -118,10 +95,18 @@ typedef struct {
     int dev;
 } WebCtx_t;
 
+
+typedef struct {
+    int thread_id;
+    database_t *ipc_db;
+    database_t *index_db;
+} ProcData_t;
+
 extern ScanCtx_t ScanCtx;
 extern WebCtx_t WebCtx;
 extern IndexCtx_t IndexCtx;
 extern LogCtx_t LogCtx;
+extern __thread ProcData_t ProcData;
 
 
 #endif

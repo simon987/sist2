@@ -27,6 +27,8 @@
 
 #define UNUSED(x) __attribute__((__unused__))  x
 
+#define MAX_THREADS (256)
+
 #include "util.h"
 #include "log.h"
 #include "types.h"
@@ -49,8 +51,11 @@
 #include <ctype.h>
 #include "git_hash.h"
 
-#define VERSION "2.14.2"
+#define VERSION "3.0.0"
 static const char *const Version = VERSION;
+static const int VersionMajor = 3;
+static const int VersionMinor = 0;
+static const int VersionPatch = 0;
 
 #ifndef SIST_PLATFORM
 #define SIST_PLATFORM unknown

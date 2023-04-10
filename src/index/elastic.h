@@ -46,7 +46,7 @@ void print_json(cJSON *document, const char index_id_str[SIST_INDEX_ID_LEN]);
 
 void index_json(cJSON *document, const char doc_id[SIST_INDEX_ID_LEN]);
 
-void delete_document(const char *document_id_str, void* data);
+void delete_document(const char *document_id);
 
 es_indexer_t *create_indexer(const char *url, const char *index);
 

@@ -164,6 +164,8 @@ that is about `8000000 * 36kB = 288GB`.
 
 ![thumbnail_size](thumbnail_size.png)
 
+// TODO: add note about LMDB page size 4096
+
 ### Scan examples
 
 Simple scan

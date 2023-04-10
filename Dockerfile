@@ -19,9 +19,9 @@ COPY sist2-admin sist2-admin
 RUN cd sist2-vue/ && npm install && npm run build
 RUN cd sist2-admin/frontend/ && npm install && npm run build
 
-RUN cmake -DSIST_PLATFORM=x64_linux -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake .
-RUN make -j$(nproc)
-RUN strip sist2 || mv sist2_debug sist2
+RUN mkdir build && cd build && cmake -DSIST_PLATFORM=x64_linux -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+RUN cd build && make -j$(nproc)
+RUN strip build/sist2 || mv build/sist2_debug build/sist2
 
 FROM --platform="linux/amd64" ubuntu@sha256:965fbcae990b0467ed5657caceaec165018ef44a4d2d46c7cdea80a9dff0d1ea
 
@@ -33,7 +33,7 @@ ENV LC_ALL C.UTF-8
 ENTRYPOINT ["/root/sist2"]
 
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y curl libasan5 libmagic1 python3  \
-    python3-pip git tesseract-ocr libpq-dev && rm -rf /var/lib/apt/lists/*
+    python3-pip git tesseract-ocr && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /usr/share/tessdata && \
     cd /usr/share/tessdata/ && \
@@ -49,7 +49,7 @@ RUN mkdir -p /usr/share/tessdata && \
     curl -o /usr/share/tessdata/chi_sim.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/chi_sim.traineddata
 
 # sist2
-COPY --from=build /build/sist2 /root/sist2
+COPY --from=build /build/build/sist2 /root/sist2
 
 # sist2-admin
 COPY sist2-admin/requirements.txt sist2-admin/

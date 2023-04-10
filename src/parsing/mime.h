@@ -51,14 +51,14 @@ enum major_mime {
 
 enum mime;
 
-GHashTable *mime_get_mime_table();
+unsigned int mime_name_lookup(unsigned long mime_crc32);
 
-GHashTable *mime_get_ext_table();
+unsigned int mime_extension_lookup(unsigned long extension_crc32);
 
-char *mime_get_mime_text(unsigned int);
+const char *mime_get_mime_text(unsigned int);
 
-unsigned int mime_get_mime_by_ext(GHashTable *ext_table, const char * ext);
+unsigned int mime_get_mime_by_ext(const char *ext);
 
-unsigned int mime_get_mime_by_string(GHashTable *mime_table, const char * str);
+unsigned int mime_get_mime_by_string(const char *str);
 
 #endif

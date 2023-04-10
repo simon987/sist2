@@ -1,28 +1,34 @@
 #include "ebook.h"
 #include <mupdf/fitz.h>
-#include <pthread.h>
 #include <tesseract/capi.h>
 
 #include "../media/media.h"
 #include "../arc/arc.h"
 #include "../ocr/ocr.h"
 
+#if EBOOK_LOCKS
+#include <pthread.h>
+pthread_mutex_t Mutex;
+#endif
+
 /* fill_image callback doesn't let us pass opaque pointers unless I create my own device */
 __thread text_buffer_t thread_buffer;
 __thread scan_ebook_ctx_t thread_ctx;
 
-pthread_mutex_t Mutex;
-
 static void my_fz_lock(UNUSED(void *user), int lock) {
+#if EBOOK_LOCKS
     if (lock == FZ_LOCK_FREETYPE) {
         pthread_mutex_lock(&Mutex);
     }
+#endif
 }
 
 static void my_fz_unlock(UNUSED(void *user), int lock) {
+#if EBOOK_LOCKS
     if (lock == FZ_LOCK_FREETYPE) {
         pthread_mutex_unlock(&Mutex);
     }
+#endif
 }
 
 
@@ -48,7 +54,7 @@ load_pixmap(scan_ebook_ctx_t *ctx, int page, fz_context *fzctx, fz_document *fzd
     fz_catch(fzctx)err = 1;
 
     if (err != 0) {
-        CTX_LOG_WARNINGF(doc->filepath, "fz_load_page() returned error code [%d] %s", err, fzctx->error.message)
+        CTX_LOG_WARNINGF(doc->filepath, "fz_load_page() returned error code [%d] %s", err, fzctx->error.message);
         return NULL;
     }
 
@@ -80,14 +86,14 @@ load_pixmap(scan_ebook_ctx_t *ctx, int page, fz_context *fzctx, fz_document *fzd
         } fz_catch(fzctx)err = fzctx->error.errcode;
 
     if (err != 0) {
-        CTX_LOG_WARNINGF(doc->filepath, "fz_run_page() returned error code [%d] %s", err, fzctx->error.message)
+        CTX_LOG_WARNINGF(doc->filepath, "fz_run_page() returned error code [%d] %s", err, fzctx->error.message);
         fz_drop_page(fzctx, *cover);
         fz_drop_pixmap(fzctx, pixmap);
         return NULL;
     }
 
     if (pixmap->n != 3) {
-        CTX_LOG_ERRORF(doc->filepath, "Got unexpected pixmap depth: %d", pixmap->n)
+        CTX_LOG_ERRORF(doc->filepath, "Got unexpected pixmap depth: %d", pixmap->n);
         fz_drop_page(fzctx, *cover);
         fz_drop_pixmap(fzctx, pixmap);
         return NULL;
@@ -107,7 +113,7 @@ int render_cover(scan_ebook_ctx_t *ctx, fz_context *fzctx, document_t *doc, fz_d
     if (pixmap_is_blank(pixmap)) {
         fz_drop_page(fzctx, cover);
         fz_drop_pixmap(fzctx, pixmap);
-        CTX_LOG_DEBUG(doc->filepath, "Cover page is blank, using page 1 instead")
+        CTX_LOG_DEBUG(doc->filepath, "Cover page is blank, using page 1 instead");
         pixmap = load_pixmap(ctx, 1, fzctx, fzdoc, doc, &cover);
         if (pixmap == NULL) {
             return FALSE;
@@ -155,8 +161,8 @@ int render_cover(scan_ebook_ctx_t *ctx, fz_context *fzctx, document_t *doc, fz_d
     av_init_packet(&jpeg_packet);
     avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
 
-    APPEND_LONG_META(doc, MetaThumbnail, 1)
-    ctx->store(doc->doc_id, sizeof(doc->doc_id), (char *) jpeg_packet.data, jpeg_packet.size);
+    APPEND_LONG_META(doc, MetaThumbnail, 1);
+    ctx->store(doc->doc_id, 0, (char *) jpeg_packet.data, jpeg_packet.size);
 
     free(samples);
     av_packet_unref(&jpeg_packet);
@@ -174,24 +180,26 @@ void fz_err_callback(void *user, const char *message) {
     document_t *doc = (document_t *) user;
 
     const scan_ebook_ctx_t *ctx = &thread_ctx;
-    CTX_LOG_WARNINGF(doc->filepath, "FZ: %s", message)
+    CTX_LOG_WARNINGF(doc->filepath, "FZ: %s", message);
 }
 
 void fz_warn_callback(void *user, const char *message) {
     document_t *doc = (document_t *) user;
 
     const scan_ebook_ctx_t *ctx = &thread_ctx;
-    CTX_LOG_DEBUGF(doc->filepath, "FZ: %s", message)
+    CTX_LOG_DEBUGF(doc->filepath, "FZ: %s", message);
 }
 
 static void init_fzctx(fz_context *fzctx, document_t *doc) {
     fz_register_document_handlers(fzctx);
 
+#if EBOOK_LOCKS
     static int mu_is_initialized = FALSE;
     if (!mu_is_initialized) {
         pthread_mutex_init(&Mutex, NULL);
         mu_is_initialized = TRUE;
     }
+#endif
 
     fzctx->warn.print_user = doc;
     fzctx->warn.print = fz_warn_callback;
@@ -235,7 +243,7 @@ void fill_image(fz_context *fzctx, UNUSED(fz_device *dev),
 
     if (img->w >= MIN_OCR_WIDTH && img->h >= MIN_OCR_HEIGHT && OCR_IS_VALID_BPP(img->n)) {
         fz_pixmap *pix = img->get_pixmap(fzctx, img, NULL, img->w, img->h, &l2factor);
-        ocr_extract_text(thread_ctx.tesseract_path, thread_ctx.tesseract_lang, pix->samples, pix->w, pix->h, pix->n, pix->stride, pix->xres, fill_image_ocr_cb);
+        ocr_extract_text(thread_ctx.tesseract_path, thread_ctx.tesseract_lang, pix->samples, pix->w, pix->h, pix->n, (int)pix->stride, pix->xres, fill_image_ocr_cb);
         fz_drop_pixmap(fzctx, pix);
     }
 }
@@ -274,14 +282,14 @@ parse_ebook_mem(scan_ebook_ctx_t *ctx, void *buf, size_t buf_len, const char *mi
     fz_catch(fzctx)err = fzctx->error.errcode;
 
     if (err) {
-        CTX_LOG_WARNINGF(doc->filepath, "fz_count_pages() returned error code [%d] %s", err, fzctx->error.message)
+        CTX_LOG_WARNINGF(doc->filepath, "fz_count_pages() returned error code [%d] %s", err, fzctx->error.message);
         fz_drop_stream(fzctx, stream);
         fz_drop_document(fzctx, fzdoc);
         fz_drop_context(fzctx);
         return;
     }
 
-    APPEND_LONG_META(doc, MetaPages, page_count)
+    APPEND_LONG_META(doc, MetaPages, page_count);
 
     if (ctx->enable_tn) {
         if (render_cover(ctx, fzctx, doc, fzdoc) == FALSE) {
@@ -304,7 +312,7 @@ parse_ebook_mem(scan_ebook_ctx_t *ctx, void *buf, size_t buf_len, const char *mi
     fz_catch(fzctx);
 
     if (strlen(title) > 0) {
-        APPEND_UTF8_META(doc, MetaTitle, title)
+        APPEND_UTF8_META(doc, MetaTitle, title);
     }
 
     char author[4096] = {'\0',};
@@ -312,7 +320,7 @@ parse_ebook_mem(scan_ebook_ctx_t *ctx, void *buf, size_t buf_len, const char *mi
     fz_catch(fzctx);
 
     if (strlen(author) > 0) {
-        APPEND_UTF8_META(doc, MetaAuthor, author)
+        APPEND_UTF8_META(doc, MetaAuthor, author);
     }
 
 
@@ -326,7 +334,7 @@ parse_ebook_mem(scan_ebook_ctx_t *ctx, void *buf, size_t buf_len, const char *mi
             fz_try(fzctx)page = fz_load_page(fzctx, fzdoc, current_page);
             fz_catch(fzctx)err = fzctx->error.errcode;
             if (err != 0) {
-                CTX_LOG_WARNINGF(doc->filepath, "fz_load_page() returned error code [%d] %s", err, fzctx->error.message)
+                CTX_LOG_WARNINGF(doc->filepath, "fz_load_page() returned error code [%d] %s", err, fzctx->error.message);
                 text_buffer_destroy(&thread_buffer);
                 fz_drop_page(fzctx, page);
                 fz_drop_stream(fzctx, stream);
@@ -355,7 +363,7 @@ parse_ebook_mem(scan_ebook_ctx_t *ctx, void *buf, size_t buf_len, const char *mi
                 } fz_catch(fzctx)err = fzctx->error.errcode;
 
             if (err != 0) {
-                CTX_LOG_WARNINGF(doc->filepath, "fz_run_page() returned error code [%d] %s", err, fzctx->error.message)
+                CTX_LOG_WARNINGF(doc->filepath, "fz_run_page() returned error code [%d] %s", err, fzctx->error.message);
                 text_buffer_destroy(&thread_buffer);
                 fz_drop_page(fzctx, page);
                 fz_drop_stext_page(fzctx, stext);
@@ -385,7 +393,7 @@ parse_ebook_mem(scan_ebook_ctx_t *ctx, void *buf, size_t buf_len, const char *mi
         meta_line_t *meta_content = malloc(sizeof(meta_line_t) + thread_buffer.dyn_buffer.cur);
         meta_content->key = MetaContent;
         memcpy(meta_content->str_val, thread_buffer.dyn_buffer.buf, thread_buffer.dyn_buffer.cur);
-        APPEND_META(doc, meta_content)
+        APPEND_META(doc, meta_content);
 
         text_buffer_destroy(&thread_buffer);
     }
@@ -410,7 +418,7 @@ void parse_epub_fast(scan_ebook_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
     int ret = arc_open(&arc_ctx, f, &a, &arc_data, TRUE);
     if (ret != ARCHIVE_OK) {
-        CTX_LOG_ERRORF(f->filepath, "(ebook.c) [%d] %s", ret, archive_error_string(a))
+        CTX_LOG_ERRORF(f->filepath, "(ebook.c) [%d] %s", ret, archive_error_string(a));
         archive_read_free(a);
         return;
     }
@@ -431,7 +439,7 @@ void parse_epub_fast(scan_ebook_ctx_t *ctx, vfile_t *f, document_t *doc) {
                 if (read != entry_size) {
                     const char *err_str = archive_error_string(a);
                     if (err_str) {
-                        CTX_LOG_ERRORF("ebook.c", "Error while reading entry: %s", err_str)
+                        CTX_LOG_ERRORF("ebook.c", "Error while reading entry: %s", err_str);
                     }
                     free(buf);
                     break;
@@ -452,7 +460,7 @@ void parse_epub_fast(scan_ebook_ctx_t *ctx, vfile_t *f, document_t *doc) {
     meta_line_t *meta_content = malloc(sizeof(meta_line_t) + content_buffer.dyn_buffer.cur);
     meta_content->key = MetaContent;
     memcpy(meta_content->str_val, content_buffer.dyn_buffer.buf, content_buffer.dyn_buffer.cur);
-    APPEND_META(doc, meta_content)
+    APPEND_META(doc, meta_content);
 
     text_buffer_destroy(&content_buffer);
 
@@ -469,7 +477,7 @@ void parse_ebook(scan_ebook_ctx_t *ctx, vfile_t *f, const char *mime_str, docume
     size_t buf_len;
     void *buf = read_all(f, &buf_len);
     if (buf == NULL) {
-        CTX_LOG_ERROR(f->filepath, "read_all() failed")
+        CTX_LOG_ERROR(f->filepath, "read_all() failed");
         return;
     }
 

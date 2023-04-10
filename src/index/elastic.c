@@ -29,7 +29,7 @@ void destroy_indexer(es_indexer_t *indexer) {
         return;
     }
 
-    LOG_DEBUG("elastic.c", "Destroying indexer")
+    LOG_DEBUG("elastic.c", "Destroying indexer");
 
     if (indexer->es_url != NULL) {
         free(indexer->es_url);
@@ -64,18 +64,21 @@ void print_json(cJSON *document, const char id_str[SIST_DOC_ID_LEN]) {
     cJSON_Delete(line);
 }
 
-void index_json_func(void *arg) {
-    es_bulk_line_t *line = arg;
-    elastic_index_line(line);
+void index_json_func(job_t *job) {
+    elastic_index_line(job->bulk_line);
 }
 
-void delete_document(const char* document_id_str, void* UNUSED(_data)) {
+void delete_document(const char *document_id) {
     es_bulk_line_t *bulk_line = malloc(sizeof(es_bulk_line_t));
+
     bulk_line->type = ES_BULK_LINE_DELETE;
     bulk_line->next = NULL;
+    strcpy(bulk_line->doc_id, document_id);
 
-    strcpy(bulk_line->doc_id, document_id_str);
-    tpool_add_work(IndexCtx.pool, index_json_func, bulk_line);
+    tpool_add_work(IndexCtx.pool, &(job_t) {
+            .type = JOB_BULK_LINE,
+            .bulk_line = bulk_line,
+    });
 }
 
 
@@ -92,7 +95,10 @@ void index_json(cJSON *document, const char doc_id[SIST_DOC_ID_LEN]) {
     bulk_line->next = NULL;
 
     cJSON_free(json);
-    tpool_add_work(IndexCtx.pool, index_json_func, bulk_line);
+    tpool_add_work(IndexCtx.pool, &(job_t) {
+        .type = JOB_BULK_LINE,
+        .bulk_line = bulk_line,
+    });
 }
 
 void execute_update_script(const char *script, int async, const char index_id[SIST_INDEX_ID_LEN]) {
@@ -266,7 +272,7 @@ void print_error(response_t *r) {
 void _elastic_flush(int max) {
 
     if (max == 0) {
-        LOG_WARNING("elastic.c", "calling _elastic_flush with 0 in queue")
+        LOG_WARNING("elastic.c", "calling _elastic_flush with 0 in queue");
         return;
     }
 
@@ -279,13 +285,13 @@ void _elastic_flush(int max) {
     response_t *r = web_post(bulk_url, buf, IndexCtx.es_insecure_ssl);
 
     if (r->status_code == 0) {
-        LOG_FATALF("elastic.c", "Could not connect to %s, make sure that elasticsearch is running!\n", IndexCtx.es_url)
+        LOG_FATALF("elastic.c", "Could not connect to %s, make sure that elasticsearch is running!\n", IndexCtx.es_url);
     }
 
     if (r->status_code == 413) {
 
         if (max <= 1) {
-            LOG_ERRORF("elastic.c", "Single document too large, giving up: {%s}", Indexer->line_head->doc_id)
+            LOG_ERRORF("elastic.c", "Single document too large, giving up: {%s}", Indexer->line_head->doc_id);
             free_response(r);
             free(buf);
             free_queue(1);
@@ -306,7 +312,7 @@ void _elastic_flush(int max) {
 
         free_response(r);
         free(buf);
-        LOG_WARNING("elastic.c", "Got 429 status, will retry after delay")
+        LOG_WARNING("elastic.c", "Got 429 status, will retry after delay");
         usleep(1000000 * 20);
         _elastic_flush(max);
         return;
@@ -441,7 +447,7 @@ es_version_t *elastic_get_version(const char *es_url, int insecure) {
     }
 
     if (cJSON_GetObjectItem(response, "error") != NULL) {
-        LOG_WARNING("elastic.c", "Could not get Elasticsearch version")
+        LOG_WARNING("elastic.c", "Could not get Elasticsearch version");
         print_error(r);
         free_response(r);
         return NULL;
@@ -477,7 +483,7 @@ void elastic_init(int force_reset, const char *user_mappings, const char *user_s
     IndexCtx.es_version = es_version;
 
     if (es_version == NULL) {
-        LOG_FATAL("elastic.c", "Could not get ES version")
+        LOG_FATAL("elastic.c", "Could not get ES version");
     }
 
     LOG_INFOF("elastic.c",
@@ -485,7 +491,7 @@ void elastic_init(int force_reset, const char *user_mappings, const char *user_s
               format_es_version(es_version), IS_SUPPORTED_ES_VERSION(es_version), IS_LEGACY_VERSION(es_version));
 
     if (!IS_SUPPORTED_ES_VERSION(es_version)) {
-        LOG_FATAL("elastic.c", "This elasticsearch version is not supported!")
+        LOG_FATAL("elastic.c", "This elasticsearch version is not supported!");
     }
 
     char *settings = NULL;
@@ -512,7 +518,7 @@ void elastic_init(int force_reset, const char *user_mappings, const char *user_s
 
         if (r->status_code != 200) {
             print_error(r);
-            LOG_FATAL("elastic.c", "Could not create index")
+            LOG_FATAL("elastic.c", "Could not create index");
         }
 
         LOG_INFOF("elastic.c", "Create index <%d>", r->status_code);
@@ -533,12 +539,13 @@ void elastic_init(int force_reset, const char *user_mappings, const char *user_s
         LOG_INFOF("elastic.c", "Update ES settings <%d>", r->status_code);
         if (r->status_code != 200) {
             print_error(r);
-            LOG_FATAL("elastic.c", "Could not update user settings")
+            LOG_FATAL("elastic.c", "Could not update user settings");
         }
         free_response(r);
 
         if (IS_LEGACY_VERSION(es_version)) {
-            snprintf(url, sizeof(url), "%s/%s/_mappings/_doc?include_type_name=true", IndexCtx.es_url, IndexCtx.es_index);
+            snprintf(url, sizeof(url), "%s/%s/_mappings/_doc?include_type_name=true", IndexCtx.es_url,
+                     IndexCtx.es_index);
         } else {
             snprintf(url, sizeof(url), "%s/%s/_mappings", IndexCtx.es_url, IndexCtx.es_index);
         }
@@ -547,7 +554,7 @@ void elastic_init(int force_reset, const char *user_mappings, const char *user_s
         LOG_INFOF("elastic.c", "Update ES mappings <%d>", r->status_code);
         if (r->status_code != 200) {
             print_error(r);
-            LOG_FATAL("elastic.c", "Could not update user mappings")
+            LOG_FATAL("elastic.c", "Could not update user mappings");
         }
         free_response(r);
 

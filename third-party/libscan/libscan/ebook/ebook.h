@@ -9,7 +9,6 @@ typedef struct {
     int enable_tn;
     const char *tesseract_lang;
     const char *tesseract_path;
-    pthread_mutex_t mupdf_mutex;
 
     log_callback_t log;
     logf_callback_t logf;
