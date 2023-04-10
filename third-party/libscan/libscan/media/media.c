@@ -163,7 +163,7 @@ static void read_subtitles(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, i
 
     text_buffer_terminate_string(&tex);
 
-    APPEND_STR_META(doc, MetaContent, tex.dyn_buffer.buf)
+    APPEND_STR_META(doc, MetaContent, tex.dyn_buffer.buf);
     text_buffer_destroy(&tex);
     avcodec_free_context(&decoder);
 }
@@ -190,7 +190,7 @@ read_frame(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, AVCodecContext *d
                     CTX_LOG_WARNINGF(doc->filepath,
                                      "(media.c) avcodec_read_frame() returned error code [%d] %s",
                                      read_frame_ret, av_err2str(read_frame_ret)
-                    )
+                    );
                 }
                 frame_and_packet_free(result);
                 return NULL;
@@ -210,7 +210,7 @@ read_frame(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, AVCodecContext *d
             CTX_LOG_ERRORF(doc->filepath,
                            "(media.c) avcodec_send_packet() returned error code [%d] %s",
                            decode_ret, av_err2str(decode_ret)
-            )
+            );
             frame_and_packet_free(result);
             return NULL;
         }
@@ -230,7 +230,7 @@ void append_tag_meta_if_not_exists(scan_media_ctx_t *ctx, document_t *doc, AVDic
     while (meta != NULL) {
         if (meta->key == key) {
             CTX_LOG_DEBUGF(doc->filepath, "Ignoring duplicate tag: '%02x=%s' and '%02x=%s'",
-                           key, meta->str_val, key, tag->value)
+                           key, meta->str_val, key, tag->value);
             return;
         }
         meta = meta->next;
@@ -243,7 +243,7 @@ void append_tag_meta_if_not_exists(scan_media_ctx_t *ctx, document_t *doc, AVDic
     meta_tag->key = key;
     strcpy(meta_tag->str_val, tex.dyn_buffer.buf);
 
-    APPEND_META(doc, meta_tag)
+    APPEND_META(doc, meta_tag);
     text_buffer_destroy(&tex);
 }
 
@@ -253,7 +253,7 @@ void append_tag_meta_if_not_exists(scan_media_ctx_t *ctx, document_t *doc, AVDic
 #define STRCPY_TOLOWER(dst, str) \
     strncpy(dst, str, sizeof(dst)); \
     char *ptr = dst; \
-    for (; *ptr; ++ptr) *ptr = (char) tolower(*ptr);
+    for (; *ptr; ++ptr) *ptr = (char) tolower(*ptr)
 
 __always_inline
 static void append_audio_meta(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, document_t *doc) {
@@ -261,18 +261,18 @@ static void append_audio_meta(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx
     AVDictionaryEntry *tag = NULL;
     while ((tag = av_dict_get(pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
         char key[256];
-        STRCPY_TOLOWER(key, tag->key)
+        STRCPY_TOLOWER(key, tag->key);
 
         if (strcmp(key, "artist") == 0) {
-            APPEND_TAG_META(MetaArtist)
+            APPEND_TAG_META(MetaArtist);
         } else if (strcmp(key, "genre") == 0) {
-            APPEND_TAG_META(MetaGenre)
+            APPEND_TAG_META(MetaGenre);
         } else if (strcmp(key, "title") == 0) {
-            APPEND_TAG_META(MetaTitle)
+            APPEND_TAG_META(MetaTitle);
         } else if (strcmp(key, "album_artist") == 0) {
-            APPEND_TAG_META(MetaAlbumArtist)
+            APPEND_TAG_META(MetaAlbumArtist);
         } else if (strcmp(key, "album") == 0) {
-            APPEND_TAG_META(MetaAlbum)
+            APPEND_TAG_META(MetaAlbum);
         } else if (strcmp(key, "comment") == 0) {
             append_tag_meta_if_not_exists(ctx, doc, tag, MetaContent);
         }
@@ -291,14 +291,14 @@ append_video_meta(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, AVFrame *f
             if (meta_duration->long_val > INT32_MAX) {
                 meta_duration->long_val = 0;
             }
-            APPEND_META(doc, meta_duration)
+            APPEND_META(doc, meta_duration);
         }
 
         if (pFormatCtx->bit_rate != 0) {
             meta_line_t *meta_bitrate = malloc(sizeof(meta_line_t));
             meta_bitrate->key = MetaMediaBitrate;
             meta_bitrate->long_val = pFormatCtx->bit_rate;
-            APPEND_META(doc, meta_bitrate)
+            APPEND_META(doc, meta_bitrate);
         }
     }
 
@@ -306,7 +306,7 @@ append_video_meta(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, AVFrame *f
     if (is_video) {
         while ((tag = av_dict_get(pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
             char key[256];
-            STRCPY_TOLOWER(key, tag->key)
+            STRCPY_TOLOWER(key, tag->key);
 
             if (strcmp(key, "title") == 0) {
                 append_tag_meta_if_not_exists(ctx, doc, tag, MetaTitle);
@@ -320,38 +320,38 @@ append_video_meta(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, AVFrame *f
         // EXIF metadata
         while ((tag = av_dict_get(frame->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
             char key[256];
-            STRCPY_TOLOWER(key, tag->key)
+            STRCPY_TOLOWER(key, tag->key);
 
             if (strcmp(key, "artist") == 0) {
                 append_tag_meta_if_not_exists(ctx, doc, tag, MetaArtist);
             } else if (strcmp(key, "imagedescription") == 0) {
                 append_tag_meta_if_not_exists(ctx, doc, tag, MetaContent);
             } else if (strcmp(key, "make") == 0) {
-                APPEND_TAG_META(MetaExifMake)
+                APPEND_TAG_META(MetaExifMake);
             } else if (strcmp(key, "model") == 0) {
-                APPEND_TAG_META(MetaExifModel)
+                APPEND_TAG_META(MetaExifModel);
             } else if (strcmp(key, "software") == 0) {
-                APPEND_TAG_META(MetaExifSoftware)
+                APPEND_TAG_META(MetaExifSoftware);
             } else if (strcmp(key, "fnumber") == 0) {
-                APPEND_TAG_META(MetaExifFNumber)
+                APPEND_TAG_META(MetaExifFNumber);
             } else if (strcmp(key, "focallength") == 0) {
-                APPEND_TAG_META(MetaExifFocalLength)
+                APPEND_TAG_META(MetaExifFocalLength);
             } else if (strcmp(key, "usercomment") == 0) {
-                APPEND_TAG_META(MetaExifUserComment)
+                APPEND_TAG_META(MetaExifUserComment);
             } else if (strcmp(key, "isospeedratings") == 0) {
-                APPEND_TAG_META(MetaExifIsoSpeedRatings)
+                APPEND_TAG_META(MetaExifIsoSpeedRatings);
             } else if (strcmp(key, "exposuretime") == 0) {
-                APPEND_TAG_META(MetaExifExposureTime)
+                APPEND_TAG_META(MetaExifExposureTime);
             } else if (strcmp(key, "datetime") == 0) {
-                APPEND_TAG_META(MetaExifDateTime)
+                APPEND_TAG_META(MetaExifDateTime);
             } else if (strcmp(key, "gpslatitude") == 0) {
-                APPEND_TAG_META(MetaExifGpsLatitudeDMS)
+                APPEND_TAG_META(MetaExifGpsLatitudeDMS);
             } else if (strcmp(key, "gpslatituderef") == 0) {
-                APPEND_TAG_META(MetaExifGpsLatitudeRef)
+                APPEND_TAG_META(MetaExifGpsLatitudeRef);
             } else if (strcmp(key, "gpslongitude") == 0) {
-                APPEND_TAG_META(MetaExifGpsLongitudeDMS)
+                APPEND_TAG_META(MetaExifGpsLongitudeDMS);
             } else if (strcmp(key, "gpslongituderef") == 0) {
-                APPEND_TAG_META(MetaExifGpsLongitudeRef)
+                APPEND_TAG_META(MetaExifGpsLongitudeRef);
             }
         }
     }
@@ -432,11 +432,11 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
             CTX_LOG_DEBUGF(
                     doc->filepath,
                     "(media.c) Could not seek media file: %s", av_err2str(seek_ret)
-            )
+            );
         }
 
         if (seek_ok == FALSE && thumbnail_index != 0) {
-            CTX_LOG_WARNING(doc->filepath, "(media.c) Could not seek media file. Can't generate additional thumbnails.")
+            CTX_LOG_WARNING(doc->filepath, "(media.c) Could not seek media file. Can't generate additional thumbnails.");
             return SAVE_THUMBNAIL_FAILED;
         }
     }
@@ -522,7 +522,7 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
                 const AVCodecDescriptor *desc = avcodec_descriptor_get(stream->codecpar->codec_id);
 
                 if (desc != NULL) {
-                    APPEND_STR_META(doc, MetaMediaAudioCodec, desc->name)
+                    APPEND_STR_META(doc, MetaMediaAudioCodec, desc->name);
                 }
 
                 audio_stream = i;
@@ -533,18 +533,18 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
                 const AVCodecDescriptor *desc = avcodec_descriptor_get(stream->codecpar->codec_id);
 
                 if (desc != NULL) {
-                    APPEND_STR_META(doc, MetaMediaVideoCodec, desc->name)
+                    APPEND_STR_META(doc, MetaMediaVideoCodec, desc->name);
                 }
 
                 meta_line_t *meta_w = malloc(sizeof(meta_line_t));
                 meta_w->key = MetaWidth;
                 meta_w->long_val = stream->codecpar->width;
-                APPEND_META(doc, meta_w)
+                APPEND_META(doc, meta_w);
 
                 meta_line_t *meta_h = malloc(sizeof(meta_line_t));
                 meta_h->key = MetaHeight;
                 meta_h->long_val = stream->codecpar->height;
-                APPEND_META(doc, meta_h)
+                APPEND_META(doc, meta_h);
 
                 video_stream = i;
             }
@@ -611,7 +611,7 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
         }
 
         if (number_of_thumbnails_generated > 0) {
-            APPEND_LONG_META(doc, MetaThumbnail, number_of_thumbnails_generated)
+            APPEND_LONG_META(doc, MetaThumbnail, number_of_thumbnails_generated);
         }
 
         avcodec_free_context(&decoder);
@@ -625,12 +625,12 @@ void parse_media_filename(scan_media_ctx_t *ctx, const char *filepath, document_
 
     AVFormatContext *pFormatCtx = avformat_alloc_context();
     if (pFormatCtx == NULL) {
-        CTX_LOG_ERROR(doc->filepath, "(media.c) Could not allocate context with avformat_alloc_context()")
+        CTX_LOG_ERROR(doc->filepath, "(media.c) Could not allocate context with avformat_alloc_context()");
         return;
     }
     int res = avformat_open_input(&pFormatCtx, filepath, NULL, NULL);
     if (res < 0) {
-        CTX_LOG_ERRORF(doc->filepath, "(media.c) avformat_open_input() returned [%d] %s", res, av_err2str(res))
+        CTX_LOG_ERRORF(doc->filepath, "(media.c) avformat_open_input() returned [%d] %s", res, av_err2str(res));
         avformat_close_input(&pFormatCtx);
         avformat_free_context(pFormatCtx);
         return;
@@ -724,7 +724,7 @@ void parse_media_vfile(scan_media_ctx_t *ctx, struct vfile *f, document_t *doc, 
 
     AVFormatContext *pFormatCtx = avformat_alloc_context();
     if (pFormatCtx == NULL) {
-        CTX_LOG_ERROR(doc->filepath, "(media.c) Could not allocate context with avformat_alloc_context()")
+        CTX_LOG_ERROR(doc->filepath, "(media.c) Could not allocate context with avformat_alloc_context()");
         return;
     }
 
@@ -737,13 +737,13 @@ void parse_media_vfile(scan_media_ctx_t *ctx, struct vfile *f, document_t *doc, 
     if (f->st_size <= ctx->max_media_buffer) {
         int ret = memfile_open(f, &memfile);
         if (ret == 0) {
-            CTX_LOG_DEBUGF(f->filepath, "Loading media file in memory (%ldB)", f->st_size)
+            CTX_LOG_DEBUGF(f->filepath, "Loading media file in memory (%ldB)", f->st_size);
             io_ctx = avio_alloc_context(buffer, AVIO_BUF_SIZE, 0, &memfile, memfile_read, NULL, memfile_seek);
         }
     }
 
     if (io_ctx == NULL) {
-        CTX_LOG_DEBUGF(f->filepath, "Reading media file without seek support", f->st_size)
+        CTX_LOG_DEBUGF(f->filepath, "Reading media file without seek support", f->st_size);
         io_ctx = avio_alloc_context(buffer, AVIO_BUF_SIZE, 0, f, vfile_read, NULL, NULL);
     }
 
@@ -752,7 +752,7 @@ void parse_media_vfile(scan_media_ctx_t *ctx, struct vfile *f, document_t *doc, 
     int res = avformat_open_input(&pFormatCtx, filepath, NULL, NULL);
     if (res < 0) {
         if (res != -5) {
-            CTX_LOG_ERRORF(doc->filepath, "(media.c) avformat_open_input() returned [%d] %s", res, av_err2str(res))
+            CTX_LOG_ERRORF(doc->filepath, "(media.c) avformat_open_input() returned [%d] %s", res, av_err2str(res));
         }
         av_free(io_ctx->buffer);
         memfile_close(&memfile);
@@ -787,7 +787,7 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
 
     AVFormatContext *pFormatCtx = avformat_alloc_context();
     if (pFormatCtx == NULL) {
-        CTX_LOG_ERROR(doc->filepath, "(media.c) Could not allocate context with avformat_alloc_context()")
+        CTX_LOG_ERROR(doc->filepath, "(media.c) Could not allocate context with avformat_alloc_context()");
         return FALSE;
     }
 
@@ -795,7 +795,7 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
 
     int ret = memfile_open_buf(buf, buf_len, &memfile);
     if (ret == 0) {
-        CTX_LOG_DEBUGF(doc->filepath, "Loading media file in memory (%ldB)", buf_len)
+        CTX_LOG_DEBUGF(doc->filepath, "Loading media file in memory (%ldB)", buf_len);
         io_ctx = avio_alloc_context(buffer, AVIO_BUF_SIZE, 0, &memfile, memfile_read, NULL, memfile_seek);
     } else {
         avformat_close_input(&pFormatCtx);
@@ -850,7 +850,7 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
     }
 
     if (scaled_frame == STORE_AS_IS) {
-        APPEND_LONG_META(doc, MetaThumbnail, 1)
+        APPEND_LONG_META(doc, MetaThumbnail, 1);
         ctx->store(doc->doc_id, 0, frame_and_packet->packet->data, frame_and_packet->packet->size);
     } else {
         // Encode frame to jpeg
@@ -863,7 +863,7 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
         avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
 
         // Save thumbnail
-        APPEND_LONG_META(doc, MetaThumbnail, 1)
+        APPEND_LONG_META(doc, MetaThumbnail, 1);
         ctx->store(doc->doc_id, 0, jpeg_packet.data, jpeg_packet.size);
 
         av_packet_unref(&jpeg_packet);

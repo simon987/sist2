@@ -142,7 +142,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
     char *abs_output = abspath(args->output);
     if (args->incremental && abs_output == NULL) {
-        LOG_WARNINGF("main.c", "Could not open original index for incremental scan: %s. Will not perform incremental scan.", abs_output);
+        LOG_WARNINGF("main.c", "Could not open original index for incremental scan: %s. Will not perform incremental scan.", args->output);
         args->incremental = FALSE;
     } else if (!args->incremental && abs_output != NULL) {
         LOG_FATALF("main.c", "Index already exists: %s. If you wish to perform incremental scan, you must specify --incremental", abs_output);

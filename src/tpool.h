@@ -19,8 +19,6 @@ int tpool_add_work(tpool_t *pool, job_t *job);
 
 void tpool_wait(tpool_t *pool);
 
-void tpool_dump_debug_info(tpool_t *pool);
-
 void job_destroy(job_t *job);
 
 #endif

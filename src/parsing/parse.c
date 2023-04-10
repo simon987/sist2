@@ -46,17 +46,13 @@ file_type_t get_file_type(unsigned int mime, size_t size, const char *filepath) 
         return FILETYPE_MEDIA;
     } else if (IS_PDF(mime)) {
         return FILETYPE_EBOOK;
-    } else if (major_mime == MimeText && ScanCtx.text_ctx.content_size > 0) {
-        if (IS_MARKUP(mime)) {
-            return FILETYPE_MARKUP;
-        } else {
-            return FILETYPE_TEXT;
-        }
-
+    } else if (IS_MARKUP(mime)) {
+        return FILETYPE_MARKUP;
+    } else if (major_mime == MimeText) {
+        return FILETYPE_TEXT;
     } else if (IS_FONT(mime)) {
         return FILETYPE_FONT;
-    } else if (
-            ScanCtx.arc_ctx.mode != ARC_MODE_SKIP && (
+    } else if (ScanCtx.arc_ctx.mode != ARC_MODE_SKIP && (
                     IS_ARC(mime) ||
                     (IS_ARC_FILTER(mime) && should_parse_filtered_file(filepath))
             )) {
@@ -98,10 +94,6 @@ int get_mime(parse_job_t *job) {
         }
     }
 
-    if (strlen(extension) == 0 && strlen(job->filepath + job->base) == 40) {
-        fprintf(stderr, "GIT? %s", job->filepath);
-    }
-
     if (ScanCtx.fast) {
         return 0;
     }
@@ -122,7 +114,6 @@ int get_mime(parse_job_t *job) {
             LOG_ERRORF(job->filepath, "(virtual) read(): [%d] %s", bytes_read, archive_error_string(job->vfile.arc));
         }
 
-
         return GET_MIME_ERROR_FATAL;
     }
 
@@ -130,12 +121,13 @@ int get_mime(parse_job_t *job) {
 
     if (magic_mime_str != NULL) {
         mime = (int) mime_get_mime_by_string(magic_mime_str);
-        free(magic_mime_str);
 
         if (mime == 0) {
             LOG_WARNINGF(job->filepath, "Couldn't find mime %s", magic_mime_str);
+            free(magic_mime_str);
             return 0;
         }
+        free(magic_mime_str);
     }
 
     if (job->vfile.reset != NULL) {
@@ -163,14 +155,11 @@ void parse(parse_job_t *job) {
     doc->meta_head = NULL;
     doc->meta_tail = NULL;
     doc->size = job->vfile.st_size;
-    doc->mtime = (int) job->vfile.mtime;
+    doc->mtime = job->vfile.mtime;
     doc->mime = get_mime(job);
     generate_doc_id(doc->filepath + ScanCtx.index.desc.root_len, doc->doc_id);
 
     if (doc->mime == GET_MIME_ERROR_FATAL) {
-        pthread_mutex_lock(&ScanCtx.dbg_file_counts_mu);
-        ScanCtx.dbg_failed_files_count += 1;
-        pthread_mutex_unlock(&ScanCtx.dbg_file_counts_mu);
 
         CLOSE_FILE(job->vfile)
         free(doc);
@@ -178,9 +167,6 @@ void parse(parse_job_t *job) {
     }
 
     if (database_mark_document(ProcData.index_db, doc->doc_id, doc->mtime)) {
-        pthread_mutex_lock(&ScanCtx.dbg_file_counts_mu);
-        ScanCtx.dbg_skipped_files_count += 1;
-        pthread_mutex_unlock(&ScanCtx.dbg_file_counts_mu);
 
         CLOSE_FILE(job->vfile)
         free(doc);
@@ -246,7 +232,7 @@ void parse(parse_job_t *job) {
         meta_line_t *meta_parent = malloc(sizeof(meta_line_t) + SIST_INDEX_ID_LEN);
         meta_parent->key = MetaParent;
         strcpy(meta_parent->str_val, job->parent);
-        APPEND_META((doc), meta_parent)
+        APPEND_META((doc), meta_parent);
     }
 
     CLOSE_FILE(job->vfile)
@@ -254,7 +240,7 @@ void parse(parse_job_t *job) {
     if (job->vfile.has_checksum) {
         char sha1_digest_str[SHA1_STR_LENGTH];
         buf2hex((unsigned char *) job->vfile.sha1_digest, SHA1_DIGEST_LENGTH, (char *) sha1_digest_str);
-        APPEND_STR_META(doc, MetaChecksum, (const char *) sha1_digest_str)
+        APPEND_STR_META(doc, MetaChecksum, (const char *) sha1_digest_str);
     }
 
     write_document(doc);

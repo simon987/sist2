@@ -8,7 +8,6 @@
 #include <time.h>
 
 
-
 database_t *database_create(const char *filename, database_type_t type) {
     database_t *db = malloc(sizeof(database_t));
 
@@ -81,7 +80,7 @@ void database_initialize(database_t *db) {
 }
 
 void database_open(database_t *db) {
-    LOG_DEBUGF("tpool.c", "Opening database %s (%d)", db->filename, db->type);
+    LOG_DEBUGF("database.c", "Opening database %s (%d)", db->filename, db->type);
 
     CRASH_IF_NOT_SQLITE_OK(sqlite3_open(db->filename, &db->db));
 
@@ -113,7 +112,8 @@ void database_open(database_t *db) {
                 &db->write_document_stmt, NULL));
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db,
-                "INSERT INTO thumbnail (id, num, data) VALUES (?,?,?) ON CONFLICT DO UPDATE SET data=excluded.data;", -1,
+                "INSERT INTO thumbnail (id, num, data) VALUES (?,?,?) ON CONFLICT DO UPDATE SET data=excluded.data;",
+                -1,
                 &db->write_thumbnail_stmt, NULL));
 
         // Create functions
@@ -186,12 +186,16 @@ void database_close(database_t *db, int optimize) {
 
     if (optimize) {
         LOG_DEBUG("database.c", "Optimizing database");
-        // TODO: This should be an optional argument
-//        CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "VACUUM;", NULL, NULL, NULL));
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "VACUUM;", NULL, NULL, NULL));
         CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA optimize;", NULL, NULL, NULL));
     }
 
     sqlite3_close(db->db);
+
+    if (db->type == IPC_PRODUCER_DATABASE) {
+        remove(db->filename);
+    }
+
     free(db);
     db = NULL;
 }
@@ -202,10 +206,13 @@ void *database_read_thumbnail(database_t *db, const char *id, int num, size_t *r
 
     int ret = sqlite3_step(db->select_thumbnail_stmt);
 
-    // TODO: if row not found, return null
-    if (ret != SQLITE_ROW) {
-        LOG_FATALF("database.c", "FIXME: tn step returned %d", ret);
+    if (ret == SQLITE_DONE) {
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_reset(db->select_thumbnail_stmt));
+        *return_value_len = 0;
+        return NULL;
     }
+
+    CRASH_IF_STMT_FAIL(ret);
 
     const void *blob = sqlite3_column_blob(db->select_thumbnail_stmt, 0);
     const int blob_size = sqlite3_column_bytes(db->select_thumbnail_stmt, 0);
@@ -275,11 +282,47 @@ index_descriptor_t *database_read_index_descriptor(database_t *db) {
     return desc;
 }
 
+database_iterator_t *database_create_delete_list_iterator(database_t *db) {
+
+    sqlite3_stmt *stmt;
+    sqlite3_prepare_v2(db->db, "SELECT id FROM delete_list;", -1, &stmt, NULL);
+
+    database_iterator_t *iter = malloc(sizeof(database_iterator_t));
+
+    iter->stmt = stmt;
+    iter->db = db;
+
+    return iter;
+}
+
+char *database_delete_list_iter(database_iterator_t *iter) {
+    int ret = sqlite3_step(iter->stmt);
+
+    if (ret == SQLITE_ROW) {
+        const char *id = (const char *) sqlite3_column_text(iter->stmt, 0);
+        char *id_heap = malloc(strlen(id) + 1);
+        strcpy(id_heap, id);
+        return id_heap;
+    }
+
+    if (ret != SQLITE_DONE) {
+        LOG_FATALF("database.c", "FIXME: delete iter returned %s", sqlite3_errmsg(iter->db->db));
+    }
+
+    if (sqlite3_finalize(iter->stmt) != SQLITE_OK) {
+        LOG_FATALF("database.c", "FIXME: delete iter returned %s", sqlite3_errmsg(iter->db->db));
+    }
+
+    iter->stmt = NULL;
+
+    return NULL;
+}
+
 database_iterator_t *database_create_document_iterator(database_t *db) {
 
     sqlite3_stmt *stmt;
 
-    // TODO: remove mtime, size, _id from json_data
+    // TODO optimization: remove mtime, size, _id from json_data
 
     sqlite3_prepare_v2(db->db, "WITH doc (j) AS (SELECT CASE"
                                " WHEN sc.json_data IS NULL THEN"
@@ -494,9 +537,9 @@ job_t *database_get_work(database_t *db, job_type_t job_type) {
             CRASH_IF_NOT_SQLITE_OK(sqlite3_reset(db->pop_index_job_stmt));
             pthread_mutex_unlock(&db->ipc_ctx->db_mutex);
             return NULL;
-        } else {
-            CRASH_IF_STMT_FAIL(ret);
         }
+
+        CRASH_IF_STMT_FAIL(ret);
 
         job = malloc(sizeof(*job));
 
@@ -510,9 +553,6 @@ job_t *database_get_work(database_t *db, job_type_t job_type) {
         strcpy(job->bulk_line->doc_id, (const char *) sqlite3_column_text(db->pop_index_job_stmt, 0));
         job->bulk_line->type = sqlite3_column_int(db->pop_index_job_stmt, 1);
         job->bulk_line->next = NULL;
-
-        // TODO CRASH IF NOT OK
-        sqlite3_step(db->pop_parse_job_stmt);
 
         CRASH_IF_NOT_SQLITE_OK(sqlite3_reset(db->pop_index_job_stmt));
     }

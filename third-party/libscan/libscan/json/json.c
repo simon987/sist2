@@ -33,7 +33,7 @@ int json_extract_text(cJSON *json, text_buffer_t *tex) {
 scan_code_t parse_json(scan_json_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
     if (f->st_size > JSON_MAX_FILE_SIZE) {
-        CTX_LOG_WARNINGF("json.c", "File larger than maximum allowed [%s]", f->filepath)
+        CTX_LOG_WARNINGF("json.c", "File larger than maximum allowed [%s]", f->filepath);
         return SCAN_ERR_SKIP;
     }
 

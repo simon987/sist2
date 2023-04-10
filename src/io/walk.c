@@ -24,9 +24,6 @@ int handle_entry(const char *filepath, const struct stat *info, int typeflag, st
         LOG_DEBUGF("walk.c", "Excluded: %s", filepath);
 
         if (typeflag == FTW_F && S_ISREG(info->st_mode)) {
-            pthread_mutex_lock(&ScanCtx.dbg_file_counts_mu);
-            ScanCtx.dbg_excluded_files_count += 1;
-            pthread_mutex_unlock(&ScanCtx.dbg_file_counts_mu);
         } else if (typeflag == FTW_D) {
             return FTW_SKIP_SUBTREE;
         }
@@ -83,13 +80,6 @@ int iterate_file_list(void *input_file) {
 
         if (ScanCtx.exclude != NULL && EXCLUDED(absolute_path)) {
             LOG_DEBUGF("walk.c", "Excluded: %s", absolute_path);
-
-            if (S_ISREG(info.st_mode)) {
-                pthread_mutex_lock(&ScanCtx.dbg_file_counts_mu);
-                ScanCtx.dbg_excluded_files_count += 1;
-                pthread_mutex_unlock(&ScanCtx.dbg_file_counts_mu);
-            }
-
             continue;
         }
 

@@ -25,20 +25,20 @@
 #define SHA1_STR_LENGTH (SHA1_DIGEST_LENGTH * 2 + 1)
 #define MD5_STR_LENGTH (MD5_DIGEST_LENGTH * 2 + 1)
 
-#define APPEND_STR_META(doc, keyname, value) \
+#define APPEND_STR_META(doc, keyname, value) do {\
     {meta_line_t *meta_str = malloc(sizeof(meta_line_t) + strlen(value)); \
     meta_str->key = keyname; \
     strcpy(meta_str->str_val, value); \
-    APPEND_META(doc, meta_str)}
+    APPEND_META(doc, meta_str);}} while(0)
 
-#define APPEND_LONG_META(doc, keyname, value) \
+#define APPEND_LONG_META(doc, keyname, value) do{\
     {meta_line_t *meta_long = malloc(sizeof(meta_line_t)); \
     meta_long->key = keyname; \
     meta_long->long_val = value; \
-    APPEND_META(doc, meta_long)}
+    APPEND_META(doc, meta_long);}} while(0)
 
 
-#define APPEND_META(doc, meta) \
+#define APPEND_META(doc, meta) do {\
     meta->next = NULL;\
     if (doc->meta_head == NULL) {\
         doc->meta_head = meta;\
@@ -46,7 +46,7 @@
     } else {\
         doc->meta_tail->next = meta;\
         doc->meta_tail = meta;\
-    }
+    }}while(0)
 
 #define APPEND_UTF8_META(doc, keyname, str) \
     text_buffer_t tex = text_buffer_create(-1); \
@@ -55,5 +55,5 @@
     meta_line_t *meta_tag = malloc(sizeof(meta_line_t) + tex.dyn_buffer.cur); \
     meta_tag->key = keyname; \
     strcpy(meta_tag->str_val, tex.dyn_buffer.buf); \
-    APPEND_META(doc, meta_tag) \
-    text_buffer_destroy(&tex);
+    APPEND_META(doc, meta_tag); \
+    text_buffer_destroy(&tex)

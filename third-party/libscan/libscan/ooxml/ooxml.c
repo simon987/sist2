@@ -39,7 +39,7 @@ int extract_text(scan_ooxml_ctx_t *ctx, xmlDoc *xml, xmlNode *node, text_buffer_
     xmlErrorPtr err = xmlGetLastError();
     if (err != NULL) {
         if (err->level == XML_ERR_FATAL) {
-            CTX_LOG_ERRORF("ooxml.c", "Got fatal XML error while parsing document: %s", err->message)
+            CTX_LOG_ERRORF("ooxml.c", "Got fatal XML error while parsing document: %s", err->message);
             return -1;
         }
     }
@@ -85,13 +85,13 @@ static int read_part(scan_ooxml_ctx_t *ctx, struct archive *a, text_buffer_t *bu
                             XML_PARSE_RECOVER | XML_PARSE_NOWARNING | XML_PARSE_NOERROR | XML_PARSE_NONET);
 
     if (xml == NULL) {
-        CTX_LOG_ERROR(doc->filepath, "Could not parse XML")
+        CTX_LOG_ERROR(doc->filepath, "Could not parse XML");
         return READ_PART_ERR;
     }
 
     xmlNode *root = xmlDocGetRootElement(xml);
     if (root == NULL) {
-        CTX_LOG_ERROR(doc->filepath, "Empty document")
+        CTX_LOG_ERROR(doc->filepath, "Empty document");
         xmlFreeDoc(xml);
         return READ_PART_ERR;
     }
@@ -108,13 +108,13 @@ static int read_doc_props_app(scan_ooxml_ctx_t *ctx, struct archive *a, document
                             XML_PARSE_RECOVER | XML_PARSE_NOWARNING | XML_PARSE_NOERROR | XML_PARSE_NONET);
 
     if (xml == NULL) {
-        CTX_LOG_ERROR(doc->filepath, "Could not parse XML")
+        CTX_LOG_ERROR(doc->filepath, "Could not parse XML");
         return -1;
     }
 
     xmlNode *root = xmlDocGetRootElement(xml);
     if (root == NULL) {
-        CTX_LOG_ERROR(doc->filepath, "Empty document")
+        CTX_LOG_ERROR(doc->filepath, "Empty document");
         xmlFreeDoc(xml);
         return -1;
     }
@@ -127,7 +127,7 @@ static int read_doc_props_app(scan_ooxml_ctx_t *ctx, struct archive *a, document
             }
 
             if (xmlStrEqual(child->name, _X("Pages"))) {
-                APPEND_LONG_META(doc, MetaPages, strtol((char *) text, NULL, 10))
+                APPEND_LONG_META(doc, MetaPages, strtol((char *) text, NULL, 10));
             }
 
             xmlFree(text);
@@ -144,13 +144,13 @@ static int read_doc_props(scan_ooxml_ctx_t *ctx, struct archive *a, document_t *
                             XML_PARSE_RECOVER | XML_PARSE_NOWARNING | XML_PARSE_NOERROR | XML_PARSE_NONET);
 
     if (xml == NULL) {
-        CTX_LOG_ERROR(doc->filepath, "Could not parse XML")
+        CTX_LOG_ERROR(doc->filepath, "Could not parse XML");
         return -1;
     }
 
     xmlNode *root = xmlDocGetRootElement(xml);
     if (root == NULL) {
-        CTX_LOG_ERROR(doc->filepath, "Empty document")
+        CTX_LOG_ERROR(doc->filepath, "Empty document");
         xmlFreeDoc(xml);
         return -1;
     }
@@ -163,11 +163,11 @@ static int read_doc_props(scan_ooxml_ctx_t *ctx, struct archive *a, document_t *
             }
 
             if (xmlStrEqual(child->name, _X("title"))) {
-                APPEND_STR_META(doc, MetaTitle, (char *) text)
+                APPEND_STR_META(doc, MetaTitle, (char *) text);
             } else if (xmlStrEqual(child->name, _X("creator"))) {
-                APPEND_STR_META(doc, MetaAuthor, (char *) text)
+                APPEND_STR_META(doc, MetaAuthor, (char *) text);
             } else if (xmlStrEqual(child->name, _X("lastModifiedBy"))) {
-                APPEND_STR_META(doc, MetaModifiedBy, (char *) text)
+                APPEND_STR_META(doc, MetaModifiedBy, (char *) text);
             }
 
             xmlFree(text);
@@ -190,7 +190,7 @@ void read_thumbnail(scan_ooxml_ctx_t *ctx, document_t *doc, struct archive *a, s
     char *buf = malloc(entry_size);
     archive_read_data(a, buf, entry_size);
 
-    APPEND_LONG_META(doc, MetaThumbnail, 1)
+    APPEND_LONG_META(doc, MetaThumbnail, 1);
     ctx->store(doc->doc_id, 1, buf, entry_size);
     free(buf);
 }
@@ -200,7 +200,7 @@ void parse_ooxml(scan_ooxml_ctx_t *ctx, vfile_t *f, document_t *doc) {
     size_t buf_len;
     void *buf = read_all(f, &buf_len);
     if (buf == NULL) {
-        CTX_LOG_ERROR(f->filepath, "read_all() failed")
+        CTX_LOG_ERROR(f->filepath, "read_all() failed");
         return;
     }
 
@@ -209,7 +209,7 @@ void parse_ooxml(scan_ooxml_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
     int ret = archive_read_open_memory(a, buf, buf_len);
     if (ret != ARCHIVE_OK) {
-        CTX_LOG_ERRORF(doc->filepath, "Could not read archive: %s", archive_error_string(a))
+        CTX_LOG_ERRORF(doc->filepath, "Could not read archive: %s", archive_error_string(a));
         archive_read_free(a);
         free(buf);
         return;
@@ -250,7 +250,7 @@ void parse_ooxml(scan_ooxml_ctx_t *ctx, vfile_t *f, document_t *doc) {
         meta_line_t *meta = malloc(sizeof(meta_line_t) + tex.dyn_buffer.cur);
         meta->key = MetaContent;
         strcpy(meta->str_val, tex.dyn_buffer.buf);
-        APPEND_META(doc, meta)
+        APPEND_META(doc, meta);
     }
 
     archive_read_close(a);

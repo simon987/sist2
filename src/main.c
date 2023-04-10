@@ -18,10 +18,6 @@
 
 #include "src/database/database.h"
 
-#define DESCRIPTION "Lightning-fast file system indexer and search tool."
-
-#define EPILOG "Made by simon987 <me@simon987.net>. Released under GPL-3.0"
-
 
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
@@ -31,77 +27,6 @@ static const char *const usage[] = {
         NULL,
 };
 
-
-static __sighandler_t sigsegv_handler = NULL;
-static __sighandler_t sigabrt_handler = NULL;
-
-void sig_handler(int signum) {
-
-    LogCtx.verbose = TRUE;
-    LogCtx.very_verbose = TRUE;
-
-    LOG_ERROR("*SIGNAL HANDLER*", "=============================================\n\n");
-    LOG_ERRORF("*SIGNAL HANDLER*", "Uh oh! Caught fatal signal: %s", strsignal(signum));
-
-    // TODO: Print debug info
-//    if (ScanCtx.dbg_current_files != NULL) {
-//        GHashTableIter iter;
-//        g_hash_table_iter_init(&iter, ScanCtx.dbg_current_files);
-//
-//        void *key;
-//        void *value;
-//        while (g_hash_table_iter_next(&iter, &key, &value)) {
-//            parse_job_t *job = value;
-//
-//            if (isatty(STDERR_FILENO)) {
-//                LOG_DEBUGF(
-//                        "*SIGNAL HANDLER*",
-//                        "Thread \033[%dm[%04llX]\033[0m was working on job '%s'",
-//                        31 + ((unsigned int) key) % 7, key, job->filepath
-//                );
-//            } else {
-//                LOG_DEBUGF(
-//                        "*SIGNAL HANDLER*",
-//                        "THREAD [%04llX] was working on job %s",
-//                        key, job->filepath
-//                );
-//            }
-//        }
-//    }
-
-    if (ScanCtx.pool != NULL) {
-        tpool_dump_debug_info(ScanCtx.pool);
-    }
-
-    if (IndexCtx.pool != NULL) {
-        tpool_dump_debug_info(IndexCtx.pool);
-    }
-
-    LOG_INFO(
-            "*SIGNAL HANDLER*",
-            "Please consider creating a bug report at https://github.com/simon987/sist2/issues !"
-    );
-    LOG_INFO(
-            "*SIGNAL HANDLER*",
-            "sist2 is an open source project and relies on the collaboration of its users to diagnose and fix bugs"
-    );
-
-#ifndef SIST_DEBUG
-    LOG_WARNING(
-            "*SIGNAL HANDLER*",
-            "You are running sist2 in release mode! Please consider downloading the debug binary from the Github "
-            "releases page to provide additionnal information when submitting a bug report."
-    );
-#endif
-
-    if (signum == SIGSEGV && sigsegv_handler != NULL) {
-        sigsegv_handler(signum);
-    } else if (signum == SIGABRT && sigabrt_handler != NULL) {
-        sigabrt_handler(signum);
-    }
-
-    exit(-1);
-}
 
 void database_scan_begin(scan_args_t *args) {
     index_descriptor_t *desc = &ScanCtx.index.desc;
@@ -158,7 +83,7 @@ void write_thumbnail_callback(char *key, int num, void *buf, size_t buf_len) {
     database_write_thumbnail(ProcData.index_db, key, num, buf, buf_len);
 }
 
-void _log(const char *filepath, int level, char *str) {
+void log_callback(const char *filepath, int level, char *str) {
     if (level == LEVEL_FATAL) {
         sist_log(filepath, level, str);
         exit(-1);
@@ -175,7 +100,7 @@ void _log(const char *filepath, int level, char *str) {
     }
 }
 
-void _logf(const char *filepath, int level, char *format, ...) {
+void logf_callback(const char *filepath, int level, char *format, ...) {
 
     va_list args;
 
@@ -198,15 +123,13 @@ void _logf(const char *filepath, int level, char *format, ...) {
 }
 
 void initialize_scan_context(scan_args_t *args) {
-    // TODO: shared
-    pthread_mutex_init(&ScanCtx.dbg_file_counts_mu, NULL);
 
     ScanCtx.calculate_checksums = args->calculate_checksums;
 
     // Archive
     ScanCtx.arc_ctx.mode = args->archive_mode;
-    ScanCtx.arc_ctx.log = _log;
-    ScanCtx.arc_ctx.logf = _logf;
+    ScanCtx.arc_ctx.log = log_callback;
+    ScanCtx.arc_ctx.logf = logf_callback;
     ScanCtx.arc_ctx.parse = (parse_callback_t) parse;
     if (args->archive_passphrase != NULL) {
         strcpy(ScanCtx.arc_ctx.passphrase, args->archive_passphrase);
@@ -215,8 +138,8 @@ void initialize_scan_context(scan_args_t *args) {
     }
 
     // Comic
-    ScanCtx.comic_ctx.log = _log;
-    ScanCtx.comic_ctx.logf = _logf;
+    ScanCtx.comic_ctx.log = log_callback;
+    ScanCtx.comic_ctx.logf = logf_callback;
     ScanCtx.comic_ctx.store = write_thumbnail_callback;
     ScanCtx.comic_ctx.enable_tn = args->tn_count > 0;
     ScanCtx.comic_ctx.tn_size = args->tn_size;
@@ -232,24 +155,24 @@ void initialize_scan_context(scan_args_t *args) {
         ScanCtx.ebook_ctx.tesseract_lang = args->tesseract_lang;
         ScanCtx.ebook_ctx.tesseract_path = args->tesseract_path;
     }
-    ScanCtx.ebook_ctx.log = _log;
-    ScanCtx.ebook_ctx.logf = _logf;
+    ScanCtx.ebook_ctx.log = log_callback;
+    ScanCtx.ebook_ctx.logf = logf_callback;
     ScanCtx.ebook_ctx.store = write_thumbnail_callback;
     ScanCtx.ebook_ctx.fast_epub_parse = args->fast_epub;
     ScanCtx.ebook_ctx.tn_qscale = args->tn_quality;
 
     // Font
     ScanCtx.font_ctx.enable_tn = args->tn_count > 0;
-    ScanCtx.font_ctx.log = _log;
-    ScanCtx.font_ctx.logf = _logf;
+    ScanCtx.font_ctx.log = log_callback;
+    ScanCtx.font_ctx.logf = logf_callback;
     ScanCtx.font_ctx.store = write_thumbnail_callback;
 
     // Media
     ScanCtx.media_ctx.tn_qscale = args->tn_quality;
     ScanCtx.media_ctx.tn_size = args->tn_size;
     ScanCtx.media_ctx.tn_count = args->tn_count;
-    ScanCtx.media_ctx.log = _log;
-    ScanCtx.media_ctx.logf = _logf;
+    ScanCtx.media_ctx.log = log_callback;
+    ScanCtx.media_ctx.logf = logf_callback;
     ScanCtx.media_ctx.store = write_thumbnail_callback;
     ScanCtx.media_ctx.max_media_buffer = (long) args->max_memory_buffer_mib * 1024 * 1024;
     ScanCtx.media_ctx.read_subtitles = args->read_subtitles;
@@ -264,24 +187,24 @@ void initialize_scan_context(scan_args_t *args) {
     // OOXML
     ScanCtx.ooxml_ctx.enable_tn = args->tn_count > 0;
     ScanCtx.ooxml_ctx.content_size = args->content_size;
-    ScanCtx.ooxml_ctx.log = _log;
-    ScanCtx.ooxml_ctx.logf = _logf;
+    ScanCtx.ooxml_ctx.log = log_callback;
+    ScanCtx.ooxml_ctx.logf = logf_callback;
     ScanCtx.ooxml_ctx.store = write_thumbnail_callback;
 
     // MOBI
     ScanCtx.mobi_ctx.content_size = args->content_size;
-    ScanCtx.mobi_ctx.log = _log;
-    ScanCtx.mobi_ctx.logf = _logf;
+    ScanCtx.mobi_ctx.log = log_callback;
+    ScanCtx.mobi_ctx.logf = logf_callback;
 
     // TEXT
     ScanCtx.text_ctx.content_size = args->content_size;
-    ScanCtx.text_ctx.log = _log;
-    ScanCtx.text_ctx.logf = _logf;
+    ScanCtx.text_ctx.log = log_callback;
+    ScanCtx.text_ctx.logf = logf_callback;
 
     // MSDOC
     ScanCtx.msdoc_ctx.content_size = args->content_size;
-    ScanCtx.msdoc_ctx.log = _log;
-    ScanCtx.msdoc_ctx.logf = _logf;
+    ScanCtx.msdoc_ctx.log = log_callback;
+    ScanCtx.msdoc_ctx.logf = logf_callback;
     ScanCtx.msdoc_ctx.store = write_thumbnail_callback;
     ScanCtx.msdoc_ctx.msdoc_mime = mime_get_mime_by_string("application/msword");
 
@@ -299,20 +222,20 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.raw_ctx.tn_qscale = args->tn_quality;
     ScanCtx.raw_ctx.enable_tn = args->tn_count > 0;
     ScanCtx.raw_ctx.tn_size = args->tn_size;
-    ScanCtx.raw_ctx.log = _log;
-    ScanCtx.raw_ctx.logf = _logf;
+    ScanCtx.raw_ctx.log = log_callback;
+    ScanCtx.raw_ctx.logf = logf_callback;
     ScanCtx.raw_ctx.store = write_thumbnail_callback;
 
     // Wpd
     ScanCtx.wpd_ctx.content_size = args->content_size;
-    ScanCtx.wpd_ctx.log = _log;
-    ScanCtx.wpd_ctx.logf = _logf;
+    ScanCtx.wpd_ctx.log = log_callback;
+    ScanCtx.wpd_ctx.logf = logf_callback;
     ScanCtx.wpd_ctx.wpd_mime = mime_get_mime_by_string("application/wordperfect");
 
     // Json
     ScanCtx.json_ctx.content_size = args->content_size;
-    ScanCtx.json_ctx.log = _log;
-    ScanCtx.json_ctx.logf = _logf;
+    ScanCtx.json_ctx.log = log_callback;
+    ScanCtx.json_ctx.logf = logf_callback;
     ScanCtx.json_ctx.json_mime = mime_get_mime_by_string("application/json");
     ScanCtx.json_ctx.ndjson_mime = mime_get_mime_by_string("application/ndjson");
 }
@@ -344,9 +267,6 @@ void sist2_scan(scan_args_t *args) {
     tpool_wait(ScanCtx.pool);
     tpool_destroy(ScanCtx.pool);
 
-    LOG_DEBUGF("main.c", "Skipped files: %d", ScanCtx.dbg_skipped_files_count);
-    LOG_DEBUGF("main.c", "Excluded files: %d", ScanCtx.dbg_excluded_files_count);
-    LOG_DEBUGF("main.c", "Failed files: %d", ScanCtx.dbg_failed_files_count);
     LOG_DEBUGF("main.c", "Thumbnail store size: %lu", ScanCtx.stat_tn_size);
     LOG_DEBUGF("main.c", "Index size: %lu", ScanCtx.stat_index_size);
 
@@ -358,7 +278,7 @@ void sist2_scan(scan_args_t *args) {
     }
 
     database_generate_stats(db, args->treemap_threshold);
-    database_close(db, TRUE);
+    database_close(db, args->optimize_database);
 }
 
 void sist2_index(index_args_t *args) {
@@ -397,16 +317,19 @@ void sist2_index(index_args_t *args) {
             print_json(json, doc_id);
         } else {
             index_json(json, doc_id);
-            cnt +=1;
+            cnt += 1;
         }
     }
 
     free(iterator);
     database_close(db, FALSE);
 
-    // Only read the _delete index if we're sending data to ES
     if (!args->print) {
-        // TODO: (delete_list iterator)
+        database_iterator_t *del_iter = database_create_delete_list_iterator(db);
+        database_delete_list_iter_foreach(id, del_iter) {
+            delete_document(id);
+            free(id);
+        }
     }
 
     tpool_wait(IndexCtx.pool);
@@ -496,12 +419,7 @@ int set_to_negative_if_value_is_zero(UNUSED(struct argparse *self), const struct
     }
 }
 
-#include <zlib.h>
-
 int main(int argc, const char *argv[]) {
-//    sigsegv_handler = signal(SIGSEGV, sig_handler);
-//    sigabrt_handler = signal(SIGABRT, sig_handler);
-
     setlocale(LC_ALL, "");
 
     scan_args_t *scan_args = scan_args_create();
@@ -521,36 +439,37 @@ int main(int argc, const char *argv[]) {
     struct argparse_option options[] = {
             OPT_HELP(),
 
-            OPT_BOOLEAN('v', "version", &arg_version, "Show version and exit"),
-            OPT_BOOLEAN(0, "verbose", &LogCtx.verbose, "Turn on logging"),
-            OPT_BOOLEAN(0, "very-verbose", &LogCtx.very_verbose, "Turn on debug messages"),
+            OPT_BOOLEAN('v', "version", &arg_version, "Print version and exit."),
+            OPT_BOOLEAN(0, "verbose", &LogCtx.verbose, "Turn on logging."),
+            OPT_BOOLEAN(0, "very-verbose", &LogCtx.very_verbose, "Turn on debug messages."),
             OPT_BOOLEAN(0, "json-logs", &LogCtx.json_logs, "Output logs in JSON format."),
 
             OPT_GROUP("Scan options"),
-            OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
+            OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT: 1"),
             OPT_INTEGER('q', "thumbnail-quality", &scan_args->tn_quality,
-                        "Thumbnail quality, on a scale of 2 to 31, 2 being the best. DEFAULT=2",
+                        "Thumbnail quality, on a scale of 2 to 31, 2 being the best. DEFAULT: 2",
                         set_to_negative_if_value_is_zero, (intptr_t) &scan_args->tn_quality),
             OPT_INTEGER(0, "thumbnail-size", &scan_args->tn_size,
-                        "Thumbnail size, in pixels. DEFAULT=500",
+                        "Thumbnail size, in pixels. DEFAULT: 552",
                         set_to_negative_if_value_is_zero, (intptr_t) &scan_args->tn_size),
             OPT_INTEGER(0, "thumbnail-count", &scan_args->tn_count,
-                        "Number of thumbnails to generate. Set a value > 1 to create video previews, set to 0 to disable thumbnails. DEFAULT=1",
+                        "Number of thumbnails to generate. Set a value > 1 to create video previews, set to 0 to disable thumbnails. DEFAULT: 1",
                         set_to_negative_if_value_is_zero, (intptr_t) &scan_args->tn_count),
             OPT_INTEGER(0, "content-size", &scan_args->content_size,
-                        "Number of bytes to be extracted from text documents. Set to 0 to disable. DEFAULT=32768",
+                        "Number of bytes to be extracted from text documents. Set to 0 to disable. DEFAULT: 32768",
                         set_to_negative_if_value_is_zero, (intptr_t) &scan_args->content_size),
+            OPT_STRING('o', "output", &scan_args->output, "Output index file path. DEFAULT: index.sist2"),
             OPT_BOOLEAN(0, "incremental", &scan_args->incremental,
-                       // TODO: Update help string
-                       "Reuse an existing index and only scan modified files."),
-            OPT_STRING('o', "output", &scan_args->output, "Output directory. DEFAULT=index.sist2/"),
+                        "If the output file path exists, only scan new or modified files."),
+            OPT_BOOLEAN(0, "optimize-index", &scan_args->optimize_database,
+                        "Defragment index file after scan to reduce its file size."),
             OPT_STRING(0, "rewrite-url", &scan_args->rewrite_url, "Serve files from this url instead of from disk."),
-            OPT_STRING(0, "name", &scan_args->name, "Index display name. DEFAULT: (name of the directory)"),
+            OPT_STRING(0, "name", &scan_args->name, "Index display name. DEFAULT: index"),
             OPT_INTEGER(0, "depth", &scan_args->depth, "Scan up to DEPTH subdirectories deep. "
                                                        "Use 0 to only scan files in PATH. DEFAULT: -1"),
             OPT_STRING(0, "archive", &scan_args->archive, "Archive file mode (skip|list|shallow|recurse). "
-                                                          "skip: Don't parse, list: only get file names as text, "
-                                                          "shallow: Don't parse archives inside archives. DEFAULT: recurse"),
+                                                          "skip: don't scan, list: only save file names as text, "
+                                                          "shallow: don't scan archives inside archives. DEFAULT: recurse"),
             OPT_STRING(0, "archive-passphrase", &scan_args->archive_passphrase,
                        "Passphrase for encrypted archive files"),
 
@@ -559,8 +478,8 @@ int main(int argc, const char *argv[]) {
                        "which are installed on your machine)"),
             OPT_BOOLEAN(0, "ocr-images", &scan_args->ocr_images, "Enable OCR'ing of image files."),
             OPT_BOOLEAN(0, "ocr-ebooks", &scan_args->ocr_ebooks, "Enable OCR'ing of ebook files."),
-            OPT_STRING('e', "exclude", &scan_args->exclude_regex, "Files that match this regex will not be scanned"),
-            OPT_BOOLEAN(0, "fast", &scan_args->fast, "Only index file names & mime type"),
+            OPT_STRING('e', "exclude", &scan_args->exclude_regex, "Files that match this regex will not be scanned."),
+            OPT_BOOLEAN(0, "fast", &scan_args->fast, "Only index file names & mime type."),
             OPT_STRING(0, "treemap-threshold", &scan_args->treemap_threshold_str, "Relative size threshold for treemap "
                                                                                   "(see USAGE.md). DEFAULT: 0.0005"),
             OPT_INTEGER(0, "mem-buffer", &scan_args->max_memory_buffer_mib,
@@ -568,19 +487,20 @@ int main(int argc, const char *argv[]) {
                         "(see USAGE.md). DEFAULT: 2000"),
             OPT_BOOLEAN(0, "read-subtitles", &scan_args->read_subtitles, "Read subtitles from media files."),
             OPT_BOOLEAN(0, "fast-epub", &scan_args->fast_epub,
-                        "Faster but less accurate EPUB parsing (no thumbnails, metadata)"),
+                        "Faster but less accurate EPUB parsing (no thumbnails, metadata)."),
             OPT_BOOLEAN(0, "checksums", &scan_args->calculate_checksums, "Calculate file checksums when scanning."),
             OPT_STRING(0, "list-file", &scan_args->list_path, "Specify a list of newline-delimited paths to be scanned"
                                                               " instead of normal directory traversal. Use '-' to read"
                                                               " from stdin."),
 
             OPT_GROUP("Index options"),
-            OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT=1"),
-            OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT=http://localhost:9200"),
+            OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT: 1"),
+            OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url with port. DEFAULT: http://localhost:9200"),
             OPT_BOOLEAN(0, "es-insecure-ssl", &common_es_insecure_ssl,
                         "Do not verify SSL connections to Elasticsearch."),
-            OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT=sist2"),
-            OPT_BOOLEAN('p', "print", &index_args->print, "Just print JSON documents to stdout."),
+            OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT: sist2"),
+            OPT_BOOLEAN('p', "print", &index_args->print,
+                        "Print JSON documents to stdout instead of indexing to elasticsearch."),
             OPT_BOOLEAN(0, "incremental-index", &index_args->incremental,
                         "Conduct incremental indexing. Assumes that the old index is already ingested in Elasticsearch."),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
@@ -588,15 +508,15 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "settings-file", &index_args->es_settings_path, "Path to Elasticsearch settings."),
             OPT_BOOLEAN(0, "async-script", &common_async_script, "Execute user script asynchronously."),
             OPT_INTEGER(0, "batch-size", &index_args->batch_size, "Index batch size. DEFAULT: 70"),
-            OPT_BOOLEAN('f', "force-reset", &index_args->force_reset, "Reset Elasticsearch mappings and settings. "
-                                                                      "(You must use this option the first time you use the index command)"),
+            OPT_BOOLEAN('f', "force-reset", &index_args->force_reset, "Reset Elasticsearch mappings and settings."),
 
             OPT_GROUP("Web options"),
-            OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
+            OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT: http://localhost:9200"),
             OPT_BOOLEAN(0, "es-insecure-ssl", &common_es_insecure_ssl,
                         "Do not verify SSL connections to Elasticsearch."),
-            OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT=sist2"),
-            OPT_STRING(0, "bind", &web_args->listen_address, "Listen on this address. DEFAULT=localhost:4090"),
+            OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT: sist2"),
+            OPT_STRING(0, "bind", &web_args->listen_address,
+                       "Listen for connections on this address. DEFAULT: localhost:4090"),
             OPT_STRING(0, "auth", &web_args->credentials, "Basic auth in user:password format"),
             OPT_STRING(0, "auth0-audience", &web_args->auth0_audience, "API audience/identifier"),
             OPT_STRING(0, "auth0-domain", &web_args->auth0_domain, "Application domain"),
@@ -609,10 +529,10 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "lang", &web_args->lang, "Default UI language. Can be changed by the user"),
 
             OPT_GROUP("Exec-script options"),
-            OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT=http://localhost:9200"),
+            OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT: http://localhost:9200"),
             OPT_BOOLEAN(0, "es-insecure-ssl", &common_es_insecure_ssl,
                         "Do not verify SSL connections to Elasticsearch."),
-            OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT=sist2"),
+            OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT: sist2"),
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
             OPT_BOOLEAN(0, "async-script", &common_async_script, "Execute user script asynchronously."),
 
@@ -621,7 +541,11 @@ int main(int argc, const char *argv[]) {
 
     struct argparse argparse;
     argparse_init(&argparse, options, usage, 0);
-    argparse_describe(&argparse, DESCRIPTION, EPILOG);
+    argparse_describe(
+            &argparse,
+            "\nLightning-fast file system indexer and search tool.",
+            "\nMade by simon987 <me@simon987.net>. Released under GPL-3.0"
+    );
     argc = argparse_parse(&argparse, argc, argv);
 
     if (arg_version) {

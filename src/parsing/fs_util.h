@@ -6,7 +6,6 @@
 #define CLOSE_FILE(f) if ((f).close != NULL) {(f).close(&(f));};
 
 static int fs_read(struct vfile *f, void *buf, size_t size) {
-
     if (f->fd == -1) {
         SHA1_Init(&f->sha1_ctx);
 

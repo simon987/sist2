@@ -147,7 +147,7 @@ scan_code_t parse_archive(scan_arc_ctx_t *ctx, vfile_t *f, document_t *doc, pcre
     }
 
     if (ret != ARCHIVE_OK) {
-        CTX_LOG_ERRORF(f->filepath, "(arc.c) [%d] %s", ret, archive_error_string(a))
+        CTX_LOG_ERRORF(f->filepath, "(arc.c) [%d] %s", ret, archive_error_string(a));
         archive_read_free(a);
         return SCAN_ERR_READ;
     }
@@ -169,7 +169,7 @@ scan_code_t parse_archive(scan_arc_ctx_t *ctx, vfile_t *f, document_t *doc, pcre
         meta_line_t *meta_list = malloc(sizeof(meta_line_t) + buf.cur);
         meta_list->key = MetaContent;
         strcpy(meta_list->str_val, buf.buf);
-        APPEND_META(doc, meta_list)
+        APPEND_META(doc, meta_list);
         dyn_buffer_destroy(&buf);
 
     } else {
@@ -212,13 +212,13 @@ scan_code_t parse_archive(scan_arc_ctx_t *ctx, vfile_t *f, document_t *doc, pcre
                 double decompressed_size_ratio = (double) sub_job->vfile.st_size / (double) f->st_size;
                 if (decompressed_size_ratio > MAX_DECOMPRESSED_SIZE_RATIO) {
                     CTX_LOG_DEBUGF("arc.c", "Skipped %s, possible zip bomb (decompressed_size_ratio=%f)", sub_job->filepath,
-                                   decompressed_size_ratio)
+                                   decompressed_size_ratio);
                     break;
                 }
 
                 // Handle excludes
                 if (exclude != NULL && EXCLUDED(sub_job->filepath)) {
-                    CTX_LOG_DEBUGF("arc.c", "Excluded: %s", sub_job->filepath)
+                    CTX_LOG_DEBUGF("arc.c", "Excluded: %s", sub_job->filepath);
                     continue;
                 }
 

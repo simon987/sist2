@@ -1,3 +1,4 @@
+application/x-matlab-data,mat
 application/arj, arj
 application/base64, mme
 application/binhex, hqx
@@ -346,6 +347,8 @@ text/mcf, mcf
 text/pascal, pas
 text/PGP,
 text/plain, com|cmd|conf|def|g|idc|list|lst|mar|sdml|text|txt|md|groovy|license|properties|desktop|ini|rst|cmake|ipynb|readme|less|lo|go|yml|d|cs|hpp|srt|nfo|sfv|m3u|csv|eml|make|log|markdown|yaml
+text/x-script.python, pyx
+text/csv,
 application/vnd.coffeescript, coffee
 text/richtext, rt|rtf|rtx
 text/rtf,

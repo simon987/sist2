@@ -12,7 +12,7 @@ char *magic_buffer_embedded(void *buffer, size_t buffer_size) {
     const char *magic_buffers[1] = {magic_database_buffer,};
     size_t sizes[1] = {sizeof(magic_database_buffer),};
 
-    // TODO: check if we can reuse the magic instance
+    // TODO optimisation: check if we can reuse the magic instance
     int load_ret = magic_load_buffers(magic, (void **) &magic_buffers, sizes, 1);
 
     if (load_ret != 0) {

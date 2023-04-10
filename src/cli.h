@@ -14,6 +14,7 @@ typedef struct scan_args {
     int content_size;
     int threads;
     int incremental;
+    int optimize_database;
     char *output;
     char *rewrite_url;
     char *name;

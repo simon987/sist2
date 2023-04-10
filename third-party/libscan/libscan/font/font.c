@@ -146,7 +146,7 @@ void parse_font(scan_font_ctx_t *ctx, vfile_t *f, document_t *doc) {
     size_t buf_len = 0;
     void *buf = read_all(f, &buf_len);
     if (buf == NULL) {
-        CTX_LOG_ERROR(f->filepath, "read_all() failed")
+        CTX_LOG_ERROR(f->filepath, "read_all() failed");
         return;
     }
 
@@ -154,7 +154,7 @@ void parse_font(scan_font_ctx_t *ctx, vfile_t *f, document_t *doc) {
     FT_Error err = FT_New_Memory_Face(ft_lib, (unsigned char *) buf, (int) buf_len, 0, &face);
     if (err != 0) {
         CTX_LOG_ERRORF(doc->filepath, "(font.c) FT_New_Memory_Face() returned error code [%d] %s", err,
-                       FT_Error_String(err))
+                       FT_Error_String(err));
         free(buf);
         return;
     }
@@ -174,7 +174,7 @@ void parse_font(scan_font_ctx_t *ctx, vfile_t *f, document_t *doc) {
     meta_line_t *meta_name = malloc(sizeof(meta_line_t) + strlen(font_name));
     meta_name->key = MetaFontName;
     strcpy(meta_name->str_val, font_name);
-    APPEND_META(doc, meta_name)
+    APPEND_META(doc, meta_name);
 
     if (!ctx->enable_tn) {
         FT_Done_Face(face);
@@ -188,7 +188,7 @@ void parse_font(scan_font_ctx_t *ctx, vfile_t *f, document_t *doc) {
     err = FT_Set_Pixel_Sizes(face, 0, pixel);
     if (err != 0) {
         CTX_LOG_WARNINGF(doc->filepath, "(font.c) FT_Set_Pixel_Sizes() returned error code [%d] %s", err,
-                         FT_Error_String(err))
+                         FT_Error_String(err));
         FT_Done_Face(face);
         free(buf);
         return;
@@ -210,7 +210,7 @@ void parse_font(scan_font_ctx_t *ctx, vfile_t *f, document_t *doc) {
             err = FT_Load_Char(face, c, FT_LOAD_NO_HINTING | FT_LOAD_RENDER);
             if (err != 0) {
                 CTX_LOG_WARNINGF(doc->filepath, "(font.c) FT_Load_Char() returned error code [%d] %s", err,
-                                 FT_Error_String(err))
+                                 FT_Error_String(err));
                 continue;
             }
         }
@@ -231,7 +231,7 @@ void parse_font(scan_font_ctx_t *ctx, vfile_t *f, document_t *doc) {
     dyn_buffer_t bmp_data = dyn_buffer_create();
     bmp_format(&bmp_data, dimensions, bitmap);
 
-    APPEND_LONG_META(doc, MetaThumbnail, 1)
+    APPEND_LONG_META(doc, MetaThumbnail, 1);
     ctx->store(doc->doc_id, 0, bmp_data.buf, bmp_data.cur);
 
     dyn_buffer_destroy(&bmp_data);

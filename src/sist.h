@@ -27,6 +27,8 @@
 
 #define UNUSED(x) __attribute__((__unused__))  x
 
+#define MAX_THREADS (256)
+
 #include "util.h"
 #include "log.h"
 #include "types.h"
