@@ -12,7 +12,7 @@
     "axios": "^0.25.0",
     "bootstrap-vue": "^2.21.2",
     "core-js": "^3.6.5",
-    "d3": "^5.6.1",
+    "d3": "^7.8.4",
     "date-fns": "^2.21.3",
     "dom-to-image": "^2.6.0",
     "fslightbox-vue": "fslightbox-vue.tgz",
