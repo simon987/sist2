@@ -592,7 +592,11 @@ void database_add_work(database_t *db, job_t *job) {
         do {
             sqlite3_bind_text(db->insert_index_job_stmt, 1, job->bulk_line->doc_id, -1, SQLITE_STATIC);
             sqlite3_bind_int(db->insert_index_job_stmt, 2, job->bulk_line->type);
-            sqlite3_bind_text(db->insert_index_job_stmt, 3, job->bulk_line->line, -1, SQLITE_STATIC);
+            if (job->bulk_line->type != ES_BULK_LINE_DELETE) {
+                sqlite3_bind_text(db->insert_index_job_stmt, 3, job->bulk_line->line, -1, SQLITE_STATIC);
+            } else {
+                sqlite3_bind_null(db->insert_index_job_stmt, 3);
+            }
 
             ret = sqlite3_step(db->insert_index_job_stmt);
 

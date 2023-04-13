@@ -322,7 +322,6 @@ void sist2_index(index_args_t *args) {
     }
 
     free(iterator);
-    database_close(db, FALSE);
 
     if (!args->print) {
         database_iterator_t *del_iter = database_create_delete_list_iterator(db);
@@ -330,7 +329,10 @@ void sist2_index(index_args_t *args) {
             delete_document(id);
             free(id);
         }
+        free(del_iter);
     }
+
+    database_close(db, FALSE);
 
     tpool_wait(IndexCtx.pool);
     tpool_destroy(IndexCtx.pool);
