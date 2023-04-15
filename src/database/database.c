@@ -586,7 +586,12 @@ void database_add_work(database_t *db, job_t *job) {
                 CRASH_IF_STMT_FAIL(ret);
             }
 
-            CRASH_IF_NOT_SQLITE_OK(sqlite3_reset(db->insert_parse_job_stmt));
+            ret = sqlite3_reset(db->insert_parse_job_stmt);
+            if (ret == SQLITE_FULL) {
+                pthread_mutex_unlock(&db->ipc_ctx->db_mutex);
+                usleep(100000);
+                pthread_mutex_lock(&db->ipc_ctx->db_mutex);
+            }
         } while (ret != SQLITE_DONE);
     } else if (job->type == JOB_BULK_LINE) {
         do {
