@@ -64,20 +64,16 @@ void print_json(cJSON *document, const char id_str[SIST_DOC_ID_LEN]) {
     cJSON_Delete(line);
 }
 
-void index_json_func(job_t *job) {
-    elastic_index_line(job->bulk_line);
-}
-
 void delete_document(const char *document_id) {
-    es_bulk_line_t *bulk_line = malloc(sizeof(es_bulk_line_t));
+    es_bulk_line_t bulk_line;
 
-    bulk_line->type = ES_BULK_LINE_DELETE;
-    bulk_line->next = NULL;
-    strcpy(bulk_line->doc_id, document_id);
+    bulk_line.type = ES_BULK_LINE_DELETE;
+    bulk_line.next = NULL;
+    strcpy(bulk_line.doc_id, document_id);
 
     tpool_add_work(IndexCtx.pool, &(job_t) {
             .type = JOB_BULK_LINE,
-            .bulk_line = bulk_line,
+            .bulk_line = &bulk_line,
     });
 }
 
@@ -99,6 +95,7 @@ void index_json(cJSON *document, const char doc_id[SIST_DOC_ID_LEN]) {
         .type = JOB_BULK_LINE,
         .bulk_line = bulk_line,
     });
+    free(bulk_line);
 }
 
 void execute_update_script(const char *script, int async, const char index_id[SIST_INDEX_ID_LEN]) {
