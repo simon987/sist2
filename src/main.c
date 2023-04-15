@@ -312,7 +312,10 @@ void sist2_index(index_args_t *args) {
     database_open(db);
     database_iterator_t *iterator = database_create_document_iterator(db);
     database_document_iter_foreach(json, iterator) {
-        const char *doc_id = cJSON_GetObjectItem(json, "_id")->valuestring;
+        char doc_id[SIST_DOC_ID_LEN];
+        strcpy(doc_id, cJSON_GetObjectItem(json, "_id")->valuestring);
+        cJSON_DeleteItemFromObject(json, "_id");
+
         if (args->print) {
             print_json(json, doc_id);
         } else {

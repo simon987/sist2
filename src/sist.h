@@ -51,7 +51,7 @@
 #include <ctype.h>
 #include "git_hash.h"
 
-#define VERSION "3.0.1"
+#define VERSION "3.0.2"
 static const char *const Version = VERSION;
 static const int VersionMajor = 3;
 static const int VersionMinor = 0;
