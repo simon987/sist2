@@ -668,6 +668,9 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
                     mg_send(nc, r->body, r->size);
                 } else if (r->status_code == 0) {
                     sist_log("serve.c", LOG_SIST_ERROR, "Could not connect to elasticsearch!");
+
+                    mg_http_reply(nc, 503, HTTP_SERVER_HEADER HTTP_TEXT_TYPE_HEADER,
+                                  "Elasticsearch connection error, see server logs.");
                 } else {
                     sist_logf("serve.c", LOG_SIST_WARNING, "ElasticSearch error during query (%d)", r->status_code);
                     if (r->size != 0) {

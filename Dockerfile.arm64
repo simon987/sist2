@@ -3,7 +3,7 @@ MAINTAINER simon987 <me@simon987.net>
 
 WORKDIR /build/
 ADD . /build/
-RUN mkdir build && cd build && cmake -DSIST_PLATFORM=arm64_linux -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+RUN mkdir build && cd build && cmake -DSIST_PLATFORM=arm64_linux_docker -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 RUN cd build && make -j$(nproc)
 RUN strip build/sist2 || mv build/sist2_debug build/sist2
 
