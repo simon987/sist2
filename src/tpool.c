@@ -149,6 +149,11 @@ void worker_proc_cleanup(tpool_t *pool) {
     if (ProcData.index_db != NULL) {
         database_close(ProcData.index_db, FALSE);
     }
+
+    if (IndexCtx.needs_es_connection) {
+        elastic_cleanup();
+    }
+
     database_close(ProcData.ipc_db, FALSE);
 }
 
@@ -242,6 +247,7 @@ static void *tpool_worker(void *arg) {
     pthread_mutex_lock(&pool->shm->mutex);
     pthread_cond_signal(&pool->shm->done_working_cond);
     pthread_mutex_unlock(&pool->shm->mutex);
+    worker_proc_cleanup(pool);
 #endif
 
     return NULL;
