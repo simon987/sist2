@@ -581,7 +581,11 @@ void database_add_work(database_t *db, job_t *job) {
             ret = sqlite3_step(db->insert_parse_job_stmt);
 
             if (ret == SQLITE_FULL) {
+                sqlite3_reset(db->insert_parse_job_stmt);
+                pthread_mutex_unlock(&db->ipc_ctx->db_mutex);
                 usleep(1000000);
+                pthread_mutex_lock(&db->ipc_ctx->db_mutex);
+                continue;
             } else {
                 CRASH_IF_STMT_FAIL(ret);
             }
@@ -591,8 +595,10 @@ void database_add_work(database_t *db, job_t *job) {
                 pthread_mutex_unlock(&db->ipc_ctx->db_mutex);
                 usleep(100000);
                 pthread_mutex_lock(&db->ipc_ctx->db_mutex);
+            } else if (ret != SQLITE_OK) {
+                LOG_FATALF("database.c", "sqlite3_reset returned error %d", ret);
             }
-        } while (ret != SQLITE_DONE);
+        } while (ret != SQLITE_DONE && ret != SQLITE_OK);
     } else if (job->type == JOB_BULK_LINE) {
         do {
             sqlite3_bind_text(db->insert_index_job_stmt, 1, job->bulk_line->doc_id, -1, SQLITE_STATIC);
@@ -620,6 +626,8 @@ void database_add_work(database_t *db, job_t *job) {
                 pthread_mutex_unlock(&db->ipc_ctx->db_mutex);
                 usleep(100000);
                 pthread_mutex_lock(&db->ipc_ctx->db_mutex);
+            } else if (ret != SQLITE_OK) {
+                LOG_FATALF("database.c", "sqlite3_reset returned error %d", ret);
             }
 
         } while (ret != SQLITE_DONE && ret != SQLITE_OK);
