@@ -7,6 +7,11 @@ typedef struct {
     long content_size;
     log_callback_t log;
     logf_callback_t logf;
+    store_callback_t store;
+
+    int tn_qscale;
+    int tn_size;
+    int enable_tn;
 } scan_mobi_ctx_t;
 
 void parse_mobi(scan_mobi_ctx_t *ctx, vfile_t *f, document_t *doc);

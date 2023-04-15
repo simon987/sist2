@@ -195,6 +195,10 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.mobi_ctx.content_size = args->content_size;
     ScanCtx.mobi_ctx.log = log_callback;
     ScanCtx.mobi_ctx.logf = logf_callback;
+    ScanCtx.mobi_ctx.store = write_thumbnail_callback;
+    ScanCtx.mobi_ctx.enable_tn = args->tn_count > 0;
+    ScanCtx.mobi_ctx.tn_size = args->tn_size;
+    ScanCtx.mobi_ctx.tn_qscale = args->tn_quality;
 
     // TEXT
     ScanCtx.text_ctx.content_size = args->content_size;
@@ -322,6 +326,7 @@ void sist2_index(index_args_t *args) {
             index_json(json, doc_id);
             cnt += 1;
         }
+        cJSON_Delete(json);
     }
 
     free(iterator);

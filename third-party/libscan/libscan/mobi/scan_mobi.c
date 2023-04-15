@@ -1,8 +1,43 @@
 #include "scan_mobi.h"
 
 #include "../../third-party/libmobi/src/mobi.h"
+#include "../media/media.h"
 #include <errno.h>
 #include "stdlib.h"
+
+int store_cover(scan_mobi_ctx_t *ctx, document_t *doc, MOBIData *m) {
+    MOBIExthHeader *exth = mobi_get_exthrecord_by_tag(m, EXTH_COVEROFFSET);
+
+    if (exth == NULL) {
+        return FALSE;
+    }
+
+    uint32_t offset = mobi_decode_exthvalue(exth->data, exth->size);
+    size_t first_resource = mobi_get_first_resource_record(m);
+    size_t uid = first_resource + offset;
+    MOBIPdbRecord *record = mobi_get_record_by_seqnumber(m, uid);
+
+    if (record == NULL || record->size < 4) {
+        return FALSE;
+    }
+
+    scan_media_ctx_t media_ctx = {
+            .tn_count = TRUE,
+            .tn_size = ctx->tn_size,
+            .tn_qscale = ctx->tn_qscale,
+            .tesseract_lang = NULL,
+            .tesseract_path = NULL,
+            .read_subtitles = FALSE,
+            .max_media_buffer = 0,
+            .log = ctx->log,
+            .logf = ctx->logf,
+            .store = ctx->store,
+    };
+
+    store_image_thumbnail(&media_ctx, record->data, record->size, doc, "img.jpg");
+
+    return TRUE;
+}
 
 void parse_mobi(scan_mobi_ctx_t *ctx, vfile_t *f, document_t *doc) {
 
@@ -71,6 +106,10 @@ void parse_mobi(scan_mobi_ctx_t *ctx, vfile_t *f, document_t *doc) {
     text_buffer_terminate_string(&tex);
 
     APPEND_STR_META(doc, MetaContent, tex.dyn_buffer.buf);
+
+    if (ctx->enable_tn) {
+        store_cover(ctx, doc, m);
+    }
 
     free(content_str);
     free(buf);

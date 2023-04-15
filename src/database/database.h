@@ -104,14 +104,14 @@ database_iterator_t *database_create_document_iterator(database_t *db);
 cJSON *database_document_iter(database_iterator_t *);
 
 #define database_document_iter_foreach(element, iter) \
-    for (cJSON *element = database_document_iter(iter); element != NULL; element = database_document_iter(iter))
+    for (cJSON *(element) = database_document_iter(iter); (element) != NULL; (element) = database_document_iter(iter))
 
 database_iterator_t *database_create_delete_list_iterator(database_t *db);
 
 char * database_delete_list_iter(database_iterator_t *iter);
 
 #define database_delete_list_iter_foreach(element, iter) \
-    for (char *element = database_delete_list_iter(iter); element != NULL; element = database_delete_list_iter(iter))
+    for (char *(element) = database_delete_list_iter(iter); (element) != NULL; (element) = database_delete_list_iter(iter))
 
 
 cJSON *database_incremental_scan_begin(database_t *db);
