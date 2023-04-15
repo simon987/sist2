@@ -149,7 +149,7 @@ export default Vue.extend({
                 this.search(true);
             });
         }).catch(error => {
-            console.log(error.response);
+            console.log(error);
 
             if (error.response.status == 503 || error.response.status == 500) {
                 this.showEsConnectionError = true;
@@ -267,11 +267,20 @@ export default Vue.extend({
                 },
                 size: 0
             }).then(res => {
-                return {
+                const range = {
                     min: res.aggregations.dateMin.value,
                     max: res.aggregations.dateMax.value,
                 }
-            })
+
+                if (range.min == null) {
+                    range.min = 0;
+                    range.max = 1;
+                } else if (range.min == range.max) {
+                    range.max += 1;
+                }
+
+                return range;
+            });
         },
         appendFunc() {
             if (!this.$store.state.uiReachedScrollEnd && this.search && !this.searchBusy) {
