@@ -5,6 +5,7 @@ set(CMAKE_C_STANDARD 11)
 
 option(SIST_DEBUG "Build a debug executable" on)
 option(SIST_FAST "Enable more optimisation flags" off)
+option(SIST_DEBUG_INFO "Turn on debug information in web interface" on)
 
 add_compile_definitions(
         "SIST_PLATFORM=${SIST_PLATFORM}"
@@ -14,7 +15,14 @@ if (SIST_DEBUG)
     add_compile_definitions(
             "SIST_DEBUG=${SIST_DEBUG}"
     )
-endif()
+endif ()
+
+if (SIST_DEBUG_INFO)
+    add_compile_definitions(
+            "SIST_DEBUG_INFO=${SIST_DEBUG_INFO}"
+    )
+endif ()
+
 
 add_subdirectory(third-party/libscan)
 set(ARGPARSE_SHARED off)
@@ -85,7 +93,7 @@ if (SIST_DEBUG)
             -fno-omit-frame-pointer
             -fsanitize=address
             -fno-inline
-#            -O2
+            #            -O2
     )
     target_link_options(
             sist2

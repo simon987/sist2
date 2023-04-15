@@ -286,16 +286,23 @@ void index_info(struct mg_connection *nc) {
     cJSON *json = cJSON_CreateObject();
     cJSON *arr = cJSON_AddArrayToObject(json, "indices");
 
-    cJSON_AddStringToObject(json, "mongooseVersion", MG_VERSION);
     cJSON_AddStringToObject(json, "esIndex", WebCtx.es_index);
     cJSON_AddStringToObject(json, "version", Version);
+
+#ifdef SIST_DEBUG_INFO
+    cJSON_AddStringToObject(json, "mongooseVersion", MG_VERSION);
     cJSON_AddStringToObject(json, "esVersion", es_version);
-    cJSON_AddBoolToObject(json, "esVersionSupported", IS_SUPPORTED_ES_VERSION(WebCtx.es_version));
-    cJSON_AddBoolToObject(json, "esVersionLegacy", IS_LEGACY_VERSION(WebCtx.es_version));
     cJSON_AddStringToObject(json, "platform", QUOTE(SIST_PLATFORM));
     cJSON_AddStringToObject(json, "sist2Hash", Sist2CommitHash);
-    cJSON_AddStringToObject(json, "lang", WebCtx.lang);
     cJSON_AddBoolToObject(json, "dev", WebCtx.dev);
+    cJSON_AddBoolToObject(json, "showDebugInfo", TRUE);
+#else
+    cJSON_AddBoolToObject(json, "showDebugInfo", FALSE);
+#endif
+
+    cJSON_AddBoolToObject(json, "esVersionSupported", IS_SUPPORTED_ES_VERSION(WebCtx.es_version));
+    cJSON_AddBoolToObject(json, "esVersionLegacy", IS_LEGACY_VERSION(WebCtx.es_version));
+    cJSON_AddStringToObject(json, "lang", WebCtx.lang);
 
     cJSON_AddBoolToObject(json, "auth0Enabled", WebCtx.auth0_enabled);
     if (WebCtx.auth0_enabled) {

@@ -19,7 +19,7 @@ COPY sist2-admin sist2-admin
 RUN cd sist2-vue/ && npm install && npm run build
 RUN cd sist2-admin/frontend/ && npm install && npm run build
 
-RUN mkdir build && cd build && cmake -DSIST_PLATFORM=x64_linux_docker -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+RUN mkdir build && cd build && cmake -DSIST_PLATFORM=x64_linux_docker -DSIST_DEBUG_INFO=on -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 RUN cd build && make -j$(nproc)
 RUN strip build/sist2 || mv build/sist2_debug build/sist2
 

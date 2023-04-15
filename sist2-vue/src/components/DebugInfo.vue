@@ -1,5 +1,5 @@
 <template>
-  <b-card class="mb-4 mt-4">
+  <b-card v-if="$store.state.sist2Info.showDebugInfo" class="mb-4 mt-4">
     <b-card-title><DebugIcon class="mr-1"></DebugIcon>{{ $t("debug") }}</b-card-title>
     <p v-html="$t('debugDescription')"></p>
 
