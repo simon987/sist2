@@ -20,49 +20,40 @@ static struct mg_http_serve_opts DefaultServeOpts = {
 
 void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
 
-    if (hm->uri.len != SIST_INDEX_ID_LEN + 4) {
+    if (hm->uri.len != SIST_INDEX_ID_LEN + 7) {
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
     char arg_index_id[SIST_INDEX_ID_LEN];
+    char arg_stat_type[5];
+
     memcpy(arg_index_id, hm->uri.ptr + 3, SIST_INDEX_ID_LEN);
     *(arg_index_id + SIST_INDEX_ID_LEN - 1) = '\0';
+    memcpy(arg_stat_type, hm->uri.ptr + 3 + SIST_INDEX_ID_LEN, 4);
+    *(arg_stat_type + sizeof(arg_stat_type) - 1) = '\0';
 
-    index_t *index = web_get_index_by_id(arg_index_id);
-    if (index == NULL) {
+    database_stat_type_d stat_type = database_get_stat_type_by_mnemonic(arg_stat_type);
+    if (stat_type == DATABASE_STAT_INVALID) {
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
-    const char *file;
-    switch (atoi(hm->uri.ptr + 3 + SIST_INDEX_ID_LEN)) {
-        case 1:
-            file = "treemap.csv";
-            break;
-        case 2:
-            file = "mime_agg.csv";
-            break;
-        case 3:
-            file = "size_agg.csv";
-            break;
-        case 4:
-            file = "date_agg.csv";
-            break;
-        default:
-            return;
+    database_t *db = web_get_database(arg_index_id);
+    if (db == NULL) {
+        LOG_DEBUGF("serve.c", "Could not get database for index: %s", arg_index_id);
+        HTTP_REPLY_NOT_FOUND
+        return;
     }
 
-    char disposition[8192];
-    snprintf(disposition, sizeof(disposition),
-             "Content-Disposition: inline; filename=\"%s\"\r\nCache-Control: max-age=31536000\r\n", file);
+    cJSON *json = database_get_stats(db, stat_type);
+    char *json_str = cJSON_PrintUnformatted(json);
 
-    char full_path[PATH_MAX];
-    strcpy(full_path, index->path);
-    strcat(full_path, file);
+    web_send_headers(nc, 200, strlen(json_str), "Content-Type: application/json");
+    mg_send(nc, json_str, strlen(json_str));
 
-    struct mg_http_serve_opts opts = {};
-    mg_http_serve_file(nc, hm, full_path, &opts);
+    free(json_str);
+    cJSON_Delete(json);
 }
 
 void serve_index_html(struct mg_connection *nc, struct mg_http_message *hm) {

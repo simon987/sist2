@@ -19,6 +19,14 @@ typedef enum {
 } database_type_t;
 
 typedef enum {
+    DATABASE_STAT_INVALID,
+    DATABASE_STAT_TREEMAP,
+    DATABASE_STAT_MIME_AGG,
+    DATABASE_STAT_SIZE_AGG,
+    DATABASE_STAT_DATE_AGG,
+} database_stat_type_d;
+
+typedef enum {
     JOB_UNDEFINED,
     JOB_BULK_LINE,
     JOB_PARSE_JOB
@@ -132,11 +140,15 @@ treemap_row_t database_treemap_iter(database_iterator_t *iter);
 
 void database_generate_stats(database_t *db, double treemap_threshold);
 
+database_stat_type_d database_get_stat_type_by_mnemonic(const char *name);
+
 job_t *database_get_work(database_t *db, job_type_t job_type);
 
 void database_add_work(database_t *db, job_t *job);
 
 //void database_index(database_t *db);
+
+cJSON *database_get_stats(database_t *db, database_stat_type_d type);
 
 #define CRASH_IF_STMT_FAIL(x) do { \
         int return_value = x;                \

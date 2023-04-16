@@ -117,7 +117,7 @@ export default {
     update(indexId) {
       const svg = d3.select("#size-histogram");
 
-      d3.csv(Sist2Api.getSizeCsv(indexId)).then(tabularData => {
+      d3.json(Sist2Api.getSizeStat(indexId)).then(tabularData => {
         sizeHistogram(tabularData.slice(), svg, this.$t("d3.sizeHistogram"));
       });
     }

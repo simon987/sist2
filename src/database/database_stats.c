@@ -6,6 +6,7 @@
 #define SIZE_BUCKET (long)(5 * 1000 * 1000)
 #define DATE_BUCKET (long)(2629800) // ~30 days
 
+
 database_iterator_t *database_create_treemap_iterator(database_t *db, long threshold) {
 
     sqlite3_stmt *stmt;
@@ -157,3 +158,85 @@ void database_generate_stats(database_t *db, double treemap_threshold) {
     LOG_INFO("database.c", "Done!");
 }
 
+database_stat_type_d database_get_stat_type_by_mnemonic(const char *name) {
+    if (strcmp(name, "TMAP") == 0) {
+        return DATABASE_STAT_TREEMAP;
+    }
+    if (strcmp(name, "MAGG") == 0) {
+        return DATABASE_STAT_MIME_AGG;
+    }
+    if (strcmp(name, "SAGG") == 0) {
+        return DATABASE_STAT_SIZE_AGG;
+    }
+    if (strcmp(name, "DAGG") == 0) {
+        return DATABASE_STAT_DATE_AGG;
+    }
+
+    return DATABASE_STAT_INVALID;
+}
+
+cJSON *database_get_stats(database_t *db, database_stat_type_d type) {
+
+    sqlite3_stmt *stmt;
+
+    switch (type) {
+        case DATABASE_STAT_TREEMAP:
+            CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                    db->db, "SELECT path,size FROM stats_treemap", -1, &stmt, NULL
+            ));
+            break;
+        case DATABASE_STAT_DATE_AGG:
+            CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                    db->db, "SELECT bucket,count FROM stats_date_agg", -1, &stmt, NULL
+            ));
+            break;
+        case DATABASE_STAT_SIZE_AGG:
+            CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                    db->db, "SELECT bucket,count FROM stats_size_agg", -1, &stmt, NULL
+            ));
+            break;
+        case DATABASE_STAT_MIME_AGG:
+            CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                    db->db, "SELECT mime,size,count FROM stats_mime_agg", -1, &stmt, NULL
+            ));
+            break;
+        case DATABASE_STAT_INVALID:
+        default:
+        LOG_FATALF("database_stats.c", "Invalid stat type: %d", type);
+    }
+
+    cJSON *json = cJSON_CreateArray();
+
+    int ret;
+    do {
+        ret = sqlite3_step(stmt);
+        CRASH_IF_STMT_FAIL(ret);
+
+        if (ret == SQLITE_DONE) {
+            break;
+        }
+
+        cJSON *row = cJSON_CreateObject();
+
+        switch (type) {
+            case DATABASE_STAT_TREEMAP:
+                cJSON_AddStringToObject(row, "path", (const char *) sqlite3_column_text(stmt, 0));
+                cJSON_AddNumberToObject(row, "size", (double) sqlite3_column_int64(stmt, 1));
+                break;
+            case DATABASE_STAT_DATE_AGG:
+            case DATABASE_STAT_SIZE_AGG:
+                cJSON_AddNumberToObject(row, "bucket", (double) sqlite3_column_int64(stmt, 0));
+                cJSON_AddNumberToObject(row, "count", (double) sqlite3_column_int64(stmt, 1));
+                break;
+            case DATABASE_STAT_MIME_AGG:
+                cJSON_AddStringToObject(row, "mime", (const char *) sqlite3_column_text(stmt, 0));
+                cJSON_AddNumberToObject(row, "size", (double) sqlite3_column_int64(stmt, 1));
+                cJSON_AddNumberToObject(row, "count", (double) sqlite3_column_int64(stmt, 2));
+                break;
+        }
+
+        cJSON_AddItemToArray(json, row);
+    } while (TRUE);
+
+    return json;
+}

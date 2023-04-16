@@ -55,7 +55,7 @@ add_executable(sist2
 
         src/auth0/auth0_c_api.h src/auth0/auth0_c_api.cpp
 
-        src/database/database_stats.c src/database/database_stats.h src/database/database_schema.c)
+        src/database/database_stats.c src/database/database_schema.c)
 set_target_properties(sist2 PROPERTIES LINKER_LANGUAGE C)
 
 target_link_directories(sist2 PRIVATE BEFORE ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/)

@@ -361,20 +361,20 @@ class Sist2Api {
         });
     }
 
-    getTreemapCsvUrl(indexId: string) {
-        return `${this.baseUrl}s/${indexId}/1`;
+    getTreemapStat(indexId: string) {
+        return `${this.baseUrl}s/${indexId}/TMAP`;
     }
 
-    getMimeCsvUrl(indexId: string) {
-        return `${this.baseUrl}s/${indexId}/2`;
+    getMimeStat(indexId: string) {
+        return `${this.baseUrl}s/${indexId}/MAGG`;
     }
 
-    getSizeCsv(indexId: string) {
-        return `${this.baseUrl}s/${indexId}/3`;
+    getSizeStat(indexId: string) {
+        return `${this.baseUrl}s/${indexId}/SAGG`;
     }
 
-    getDateCsv(indexId: string) {
-        return `${this.baseUrl}s/${indexId}/4`;
+    getDateStat(indexId: string) {
+        return `${this.baseUrl}s/${indexId}/DAGG`;
     }
 }
 

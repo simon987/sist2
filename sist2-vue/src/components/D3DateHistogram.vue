@@ -120,7 +120,7 @@ export default {
     update(indexId) {
       const svg = d3.select("#date-histogram");
 
-      d3.csv(Sist2Api.getDateCsv(indexId)).then(tabularData => {
+      d3.json(Sist2Api.getDateStat(indexId)).then(tabularData => {
         dateHistogram(tabularData.slice(), svg, this.$t("d3.dateHistogram"));
       });
     }

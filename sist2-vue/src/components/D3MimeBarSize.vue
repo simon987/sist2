@@ -90,7 +90,7 @@ export default {
       const mimeSvgSize = d3.select("#agg-mime-size");
       const fillOpacity = this.$store.state.optTheme === "black" ? 0.9 : 0.6;
 
-      d3.csv(Sist2Api.getMimeCsvUrl(indexId)).then(tabularData => {
+      d3.json(Sist2Api.getMimeStat(indexId)).then(tabularData => {
         mimeBarSize(tabularData.slice(), mimeSvgSize, fillOpacity, this.$t("d3.mimeSize"));
       });
     }

@@ -240,7 +240,7 @@ export default {
           .style("overflow", "visible")
           .style("font", "10px sans-serif");
 
-      d3.csv(Sist2Api.getTreemapCsvUrl(indexId)).then(tabularData => {
+      d3.json(Sist2Api.getTreemapStat(indexId)).then(tabularData => {
         tabularData.forEach(row => {
           row.taxonomy = row.path.split("/");
           row.size = Number(row.size);
