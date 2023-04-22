@@ -91,8 +91,6 @@ char *build_json_string(document_t *doc) {
     } else {
         cJSON_AddStringToObject(json, "mime", mime_text);
     }
-    cJSON_AddNumberToObject(json, "size", (double) doc->size);
-    cJSON_AddNumberToObject(json, "mtime", doc->mtime);
 
     // Ignore root directory in the file path
     doc->ext = (short) (doc->ext - ScanCtx.index.desc.root_len);
@@ -121,8 +119,6 @@ char *build_json_string(document_t *doc) {
     } else {
         cJSON_AddStringToObject(json, "path", "");
     }
-
-    cJSON_AddStringToObject(json, "_id", doc->doc_id);
 
     // Metadata
     meta_line_t *meta = doc->meta_head;

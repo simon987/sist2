@@ -1,78 +1,64 @@
 # Usage
 
-*More examples (specifically with docker/compose) are in progress*
-
-* [scan](#scan)
-    * [options](#scan-options)
-    * [examples](#scan-examples)
-    * [index format](#index-format)
-* [index](#index)
-    * [options](#index-options)
-    * [examples](#index-examples)
-* [web](#web)
-    * [options](#web-options)
-    * [examples](#web-examples)
-    * [rewrite_url](#rewrite_url)
-* [elasticsearch](#elasticsearch)
-* [exec-script](#exec-script)
-* [tagging](#tagging)
-* [sidecar files](#sidecar-files)
-
 ```
 Usage: sist2 scan [OPTION]... PATH
    or: sist2 index [OPTION]... INDEX
    or: sist2 web [OPTION]... INDEX...
    or: sist2 exec-script [OPTION]... INDEX
+
 Lightning-fast file system indexer and search tool.
 
     -h, --help                        show this help message and exit
-    -v, --version                     Show version and exit
-    --verbose                         Turn on logging
-    --very-verbose                    Turn on debug messages
+    -v, --version                     Print version and exit.
+    --verbose                         Turn on logging.
+    --very-verbose                    Turn on debug messages.
+    --json-logs                       Output logs in JSON format.
 
 Scan options
-    -t, --threads=<int>               Number of threads. DEFAULT=1
-    --mem-throttle=<int>              Total memory threshold in MiB for scan throttling. DEFAULT=0
-    -q, --thumbnail-quality=<int>     Thumbnail quality, on a scale of 2 to 31, 2 being the best. DEFAULT=2
-    --thumbnail-size=<int>            Thumbnail size, in pixels. DEFAULT=500
-    --thumbnail-count=<int>           Number of thumbnails to generate. Set a value > 1 to create video previews, set to 0 to disable thumbnails. DEFAULT=1
-    --content-size=<int>              Number of bytes to be extracted from text documents. Set to 0 to disable. DEFAULT=32768
-    --incremental=<str>               Reuse an existing index and only scan modified files.
-    -o, --output=<str>                Output directory. DEFAULT=index.sist2/
+    -t, --threads=<int>               Number of threads. DEFAULT: 1
+    -q, --thumbnail-quality=<int>     Thumbnail quality, on a scale of 2 to 31, 2 being the best. DEFAULT: 2
+    --thumbnail-size=<int>            Thumbnail size, in pixels. DEFAULT: 552
+    --thumbnail-count=<int>           Number of thumbnails to generate. Set a value > 1 to create video previews, set to 0 to disable thumbnails. DEFAULT: 1
+    --content-size=<int>              Number of bytes to be extracted from text documents. Set to 0 to disable. DEFAULT: 32768
+    -o, --output=<str>                Output index file path. DEFAULT: index.sist2
+    --incremental                     If the output file path exists, only scan new or modified files.
+    --optimize-index                  Defragment index file after scan to reduce its file size.
     --rewrite-url=<str>               Serve files from this url instead of from disk.
-    --name=<str>                      Index display name. DEFAULT: (name of the directory)
+    --name=<str>                      Index display name. DEFAULT: index
     --depth=<int>                     Scan up to DEPTH subdirectories deep. Use 0 to only scan files in PATH. DEFAULT: -1
-    --archive=<str>                   Archive file mode (skip|list|shallow|recurse). skip: Don't parse, list: only get file names as text, shallow: Don't parse archives inside archives. DEFAULT: recurse
+    --archive=<str>                   Archive file mode (skip|list|shallow|recurse). skip: don't scan, list: only save file names as text, shallow: don't scan archives inside archives. DEFAULT: recurse
     --archive-passphrase=<str>        Passphrase for encrypted archive files
     --ocr-lang=<str>                  Tesseract language (use 'tesseract --list-langs' to see which are installed on your machine)
     --ocr-images                      Enable OCR'ing of image files.
     --ocr-ebooks                      Enable OCR'ing of ebook files.
-    -e, --exclude=<str>               Files that match this regex will not be scanned
-    --fast                            Only index file names & mime type
+    -e, --exclude=<str>               Files that match this regex will not be scanned.
+    --fast                            Only index file names & mime type.
     --treemap-threshold=<str>         Relative size threshold for treemap (see USAGE.md). DEFAULT: 0.0005
     --mem-buffer=<int>                Maximum memory buffer size per thread in MiB for files inside archives (see USAGE.md). DEFAULT: 2000
     --read-subtitles                  Read subtitles from media files.
-    --fast-epub                       Faster but less accurate EPUB parsing (no thumbnails, metadata)
+    --fast-epub                       Faster but less accurate EPUB parsing (no thumbnails, metadata).
     --checksums                       Calculate file checksums when scanning.
     --list-file=<str>                 Specify a list of newline-delimited paths to be scanned instead of normal directory traversal. Use '-' to read from stdin.
 
 Index options
-    -t, --threads=<int>               Number of threads. DEFAULT=1
-    --es-url=<str>                    Elasticsearch url with port. DEFAULT=http://localhost:9200
-    --es-index=<str>                  Elasticsearch index name. DEFAULT=sist2
-    -p, --print                       Just print JSON documents to stdout.
-    --incremental-index               Conduct incremental indexing, assumes that the old index is already digested by Elasticsearch.
+    -t, --threads=<int>               Number of threads. DEFAULT: 1
+    --es-url=<str>                    Elasticsearch url with port. DEFAULT: http://localhost:9200
+    --es-insecure-ssl                 Do not verify SSL connections to Elasticsearch.
+    --es-index=<str>                  Elasticsearch index name. DEFAULT: sist2
+    -p, --print                       Print JSON documents to stdout instead of indexing to elasticsearch.
+    --incremental-index               Conduct incremental indexing. Assumes that the old index is already ingested in Elasticsearch.
     --script-file=<str>               Path to user script.
     --mappings-file=<str>             Path to Elasticsearch mappings.
     --settings-file=<str>             Path to Elasticsearch settings.
     --async-script                    Execute user script asynchronously.
-    --batch-size=<int>                Index batch size. DEFAULT: 100
-    -f, --force-reset                 Reset Elasticsearch mappings and settings. (You must use this option the first time you use the index command)
+    --batch-size=<int>                Index batch size. DEFAULT: 70
+    -f, --force-reset                 Reset Elasticsearch mappings and settings.
 
 Web options
-    --es-url=<str>                    Elasticsearch url. DEFAULT=http://localhost:9200
-    --es-index=<str>                  Elasticsearch index name. DEFAULT=sist2
-    --bind=<str>                      Listen on this address. DEFAULT=localhost:4090
+    --es-url=<str>                    Elasticsearch url. DEFAULT: http://localhost:9200
+    --es-insecure-ssl                 Do not verify SSL connections to Elasticsearch.
+    --es-index=<str>                  Elasticsearch index name. DEFAULT: sist2
+    --bind=<str>                      Listen for connections on this address. DEFAULT: localhost:4090
     --auth=<str>                      Basic auth in user:password format
     --auth0-audience=<str>            API audience/identifier
     --auth0-domain=<str>              Application domain
@@ -84,76 +70,14 @@ Web options
     --lang=<str>                      Default UI language. Can be changed by the user
 
 Exec-script options
-    --es-url=<str>                    Elasticsearch url. DEFAULT=http://localhost:9200
-    --es-index=<str>                  Elasticsearch index name. DEFAULT=sist2
+    --es-url=<str>                    Elasticsearch url. DEFAULT: http://localhost:9200
+    --es-insecure-ssl                 Do not verify SSL connections to Elasticsearch.
+    --es-index=<str>                  Elasticsearch index name. DEFAULT: sist2
     --script-file=<str>               Path to user script.
     --async-script                    Execute user script asynchronously.
+
 Made by simon987 <me@simon987.net>. Released under GPL-3.0
 ```
-
-## Scan
-
-### Scan options
-
-* `-t, --threads` 
-      Number of threads for file parsing. **Do not set a number higher than `$(nproc)` or `$(Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors` in Windows!**
-* `--mem-throttle`
-    Total memory threshold in MiB for scan throttling. Worker threads will not start a new parse job
-    until the total memory usage of sist2 is below this threshold. Set to 0 to disable. DEFAULT=0
-* `-q, --thumbnail-quality` 
-    Thumbnail quality, on a scale of 2 to 32, 2 being the best. See section below for a rough estimate of thumbnail database size
-* `--thumbnail-size` 
-    Thumbnail size in pixels.
-* `--thumbnail-count`
-    Maximum number of thumbnails to generate. When set to a value >= 2, thumbnails for video previews
-    will be generated. The actual number of thumbnails generated depends on the length of the video (maximum 1 image 
-    every ~7s). Set to 0 to completely disable thumbnails.
-* `--content-size` 
-    Number of bytes of text to be extracted from the content of files (plain text, PDFs etc.).
-    Repeated whitespace and special characters do not count toward this limit.
-    Set to 0 to completely disable content parsing.
-* `--incremental`
-    Specify an existing index. Information about files in this index that were not modified (based on *mtime* attribute)
-    will be copied to the new index and will not be parsed again.
-* `-o, --output` Output directory. 
-* `--rewrite-url` Set the `rewrite_url` option for the web module (See [rewrite_url](#rewrite_url)) 
-* `--name` Set the `name` option for the web module
-* `--depth` Maximum scan dept. Set to 0 only scan files directly in the root directory, set to -1 for infinite depth
-* `--archive` Archive file mode.
-    * skip: Don't parse
-    * list: Only get file names as text
-    * shallow: Don't parse archives inside archives.
-    * recurse: Scan archives recursively (default)
-* `--ocr-lang`, `--ocr-ebooks`, `--ocr-images` See [OCR](../README.md#OCR)
-* `-e, --exclude` Regex pattern to exclude files. A file is excluded if the pattern matches any 
-    part of the full absolute path.
-    
-    Examples: 
-    * `-e ".*\.ttf"`: Ignore ttf files
-    * `-e ".*\.(ttf|rar)"`: Ignore ttf and rar files
-    * `-e "^/mnt/backups/"`: Ignore all files in the `/mnt/backups/` directory
-    * `-e "^/mnt/Data[12]/"`: Ignore all files in the `/mnt/Data1/` and `/mnt/Data2/` directory
-    * `-e "(^/usr/)|(^/var/)|(^/media/DRIVE-A/tmp/)|(^/media/DRIVE-B/Trash/)"` Exclude the
-     `/usr`, `/var`, `/media/DRIVE-A/tmp`, `/media/DRIVE-B/Trash` directories
-* `--fast` Only index file names and mime type
-* `--treemap-threshold` Directories smaller than (`treemap-threshold` * `<total size of the index>`)
-    will not be considered for the disk utilisation visualization; their size will be added to
-    the parent directory. If the parent directory is still smaller than the threshold, it will also be "merged upwards"
-    and so on.
-    
-    In effect, smaller `treemap-threshold` values will yield a more detailed 
-    (but also a more cluttered and harder to read) visualization. 
-    
-* `--mem-buffer` Maximum memory buffer size in MiB (per thread) for files inside archives. Media files 
-    larger than this number will be read sequentially and no *seek* operations will be supported.
-
-    To check if a media file can be parsed without *seek*, execute `cat file.mp4 | ffprobe -`
-* `--read-subtitles` When enabled, will attempt to read the subtitles stream from media files.
-* `--fast-epub` Much faster but less accurate EPUB parsing. When enabled, sist2 will use a simple HTML parser to read epub files instead of the MuPDF library. No thumbnails are generated and author/title metadata are not parsed.
-* `--checksums` Calculate file checksums (SHA1) when scanning files. This option does not cause any additional read 
-  operations. Checksums are not calculated for all file types, unless the file is inside an archive. When enabled, duplicate
-  files are hidden in the web UI (this behaviour can be toggled in the Configuration page).
-
 
 #### Thumbnail database size estimation
 
@@ -164,8 +88,6 @@ that is about `8000000 * 36kB = 288GB`.
 
 ![thumbnail_size](thumbnail_size.png)
 
-// TODO: add note about LMDB page size 4096
-
 ### Scan examples
 
 Simple scan
@@ -175,83 +97,20 @@ sist2 scan ~/Documents
 sist2 scan \
     --threads 4 --content-size 16000000 --thumbnail-quality 2 --archive shallow \
     --name "My Documents" --rewrite-url "http://nas.domain.local/My Documents/" \
-    ~/Documents -o ./documents.idx/
+    ~/Documents -o ./documents.sist2
 ```
 
 Incremental scan
-```
-sist2 scan --incremental ./orig_idx/ -o ./updated_idx/ ~/Documents
-```
 
-### Index format
-
-A typical `ndjson` type index structure looks like this:
-```
-documents.idx/
-├── descriptor.json
-├── _index_main.ndjson.zst
-├── treemap.csv
-├── agg_mime.csv
-├── agg_date.csv
-├── add_size.csv
-├── thumbs/
-|   ├── data.mdb
-|   └── lock.mdb
-├── tags/
-|   ├── data.mdb
-|   └── lock.mdb
-└── meta/
-    ├── data.mdb
-    └── lock.mdb
+If the index file does not exist, `--incremental` has no effect.
+```bash
+sist scan ~/Documents -o ./documents.sist2
+sist scan ~/Documents -o ./documents.sist2 --incremental
+# or
+sist scan ~/Documents -o ./documents.sist2 --incremental
+sist scan ~/Documents -o ./documents.sist2 --incremental
 ```
 
-The `_index_*.ndjson.zst` files contain the document data in JSON format, in a compressed newline-delemited file.
-
-The `thumbs/` folder is a [LMDB](https://en.wikipedia.org/wiki/Lightning_Memory-Mapped_Database)
-database containing the thumbnails.
-
-The `descriptor.json` file contains general information about the index. The 
-following fields are safe to modify manually: `root`, `name`, [rewrite_url](#rewrite_url) and `timestamp`.
-
-The `.csv` are pre-computed aggregations necessary for the stats page.
-
-*thumbs/*:
-
-LMDB key-value store. Keys are **binary** 16-byte md5 hash* (`_id` field)
-and values are raw image bytes.
-
-*\* Hash is calculated from the full path of the file, including the extension, relative to the index root*
-
-
-## Index
-### Index options
- * `--es-url` 
- Elasticsearch url and port. If you are using docker, make sure that both containers are on the
- same network.
- * `--es-index` 
-    Elasticsearch index name. DEFAULT=sist2
- * `-p, --print` 
-    Print index in JSON format to stdout.
- * `--incremental-index`
-   Conduct incremental indexing. Assumes that the old index is already ingested in Elasticsearch.
-   Only the new changes since the last scan will be sent.
- * `--script-file` 
-    Path to user script. See [Scripting](scripting.md).
- * `--mappings-file`
-    Path to custom Elasticsearch mappings. If none is specified, [the bundled mappings](https://github.com/simon987/sist2/tree/master/schema) will be used.
- * `--settings-file`
-    Path to custom Elasticsearch settings. *(See above)*
- * `--async-script` 
-    Use `wait_for_completion=false` elasticsearch option while executing user script.
-     (See [Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/tasks.html))
- * `--batch-size=<int>` 
-    Index batch size. Indexing is generally faster with larger batches, but payloads that
-    are too large will fail and additional overhead for retrying with smaller sizes may slow
-    down the process.
- * `-f, --force-reset` 
-    Reset Elasticsearch mappings and settings.
- * `-t, --threads` Number of threads to use. Ideally, choose a number equal to the number of logical cores of the machine hosting Elasticsearch.
-    
 ### Index examples
 
 **Push to elasticsearch**
@@ -380,8 +239,8 @@ The sidecar file must have exactly the same file path and the `.s2meta` suffix.
 ```
 
 ```
-sist2 scan ~/Documents -o ./docs.idx
-sist2 index ./docs.idx
+sist2 scan ~/Documents -o ./docs.sist2
+sist2 index ./docs.sist2
 ```
 
 *NOTE*: It is technically possible to overwrite the `tag` value using sidecar files, however,

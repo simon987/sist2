@@ -10,13 +10,13 @@ sist2 (Simple incremental search tool)
 
 *Warning: sist2 is in early development*
 
-![search panel](docs/sist2.png)
+![search panel](docs/sist2.gif)
 
 ## Features
 
 * Fast, low memory usage, multi-threaded
+* Manage & schedule scan jobs with simple web interface (Docker only)
 * Mobile-friendly Web interface
-* Portable (all its features are packaged in a single executable)
 * Extracts text and metadata from common file types \*
 * Generates thumbnails \*
 * Incremental scanning
@@ -29,42 +29,54 @@ sist2 (Simple incremental search tool)
 \*\* See [Archive files](#archive-files)    
 \*\*\* See [OCR](#ocr)
 
-![stats](docs/stats.png)
-
 ## Getting Started
+
+### Using Docker Compose *(Windows/Linux/Mac)*
+
+```yaml
+version: "3"
+
+services:
+  elasticsearch:
+    image: elasticsearch:7.17.9
+    restart: unless-stopped
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+  sist2-admin:
+    image: simon987/sist2:3.0.3
+    restart: unless-stopped
+    volumes:
+      - ./sist2-admin-data/:/sist2-admin/
+      - /:/host
+    ports:
+      - 4090:4090 # sist2
+      - 8080:8080 # sist2-admin
+    working_dir: /root/sist2-admin/
+    entrypoint: python3 /root/sist2-admin/sist2_admin/app.py
+```
+
+Navigate to http://localhost:8080/ to configure sist2-admin. 
+
+### Using the executable file *(Linux/WSL only)*
 
 1. Have an Elasticsearch (>= 6.8.X, ideally >=7.14.0) instance running
     1. Download [from official website](https://www.elastic.co/downloads/elasticsearch)
-    1. *(or)* Run using docker:
+    2. *(or)* Run using docker:
         ```bash
         docker run -d -p 9200:9200 -e "discovery.type=single-node" elasticsearch:7.17.9
         ```
-    1. *(or)* Run using docker-compose:
-        ```yaml
-          elasticsearch:
-            image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
-            environment:
-              - discovery.type=single-node
-              - "ES_JAVA_OPTS=-Xms1G -Xmx2G"
-        ```
-1. Download sist2 executable
-    1. Download the [latest sist2 release](https://github.com/simon987/sist2/releases). 
-Select the file corresponding to your CPU architecture and mark the binary as executable with `chmod +x` *
-    2. *(or)* Download a [development snapshot](https://files.simon987.net/.gate/sist2/simon987_sist2/) *(Not
-       recommended!)*
-    3. *(or)* `docker pull simon987/sist2:2.12.1-x64-linux`
 
-1. See [Usage guide](docs/USAGE.md)
+2. Download the [latest sist2 release](https://github.com/simon987/sist2/releases). 
+Select the file corresponding to your CPU architecture and mark the binary as executable with `chmod +x`.
+3. See [usage guide](docs/USAGE.md) for command line usage. 
 
-\* *Windows users*: **sist2** runs under [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux)
 
-## Example usage
+Example usage:
 
-See [Usage guide](docs/USAGE.md) for more details
-
-1. Scan a directory: `sist2 scan ~/Documents -o ./docs_idx`
-1. Push index to Elasticsearch: `sist2 index ./docs_idx`
-1. Start web interface: `sist2 web ./docs_idx`
+1. Scan a directory: `sist2 scan ~/Documents --output ./documents.sist2`
+2. Push index to Elasticsearch: `sist2 index ./documents.sist2`
+3. Start web interface: `sist2 web ./documents.sist2`
 
 ## Format support
 
@@ -127,16 +139,17 @@ sist2 scan --ocr-ebooks --ocr-images --ocr-lang eng+chi_sim ~/Chinese-Bilingual/
 
 You can compile **sist2** by yourself if you don't want to use the pre-compiled binaries
 
-### With docker (recommended)
+### Using docker
 
 ```bash
 git clone --recursive https://github.com/simon987/sist2/
 cd sist2
-docker build . -f ./Dockerfile -t my-sist2-image
+docker build . -t my-sist2-image
+# Copy sist2 executable from docker image
 docker run --rm --entrypoint cat my-sist2-image /root/sist2 > sist2-x64-linux
 ```
 
-### On a linux computer
+### Using a linux computer
 
 1. Install compile-time dependencies
 
@@ -144,15 +157,14 @@ docker run --rm --entrypoint cat my-sist2-image /root/sist2 > sist2-x64-linux
    apt install gcc g++ python3 yasm ragel automake autotools-dev wget libtool libssl-dev curl zip unzip tar xorg-dev libglu1-mesa-dev libxcursor-dev libxml2-dev libxinerama-dev gettext nasm git nodejs
    ```
 
-1. Apply vcpkg patches, as per [sist2-build](https://github.com/simon987/sist2-build) Dockerfile
-
-1. Install vcpkg dependencies
+2. Install vcpkg using my fork: https://github.com/simon987/vcpkg
+3. Install vcpkg dependencies
 
     ```bash
     vcpkg install curl[core,openssl] sqlite3 cpp-jwt pcre cjson brotli libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 libmupdf gtest mongoose libmagic libraw gumbo ffmpeg[core,avcodec,avformat,swscale,swresample]
     ```
 
-1. Build
+4. Build
     ```bash
     git clone --recursive https://github.com/simon987/sist2/
     (cd sist2-vue; npm install; npm run build)
