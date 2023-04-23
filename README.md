@@ -143,7 +143,7 @@ sist2 v3.0.4+ supports named-entity recognition (NER). Simply add a supported re
 to enable it.
 
 The text processing is done in your browser, no data is sent to any third-party services.
-See [simon987/sist2-ner-models](https://raw.githubusercontent.com/simon987/sist2-ner-models/main/repo.json) for more details.
+See [simon987/sist2-ner-models](https://github.com/simon987/sist2-ner-models) for more details.
 
 #### List of available repositories:
 
