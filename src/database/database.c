@@ -83,6 +83,7 @@ void database_open(database_t *db) {
     LOG_DEBUGF("database.c", "Opening database %s (%d)", db->filename, db->type);
 
     CRASH_IF_NOT_SQLITE_OK(sqlite3_open(db->filename, &db->db));
+    sqlite3_busy_timeout(db->db, 1000);
 
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA cache_size = -200000;", NULL, NULL, NULL));
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA synchronous = OFF;", NULL, NULL, NULL));

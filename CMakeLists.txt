@@ -15,6 +15,9 @@ if (SIST_DEBUG)
     add_compile_definitions(
             "SIST_DEBUG=${SIST_DEBUG}"
     )
+    set(VCPKG_BUILD_TYPE debug)
+else ()
+    set(VCPKG_BUILD_TYPE release)
 endif ()
 
 if (SIST_DEBUG_INFO)
