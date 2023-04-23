@@ -5,7 +5,7 @@ import {EsHit, EsResult, EsTag, Index, Tag} from "@/Sist2Api";
 import {deserializeMimes, randomSeed, serializeMimes} from "@/util";
 import {getInstance} from "@/plugins/auth0.js";
 
-const CONF_VERSION = 2;
+const CONF_VERSION = 3;
 
 Vue.use(Vuex)
 
