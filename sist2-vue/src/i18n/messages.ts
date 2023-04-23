@@ -49,6 +49,7 @@ export default {
         configReset: "Reset configuration",
         searchOptions: "Search options",
         treemapOptions: "Treemap options",
+        mlOptions: "Machine learning options",
         displayOptions: "Display options",
         opt: {
             lang: "Language",
@@ -78,7 +79,10 @@ export default {
             simpleLightbox: "Disable animations in image viewer",
             showTagPickerFilter: "Display the tag filter bar",
             featuredFields: "Featured fields Javascript template string. Will appear in the search results.",
-            featuredFieldsList: "Available variables"
+            featuredFieldsList: "Available variables",
+            autoAnalyze: "Automatically analyze text",
+            defaultModel: "Default model",
+            mlRepositories: "Model repositories (one per line)"
         },
         queryMode: {
             simple: "Simple",
@@ -171,6 +175,12 @@ export default {
             selectedIndex: "selected index",
             selectedIndices: "selected indices",
         },
+        ml: {
+            analyzeText: "Analyze",
+            auto: "Auto",
+            repoFetchError: "Failed to get list of models. Check browser console for more details.",
+            repoFetchErrorTitle: "Could not fetch model repositories",
+        }
     },
     de: {
         filePage: {

@@ -57,6 +57,9 @@ export default new Vuex.Store({
         optVidPreviewInterval: 700,
         optSimpleLightbox: true,
         optShowTagPickerFilter: true,
+        optMlRepositories: "https://raw.githubusercontent.com/simon987/sist2-ner-models/main/repo.json",
+        optAutoAnalyze: false,
+        optMlDefaultModel: null,
 
         _onLoadSelectedIndices: [] as string[],
         _onLoadSelectedMimeTypes: [] as string[],
@@ -86,7 +89,11 @@ export default new Vuex.Store({
 
         uiMimeMap: [] as any[],
 
-        auth0Token: null
+        auth0Token: null,
+        mlModel: {
+            model: null,
+            name: null
+        },
     },
     mutations: {
         setUiShowDetails: (state, val) => state.uiShowDetails = val,
@@ -172,6 +179,9 @@ export default new Vuex.Store({
         setOptVidPreviewInterval: (state, val) => state.optVidPreviewInterval = val,
         setOptSimpleLightbox: (state, val) => state.optSimpleLightbox = val,
         setOptShowTagPickerFilter: (state, val) => state.optShowTagPickerFilter = val,
+        setOptAutoAnalyze: (state, val) => {state.optAutoAnalyze = val},
+        setOptMlRepositories: (state, val) => {state.optMlRepositories = val},
+        setOptMlDefaultModel: (state, val) => {state.optMlDefaultModel = val},
 
         setOptLightboxLoadOnlyCurrent: (state, val) => state.optLightboxLoadOnlyCurrent = val,
         setOptLightboxSlideDuration: (state, val) => state.optLightboxSlideDuration = val,
@@ -194,6 +204,7 @@ export default new Vuex.Store({
             // noop
         },
         setAuth0Token: (state, val) => state.auth0Token = val,
+        setMlModel: (state, val) => state.mlModel = val,
     },
     actions: {
         setSist2Info: (store, val) => {
@@ -350,6 +361,7 @@ export default new Vuex.Store({
     },
     modules: {},
     getters: {
+        mlModel: (state) => state.mlModel,
         seed: (state) => state.seed,
         getPathText: (state) => state.pathText,
         indices: state => state.indices,
@@ -416,5 +428,12 @@ export default new Vuex.Store({
         optSimpleLightbox: state => state.optSimpleLightbox,
         optShowTagPickerFilter: state => state.optShowTagPickerFilter,
         optFeaturedFields: state => state.optFeaturedFields,
+        optMlRepositories: state => state.optMlRepositories,
+        mlRepositoryList: state => {
+            const repos = state.optMlRepositories.split("\n")
+            return repos[0] == "" ? [] : repos;
+        },
+        optMlDefaultModel: state => state.optMlDefaultModel,
+        optAutoAnalyze: state => state.optAutoAnalyze,
     }
 })

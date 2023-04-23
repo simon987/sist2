@@ -24,10 +24,12 @@ sist2 (Simple incremental search tool)
 * Recursive scan inside archive files \*\*
 * OCR support with tesseract \*\*\*
 * Stats page & disk utilisation visualization
+* Named-entity recognition (client-side) \*\*\*\*
 
 \* See [format support](#format-support)    
 \*\* See [Archive files](#archive-files)    
 \*\*\* See [OCR](#ocr)
+\*\*\*\* See [Named-Entity Recognition](#NER)
 
 ## Getting Started
 
@@ -56,7 +58,7 @@ services:
     entrypoint: python3 /root/sist2-admin/sist2_admin/app.py
 ```
 
-Navigate to http://localhost:8080/ to configure sist2-admin. 
+Navigate to http://localhost:8080/ to configure sist2-admin.
 
 ### Using the executable file *(Linux/WSL only)*
 
@@ -67,10 +69,9 @@ Navigate to http://localhost:8080/ to configure sist2-admin.
         docker run -d -p 9200:9200 -e "discovery.type=single-node" elasticsearch:7.17.9
         ```
 
-2. Download the [latest sist2 release](https://github.com/simon987/sist2/releases). 
-Select the file corresponding to your CPU architecture and mark the binary as executable with `chmod +x`.
-3. See [usage guide](docs/USAGE.md) for command line usage. 
-
+2. Download the [latest sist2 release](https://github.com/simon987/sist2/releases).
+   Select the file corresponding to your CPU architecture and mark the binary as executable with `chmod +x`.
+3. See [usage guide](docs/USAGE.md) for command line usage.
 
 Example usage:
 
@@ -124,7 +125,7 @@ The `simon987/sist2` image comes with common languages
 (hin, jpn, eng, fra, rus, spa, chi_sim, deu) pre-installed.
 
 You can use the `+` separator to specify multiple languages. The language
-name must be identical to the `*.traineddata` file installed on your system 
+name must be identical to the `*.traineddata` file installed on your system
 (use `chi_sim` rather than `chi-sim`).
 
 Examples:
@@ -134,6 +135,29 @@ sist2 scan --ocr-ebooks --ocr-lang jpn ~/Books/Manga/
 sist2 scan --ocr-images --ocr-lang eng ~/Images/Screenshots/
 sist2 scan --ocr-ebooks --ocr-images --ocr-lang eng+chi_sim ~/Chinese-Bilingual/
 ```
+
+### NER
+
+sist2 v3.0.4+ supports named-entity recognition (NER). Simply add a supported repository URL to 
+**Configuration** > **Machine learning options** > **Model repositories**
+to enable it.
+
+The text processing is done in your browser, no data is sent to any third-party services.
+See [simon987/sist2-ner-models](https://raw.githubusercontent.com/simon987/sist2-ner-models/main/repo.json) for more details.
+
+#### List of available repositories:
+
+| URL                                                                                                     | Maintainer                              | Purpose |
+|---------------------------------------------------------------------------------------------------------|-----------------------------------------|---------|
+| [simon987/sist2-ner-models](https://raw.githubusercontent.com/simon987/sist2-ner-models/main/repo.json) | [simon987](https://github.com/simon987) | General |
+
+
+<details>
+  <summary>Screenshot</summary>
+
+![ner](docs/ner.png)
+
+</details>
 
 ## Build from source
 

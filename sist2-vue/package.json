@@ -9,6 +9,7 @@
   "dependencies": {
     "@auth0/auth0-spa-js": "^2.0.2",
     "@egjs/vue-infinitegrid": "3.3.0",
+    "@tensorflow/tfjs": "^4.4.0",
     "axios": "^0.25.0",
     "bootstrap-vue": "^2.21.2",
     "core-js": "^3.6.5",
