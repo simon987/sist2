@@ -162,9 +162,9 @@ const char *find_file_in_paths(const char *paths[], const char *filename) {
         }
 
         char path[PATH_MAX];
-        snprintf(path, sizeof(path), "%s%s", apath, filename);
+        snprintf(path, sizeof(path), "%s/%s", apath, filename);
 
-        LOG_DEBUGF("util.c", "Looking for '%s' in folder '%s'", filename, apath);
+        LOG_DEBUGF("util.c", "Looking for '%s' in folder '%s' (%s)", filename, apath, path);
         free(apath);
 
         struct stat info;
