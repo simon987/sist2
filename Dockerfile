@@ -36,16 +36,16 @@ RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y curl libasan5 li
 
 RUN mkdir -p /usr/share/tessdata && \
     cd /usr/share/tessdata/ && \
-    curl -o /usr/share/tessdata/hin.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/hin.traineddata &&\
-    curl -o /usr/share/tessdata/jpn.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/jpn.traineddata &&\
-    curl -o /usr/share/tessdata/eng.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/eng.traineddata &&\
-    curl -o /usr/share/tessdata/fra.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/fra.traineddata &&\
-    curl -o /usr/share/tessdata/rus.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/rus.traineddata &&\
-    curl -o /usr/share/tessdata/osd.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/osd.traineddata &&\
-    curl -o /usr/share/tessdata/spa.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/spa.traineddata &&\
-    curl -o /usr/share/tessdata/deu.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/deu.traineddata &&\
-    curl -o /usr/share/tessdata/equ.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/equ.traineddata &&\
-    curl -o /usr/share/tessdata/chi_sim.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/chi_sim.traineddata
+    curl -o /usr/share/tesseract-ocr/4.00/tessdata/hin.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/hin.traineddata &&\
+    curl -o /usr/share/tesseract-ocr/4.00/tessdata/jpn.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/jpn.traineddata &&\
+    curl -o /usr/share/tesseract-ocr/4.00/tessdata/ng.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/eng.traineddata &&\
+    curl -o /usr/share/tesseract-ocr/4.00/tessdata/ra.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/fra.traineddata &&\
+    curl -o /usr/share/tesseract-ocr/4.00/tessdata/us.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/rus.traineddata &&\
+    curl -o /usr/share/tesseract-ocr/4.00/tessdata/sd.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/osd.traineddata &&\
+    curl -o /usr/share/tesseract-ocr/4.00/tessdata/pa.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/spa.traineddata &&\
+    curl -o /usr/share/tesseract-ocr/4.00/tessdata/eu.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/deu.traineddata &&\
+    curl -o /usr/share/tesseract-ocr/4.00/tessdata/qu.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/equ.traineddata &&\
+    curl -o /usr/share/tesseract-ocr/4.00/tessdata/hi_sim.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/chi_sim.traineddata
 
 # sist2
 COPY --from=build /build/build/sist2 /root/sist2
