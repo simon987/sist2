@@ -240,7 +240,10 @@ void print_errors(response_t *r) {
     } else if (errors->valueint != 0) {
         cJSON *err;
         cJSON_ArrayForEach(err, cJSON_GetObjectItem(ret_json, "items")) {
-            if (cJSON_GetObjectItem(cJSON_GetObjectItem(err, "index"), "status")->valueint != 201) {
+
+            int status = cJSON_GetObjectItem(cJSON_GetObjectItem(err, "index"), "status")->valueint;
+
+            if (status != 201 && status != 200) {
                 char *str = cJSON_Print(err);
                 LOG_ERRORF("elastic.c", "%s\n", str);
                 cJSON_free(str);
