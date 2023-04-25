@@ -22,6 +22,7 @@
 static const char *const usage[] = {
         "sist2 scan [OPTION]... PATH",
         "sist2 index [OPTION]... INDEX",
+        "sist2 sqlite-index [OPTION]... INDEX",
         "sist2 web [OPTION]... INDEX...",
         "sist2 exec-script [OPTION]... INDEX",
         NULL,
@@ -351,6 +352,23 @@ void sist2_index(index_args_t *args) {
     free(desc);
 }
 
+void sist2_sqlite_index(sqlite_index_args_t *args) {
+    database_t *db = database_create(args->index_path, INDEX_DATABASE);
+    database_open(db);
+
+    database_t *search_db = database_create(args->search_index_path, FTS_DATABASE);
+    database_initialize(search_db);
+
+    database_fts_attach(db, args->search_index_path);
+
+    database_fts_index(db);
+    if (args->optimize_database) {
+        database_fts_optimize(db);
+    }
+
+    database_close(db, FALSE);
+}
+
 void sist2_exec_script(exec_args_t *args) {
     LogCtx.verbose = TRUE;
 
@@ -436,6 +454,7 @@ int main(int argc, const char *argv[]) {
     index_args_t *index_args = index_args_create();
     web_args_t *web_args = web_args_create();
     exec_args_t *exec_args = exec_args_create();
+    sqlite_index_args_t *sqlite_index_args = sqlite_index_args_create();
 
     int arg_version = 0;
 
@@ -445,6 +464,7 @@ int main(int argc, const char *argv[]) {
     char *common_script_path = NULL;
     int common_async_script = 0;
     int common_threads = 0;
+    int common_optimize_database = 0;
 
     struct argparse_option options[] = {
             OPT_HELP(),
@@ -471,7 +491,7 @@ int main(int argc, const char *argv[]) {
             OPT_STRING('o', "output", &scan_args->output, "Output index file path. DEFAULT: index.sist2"),
             OPT_BOOLEAN(0, "incremental", &scan_args->incremental,
                         "If the output file path exists, only scan new or modified files."),
-            OPT_BOOLEAN(0, "optimize-index", &scan_args->optimize_database,
+            OPT_BOOLEAN(0, "optimize-index", &common_optimize_database,
                         "Defragment index file after scan to reduce its file size."),
             OPT_STRING(0, "rewrite-url", &scan_args->rewrite_url, "Serve files from this url instead of from disk."),
             OPT_STRING(0, "name", &scan_args->name, "Index display name. DEFAULT: index"),
@@ -519,6 +539,11 @@ int main(int argc, const char *argv[]) {
             OPT_BOOLEAN(0, "async-script", &common_async_script, "Execute user script asynchronously."),
             OPT_INTEGER(0, "batch-size", &index_args->batch_size, "Index batch size. DEFAULT: 70"),
             OPT_BOOLEAN('f', "force-reset", &index_args->force_reset, "Reset Elasticsearch mappings and settings."),
+
+            OPT_GROUP("sqlite-index options"),
+            OPT_STRING(0, "search-index", &sqlite_index_args->search_index_path, "Path to search index. Will be created if it does not exist yet."),
+            OPT_BOOLEAN(0, "optimize-index", &common_optimize_database,
+                        "Optimize search index file for smaller size and faster queries."),
 
             OPT_GROUP("Web options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT: http://localhost:9200"),
@@ -586,6 +611,9 @@ int main(int argc, const char *argv[]) {
     exec_args->async_script = common_async_script;
     index_args->async_script = common_async_script;
 
+    scan_args->optimize_database = common_optimize_database;
+    sqlite_index_args->optimize_database = common_optimize_database;
+
     if (argc == 0) {
         argparse_usage(&argparse);
         goto end;
@@ -604,6 +632,14 @@ int main(int argc, const char *argv[]) {
             goto end;
         }
         sist2_index(index_args);
+
+    } else if (strcmp(argv[0], "sqlite-index") == 0) {
+
+        int err = sqlite_index_args_validate(sqlite_index_args, argc, argv);
+        if (err != 0) {
+            goto end;
+        }
+        sist2_sqlite_index(sqlite_index_args);
 
     } else if (strcmp(argv[0], "web") == 0) {
 

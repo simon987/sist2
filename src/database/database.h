@@ -10,6 +10,7 @@ typedef struct index_descriptor index_descriptor_t;
 
 extern const char *IpcDatabaseSchema;
 extern const char *IndexDatabaseSchema;
+extern const char *FtsDatabaseSchema;
 
 typedef enum {
     INDEX_DATABASE,
@@ -86,8 +87,6 @@ typedef struct {
     long size;
 } treemap_row_t;
 
-static treemap_row_t null_treemap_row = {0, 0, 0};
-
 
 database_t *database_create(const char *filename, database_type_t type);
 
@@ -116,7 +115,7 @@ cJSON *database_document_iter(database_iterator_t *);
 
 database_iterator_t *database_create_delete_list_iterator(database_t *db);
 
-char * database_delete_list_iter(database_iterator_t *iter);
+char *database_delete_list_iter(database_iterator_t *iter);
 
 #define database_delete_list_iter_foreach(element, iter) \
     for (char *(element) = database_delete_list_iter(iter); (element) != NULL; (element) = database_delete_list_iter(iter))
@@ -160,8 +159,14 @@ cJSON *database_get_stats(database_t *db, database_stat_type_d type);
 #define CRASH_IF_NOT_SQLITE_OK(x) do { \
         int return_value = x;                \
         if (return_value != SQLITE_OK) {     \
-            LOG_FATALF("database.c", "Sqlite error @ database.c:%d : (%d) %s", __LINE__, return_value, sqlite3_errmsg(db->db)); \
+            LOG_FATALF("database.c", "Sqlite error @ %s:%d : (%d) %s", __BASE_FILE__, __LINE__, return_value, sqlite3_errmsg(db->db)); \
         }                           \
     } while (0)
+
+void database_fts_attach(database_t *db, const char *fts_database_path);
+
+void database_fts_index(database_t *db);
+
+void database_fts_optimize(database_t *db);
 
 #endif //SIST2_DATABASE_H

@@ -410,6 +410,33 @@ int index_args_validate(index_args_t *args, int argc, const char **argv) {
     return 0;
 }
 
+int sqlite_index_args_validate(sqlite_index_args_t *args, int argc, const char **argv) {
+
+    LogCtx.verbose = 1;
+
+    if (argc < 2) {
+        fprintf(stderr, "Required positional argument: PATH.\n");
+        return 1;
+    }
+
+    char *index_path = abspath(argv[1]);
+    if (index_path == NULL) {
+        LOG_FATALF("cli.c", "Invalid PATH argument. File not found: %s", argv[1]);
+    } else {
+        args->index_path = index_path;
+    }
+
+    if (args->search_index_path == NULL) {
+        LOG_FATAL("cli.c", "Missing required argument --search-index");
+    }
+
+    LOG_DEBUGF("cli.c", "arg index_path=%s", args->index_path);
+    LOG_DEBUGF("cli.c", "arg search_index_path=%s", args->search_index_path);
+    LOG_DEBUGF("cli.c", "arg optimize_index=%d", args->optimize_database);
+
+    return 0;
+}
+
 int web_args_validate(web_args_t *args, int argc, const char **argv) {
 
     LogCtx.verbose = 1;
@@ -551,6 +578,11 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
 
 index_args_t *index_args_create() {
     index_args_t *args = calloc(sizeof(index_args_t), 1);
+    return args;
+}
+
+sqlite_index_args_t *sqlite_index_args_create() {
+    sqlite_index_args_t *args = calloc(sizeof(sqlite_index_args_t), 1);
     return args;
 }
 

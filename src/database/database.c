@@ -74,6 +74,8 @@ void database_initialize(database_t *db) {
         CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, IndexDatabaseSchema, NULL, NULL, NULL));
     } else if (db->type == IPC_CONSUMER_DATABASE || db->type == IPC_PRODUCER_DATABASE) {
         CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, IpcDatabaseSchema, NULL, NULL, NULL));
+    } else if (db->type == FTS_DATABASE) {
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, FtsDatabaseSchema, NULL, NULL, NULL));
     }
 
     sqlite3_close(db->db);
@@ -478,28 +480,6 @@ void database_write_thumbnail(database_t *db, const char *id, int num, void *dat
     pthread_mutex_unlock(&db->ipc_ctx->index_db_mutex);
 }
 
-
-//void database_create_fts_index(database_t *db, database_t *fts_db) {
-//    // In a separate file,
-//
-//    // use database_initialize() to create FTS schema
-//    // if --force-reset, then truncate the tables first
-//
-//    /*
-//     * create/append fts table
-//     *
-//     * create/append scalar index table with
-//     *  id,index,size,mtime,mime
-//     *
-//     * create/append path index table with
-//     *  index,path,depth
-//     *
-//     * content table is a view with SELECT UNION for all attached tables
-//     *  random_seed column
-//     */
-//
-//    // INSERT INTO ft(ft) VALUES('optimize');
-//}
 
 job_t *database_get_work(database_t *db, job_type_t job_type) {
     job_t *job;
