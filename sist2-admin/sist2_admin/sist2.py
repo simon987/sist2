@@ -46,7 +46,7 @@ class WebOptions(BaseModel):
         super().__init__(**kwargs)
 
     def args(self):
-        args = ["web", f"--es-url={self.es_url}", f"--bind={self.bind}",
+        args = ["web", f"--es-url={self.es_url}", f"--es-index={self.es_index}", f"--bind={self.bind}",
                 f"--tagline={self.tagline}", f"--lang={self.lang}"]
 
         if self.auth0_audience:
