@@ -1,7 +1,7 @@
 export default {
     en: {
         filePage: {
-          notFound: "Not found"
+            notFound: "Not found"
         },
         searchBar: {
             simple: "Search",
@@ -92,6 +92,7 @@ export default {
             en: "English",
             de: "Deutsch",
             fr: "Français",
+            pl: "Polski",
             "zh-CN": "简体中文",
         },
         displayMode: {
@@ -184,7 +185,7 @@ export default {
     },
     de: {
         filePage: {
-          notFound: "Nicht gefunden"
+            notFound: "Nicht gefunden"
         },
         searchBar: {
             simple: "Suche",
@@ -271,6 +272,7 @@ export default {
             en: "English",
             de: "Deutsch",
             fr: "Français",
+            pl: "Polski",
             "zh-CN": "简体中文",
         },
         displayMode: {
@@ -445,6 +447,7 @@ export default {
             en: "English",
             de: "Deutsch",
             fr: "Français",
+            pl: "Polski",
             "zh-CN": "简体中文",
         },
         displayMode: {
@@ -619,6 +622,7 @@ export default {
             en: "English",
             de: "Deutsch",
             fr: "Français",
+            pl: "Polski",
             "zh-CN": "简体中文",
         },
         displayMode: {
@@ -703,4 +707,188 @@ export default {
             selectedIndices: "选中索引",
         },
     },
+    pl: {
+        filePage: {
+            notFound: "Nie znaleziono"
+        },
+        searchBar: {
+            simple: "Szukaj",
+            advanced: "Zaawansowane szukanie",
+            fuzzy: "Również podobne"
+        },
+        addTag: "Tag",
+        deleteTag: "Usuń",
+        download: "Pobierz",
+        and: "i",
+        page: "strona",
+        pages: "stron",
+        mimeTypes: "Typy danych",
+        tags: "Tagi",
+        tagFilter: "Filtruj tagi",
+        forExample: "Na przykład:",
+        help: {
+            simpleSearch: "Proste szukanie",
+            advancedSearch: "Zaawansowane szukanie",
+            help: "Pomoc",
+            term: "<WYRAZ>",
+            and: "operator I",
+            or: "operator LUB",
+            not: "zabrania danego wyrazu",
+            quotes: "znajdzie objętą sekwencję wyrazów w podanej kolejności",
+            prefix: "znajdzie dowolny wyraz rozpoczynający się na takie litery, jeśli zastosowane na końcu wyrazu",
+            parens: "używane do grupowania wyrażeń",
+            tildeTerm: "znajdzie wyraz w podanej odległości",
+            tildePhrase: "znajdzie frazę przeplecioną podaną liczbą niepasujących wyrazów",
+            example1:
+                "Na przykład: <code>\"pieczone jajko\" +(kiełbasa | ziemniak) -frytki</code> znajdzie frazę " +
+                "<i>pieczone jajko</i> gdzie występuje też: <i>kiełbasa</i> albo <i>ziemniak</i>, ale zignoruje rezultat " +
+                "zawierający <i>frytki</i>.",
+            defaultOperator:
+                "Kiedy nie podano ani <code>+</code>, ani <code>|</code>, to domyślnym operatorem jest " +
+                "<code>+</code> (i).",
+            fuzzy:
+                "Kiedy opcja <b>Również podobne</b> jest zaznaczona, częściowo zgodne wyrazy są również znajdywane.",
+            moreInfoSimple: "Po więcej informacji sięgnij do <a target=\"_blank\" " +
+                "rel=\"noreferrer\" href=\"//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html\">dokumentacji Elasticsearch</a>",
+            moreInfoAdvanced: "Aby uzyskać więcej informacji o zaawansowanym szukaniu, przeczytaj <a target=\"_blank\" rel=\"noreferrer\" href=\"//www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax\">dokumentację Elasticsearch</a>"
+        },
+        config: "Ustawienia",
+        configDescription: "Ustawienia są zapisywane na żywo w tej przeglądarce.",
+        configReset: "Zresetuj ustawienia",
+        searchOptions: "Opcje szukania",
+        treemapOptions: "Opcje mapy",
+        mlOptions: "Opcje uczenia maszynowego",
+        displayOptions: "Opcje wyświetlania",
+        opt: {
+            lang: "Język",
+            highlight: "Zaznaczaj znalezione fragmenty",
+            fuzzy: "Ustaw szukanie również podobnych jako domyślne",
+            searchInPath: "Włącz szukanie również w ścieżce dokumentu",
+            suggestPath: "Włącz auto-uzupełnianie w filtrze ścieżek",
+            fragmentSize: "Podświetl wielkość kontekstu w znakach",
+            queryMode: "Tryb szukania",
+            displayMode: "Wyświetlanie",
+            columns: "Liczba kolumn",
+            treemapType: "Typ mapy",
+            treemapTiling: "Układanie mapy",
+            treemapColorGroupingDepth: "Jak głęboko grupować kolory mapy (na płasko)",
+            treemapColor: "Kolor mapy (kaskadowo)",
+            treemapSize: "Wielkość mapy",
+            theme: "Styl graficzny",
+            lightboxLoadOnlyCurrent: "Nie pobieraj od razu obrazów w pełnej wielkości dla sąsiednich obrazów podglądu.",
+            slideDuration: "Czas trwania jednego slajdu w pokazie slajdów",
+            resultSize: "Liczba wyników na stronę",
+            tagOrOperator: "Użyj operatora LUB przy wyborze kilku tagów",
+            hideDuplicates: "Ukryj zduplikowane wyniki (według sumy kontrolnej)",
+            hideLegacy: "Ukryj powiadomienie Elasticsearch 'legacyES'",
+            updateMimeMap: "Uaktualniaj drzewo typów mediów na żywo",
+            useDatePicker: "Używaj kalendarza do wyboru dat, zamiast suwaka",
+            vidPreviewInterval: "Czas trwania jednej klatki w podglądzie wideo (w ms)",
+            simpleLightbox: "Wyłącz animacje w podglądzie obrazów",
+            showTagPickerFilter: "Pokazuj pole filtrowania tagów",
+            featuredFields: "Wybrane pola szablonu Javascript. Będą pojawiać się przy wynikach wyszukiwania.",
+            featuredFieldsList: "Dostępne zmienne",
+            autoAnalyze: "Automatycznie analizuj tekst",
+            defaultModel: "Domyślny model",
+            mlRepositories: "Repozytoria modeli (każde w osobnej linii)"
+        },
+        queryMode: {
+            simple: "Proste",
+            advanced: "Zaawansowane",
+        },
+        lang: {
+            en: "English",
+            de: "Deutsch",
+            fr: "Français",
+            pl: "Polski",
+            "zh-CN": "简体中文",
+        },
+        displayMode: {
+            grid: "Siatka",
+            list: "Lista",
+        },
+        columns: {
+            auto: "Automatyczna"
+        },
+        treemapType: {
+            cascaded: "Kaskadowa",
+            flat: "Płaska (kompaktowa)"
+        },
+        treemapSize: {
+            small: "Mała",
+            medium: "Średnia",
+            large: "Duża",
+            xLarge: "Bardzo duża",
+            xxLarge: "Ogromna",
+            custom: "Inna",
+        },
+        treemapTiling: {
+            binary: "Binarnie",
+            squarify: "Kwadratowo",
+            slice: "Wycinek",
+            dice: "Kostka",
+            sliceDice: "Wycinek i kostka",
+        },
+        theme: {
+            light: "Jasny",
+            black: "Czarny"
+        },
+        hit: "traf",
+        hits: "trafień",
+        details: "Szczegóły",
+        stats: "Statystyki",
+        queryTime: "Czas szukania",
+        totalSize: "Całkowita wielkość",
+        pathBar: {
+            placeholder: "Filtruj ścieżki",
+            modalTitle: "Wybierz ścieżkę"
+        },
+        debug: "Informacje dla programistów",
+        debugDescription: "Informacje przydatne do znajdowania błędów w oprogramowaniu. Jeśli napotkasz błąd lub masz" +
+            " propozycje zmian, zgłoś to proszę <a href='https://github.com/simon987/sist2/issues/new/choose'>tutaj</a>.",
+        tagline: "Slogan",
+        toast: {
+            esConnErrTitle: "Problem z połączeniem z Elasticsearch",
+            esConnErr: "Moduł strony internetowej sist2 napotkał problem przy połączeniu z Elasticsearch." +
+                " Zobacz logi serwera, aby uzyskać więcej informacji.",
+            esQueryErrTitle: "Problem z kwerendą",
+            esQueryErr: "Kwerenda szukania jest niezrozumiała albo nie udało się jej przesłać. Sprawdź dokumentację zaawansowanego szukania. " +
+                "Zobacz logi serwera, aby uzyskać więcej informacji.",
+            dupeTagTitle: "Zduplikowany tag",
+            dupeTag: "Ten dokument już ma taki tag.",
+            copiedToClipboard: "Skopiowano do schowka"
+        },
+        saveTagModalTitle: "Dodaj tag",
+        saveTagPlaceholder: "Nazwa",
+        confirm: "Zatwierdź",
+        indexPickerPlaceholder: "Wybierz indeks",
+        sort: {
+            relevance: "Zgodność z szukanym",
+            dateAsc: "Data (najpierw starsze)",
+            dateDesc: "Data (najpierw nowsze)",
+            sizeAsc: "Wielkość (najpierw mniejsze)",
+            sizeDesc: "Wielkość (najpierw większe)",
+            nameAsc: "Nazwa (A-z)",
+            nameDesc: "Nazwa (Z-a)",
+            random: "Losowo",
+        },
+        d3: {
+            mimeCount: "Dystrybucja liczby plików według typów mediów",
+            mimeSize: "Dystrybucja wielkości plików według typów mediów",
+            dateHistogram: "Dystrybucja dat modyfikacji plików",
+            sizeHistogram: "Dystrybucja wielkości plików",
+        },
+        indexPicker: {
+            selectNone: "Zaznacz nic",
+            selectAll: "Zaznacz wszystko",
+            selectedIndex: "wybrany indeks",
+            selectedIndices: "wybrane indeksy",
+        },
+        ml: {
+            analyzeText: "Analizuj",
+            auto: "Automatycznie",
+            repoFetchError: "Nie udało się uzyskać listy modeli. Zobacz konsolę przeglądarki, aby uzyskać więcej informacji.",
+            repoFetchErrorTitle: "Nie udało się pobrać repozytoriów modeli",
+        }
+    }
 }

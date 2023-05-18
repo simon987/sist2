@@ -45,6 +45,7 @@ RUN mkdir -p /usr/share/tessdata && \
     curl -o /usr/share/tesseract-ocr/4.00/tessdata/spa.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/spa.traineddata &&\
     curl -o /usr/share/tesseract-ocr/4.00/tessdata/deu.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/deu.traineddata &&\
     curl -o /usr/share/tesseract-ocr/4.00/tessdata/equ.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/equ.traineddata &&\
+    curl -o /usr/share/tesseract-ocr/4.00/tessdata/pol.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/pol.traineddata &&\
     curl -o /usr/share/tesseract-ocr/4.00/tessdata/chi_sim.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/master/chi_sim.traineddata
 
 # sist2
