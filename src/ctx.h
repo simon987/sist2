@@ -76,6 +76,7 @@ typedef struct {
     char *es_url;
     es_version_t *es_version;
     char *es_index;
+    database_t *search_db;
     int es_insecure_ssl;
     int index_count;
     char *auth_user;
@@ -93,6 +94,7 @@ typedef struct {
     struct index_t indices[256];
     char lang[10];
     int dev;
+    int search_backend;
 } WebCtx_t;
 
 

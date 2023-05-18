@@ -14,7 +14,7 @@
       <!-- Audio player-->
       <audio v-if="doc._props.isAudio" ref="audio" preload="none" class="audio-fit fit" controls
              :type="doc._source.mime"
-             :src="`f/${doc._id}`"></audio>
+             :src="`f/${doc._source.index}/${doc._id}`"></audio>
 
       <InfoTable :doc="doc" v-if="doc"></InfoTable>
 
@@ -54,7 +54,7 @@ export default Vue.extend({
   methods: {
     ext: ext,
     onThumbnailClick() {
-      window.open(`/f/${this.doc._id}`, "_blank");
+      window.open(`/f/${this.doc.index}/${this.doc._id}`, "_blank");
     },
     findByCustomField(field, id) {
       return {

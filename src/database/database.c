@@ -14,10 +14,43 @@ database_t *database_create(const char *filename, database_type_t type) {
     strcpy(db->filename, filename);
     db->type = type;
     db->select_thumbnail_stmt = NULL;
+    db->db = NULL;
+    db->tag_array = NULL;
 
     db->ipc_ctx = NULL;
 
     return db;
+}
+
+int tag_matches(const char *query, const char *tag) {
+    size_t query_len = strlen(query);
+    size_t tag_len = strlen(tag);
+
+    if (query_len >= tag_len) {
+        return FALSE;
+    }
+
+    return strncmp(tag, query, query_len) == 0 && *(tag + query_len) == '.';
+}
+
+void tag_matches_func(sqlite3_context *ctx, int argc, sqlite3_value **argv) {
+
+    if (argc != 1 || sqlite3_value_type(argv[0]) != SQLITE_TEXT) {
+        sqlite3_result_error(ctx, "Invalid parameters", -1);
+    }
+
+    const char *tag = (const char *) sqlite3_value_text(argv[0]);
+
+    char **tags = *(char ***) sqlite3_user_data(ctx);
+
+    array_foreach(tags) {
+        if (tag_matches(tags[i], tag)) {
+            sqlite3_result_int(ctx, TRUE);
+            return;
+        }
+    }
+
+    sqlite3_result_int(ctx, FALSE);
 }
 
 __always_inline
@@ -46,6 +79,24 @@ void path_parent_func(sqlite3_context *ctx, int argc, sqlite3_value **argv) {
     strncpy(parent, value, stop);
 
     sqlite3_result_text(ctx, parent, stop, SQLITE_TRANSIENT);
+}
+
+void random_func(sqlite3_context *ctx, int argc, UNUSED(sqlite3_value **argv)) {
+    if (argc != 1 || sqlite3_value_type(argv[0]) != SQLITE_INTEGER) {
+        sqlite3_result_error(ctx, "Invalid parameters", -1);
+    }
+
+    char state_buf[128] = {0,};
+    struct random_data buf;
+    int result;
+
+    long seed = sqlite3_value_int64(argv[0]);
+
+    initstate_r((int) seed, state_buf, sizeof(state_buf), &buf);
+
+    random_r(&buf, &result);
+
+    sqlite3_result_int(ctx, result);
 }
 
 
@@ -87,7 +138,8 @@ void database_open(database_t *db) {
     CRASH_IF_NOT_SQLITE_OK(sqlite3_open(db->filename, &db->db));
     sqlite3_busy_timeout(db->db, 1000);
 
-    CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA cache_size = -200000;", NULL, NULL, NULL));
+    // TODO: Optional argument?
+//    CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA cache_size = -200000;", NULL, NULL, NULL));
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA synchronous = OFF;", NULL, NULL, NULL));
 
     if (db->type == INDEX_DATABASE) {
@@ -118,6 +170,10 @@ void database_open(database_t *db) {
                 "INSERT INTO thumbnail (id, num, data) VALUES (?,?,?) ON CONFLICT DO UPDATE SET data=excluded.data;",
                 -1,
                 &db->write_thumbnail_stmt, NULL));
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT json_data FROM document WHERE id=?", -1,
+                &db->get_document, NULL));
 
         // Create functions
         sqlite3_create_function(
@@ -170,6 +226,61 @@ void database_open(database_t *db) {
                 db->db, "INSERT INTO index_job (doc_id,type,line) VALUES (?,?,?);", -1,
                 &db->insert_index_job_stmt, NULL));
 
+    } else if (db->type == FTS_DATABASE) {
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT path, count FROM path_index"
+                        " WHERE index_id=? AND depth BETWEEN ? AND ?"
+                        " LIMIT 65536", -1,
+                &db->fts_search_paths, NULL));
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT json_data FROM document_index"
+                        " WHERE id=?", -1,
+                &db->fts_get_document, NULL));
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT DISTINCT tag FROM tag"
+                        " WHERE tag GLOB (? || '*') ORDER BY tag LIMIT 100", -1,
+                &db->fts_suggest_tag, NULL));
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT tag, count(*) FROM tag GROUP BY tag", -1,
+                &db->fts_get_tags, NULL));
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT path, count FROM path_index"
+                        " WHERE (index_id=?1 OR ?1 IS NULL) AND depth BETWEEN ? AND ?"
+                        " AND (path = ?4 or path GLOB ?5)"
+                        " LIMIT 65536", -1,
+                &db->fts_search_paths_w_prefix, NULL));
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT path, count FROM path_index"
+                        " WHERE depth BETWEEN ? AND ?"
+                        " AND path GLOB ?"
+                        " LIMIT 65536", -1,
+                &db->fts_suggest_paths, NULL));
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT * FROM stats", -1,
+                &db->fts_date_range, NULL));
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT mime, sum(count) FROM mime_index WHERE mime is not NULL GROUP BY mime", -1,
+                &db->fts_get_mimetypes, NULL));
+
+        sqlite3_create_function(
+                db->db,
+                "random_seeded",
+                1,
+                SQLITE_UTF8,
+                NULL,
+                random_func,
+                NULL,
+                NULL
+        );
+
         sqlite3_create_function(
                 db->db,
                 "path_parent",
@@ -180,8 +291,33 @@ void database_open(database_t *db) {
                 NULL,
                 NULL
         );
+
+        sqlite3_create_function(
+                db->db,
+                "tag_matches",
+                1,
+                SQLITE_UTF8,
+                &db->tag_array,
+                tag_matches_func,
+                NULL,
+                NULL
+        );
     }
 
+    if (db->type == FTS_DATABASE || db->type == INDEX_DATABASE) {
+        // Tag table is the same schema for FTS database & index database
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db,
+                "INSERT INTO tag (id, tag) VALUES (?,?) ON CONFLICT DO NOTHING;",
+                -1,
+                &db->write_tag_stmt, NULL));
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db,
+                "DELETE FROM tag WHERE id=? AND tag=?;",
+                -1,
+                &db->delete_tag_stmt, NULL));
+    }
 }
 
 void database_close(database_t *db, int optimize) {
@@ -193,7 +329,9 @@ void database_close(database_t *db, int optimize) {
         CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA optimize;", NULL, NULL, NULL));
     }
 
-    sqlite3_close(db->db);
+    if (db->db) {
+        sqlite3_close(db->db);
+    }
 
     if (db->type == IPC_PRODUCER_DATABASE) {
         remove(db->filename);
@@ -621,4 +759,40 @@ void database_add_work(database_t *db, job_t *job) {
     db->ipc_ctx->job_count += 1;
     pthread_cond_signal(&db->ipc_ctx->has_work_cond);
     pthread_mutex_unlock(&db->ipc_ctx->mutex);
+}
+
+void database_write_tag(database_t *db, char *doc_id, char *tag) {
+    sqlite3_bind_text(db->write_tag_stmt, 1, doc_id, -1, SQLITE_STATIC);
+    sqlite3_bind_text(db->write_tag_stmt, 2, tag, -1, SQLITE_STATIC);
+
+    CRASH_IF_STMT_FAIL(sqlite3_step(db->write_tag_stmt));
+    CRASH_IF_NOT_SQLITE_OK(sqlite3_reset(db->write_tag_stmt));
+}
+
+void database_delete_tag(database_t *db, char *doc_id, char *tag) {
+    sqlite3_bind_text(db->delete_tag_stmt, 1, doc_id, -1, SQLITE_STATIC);
+    sqlite3_bind_text(db->delete_tag_stmt, 2, tag, -1, SQLITE_STATIC);
+
+    CRASH_IF_STMT_FAIL(sqlite3_step(db->delete_tag_stmt));
+    CRASH_IF_NOT_SQLITE_OK(sqlite3_reset(db->delete_tag_stmt));
+}
+
+cJSON *database_get_document(database_t *db, char *doc_id) {
+    sqlite3_bind_text(db->get_document, 1, doc_id, -1, SQLITE_STATIC);
+
+    int ret = sqlite3_step(db->get_document);
+    CRASH_IF_STMT_FAIL(ret);
+
+    cJSON *json;
+
+    if (ret == SQLITE_ROW) {
+        const char *json_str = sqlite3_column_text(db->get_document, 0);
+        json = cJSON_Parse(json_str);
+    } else {
+        json = NULL;
+    }
+
+    CRASH_IF_NOT_SQLITE_OK(sqlite3_reset(db->get_document));
+
+    return json;
 }

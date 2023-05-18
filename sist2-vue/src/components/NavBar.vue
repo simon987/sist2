@@ -10,7 +10,7 @@
     <span class="badge badge-pill version" v-if="$store && $store.state.sist2Info">
       v{{ sist2Version() }}<span v-if="isDebug()">-dbg</span><span v-if="isLegacy() && !hideLegacy()">-<a
         href="https://github.com/simon987/sist2/blob/master/docs/USAGE.md#elasticsearch"
-        target="_blank">legacyES</a></span>
+        target="_blank">legacyES</a></span><span v-if="$store.state.uiSqliteMode">-SQLite</span>
     </span>
 
     <span v-if="$store && $store.state.sist2Info" class="tagline" v-html="tagline()"></span>

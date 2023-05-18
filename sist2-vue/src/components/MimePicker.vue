@@ -9,7 +9,7 @@ import InspireTreeDOM from "inspire-tree-dom";
 import "inspire-tree-dom/dist/inspire-tree-light.min.css";
 import {getSelectedTreeNodes, getTreeNodeAttributes} from "@/util";
 import Sist2Api from "@/Sist2Api";
-import Sist2Query from "@/Sist2Query";
+import Sist2Query from "@/Sist2ElasticsearchQuery";
 
 export default {
   name: "MimePicker",

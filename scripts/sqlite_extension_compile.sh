@@ -1,0 +1,1 @@
+gcc -I/mnt/work/vcpkg/installed/x64-linux/include -g -fPIC -shared sqlite_extension.c -o sist2funcs.so

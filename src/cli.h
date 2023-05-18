@@ -69,13 +69,18 @@ typedef struct index_args {
 typedef struct {
     char *index_path;
     char *search_index_path;
-    int optimize_database;
 } sqlite_index_args_t;
+
+typedef enum {
+    ES_SEARCH_BACKEND,
+    SQLITE_SEARCH_BACKEND,
+} search_backend_t;
 
 typedef struct web_args {
     char *es_url;
     char *es_index;
     int es_insecure_ssl;
+    char *search_index_path;
     char *listen_address;
     char *credentials;
     char *tag_credentials;
@@ -94,6 +99,7 @@ typedef struct web_args {
     int index_count;
     int dev;
     const char **indices;
+    search_backend_t search_backend;
 } web_args_t;
 
 typedef struct exec_args {

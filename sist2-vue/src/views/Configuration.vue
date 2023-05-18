@@ -37,11 +37,11 @@
                         {{ $t("opt.lightboxLoadOnlyCurrent") }}
                     </b-form-checkbox>
 
-                    <b-form-checkbox :checked="optHideLegacy" @input="setOptHideLegacy">
+                    <b-form-checkbox :disabled="uiSqliteMode" :checked="optHideLegacy" @input="setOptHideLegacy">
                         {{ $t("opt.hideLegacy") }}
                     </b-form-checkbox>
 
-                    <b-form-checkbox :checked="optUpdateMimeMap" @input="setOptUpdateMimeMap">
+                    <b-form-checkbox :disabled="uiSqliteMode" :checked="optUpdateMimeMap" @input="setOptUpdateMimeMap">
                         {{ $t("opt.updateMimeMap") }}
                     </b-form-checkbox>
 
@@ -132,8 +132,11 @@
                         $t("opt.tagOrOperator")
                         }}
                     </b-form-checkbox>
-                    <b-form-checkbox :checked="optFuzzy" @input="setOptFuzzy">{{ $t("opt.fuzzy") }}</b-form-checkbox>
-                    <b-form-checkbox :checked="optSearchInPath" @input="setOptSearchInPath">{{
+                    <b-form-checkbox :disabled="uiSqliteMode" :checked="optFuzzy" @input="setOptFuzzy">
+                        {{ $t("opt.fuzzy") }}
+                    </b-form-checkbox>
+
+                    <b-form-checkbox :disabled="uiSqliteMode" :checked="optSearchInPath" @input="setOptSearchInPath">{{
                         $t("opt.searchInPath")
                         }}
                     </b-form-checkbox>
@@ -151,8 +154,8 @@
                     <b-form-input :value="optResultSize" type="number" min="10"
                                   @input="setOptResultSize"></b-form-input>
 
-                    <label>{{ $t("opt.queryMode") }}</label>
-                    <b-form-select :options="queryModeOptions" :value="optQueryMode"
+                    <label :class="{'text-muted': uiSqliteMode}">{{ $t("opt.queryMode") }}</label>
+                    <b-form-select :disabled="uiSqliteMode" :options="queryModeOptions" :value="optQueryMode"
                                    @input="setOptQueryMode"></b-form-select>
 
                     <label>{{ $t("opt.slideDuration") }}</label>
@@ -170,7 +173,7 @@
                     <b-textarea rows="3" :value="optMlRepositories" @input="setOptMlRepositories"></b-textarea>
                     <br>
                     <b-form-checkbox :checked="optAutoAnalyze" @input="setOptAutoAnalyze">{{
-                            $t("opt.autoAnalyze")
+                        $t("opt.autoAnalyze")
                         }}
                     </b-form-checkbox>
                 </b-card>
@@ -300,6 +303,7 @@ export default {
     },
     computed: {
         ...mapGetters([
+            "uiSqliteMode",
             "optTheme",
             "optDisplay",
             "optColumns",

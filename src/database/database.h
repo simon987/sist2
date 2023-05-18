@@ -33,6 +33,16 @@ typedef enum {
     JOB_PARSE_JOB
 } job_type_t;
 
+typedef enum {
+    FTS_SORT_INVALID,
+    FTS_SORT_SCORE,
+    FTS_SORT_SIZE,
+    FTS_SORT_MTIME,
+    FTS_SORT_RANDOM,
+    FTS_SORT_NAME,
+    FTS_SORT_ID,
+} fts_sort_t;
+
 typedef struct {
     job_type_t type;
     union {
@@ -53,6 +63,11 @@ typedef struct {
     char current_job[MAX_THREADS][PATH_MAX * 2];
 } database_ipc_ctx_t;
 
+typedef struct {
+    double date_min;
+    double date_max;
+} database_summary_stats_t;
+
 typedef struct database {
     char filename[PATH_MAX];
     database_type_t type;
@@ -67,11 +82,26 @@ typedef struct database {
     sqlite3_stmt *write_document_stmt;
     sqlite3_stmt *write_document_sidecar_stmt;
     sqlite3_stmt *write_thumbnail_stmt;
+    sqlite3_stmt *get_document;
+
+    sqlite3_stmt *delete_tag_stmt;
+    sqlite3_stmt *write_tag_stmt;
 
     sqlite3_stmt *insert_parse_job_stmt;
     sqlite3_stmt *insert_index_job_stmt;
     sqlite3_stmt *pop_parse_job_stmt;
     sqlite3_stmt *pop_index_job_stmt;
+
+    sqlite3_stmt *fts_search_paths;
+    sqlite3_stmt *fts_search_paths_w_prefix;
+    sqlite3_stmt *fts_suggest_paths;
+    sqlite3_stmt *fts_date_range;
+    sqlite3_stmt *fts_get_mimetypes;
+    sqlite3_stmt *fts_get_document;
+    sqlite3_stmt *fts_suggest_tag;
+    sqlite3_stmt *fts_get_tags;
+
+    char **tag_array;
 
     database_ipc_ctx_t *ipc_ctx;
 } database_t;
@@ -134,7 +164,7 @@ database_iterator_t *database_create_treemap_iterator(database_t *db, long thres
 treemap_row_t database_treemap_iter(database_iterator_t *iter);
 
 #define database_treemap_iter_foreach(element, iter) \
-    for (treemap_row_t element = database_treemap_iter(iter); element.path != NULL; element = database_treemap_iter(iter))
+    for (treemap_row_t element = database_treemap_iter(iter); (element).path != NULL; (element) = database_treemap_iter(iter))
 
 
 void database_generate_stats(database_t *db, double treemap_threshold);
@@ -145,14 +175,12 @@ job_t *database_get_work(database_t *db, job_type_t job_type);
 
 void database_add_work(database_t *db, job_t *job);
 
-//void database_index(database_t *db);
-
 cJSON *database_get_stats(database_t *db, database_stat_type_d type);
 
 #define CRASH_IF_STMT_FAIL(x) do { \
         int return_value = x;                \
         if (return_value != SQLITE_DONE && return_value != SQLITE_ROW) {     \
-            LOG_FATALF("database.c", "Sqlite error @ database.c:%d : (%d) %s", __LINE__, return_value, sqlite3_errmsg(db->db)); \
+            LOG_FATALF("database.c", "Sqlite error @ %s:%d : (%d) %s", __BASE_FILE__, __LINE__, return_value, sqlite3_errmsg(db->db)); \
         }                           \
     } while (0)
 
@@ -169,4 +197,33 @@ void database_fts_index(database_t *db);
 
 void database_fts_optimize(database_t *db);
 
-#endif //SIST2_DATABASE_H
+cJSON *database_fts_get_paths(database_t *db, const char *index_id, int depth_min, int depth_max, const char *prefix,
+                              int suggest);
+
+cJSON *database_fts_get_mimetypes(database_t *db);
+
+database_summary_stats_t database_fts_get_date_range(database_t *db);
+
+cJSON *database_fts_search(database_t *db, const char *query, const char *path, long size_min,
+                           long size_max, long date_min, long date_max, int page_size,
+                           char **index_ids, char **mime_types, char **tags, int sort_asc,
+                           fts_sort_t sort, int seed, char **after, int fetch_aggregations,
+                           int highlight, int highlight_context_size);
+
+void database_write_tag(database_t *db, char *doc_id, char *tag);
+
+void database_delete_tag(database_t *db, char *doc_id, char *tag);
+
+void database_fts_detach(database_t *db);
+
+cJSON *database_fts_get_document(database_t *db, char *doc_id);
+
+database_summary_stats_t database_fts_sync_tags(database_t *db);
+
+cJSON *database_fts_suggest_tag(database_t *db, char *prefix);
+
+cJSON *database_fts_get_tags(database_t *db);
+
+cJSON *database_get_document(database_t *db, char *doc_id);
+
+#endif

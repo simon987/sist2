@@ -67,7 +67,7 @@ interface SortMode {
 }
 
 
-class Sist2Query {
+class Sist2ElasticsearchQuery {
 
     searchQuery(blankSearch: boolean = false): any {
 
@@ -249,4 +249,5 @@ class Sist2Query {
     }
 }
 
-export default new Sist2Query();
+
+export default new Sist2ElasticsearchQuery();

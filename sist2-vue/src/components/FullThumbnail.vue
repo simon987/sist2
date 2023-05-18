@@ -71,7 +71,7 @@ export default {
       const doc = this.doc;
       const props = doc._props;
       if (props.isGif && this.hover) {
-        return `f/${doc._id}`;
+        return `f/${doc._source.index}/${doc._id}`;
       }
       return (this.currentThumbnailNum === 0)
           ? `t/${doc._source.index}/${doc._id}`

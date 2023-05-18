@@ -46,7 +46,7 @@ services:
       - "discovery.type=single-node"
       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
   sist2-admin:
-    image: simon987/sist2:3.0.4-x64-linux
+    image: simon987/sist2:3.0.7-x64-linux
     restart: unless-stopped
     volumes:
       - ./sist2-admin-data/:/sist2-admin/
@@ -62,12 +62,14 @@ Navigate to http://localhost:8080/ to configure sist2-admin.
 
 ### Using the executable file *(Linux/WSL only)*
 
-1. Have an Elasticsearch (>= 6.8.X, ideally >=7.14.0) instance running
-    1. Download [from official website](https://www.elastic.co/downloads/elasticsearch)
-    2. *(or)* Run using docker:
-        ```bash
-        docker run -d -p 9200:9200 -e "discovery.type=single-node" elasticsearch:7.17.9
-        ```
+1. Choose search backend (See [comparison](#search-backends)):
+    * **Elasticsearch**: have an Elasticsearch (version >= 6.8.X, ideally >=7.14.0) instance running
+        1. Download [from official website](https://www.elastic.co/downloads/elasticsearch)
+        2. *(or)* Run using docker:
+            ```bash
+            docker run -d -p 9200:9200 -e "discovery.type=single-node" elasticsearch:7.17.9
+            ```
+    * **SQLite**: No installation required
 
 2. Download the [latest sist2 release](https://github.com/simon987/sist2/releases).
    Select the file corresponding to your CPU architecture and mark the binary as executable with `chmod +x`.
@@ -76,7 +78,9 @@ Navigate to http://localhost:8080/ to configure sist2-admin.
 Example usage:
 
 1. Scan a directory: `sist2 scan ~/Documents --output ./documents.sist2`
-2. Push index to Elasticsearch: `sist2 index ./documents.sist2`
+2. Prepare search index:
+    * **Elasticsearch**: `sist2 index --es-url http://localhost:9200 ./documents.sist2`
+    * **SQLite**: `sist2 index --search-index ./search.sist2 ./documents.sist2`
 3. Start web interface: `sist2 web ./documents.sist2`
 
 ## Format support
@@ -136,9 +140,27 @@ sist2 scan --ocr-images --ocr-lang eng ~/Images/Screenshots/
 sist2 scan --ocr-ebooks --ocr-images --ocr-lang eng+chi_sim ~/Chinese-Bilingual/
 ```
 
+### Search backends
+
+sist2 v3.0.7+ supports SQLite search backend. The SQLite search backend has
+fewer features and generally comparable query performance for medium-size
+indices, but it uses much less memory and is easier to set up.
+
+|                                              |                  SQLite                  |                                                             Elasticsearch                                                             |
+|----------------------------------------------|:----------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------:|
+| Requires separate search engine installation |                                          |                                                                   ✓                                                                   |
+| Memory footprint                             |                  ~20MB                   |                                                                >500MB                                                                 |
+| Query syntax                                 | [fts5](https://www.sqlite.org/fts5.html) | [query_string](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax) |
+| Fuzzy search                                 |                                          |                                                                   ✓                                                                   |
+| Media Types tree real-time updating          |                                          |                                                                   ✓                                                                   |
+| Search in file `path`                        |                                          |                                                                   ✓                                                                   |
+| Manual tagging                               |                    ✓                     |                                                                   ✓                                                                   |
+| User scripts                                 |                                          |                                                                   ✓                                                                   |
+| Media Type breakdown for search results      |                                          |                                                                   ✓                                                                   |
+
 ### NER
 
-sist2 v3.0.4+ supports named-entity recognition (NER). Simply add a supported repository URL to 
+sist2 v3.0.4+ supports named-entity recognition (NER). Simply add a supported repository URL to
 **Configuration** > **Machine learning options** > **Model repositories**
 to enable it.
 
@@ -150,7 +172,6 @@ See [simon987/sist2-ner-models](https://github.com/simon987/sist2-ner-models) fo
 | URL                                                                                                     | Maintainer                              | Purpose |
 |---------------------------------------------------------------------------------------------------------|-----------------------------------------|---------|
 | [simon987/sist2-ner-models](https://raw.githubusercontent.com/simon987/sist2-ner-models/main/repo.json) | [simon987](https://github.com/simon987) | General |
-
 
 <details>
   <summary>Screenshot</summary>

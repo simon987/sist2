@@ -17,7 +17,7 @@
           </div>
 
           <img v-if="doc._props.isPlayableImage || doc._props.isPlayableVideo"
-               :src="(doc._props.isGif && hover) ? `f/${doc._id}` : `t/${doc._source.index}/${doc._id}`"
+               :src="(doc._props.isGif && hover) ? `f/${doc._source.index}/${doc._id}` : `t/${doc._source.index}/${doc._id}`"
                alt=""
                class="pointer fit-sm" @click="onThumbnailClick()">
           <img v-else :src="`t/${doc._source.index}/${doc._id}`" alt=""

@@ -66,7 +66,7 @@ import Sist2Api, {EsHit, EsResult} from "../Sist2Api";
 import SearchBar from "@/components/SearchBar.vue";
 import IndexPicker from "@/components/IndexPicker.vue";
 import Vue from "vue";
-import Sist2Query from "@/Sist2Query";
+import Sist2Query from "@/Sist2ElasticsearchQuery";
 import _debounce from "lodash/debounce";
 import DocCardWall from "@/components/DocCardWall.vue";
 import Lightbox from "@/components/Lightbox.vue";
@@ -79,6 +79,7 @@ import DateSlider from "@/components/DateSlider.vue";
 import TagPicker from "@/components/TagPicker.vue";
 import DocList from "@/components/DocList.vue";
 import HelpDialog from "@/components/HelpDialog.vue";
+import Sist2SqliteQuery from "@/Sist2SqliteQuery";
 
 
 export default Vue.extend({
@@ -114,7 +115,7 @@ export default Vue.extend({
                 await this.clearResults();
             }
 
-            await this.searchNow(Sist2Query.searchQuery());
+            await this.searchNow();
 
         }, 350, {leading: false});
 
@@ -137,7 +138,7 @@ export default Vue.extend({
 
         this.setIndices(this.$store.getters["sist2Info"].indices)
 
-        this.getDateRange().then((range: { min: number, max: number }) => {
+        Sist2Api.getDateRange().then((range) => {
             this.setDateBoundsMin(range.min);
             this.setDateBoundsMax(range.max);
 
@@ -191,12 +192,12 @@ export default Vue.extend({
                     bodyClass: "toast-body-warning",
                 });
         },
-        async searchNow(q: any) {
+        async searchNow() {
             this.searchBusy = true;
             await this.$store.dispatch("incrementQuerySequence");
             this.$store.commit("busSearch");
 
-            Sist2Api.esQuery(q).then(async (resp: EsResult) => {
+            Sist2Api.search().then(async (resp: EsResult) => {
                 await this.handleSearch(resp);
                 this.searchBusy = false;
             }).catch(err => {
@@ -238,7 +239,7 @@ export default Vue.extend({
                 if (hit._props.isPlayableImage || hit._props.isPlayableVideo) {
                     hit._seq = await this.$store.dispatch("getKeySequence");
                     this.$store.commit("addLightboxSource", {
-                        source: `f/${hit._id}`,
+                        source: `f/${hit._source.index}/${hit._id}`,
                         thumbnail: hit._props.hasThumbnail
                             ? `t/${hit._source.index}/${hit._id}`
                             : null,
@@ -253,38 +254,17 @@ export default Vue.extend({
 
             await this.$store.dispatch("remountLightbox");
             this.$store.commit("setLastQueryResult", resp);
+            if (this.$store.state.firstQueryResults == null) {
+                this.$store.commit("setFirstQueryResult", resp);
+            }
 
             this.docs.push(...resp.hits.hits);
 
             resp.hits.hits.forEach(hit => this.docIds.add(hit._id));
         },
-        getDateRange(): Promise<{ min: number, max: number }> {
-            return sist2.esQuery({
-                // TODO: filter current selected indices
-                aggs: {
-                    dateMin: {min: {field: "mtime"}},
-                    dateMax: {max: {field: "mtime"}},
-                },
-                size: 0
-            }).then(res => {
-                const range = {
-                    min: res.aggregations.dateMin.value,
-                    max: res.aggregations.dateMax.value,
-                }
-
-                if (range.min == null) {
-                    range.min = 0;
-                    range.max = 1;
-                } else if (range.min == range.max) {
-                    range.max += 1;
-                }
-
-                return range;
-            });
-        },
         appendFunc() {
             if (!this.$store.state.uiReachedScrollEnd && this.search && !this.searchBusy) {
-                this.searchNow(Sist2Query.searchQuery());
+                this.searchNow();
             }
         }
     },

@@ -92,8 +92,8 @@ void index_json(cJSON *document, const char doc_id[SIST_DOC_ID_LEN]) {
 
     cJSON_free(json);
     tpool_add_work(IndexCtx.pool, &(job_t) {
-        .type = JOB_BULK_LINE,
-        .bulk_line = bulk_line,
+            .type = JOB_BULK_LINE,
+            .bulk_line = bulk_line,
     });
     free(bulk_line);
 }

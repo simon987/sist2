@@ -1,5 +1,5 @@
 <template>
-  <a :href="`f/${doc._id}`" class="file-title-anchor" target="_blank">
+  <a :href="`f/${doc._source.index}/${doc._id}`" class="file-title-anchor" target="_blank">
     <div class="file-title" :title="doc._source.path + '/' + doc._source.name + ext(doc)"
          v-html="fileName() + ext(doc)"></div>
   </a>

@@ -6,7 +6,7 @@
                     @input="setSearchText($event)"></b-form-input>
 
       <template #prepend>
-        <b-input-group-text>
+        <b-input-group-text v-if="!$store.state.uiSqliteMode">
           <b-form-checkbox :checked="fuzzy" title="Toggle fuzzy searching" @change="setFuzzy($event)">
             {{ $t("searchBar.fuzzy") }}
           </b-form-checkbox>

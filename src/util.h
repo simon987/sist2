@@ -114,4 +114,7 @@ struct timespec timespec_add(struct timespec ts1, long usec);
         pthread_cond_timedwait(cond, mutex, &end_time); \
     } while (0)
 
+#define array_foreach(arr) \
+    for (int i = 0; (arr)[i] != NULL; i++)
+
 #endif

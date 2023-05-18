@@ -238,5 +238,7 @@ cJSON *database_get_stats(database_t *db, database_stat_type_d type) {
         cJSON_AddItemToArray(json, row);
     } while (TRUE);
 
+    sqlite3_finalize(stmt);
+
     return json;
 }

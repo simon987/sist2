@@ -432,7 +432,6 @@ int sqlite_index_args_validate(sqlite_index_args_t *args, int argc, const char *
 
     LOG_DEBUGF("cli.c", "arg index_path=%s", args->index_path);
     LOG_DEBUGF("cli.c", "arg search_index_path=%s", args->search_index_path);
-    LOG_DEBUGF("cli.c", "arg optimize_index=%d", args->optimize_database);
 
     return 0;
 }
@@ -444,6 +443,16 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
     if (argc < 2) {
         fprintf(stderr, "Required positional argument: PATH.\n");
         return 1;
+    }
+
+    if (args->search_index_path != NULL && args->es_url != NULL) {
+        LOG_FATAL("cli.c", "--search-index and --es-url arguments are mutually exclusive.");
+    }
+    if (args->search_index_path != NULL && args->es_index != NULL) {
+        LOG_FATAL("cli.c", "--search-index and --es-index arguments are mutually exclusive.");
+    }
+    if (args->search_index_path != NULL && args->es_insecure_ssl == TRUE) {
+        LOG_FATAL("cli.c", "--search-index and --es-insecure_ssl arguments are mutually exclusive.");
     }
 
     if (args->es_url == NULL) {
@@ -558,9 +567,25 @@ int web_args_validate(web_args_t *args, int argc, const char **argv) {
         free(abs_path);
     }
 
+    if (args->search_index_path != NULL) {
+        char *abs_path = abspath(args->search_index_path);
+        if (abs_path == NULL) {
+            LOG_FATALF("cli.c", "Search index not found: %s", args->search_index_path);
+        }
+
+        args->es_index = NULL;
+        args->es_url = NULL;
+        args->es_insecure_ssl = FALSE;
+        args->search_backend = SQLITE_SEARCH_BACKEND;
+    } else {
+        args->search_backend = ES_SEARCH_BACKEND;
+    }
+
     LOG_DEBUGF("cli.c", "arg es_url=%s", args->es_url);
     LOG_DEBUGF("cli.c", "arg es_index=%s", args->es_index);
     LOG_DEBUGF("cli.c", "arg es_insecure_ssl=%d", args->es_insecure_ssl);
+    LOG_DEBUGF("cli.c", "arg search_index_path=%s", args->search_index_path);
+    LOG_DEBUGF("cli.c", "arg search_backend=%d", args->search_backend);
     LOG_DEBUGF("cli.c", "arg tagline=%s", args->tagline);
     LOG_DEBUGF("cli.c", "arg dev=%d", args->dev);
     LOG_DEBUGF("cli.c", "arg listen=%s", args->listen_address);
