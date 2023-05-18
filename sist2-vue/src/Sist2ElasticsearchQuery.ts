@@ -170,13 +170,15 @@ class Sist2ElasticsearchQuery {
                 }
             },
             sort: SORT_MODES[getters.sortMode].mode,
-            aggs:
-                {
-                    total_size: {"sum": {"field": "size"}},
-                    total_count: {"value_count": {"field": "size"}}
-                },
             size: size,
         } as any;
+
+        if (!after) {
+            q.aggs = {
+                total_size: {"sum": {"field": "size"}},
+                total_count: {"value_count": {"field": "size"}}
+            };
+        }
 
         if (!empty && !blankSearch) {
             q.query.bool.must = query;
