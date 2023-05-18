@@ -18,7 +18,7 @@
         <b-progress v-if="mlLoading" variant="warning" show-progress :max="1" class="mb-3"
         >
             <b-progress-bar :value="modelLoadingProgress">
-                <strong>{{ ((modelLoadingProgress * modelSize) / (1024*1024)).toFixed(1) }}MB / {{
+                <strong>{{ ((modelLoadingProgress * modelSize) / (1024 * 1024)).toFixed(1) }}MB / {{
                     (modelSize / (1024 * 1024)).toFixed(1)
                     }}MB</strong>
             </b-progress-bar>
@@ -36,7 +36,7 @@
 <script>
 import Sist2Api from "@/Sist2Api";
 import Preloader from "@/components/Preloader";
-import Sist2Query from "@/Sist2Query";
+import Sist2Query from "@/Sist2ElasticsearchQuery";
 import store from "@/store";
 import BertNerModel from "@/ml/BertNerModel";
 import AnalyzedContentSpansContainer from "@/components/AnalyzedContentSpanContainer.vue";
@@ -69,58 +69,19 @@ export default {
             this.mlModel = ModelsRepo.getDefaultModel();
         }
 
-        const query = Sist2Query.searchQuery();
+        Sist2Api
+            .getDocument(this.docId, this.$store.state.optHighlight, this.$store.state.fuzzy)
+            .then(doc => {
+                this.loading = false;
 
-        if (this.$store.state.optHighlight) {
-            const fields = this.$store.state.fuzzy
-                ? {"content.nGram": {}}
-                : {content: {}};
+                if (doc) {
+                    this.content = this.getContent(doc)
+                }
 
-            query.highlight = {
-                pre_tags: ["<mark>"],
-                post_tags: ["</mark>"],
-                number_of_fragments: 0,
-                fields,
-            };
-
-            if (!store.state.sist2Info.esVersionLegacy) {
-                query.highlight.max_analyzed_offset = 999_999;
-            }
-        }
-
-        if ("function_score" in query.query) {
-            query.query = query.query.function_score.query;
-        }
-
-        if (!("must" in query.query.bool)) {
-            query.query.bool.must = [];
-        } else if (!Array.isArray(query.query.bool.must)) {
-            query.query.bool.must = [query.query.bool.must];
-        }
-
-        query.query.bool.must.push({match: {_id: this.docId}});
-
-        delete query["sort"];
-        delete query["aggs"];
-        delete query["search_after"];
-        delete query.query["function_score"];
-
-        query._source = {
-            includes: ["content", "name", "path", "extension"]
-        }
-
-        query.size = 1;
-
-        Sist2Api.esQuery(query).then(resp => {
-            this.loading = false;
-            if (resp.hits.hits.length === 1) {
-                this.content = this.getContent(resp.hits.hits[0]);
-            }
-
-            if (this.optAutoAnalyze) {
-                this.mlAnalyze();
-            }
-        });
+                if (this.optAutoAnalyze) {
+                    this.mlAnalyze();
+                }
+            });
     },
     computed: {
         ...mapGetters(["optAutoAnalyze"]),

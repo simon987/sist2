@@ -1,5 +1,7 @@
 import axios from "axios";
 import {ext, strUnescape, lum} from "./util";
+import Sist2Query from "@/Sist2ElasticsearchQuery";
+import store from "@/store";
 
 export interface EsTag {
     id: string
@@ -99,10 +101,20 @@ export interface EsResult {
 
 class Sist2Api {
 
-    private baseUrl: string
+    private readonly baseUrl: string
+    private sist2Info: any
+    private queryfunc: () => EsResult;
 
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
+    }
+
+    init(queryFunc: () => EsResult) {
+        this.queryfunc = queryFunc;
+    }
+
+    backend() {
+        return this.sist2Info.searchBackend;
     }
 
     getSist2Info(): Promise<any> {
@@ -118,6 +130,8 @@ class Sist2Api {
                     idPrefix: getIdPrefix(indices, idx.id)
                 } as Index;
             });
+
+            this.sist2Info = resp.data;
 
             return resp.data;
         })
@@ -219,6 +233,14 @@ class Sist2Api {
         } as Tag;
     }
 
+    search(): Promise<EsResult> {
+        if (this.backend() == "sqlite") {
+            return this.ftsQuery(this.queryfunc())
+        } else {
+            return this.esQuery(this.queryfunc());
+        }
+    }
+
     esQuery(query: any): Promise<EsResult> {
         return axios.post(`${this.baseUrl}es`, query).then(resp => {
             const res = resp.data as EsResult;
@@ -237,7 +259,30 @@ class Sist2Api {
         });
     }
 
-    getMimeTypes(query = undefined) {
+    ftsQuery(query: any): Promise<EsResult> {
+        return axios.post(`${this.baseUrl}fts/search`, query).then(resp => {
+            const res = resp.data as any;
+
+            if (res.hits.hits) {
+                res.hits.hits.forEach(hit => {
+                    hit["_source"]["name"] = strUnescape(hit["_source"]["name"]);
+                    hit["_source"]["path"] = strUnescape(hit["_source"]["path"]);
+
+                    this.setHitProps(hit);
+                    this.setHitTags(hit);
+
+                    if ("highlight" in hit) {
+                        hit["highlight"]["name"] = [hit["highlight"]["name"]];
+                        hit["highlight"]["content"] = [hit["highlight"]["content"]];
+                    }
+                });
+            }
+
+            return res;
+        });
+    }
+
+    private getMimeTypesEs(query) {
         const AGGS = {
             mimeTypes: {
                 terms: {
@@ -258,48 +303,70 @@ class Sist2Api {
         }
 
         return this.esQuery(query).then(resp => {
-            const mimeMap: any[] = [];
-            const buckets = resp["aggregations"]["mimeTypes"]["buckets"];
+            return resp["aggregations"]["mimeTypes"]["buckets"].map(bucket => ({
+                mime: bucket.key,
+                count: bucket.doc_count
+            }));
 
-            buckets.sort((a: any, b: any) => a.key > b.key).forEach((bucket: any) => {
-                const tmp = bucket["key"].split("/");
-                const category = tmp[0];
-                const mime = tmp[1];
+        });
+    }
 
-                let category_exists = false;
+    private getMimeTypesSqlite(): Promise<[{ mime: string, count: number }]> {
+        return axios.get(`${this.baseUrl}fts/mimetypes`)
+            .then(resp => {
+                return resp.data;
+            });
+    }
 
-                const child = {
-                    "id": bucket["key"],
-                    "text": `${mime} (${bucket["doc_count"]})`
-                };
+    async getMimeTypes(query = undefined) {
+        let buckets;
 
-                mimeMap.forEach(node => {
-                    if (node.text === category) {
-                        node.children.push(child);
-                        category_exists = true;
-                    }
-                });
+        if (this.backend() == "sqlite") {
+            buckets = await this.getMimeTypesSqlite();
+        } else {
+            buckets = await this.getMimeTypesEs(query);
+        }
 
-                if (!category_exists) {
-                    mimeMap.push({text: category, children: [child], id: category});
-                }
-            })
+        const mimeMap: any[] = [];
+
+        buckets.sort((a: any, b: any) => a.mime > b.mime).forEach((bucket: any) => {
+            const tmp = bucket.mime.split("/");
+            const category = tmp[0];
+            const mime = tmp[1];
+
+            let category_exists = false;
+
+            const child = {
+                "id": bucket.mime,
+                "text": `${mime} (${bucket.count})`
+            };
 
             mimeMap.forEach(node => {
-                if (node.children) {
-                    node.children.sort((a, b) => a.id.localeCompare(b.id));
+                if (node.text === category) {
+                    node.children.push(child);
+                    category_exists = true;
                 }
-            })
-            mimeMap.sort((a, b) => a.id.localeCompare(b.id))
+            });
 
-            return {buckets, mimeMap};
-        });
+            if (!category_exists) {
+                mimeMap.push({text: category, children: [child], id: category});
+            }
+        })
+
+        mimeMap.forEach(node => {
+            if (node.children) {
+                node.children.sort((a, b) => a.id.localeCompare(b.id));
+            }
+        })
+        mimeMap.sort((a, b) => a.id.localeCompare(b.id))
+
+        return {buckets, mimeMap};
     }
 
     _createEsTag(tag: string, count: number): EsTag {
         const tokens = tag.split(".");
 
-        if (/.*\.#[0-9a-f]{6}/.test(tag)) {
+        if (/.*\.#[0-9a-fA-F]{6}/.test(tag)) {
             return {
                 id: tokens.slice(0, -1).join("."),
                 color: tokens.pop(),
@@ -316,32 +383,48 @@ class Sist2Api {
         };
     }
 
-    getTags() {
+    private getTagsEs() {
         return this.esQuery({
             aggs: {
                 tags: {
                     terms: {
                         field: "tag",
-                        size: 10000
+                        size: 65535
                     }
                 }
             },
             size: 0,
         }).then(resp => {
-            const seen = new Set();
-
-            const tags = resp["aggregations"]["tags"]["buckets"]
+            return resp["aggregations"]["tags"]["buckets"]
                 .sort((a: any, b: any) => a["key"].localeCompare(b["key"]))
                 .map((bucket: any) => this._createEsTag(bucket["key"], bucket["doc_count"]));
+        });
+    }
 
-            // Remove duplicates (same tag with different color)
-            return tags.filter((t: EsTag) => {
-                if (seen.has(t.id)) {
-                    return false;
-                }
-                seen.add(t.id);
-                return true;
+    private getTagsSqlite() {
+        return axios.get(`${this.baseUrl}/fts/tags`)
+            .then(resp => {
+                return resp.data.map(tag => this._createEsTag(tag.tag, tag.count))
             });
+    }
+
+    async getTags(): Promise<EsTag[]> {
+        let tags;
+        if (this.backend() == "sqlite") {
+            tags = await this.getTagsSqlite();
+        } else {
+            tags = await this.getTagsEs();
+        }
+
+        // Remove duplicates (same tag with different color)
+        const seen = new Set();
+
+        return tags.filter((t: EsTag) => {
+            if (seen.has(t.id)) {
+                return false;
+            }
+            seen.add(t.id);
+            return true;
         });
     }
 
@@ -361,6 +444,144 @@ class Sist2Api {
         });
     }
 
+    searchPaths(indexId, minDepth, maxDepth, prefix = null) {
+        if (this.backend() == "sqlite") {
+            return this.searchPathsSqlite(indexId, minDepth, minDepth, prefix);
+        } else {
+            return this.searchPathsEs(indexId, minDepth, maxDepth, prefix);
+        }
+    }
+
+    private searchPathsSqlite(indexId, minDepth, maxDepth, prefix) {
+        return axios.post(`${this.baseUrl}fts/paths`, {
+            indexId, minDepth, maxDepth, prefix
+        }).then(resp => {
+            return resp.data;
+        });
+    }
+
+    private searchPathsEs(indexId, minDepth, maxDepth, prefix): Promise<[{ path: string, count: number }]> {
+
+        const query = {
+            query: {
+                bool: {
+                    filter: [
+                        {term: {index: indexId}},
+                        {range: {_depth: {gte: minDepth, lte: maxDepth}}},
+                    ]
+                }
+            },
+            aggs: {
+                paths: {
+                    terms: {
+                        field: "path",
+                        size: 10000
+                    }
+                }
+            },
+            size: 0
+        };
+
+        if (prefix != null) {
+            query["query"]["bool"]["must"] = {
+                prefix: {
+                    path: prefix,
+                }
+            };
+        }
+
+        return this.esQuery(query).then(resp => {
+            const buckets = resp["aggregations"]["paths"]["buckets"];
+
+            if (!buckets) {
+                return [];
+            }
+
+            return buckets
+                .map(bucket => ({
+                    path: bucket.key,
+                    count: bucket.doc_count
+                }));
+        });
+    }
+
+    private getDateRangeSqlite() {
+        return axios.get(`${this.baseUrl}fts/dateRange`)
+            .then(resp => ({
+                min: resp.data.dateMin,
+                max: resp.data.dateMax,
+            }));
+    }
+
+    getDateRange(): Promise<{ min: number, max: number }> {
+        if (this.backend() == "sqlite") {
+            return this.getDateRangeSqlite();
+        } else {
+            return this.getDateRangeEs();
+        }
+    }
+
+    private getDateRangeEs() {
+        return this.esQuery({
+            // TODO: filter current selected indices
+            aggs: {
+                dateMin: {min: {field: "mtime"}},
+                dateMax: {max: {field: "mtime"}},
+            },
+            size: 0
+        }).then(res => {
+            const range = {
+                min: res.aggregations.dateMin.value,
+                max: res.aggregations.dateMax.value,
+            }
+
+            if (range.min == null) {
+                range.min = 0;
+                range.max = 1;
+            } else if (range.min == range.max) {
+                range.max += 1;
+            }
+
+            return range;
+        });
+    }
+
+    private getPathSuggestionsSqlite(text: string) {
+        return axios.post(`${this.baseUrl}fts/paths`, {
+            prefix: text,
+            minDepth: 1,
+            maxDepth: 10000
+        }).then(resp => {
+            return resp.data.map(bucket => bucket.path);
+        })
+    }
+
+    private getPathSuggestionsEs(text) {
+        return this.esQuery({
+            suggest: {
+                path: {
+                    prefix: text,
+                    completion: {
+                        field: "suggest-path",
+                        skip_duplicates: true,
+                        size: 10000
+                    }
+                }
+            }
+        }).then(resp => {
+            return resp["suggest"]["path"][0]["options"]
+                .map(opt => opt["_source"]["path"]);
+        });
+    }
+
+    getPathSuggestions(text: string): Promise<string[]> {
+        if (this.backend() == "sqlite") {
+            return this.getPathSuggestionsSqlite(text);
+        } else {
+            return this.getPathSuggestionsEs(text)
+        }
+    }
+
     getTreemapStat(indexId: string) {
         return `${this.baseUrl}s/${indexId}/TMAP`;
     }
@@ -375,6 +596,111 @@ class Sist2Api {
 
     getDateStat(indexId: string) {
         return `${this.baseUrl}s/${indexId}/DAGG`;
+    }
+
+    private getDocumentEs(docId: string, highlight: boolean, fuzzy: boolean) {
+        const query = Sist2Query.searchQuery();
+
+        if (highlight) {
+            const fields = fuzzy
+                ? {"content.nGram": {}}
+                : {content: {}};
+
+            query.highlight = {
+                pre_tags: ["<mark>"],
+                post_tags: ["</mark>"],
+                number_of_fragments: 0,
+                fields,
+            };
+
+            if (!store.state.sist2Info.esVersionLegacy) {
+                query.highlight.max_analyzed_offset = 999_999;
+            }
+        }
+
+        if ("function_score" in query.query) {
+            query.query = query.query.function_score.query;
+        }
+
+        if (!("must" in query.query.bool)) {
+            query.query.bool.must = [];
+        } else if (!Array.isArray(query.query.bool.must)) {
+            query.query.bool.must = [query.query.bool.must];
+        }
+
+        query.query.bool.must.push({match: {_id: docId}});
+
+        delete query["sort"];
+        delete query["aggs"];
+        delete query["search_after"];
+        delete query.query["function_score"];
+
+        query._source = {
+            includes: ["content", "name", "path", "extension"]
+        }
+
+        query.size = 1;
+
+        return this.esQuery(query).then(resp => {
+            if (resp.hits.hits.length === 1) {
+                return resp.hits.hits[0];
+            }
+            return null;
+        });
+    }
+
+    private getDocumentSqlite(docId: string): Promise<EsHit> {
+        return axios.get(`${this.baseUrl}/fts/d/${docId}`)
+            .then(resp => ({
+                _source: resp.data
+            } as EsHit));
+    }
+
+    getDocument(docId: string, highlight: boolean, fuzzy: boolean): Promise<EsHit | null> {
+        if (this.backend() == "sqlite") {
+            return this.getDocumentSqlite(docId);
+        } else {
+            return this.getDocumentEs(docId, highlight, fuzzy);
+        }
+    }
+
+    getTagSuggestions(prefix: string): Promise<string[]> {
+        if (this.backend() == "sqlite") {
+            return this.getTagSuggestionsSqlite(prefix);
+        } else {
+            return this.getTagSuggestionsEs(prefix);
+        }
+    }
+
+    private getTagSuggestionsSqlite(prefix): Promise<string[]> {
+        return axios.post(`${this.baseUrl}/fts/suggestTags`, prefix)
+            .then(resp => (resp.data));
+    }
+
+    private getTagSuggestionsEs(prefix): Promise<string[]> {
+        return this.esQuery({
+            suggest: {
+                tag: {
+                    prefix: prefix,
+                    completion: {
+                        field: "suggest-tag",
+                        skip_duplicates: true,
+                        size: 10000
+                    }
+                }
+            }
+        }).then(resp => {
+            const result = [];
+            resp["suggest"]["tag"][0]["options"].map(opt => opt["_source"]["tag"]).forEach(tags => {
+                tags.forEach(tag => {
+                    const t = tag.slice(0, -8);
+                    if (!result.find(x => x.slice(0, -8) === t)) {
+                        result.push(tag);
+                    }
+                });
+            });
+            return result;
+        });
     }
 }
 

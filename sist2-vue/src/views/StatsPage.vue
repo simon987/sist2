@@ -1,37 +1,36 @@
 <template>
-  <b-container>
+    <b-container>
 
-    <b-card v-if="loading">
-      <Preloader></Preloader>
-    </b-card>
+        <template>
+            <b-card>
+                <b-card-body>
+                    <b-select v-model="selectedIndex" :options="indexOptions">
+                        <template #first>
+                            <b-form-select-option :value="null" disabled>{{
+                                $t("indexPickerPlaceholder")
+                                }}
+                            </b-form-select-option>
+                        </template>
+                    </b-select>
+                </b-card-body>
+            </b-card>
 
-    <template v-else>
-      <b-card>
-        <b-card-body>
-          <b-select v-model="selectedIndex" :options="indexOptions">
-            <template #first>
-              <b-form-select-option :value="null" disabled>{{ $t("indexPickerPlaceholder") }}</b-form-select-option>
-            </template>
-          </b-select>
-        </b-card-body>
-      </b-card>
-
-      <b-card v-if="selectedIndex !== null" class="mt-3">
-        <b-card-body>
-          <D3Treemap :index-id="selectedIndex"></D3Treemap>
+            <b-card v-if="selectedIndex !== null" class="mt-3">
+                <b-card-body>
+                    <D3Treemap :index-id="selectedIndex"></D3Treemap>
 
 
-        </b-card-body>
-      </b-card>
+                </b-card-body>
+            </b-card>
 
-      <b-card v-if="selectedIndex !== null" class="stats-card mt-3">
-        <D3MimeBarCount :index-id="selectedIndex"></D3MimeBarCount>
-        <D3MimeBarSize :index-id="selectedIndex"></D3MimeBarSize>
-        <D3DateHistogram :index-id="selectedIndex"></D3DateHistogram>
-        <D3SizeHistogram :index-id="selectedIndex"></D3SizeHistogram>
-      </b-card>
-    </template>
-  </b-container>
+            <b-card v-if="selectedIndex !== null" class="stats-card mt-3">
+                <D3MimeBarCount :index-id="selectedIndex"></D3MimeBarCount>
+                <D3MimeBarSize :index-id="selectedIndex"></D3MimeBarSize>
+                <D3DateHistogram :index-id="selectedIndex"></D3DateHistogram>
+                <D3SizeHistogram :index-id="selectedIndex"></D3SizeHistogram>
+            </b-card>
+        </template>
+    </b-container>
 </template>
 <script>
 import D3Treemap from "@/components/D3Treemap";
@@ -43,37 +42,30 @@ import D3DateHistogram from "@/components/D3DateHistogram";
 import D3SizeHistogram from "@/components/D3SizeHistogram";
 
 export default {
-  components: {D3SizeHistogram, D3DateHistogram, D3MimeBarSize, D3MimeBarCount, D3Treemap, Preloader},
-  data() {
-    return {
-      loading: true,
-      selectedIndex: null,
-      indices: []
-    }
-  },
-  computed: {
-    indexOptions() {
-      return this.indices.map(idx => {
+    components: {D3SizeHistogram, D3DateHistogram, D3MimeBarSize, D3MimeBarCount, D3Treemap, Preloader},
+    data() {
         return {
-          text: idx.name,
-          value: idx.id
-        };
-      })
+            selectedIndex: null,
+        }
+    },
+    computed: {
+        indexOptions() {
+            return this.indices.map(idx => {
+                return {
+                    text: idx.name,
+                    value: idx.id
+                };
+            })
+        },
+        indices: () => this.$store.state.indices
     }
-  },
-  mounted() {
-    Sist2Api.getSist2Info().then(data => {
-      this.indices = data.indices;
-      this.loading = false;
-    })
-  }
 }
 </script>
 
 <style>
 
 .stats-card {
-  text-align: center;
-  padding: 1em;
+    text-align: center;
+    padding: 1em;
 }
 </style>

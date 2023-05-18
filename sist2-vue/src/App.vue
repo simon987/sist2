@@ -21,6 +21,8 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import Sist2Api from "@/Sist2Api";
 import ModelsRepo from "@/ml/modelsRepo";
 import {setupAuth0} from "@/main";
+import Sist2ElasticsearchQuery from "@/Sist2ElasticsearchQuery";
+import Sist2SqliteQuery from "@/Sist2SqliteQuery";
 
 export default {
     components: {NavBar},
@@ -88,6 +90,13 @@ export default {
 
             this.setSist2Info(data);
             this.setIndices(data.indices)
+
+            if (Sist2Api.backend() === "sqlite") {
+                Sist2Api.init(Sist2SqliteQuery.searchQuery);
+                this.$store.commit("setUiSqliteMode", true);
+            } else {
+                Sist2Api.init(Sist2ElasticsearchQuery.searchQuery);
+            }
         });
     },
     methods: {

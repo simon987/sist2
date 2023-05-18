@@ -3,6 +3,7 @@
 ```
 Usage: sist2 scan [OPTION]... PATH
    or: sist2 index [OPTION]... INDEX
+   or: sist2 sqlite-index [OPTION]... INDEX
    or: sist2 web [OPTION]... INDEX...
    or: sist2 exec-script [OPTION]... INDEX
 
@@ -54,9 +55,13 @@ Index options
     --batch-size=<int>                Index batch size. DEFAULT: 70
     -f, --force-reset                 Reset Elasticsearch mappings and settings.
 
+sqlite-index options
+    --search-index=<str>              Path to search index. Will be created if it does not exist yet.
+
 Web options
     --es-url=<str>                    Elasticsearch url. DEFAULT: http://localhost:9200
     --es-insecure-ssl                 Do not verify SSL connections to Elasticsearch.
+    --search-index=<str>              Path to SQLite search index.
     --es-index=<str>                  Elasticsearch index name. DEFAULT: sist2
     --bind=<str>                      Listen for connections on this address. DEFAULT: localhost:4090
     --auth=<str>                      Basic auth in user:password format
@@ -111,52 +116,53 @@ sist scan ~/Documents -o ./documents.sist2 --incremental
 sist scan ~/Documents -o ./documents.sist2 --incremental
 ```
 
-### Index examples
+### Index documents to Elasticsearch search backend
 
-**Push to elasticsearch**
 ```bash
-sist2 index --force-reset --batch-size 1000 --es-url http://localhost:9200 ./my_index/
-sist2 index ./my_index/
+sist2 index --force-reset --batch-size 1000 --es-url http://localhost:9200 ./my_index.sist2
+sist2 index ./my_index.sist2
+```
+
+#### Index documents to SQLite search backend
+```bash
+# The search index will be created if it does not exist already
+sist2 sqlite-index ./index1.sist2 --search-index search.sist2
+sist2 sqlite-index ./index2.sist2 --search-index search.sist2
 ```
 
 **Save index in JSON format**
 ```bash
-sist2 index --print ./my_index/ > my_index.ndjson
+sist2 index --print ./my_index.sist2 > my_index.ndjson
 ```
 
 **Inspect contents of an index**
 ```bash
-sist2 index --print ./my_index/ | jq | less
+sist2 index --print ./my_index.sist2 | jq | less
 ```
 
 ## Web
 
-### Web options
- * `--es-url=<str>` Elasticsearch url.
- * `--es-index` 
-    Elasticsearch index name. DEFAULT=sist2
- * `--bind=<str>` Listen on this address.
- * `--auth=<str>` Basic auth in user:password format
- * `--tag-auth=<str>` Basic auth in user:password format. Works the same way as the 
-    `--auth` argument, but authentication is only applied the `/tag/` endpoint.
- * `--tagline=<str>` When specified, will replace the default tagline in the navbar.
- * `--dev` Serve html & js files from disk (for development, used to modify frontend files without having to recompile)
- * `--lang=<str>` Set the default web UI language (See #180 for a list of supported languages, default
-   is `en`). The user can change the language in the configuration page
- * `--auth0-audience`, `--auth0-domain`, `--auth0-client-id`, `--auth0-public-key-file` See [Authentication with Auth0](auth0.md)
-
 ### Web examples
 
-**Single index**
+**Single index (Elasticsearch backend)**
 ```bash
-sist2 web --auth admin:hunter2 --bind 0.0.0.0:8888 my_index
+sist2 web --auth admin:hunter2 --bind 0.0.0.0:8888 my_index.sist2
 ```
 
-**Multiple indices**
+**Multiple indices (Elasticsearch backend)**
 ```bash
 # Indices will be displayed in this order in the web interface
-sist2 web index1 index2 index3 index4
+sist2 web index1.sist2 index2.sist2 index3.sist2 index4.sist2
 ```
+
+**SQLite search backend**
+```bash
+sist2 web --search-index search.sist2 index1.sist2
+```
+
+#### Auth0 authentication
+
+See [auth0.md](auth0.md)
 
 ### rewrite_url
 

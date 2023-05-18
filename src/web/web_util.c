@@ -61,3 +61,38 @@ void web_send_headers(struct mg_connection *nc, int status_code, size_t length, 
             extra_headers
     );
 }
+cJSON *web_get_json_body(struct mg_http_message *hm) {
+    if (hm->body.len == 0) {
+        return NULL;
+    }
+
+    char *body = malloc(hm->body.len + 1);
+    memcpy(body, hm->body.ptr, hm->body.len);
+    *(body + hm->body.len) = '\0';
+    cJSON *json = cJSON_Parse(body);
+    free(body);
+
+    return json;
+}
+
+char *web_get_string_body(struct mg_http_message *hm) {
+    if (hm->body.len == 0) {
+        return NULL;
+    }
+
+    char *body = malloc(hm->body.len + 1);
+    memcpy(body, hm->body.ptr, hm->body.len);
+    *(body + hm->body.len) = '\0';
+
+    return body;
+}
+
+void mg_send_json(struct mg_connection *nc, const cJSON *json) {
+    char *json_str = cJSON_PrintUnformatted(json);
+
+    web_send_headers(nc, 200, strlen(json_str), "Content-Type: application/json");
+    mg_send(nc, json_str, strlen(json_str));
+
+    free(json_str);
+}
+

@@ -60,14 +60,7 @@ const SORT_MODES = {
     }
 } as any;
 
-interface SortMode {
-    text: string
-    mode: any[]
-    key: (hit: EsHit) => any
-}
-
-
-class Sist2Query {
+class Sist2ElasticsearchQuery {
 
     searchQuery(blankSearch: boolean = false): any {
 
@@ -249,4 +242,5 @@ class Sist2Query {
     }
 }
 
-export default new Sist2Query();
+
+export default new Sist2ElasticsearchQuery();

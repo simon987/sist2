@@ -1,7 +1,7 @@
 import Vue from "vue"
 import Vuex from "vuex"
 import VueRouter, {Route} from "vue-router";
-import {EsHit, EsResult, EsTag, Index, Tag} from "@/Sist2Api";
+import {EsHit, EsResult, EsTag, Index} from "@/Sist2Api";
 import {deserializeMimes, randomSeed, serializeMimes} from "@/util";
 import {getInstance} from "@/plugins/auth0.js";
 
@@ -69,11 +69,12 @@ export default new Vuex.Store({
         selectedTags: [] as string[],
 
         lastQueryResults: null,
+        firstQueryResults: null,
 
         keySequence: 0,
         querySequence: 0,
 
-        uiTagHover: null as Tag | null,
+        uiSqliteMode: false,
         uiLightboxIsOpen: false,
         uiShowLightbox: false,
         uiLightboxSources: [] as string[],
@@ -130,13 +131,13 @@ export default new Vuex.Store({
         setSearchText: (state, val) => state.searchText = val,
         setFuzzy: (state, val) => state.fuzzy = val,
         setLastQueryResult: (state, val) => state.lastQueryResults = val,
+        setFirstQueryResult: (state, val) => state.firstQueryResults = val,
         _setOnLoadSelectedIndices: (state, val) => state._onLoadSelectedIndices = val,
         _setOnLoadSelectedMimeTypes: (state, val) => state._onLoadSelectedMimeTypes = val,
         _setOnLoadSelectedTags: (state, val) => state._onLoadSelectedTags = val,
         setSelectedIndices: (state, val) => state.selectedIndices = val,
         setSelectedMimeTypes: (state, val) => state.selectedMimeTypes = val,
         setSelectedTags: (state, val) => state.selectedTags = val,
-        setUiTagHover: (state, val: Tag | null) => state.uiTagHover = val,
         setUiLightboxIsOpen: (state, val: boolean) => state.uiLightboxIsOpen = val,
         _setUiShowLightbox: (state, val: boolean) => state.uiShowLightbox = val,
         setUiLightboxKey: (state, val: number) => state.uiLightboxKey = val,
@@ -154,6 +155,7 @@ export default new Vuex.Store({
         setUiLightboxThumbs: (state, val) => state.uiLightboxThumbs = val,
         setUiLightboxTypes: (state, val) => state.uiLightboxTypes = val,
         setUiLightboxCaptions: (state, val) => state.uiLightboxCaptions = val,
+        setUiSqliteMode: (state, val) => state.uiSqliteMode = val,
 
         setOptTheme: (state, val) => state.optTheme = val,
         setOptDisplay: (state, val) => state.optDisplay = val,
@@ -179,9 +181,15 @@ export default new Vuex.Store({
         setOptVidPreviewInterval: (state, val) => state.optVidPreviewInterval = val,
         setOptSimpleLightbox: (state, val) => state.optSimpleLightbox = val,
         setOptShowTagPickerFilter: (state, val) => state.optShowTagPickerFilter = val,
-        setOptAutoAnalyze: (state, val) => {state.optAutoAnalyze = val},
-        setOptMlRepositories: (state, val) => {state.optMlRepositories = val},
-        setOptMlDefaultModel: (state, val) => {state.optMlDefaultModel = val},
+        setOptAutoAnalyze: (state, val) => {
+            state.optAutoAnalyze = val
+        },
+        setOptMlRepositories: (state, val) => {
+            state.optMlRepositories = val
+        },
+        setOptMlDefaultModel: (state, val) => {
+            state.optMlDefaultModel = val
+        },
 
         setOptLightboxLoadOnlyCurrent: (state, val) => state.optLightboxLoadOnlyCurrent = val,
         setOptLightboxSlideDuration: (state, val) => state.optLightboxSlideDuration = val,
@@ -340,6 +348,7 @@ export default new Vuex.Store({
             commit("_setUiShowLightbox", !state.uiShowLightbox);
         },
         clearResults({commit}) {
+            commit("setFirstQueryResult", null);
             commit("setLastQueryResult", null);
             commit("_setKeySequence", 0);
             commit("_setUiShowLightbox", false);
@@ -392,7 +401,6 @@ export default new Vuex.Store({
 
             return (state.lastQueryResults as unknown as EsResult).hits.hits.slice(-1)[0];
         },
-        uiTagHover: state => state.uiTagHover,
         uiShowLightbox: state => state.uiShowLightbox,
         uiLightboxSources: state => state.uiLightboxSources,
         uiLightboxThumbs: state => state.uiLightboxThumbs,
@@ -400,6 +408,7 @@ export default new Vuex.Store({
         uiLightboxTypes: state => state.uiLightboxTypes,
         uiLightboxKey: state => state.uiLightboxKey,
         uiLightboxSlide: state => state.uiLightboxSlide,
+        uiSqliteMode: state => state.uiSqliteMode,
 
         optHideDuplicates: state => state.optHideDuplicates,
         optLang: state => state.optLang,

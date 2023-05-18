@@ -5,11 +5,24 @@
 #include "src/index/web.h"
 #include "src/auth0/auth0_c_api.h"
 #include "src/web/web_util.h"
+#include "src/cli.h"
+#include <time.h>
 
 #include <src/ctx.h>
 
-#define HTTP_TEXT_TYPE_HEADER "Content-Type: text/plain;charset=utf-8\r\n"
-#define HTTP_REPLY_NOT_FOUND mg_http_reply(nc, 404, HTTP_SERVER_HEADER HTTP_TEXT_TYPE_HEADER, "Not found");
+void fts_search_paths(struct mg_connection *nc, struct mg_http_message *hm);
+
+void fts_search_mimetypes(struct mg_connection *nc, struct mg_http_message *hm);
+
+void fts_search_summary_stats(struct mg_connection *nc, struct mg_http_message *hm);
+
+void fts_search(struct mg_connection *nc, struct mg_http_message *hm);
+
+void fts_get_document(struct mg_connection *nc, struct mg_http_message *hm);
+
+void fts_suggest_tag(struct mg_connection *nc, struct mg_http_message *hm);
+
+void fts_get_tags(struct mg_connection *nc, struct mg_http_message *hm);
 
 static struct mg_http_serve_opts DefaultServeOpts = {
         .fs = NULL,
@@ -47,12 +60,8 @@ void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
     }
 
     cJSON *json = database_get_stats(db, stat_type);
-    char *json_str = cJSON_PrintUnformatted(json);
+    mg_send_json(nc, json);
 
-    web_send_headers(nc, 200, strlen(json_str), "Content-Type: application/json");
-    mg_send(nc, json_str, strlen(json_str));
-
-    free(json_str);
     cJSON_Delete(json);
 }
 
@@ -93,7 +102,7 @@ void serve_chunk_vendors_css(struct mg_connection *nc, struct mg_http_message *h
 }
 
 void serve_thumbnail(struct mg_connection *nc, struct mg_http_message *hm, const char *arg_index,
-        const char *arg_doc_id, int arg_num) {
+                     const char *arg_doc_id, int arg_num) {
 
     database_t *db = web_get_database(arg_index);
     if (db == NULL) {
@@ -252,6 +261,10 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
 }
 
 void cache_es_version() {
+    if (WebCtx.search_backend == SQLITE_SEARCH_BACKEND) {
+        return;
+    }
+
     static int is_cached = FALSE;
 
     if (is_cached == TRUE) {
@@ -321,6 +334,12 @@ void index_info(struct mg_connection *nc) {
         cJSON_AddItemToArray(arr, idx_json);
     }
 
+    if (WebCtx.search_backend == SQLITE_SEARCH_BACKEND) {
+        cJSON_AddStringToObject(json, "searchBackend", "sqlite");
+    } else {
+        cJSON_AddStringToObject(json, "searchBackend", "elasticsearch");
+    }
+
     char *json_str = cJSON_PrintUnformatted(json);
 
     web_send_headers(nc, 200, strlen(json_str), "Content-Type: application/json");
@@ -329,54 +348,63 @@ void index_info(struct mg_connection *nc) {
     cJSON_Delete(json);
 }
 
+cJSON *get_root_document_by_id(const char *index_id, const char *doc_id) {
+
+    database_t *db = web_get_database(index_id);
+    if (!db) {
+        return NULL;
+    }
+
+    char next_id[SIST_DOC_ID_LEN];
+    strcpy(next_id, doc_id);
+
+    while (TRUE) {
+        cJSON *doc = database_get_document(db, next_id);
+
+        if (doc == NULL) {
+            return NULL;
+        }
+
+        cJSON *parent = cJSON_GetObjectItem(doc, "parent");
+        if (parent == NULL || cJSON_IsNull(parent)) {
+            return doc;
+        }
+
+        strcpy(next_id, parent->valuestring);
+        cJSON_Delete(parent);
+    }
+}
 
 void file(struct mg_connection *nc, struct mg_http_message *hm) {
 
-    if (hm->uri.len != SIST_DOC_ID_LEN + 2) {
+    if (hm->uri.len != SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 2) {
         LOG_DEBUGF("serve.c", "Invalid file path: %.*s", (int) hm->uri.len, hm->uri.ptr);
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
     char arg_doc_id[SIST_DOC_ID_LEN];
-    memcpy(arg_doc_id, hm->uri.ptr + 3, SIST_DOC_ID_LEN);
+    char arg_index[SIST_INDEX_ID_LEN];
+
+    memcpy(arg_index, hm->uri.ptr + 3, SIST_INDEX_ID_LEN);
+    *(arg_index + SIST_INDEX_ID_LEN - 1) = '\0';
+    memcpy(arg_doc_id, hm->uri.ptr + 3 + SIST_INDEX_ID_LEN, SIST_DOC_ID_LEN);
     *(arg_doc_id + SIST_DOC_ID_LEN - 1) = '\0';
 
-    const char *next = arg_doc_id;
-    cJSON *doc = NULL;
-    cJSON *index_id = NULL;
-    cJSON *source = NULL;
-
-    while (true) {
-        doc = elastic_get_document(next);
-        source = cJSON_GetObjectItem(doc, "_source");
-        index_id = cJSON_GetObjectItem(source, "index");
-        if (index_id == NULL) {
-            cJSON_Delete(doc);
-            HTTP_REPLY_NOT_FOUND
-            return;
-        }
-        cJSON *parent = cJSON_GetObjectItem(source, "parent");
-        if (parent == NULL) {
-            break;
-        }
-        next = parent->valuestring;
-    }
-
-    index_t *idx = web_get_index_by_id(index_id->valuestring);
-
+    index_t *idx = web_get_index_by_id(arg_index);
     if (idx == NULL) {
-        cJSON_Delete(doc);
         HTTP_REPLY_NOT_FOUND
         return;
     }
+
+    cJSON *source = get_root_document_by_id(arg_index, arg_doc_id);
 
     if (strlen(idx->desc.rewrite_url) == 0) {
         serve_file_from_disk(source, idx, nc, hm);
     } else {
         serve_file_from_url(source, idx, nc);
     }
-    cJSON_Delete(doc);
+    cJSON_Delete(source);
 }
 
 void status(struct mg_connection *nc) {
@@ -397,6 +425,10 @@ typedef struct {
 } tag_req_t;
 
 tag_req_t *parse_tag_request(cJSON *json) {
+
+    if (json == NULL) {
+        return NULL;
+    }
 
     if (!cJSON_IsObject(json)) {
         return NULL;
@@ -425,115 +457,101 @@ tag_req_t *parse_tag_request(cJSON *json) {
     return req;
 }
 
+subreq_ctx_t *elastic_delete_tag(const tag_req_t *req) {
+    char *buf = malloc(sizeof(char) * 8192);
+    snprintf(buf, 8192,
+             "{"
+             "    \"script\" : {"
+             "        \"source\": \"if (ctx._source.tag.contains(params.tag)) { ctx._source.tag.remove(ctx._source.tag.indexOf(params.tag)) }\","
+             "        \"lang\": \"painless\","
+             "        \"params\" : {"
+             "            \"tag\" : \"%s\""
+             "        }"
+             "    }"
+             "}", req->name
+    );
+
+    char url[4096];
+    snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, req->doc_id);
+
+    return web_post_async(url, buf, WebCtx.es_insecure_ssl);
+}
+
+subreq_ctx_t *elastic_write_tag(const tag_req_t *req) {
+    char *buf = malloc(sizeof(char) * 8192);
+    snprintf(buf, 8192,
+             "{"
+             "    \"script\" : {"
+             "        \"source\": \"if(ctx._source.tag == null) {ctx._source.tag = new ArrayList()} ctx._source.tag.add(params.tag)\","
+             "        \"lang\": \"painless\","
+             "        \"params\" : {"
+             "            \"tag\" : \"%s\""
+             "        }"
+             "    }"
+             "}", req->name
+    );
+
+    char url[4096];
+    snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, req->doc_id);
+    return web_post_async(url, buf, WebCtx.es_insecure_ssl);
+}
+
 void tag(struct mg_connection *nc, struct mg_http_message *hm) {
-//    if (hm->uri.len != SIST_INDEX_ID_LEN + 4) {
-//        LOG_DEBUGF("serve.c", "Invalid tag path: %.*s", (int) hm->uri.len, hm->uri.ptr)
-//        HTTP_REPLY_NOT_FOUND
-//        return;
-//    }
-//
-//    char arg_index[SIST_INDEX_ID_LEN];
-//    memcpy(arg_index, hm->uri.ptr + 5, SIST_INDEX_ID_LEN);
-//    *(arg_index + SIST_INDEX_ID_LEN - 1) = '\0';
-//
-//    if (hm->body.len < 2 || hm->method.len != 4 || memcmp(&hm->method, "POST", 4) == 0) {
-//        LOG_DEBUG("serve.c", "Invalid tag request")
-//        HTTP_REPLY_NOT_FOUND
-//        return;
-//    }
-//
-//    store_t *store = get_tag_store(arg_index);
-//    if (store == NULL) {
-//        LOG_DEBUGF("serve.c", "Could not get tag store for index: %s", arg_index)
-//        HTTP_REPLY_NOT_FOUND
-//        return;
-//    }
-//
-//    char *body = malloc(hm->body.len + 1);
-//    memcpy(body, hm->body.ptr, hm->body.len);
-//    *(body + hm->body.len) = '\0';
-//    cJSON *json = cJSON_Parse(body);
-//
-//    tag_req_t *arg_req = parse_tag_request(json);
-//    if (arg_req == NULL) {
-//        LOG_DEBUGF("serve.c", "Could not parse tag request", arg_index)
-//        cJSON_Delete(json);
-//        free(body);
-//        mg_http_reply(nc, 400, "", "Invalid request");
-//        return;
-//    }
-//
-//    cJSON *arr = NULL;
-//
-//    size_t data_len = 0;
-//    const char *data = store_read(store, arg_req->doc_id, SIST_DOC_ID_LEN, &data_len);
-//    if (data_len == 0) {
-//        arr = cJSON_CreateArray();
-//    } else {
-//        arr = cJSON_Parse(data);
-//    }
-//
-//    if (arg_req->delete) {
-//
-//        if (data_len > 0) {
-//            cJSON *element = NULL;
-//            int i = 0;
-//            cJSON_ArrayForEach(element, arr) {
-//                if (strcmp(element->valuestring, arg_req->name) == 0) {
-//                    cJSON_DeleteItemFromArray(arr, i);
-//                    break;
-//                }
-//                i++;
-//            }
-//        }
-//
-//        char *buf = malloc(sizeof(char) * 8192);
-//        snprintf(buf, 8192,
-//                 "{"
-//                 "    \"script\" : {"
-//                 "        \"source\": \"if (ctx._source.tag.contains(params.tag)) { ctx._source.tag.remove(ctx._source.tag.indexOf(params.tag)) }\","
-//                 "        \"lang\": \"painless\","
-//                 "        \"params\" : {"
-//                 "            \"tag\" : \"%s\""
-//                 "        }"
-//                 "    }"
-//                 "}", arg_req->name
-//        );
-//
-//        char url[4096];
-//        snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, arg_req->doc_id);
-//        nc->fn_data = web_post_async(url, buf, WebCtx.es_insecure_ssl);
-//
-//    } else {
-//        cJSON_AddItemToArray(arr, cJSON_CreateString(arg_req->name));
-//
-//        char *buf = malloc(sizeof(char) * 8192);
-//        snprintf(buf, 8192,
-//                 "{"
-//                 "    \"script\" : {"
-//                 "        \"source\": \"if(ctx._source.tag == null) {ctx._source.tag = new ArrayList()} ctx._source.tag.add(params.tag)\","
-//                 "        \"lang\": \"painless\","
-//                 "        \"params\" : {"
-//                 "            \"tag\" : \"%s\""
-//                 "        }"
-//                 "    }"
-//                 "}", arg_req->name
-//        );
-//
-//        char url[4096];
-//        snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, arg_req->doc_id);
-//        nc->fn_data = web_post_async(url, buf, WebCtx.es_insecure_ssl);
-//    }
-//
-//    char *json_str = cJSON_PrintUnformatted(arr);
-//    store_write(store, arg_req->doc_id, SIST_DOC_ID_LEN, json_str, strlen(json_str) + 1);
-//    store_flush(store);
-//
-//    free(arg_req);
-//    free(json_str);
-//    cJSON_Delete(json);
-//    cJSON_Delete(arr);
-//    free(body);
+    if (hm->uri.len != SIST_INDEX_ID_LEN + 4) {
+        LOG_DEBUGF("serve.c", "Invalid tag path: %.*s", (int) hm->uri.len, hm->uri.ptr);
+        HTTP_REPLY_NOT_FOUND
+        return;
+    }
+
+    char arg_index[SIST_INDEX_ID_LEN];
+    memcpy(arg_index, hm->uri.ptr + 5, SIST_INDEX_ID_LEN);
+    *(arg_index + SIST_INDEX_ID_LEN - 1) = '\0';
+
+    char *body = malloc(hm->body.len + 1);
+    memcpy(body, hm->body.ptr, hm->body.len);
+    *(body + hm->body.len) = '\0';
+    cJSON *json = cJSON_Parse(body);
+    free(body);
+
+    if (json == NULL) {
+        HTTP_REPLY_BAD_REQUEST
+        return;
+    }
+
+    database_t *db = web_get_database(arg_index);
+    if (db == NULL) {
+        LOG_DEBUGF("serve.c", "Could not get database for index: %s", arg_index);
+        HTTP_REPLY_NOT_FOUND
+        return;
+    }
+
+    tag_req_t *req = parse_tag_request(json);
+    cJSON_Delete(json);
+    if (req == NULL) {
+        LOG_DEBUGF("serve.c", "Could not parse tag request", arg_index);
+        HTTP_REPLY_BAD_REQUEST
+        return;
+    }
+
+    if (req->delete) {
+        database_delete_tag(db, req->doc_id, req->name);
+        if (WebCtx.search_backend == SQLITE_SEARCH_BACKEND) {
+            database_delete_tag(WebCtx.search_db, req->doc_id, req->name);
+            HTTP_REPLY_OK
+        } else {
+            nc->fn_data = elastic_delete_tag(req);
+        }
+    } else {
+        database_write_tag(db, req->doc_id, req->name);
+        if (WebCtx.search_backend == SQLITE_SEARCH_BACKEND) {
+            database_write_tag(WebCtx.search_db, req->doc_id, req->name);
+            HTTP_REPLY_OK
+        } else {
+            nc->fn_data = elastic_write_tag(req);
+        }
+    }
+
+    free(req);
 }
 
 int validate_auth(struct mg_connection *nc, struct mg_http_message *hm) {
@@ -631,11 +649,39 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
             return;
         }
 
-        if (mg_http_match_uri(hm, "/es")) {
-            search(nc, hm);
-        } else if (mg_http_match_uri(hm, "/status")) {
+        if (WebCtx.search_backend == SQLITE_SEARCH_BACKEND) {
+            if (mg_http_match_uri(hm, "/fts/paths")) {
+                fts_search_paths(nc, hm);
+                return;
+            } else if (mg_http_match_uri(hm, "/fts/mimetypes")) {
+                fts_search_mimetypes(nc, hm);
+                return;
+            } else if (mg_http_match_uri(hm, "/fts/dateRange")) {
+                fts_search_summary_stats(nc, hm);
+                return;
+            } else if (mg_http_match_uri(hm, "/fts/search")) {
+                fts_search(nc, hm);
+                return;
+            } else if (mg_http_match_uri(hm, "/fts/d/*")) {
+                fts_get_document(nc, hm);
+                return;
+            } else if (mg_http_match_uri(hm, "/fts/suggestTags")) {
+                fts_suggest_tag(nc, hm);
+                return;
+            } else if (mg_http_match_uri(hm, "/fts/tags")) {
+                fts_get_tags(nc, hm);
+                return;
+            }
+        } else if (WebCtx.search_backend == ES_SEARCH_BACKEND) {
+            if (mg_http_match_uri(hm, "/es")) {
+                search(nc, hm);
+                return;
+            }
+        }
+
+        if (mg_http_match_uri(hm, "/status")) {
             status(nc);
-        } else if (mg_http_match_uri(hm, "/f/*")) {
+        } else if (mg_http_match_uri(hm, "/f/*/*")) {
             file(nc, hm);
         } else if (mg_http_match_uri(hm, "/t/*/*/*")) {
             thumbnail_with_num(nc, hm);
@@ -702,14 +748,12 @@ void serve(const char *listen_address) {
     struct mg_mgr mgr;
     mg_mgr_init(&mgr);
 
-    int ok = 1;
-
     struct mg_connection *nc = mg_http_listen(&mgr, listen_address, ev_router, NULL);
     if (nc == NULL) {
         LOG_FATALF("serve.c", "Couldn't bind web server on address %s", listen_address);
     }
 
-    while (ok) {
+    while (TRUE) {
         mg_mgr_poll(&mgr, 10);
     }
     mg_mgr_free(&mgr);

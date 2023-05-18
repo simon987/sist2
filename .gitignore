@@ -44,3 +44,5 @@ src/index/static_generated.c
 *.sist2
 *-shm
 *-journal
+.vscode
+*.fts
