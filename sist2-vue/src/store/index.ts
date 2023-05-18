@@ -1,7 +1,7 @@
 import Vue from "vue"
 import Vuex from "vuex"
 import VueRouter, {Route} from "vue-router";
-import {EsHit, EsResult, EsTag, Index, Tag} from "@/Sist2Api";
+import {EsHit, EsResult, EsTag, Index} from "@/Sist2Api";
 import {deserializeMimes, randomSeed, serializeMimes} from "@/util";
 import {getInstance} from "@/plugins/auth0.js";
 

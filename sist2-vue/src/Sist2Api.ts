@@ -103,13 +103,13 @@ class Sist2Api {
 
     private readonly baseUrl: string
     private sist2Info: any
-    private queryfunc: Function;
+    private queryfunc: () => EsResult;
 
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
     }
 
-    init(queryFunc: Function) {
+    init(queryFunc: () => EsResult) {
         this.queryfunc = queryFunc;
     }
 
