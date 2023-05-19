@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
-#include <openssl/evp.h>
 #include <pcre.h>
 
 #define MAX_DECOMPRESSED_SIZE_RATIO 40.0
@@ -211,8 +210,17 @@ scan_code_t parse_archive(scan_arc_ctx_t *ctx, vfile_t *f, document_t *doc, pcre
 
                 double decompressed_size_ratio = (double) sub_job->vfile.st_size / (double) f->st_size;
                 if (decompressed_size_ratio > MAX_DECOMPRESSED_SIZE_RATIO) {
-                    CTX_LOG_DEBUGF("arc.c", "Skipped %s, possible zip bomb (decompressed_size_ratio=%f)", sub_job->filepath,
+                    CTX_LOG_ERRORF("arc.c", "Skipped %s, possible zip bomb (decompressed_size_ratio=%f)",
+                                   sub_job->filepath,
                                    decompressed_size_ratio);
+                    break;
+                }
+
+                if ((archive_entry_is_encrypted(entry) || archive_entry_is_data_encrypted(entry) ||
+                     archive_entry_is_metadata_encrypted(entry)) && ctx->passphrase[0] == 0) {
+                    // Is encrypted but no password is specified, skip
+                    CTX_LOG_ERRORF("arc.c", "Skipped %s, archive is encrypted but no passphrase is supplied",
+                                   doc->filepath);
                     break;
                 }
 
