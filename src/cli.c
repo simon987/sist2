@@ -5,7 +5,7 @@
 #define DEFAULT_OUTPUT "index.sist2"
 #define DEFAULT_NAME "index"
 #define DEFAULT_CONTENT_SIZE 32768
-#define DEFAULT_QUALITY 2
+#define DEFAULT_QUALITY 50
 #define DEFAULT_THUMBNAIL_SIZE 552
 #define DEFAULT_THUMBNAIL_COUNT 1
 #define DEFAULT_REWRITE_URL ""
@@ -100,8 +100,8 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
     if (args->tn_quality == OPTION_VALUE_UNSPECIFIED) {
         args->tn_quality = DEFAULT_QUALITY;
-    } else if (args->tn_quality < 2 || args->tn_quality > 31) {
-        fprintf(stderr, "Invalid value for --thumbnail-quality argument: %d. Must be within [2, 31].\n",
+    } else if (args->tn_quality < 0 || args->tn_quality > 100) {
+        fprintf(stderr, "Invalid value for --thumbnail-quality argument: %d. Must be within [0, 100].\n",
                 args->tn_quality);
         return 1;
     }
@@ -109,7 +109,7 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (args->tn_size == OPTION_VALUE_UNSPECIFIED) {
         args->tn_size = DEFAULT_THUMBNAIL_SIZE;
     } else if (args->tn_size < 32) {
-        printf("Invalid value --thumbnail-size argument: %d. Must be greater than 32 pixels.\n", args->tn_size);
+        printf("Invalid value --thumbnail-size argument: %d. Must be >= 32 pixels.\n", args->tn_size);
         return 1;
     }
 

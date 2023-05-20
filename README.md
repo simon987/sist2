@@ -28,7 +28,7 @@ sist2 (Simple incremental search tool)
 
 \* See [format support](#format-support)    
 \*\* See [Archive files](#archive-files)    
-\*\*\* See [OCR](#ocr)
+\*\*\* See [OCR](#ocr)    
 \*\*\*\* See [Named-Entity Recognition](#NER)
 
 ## Getting Started
@@ -46,7 +46,7 @@ services:
       - "discovery.type=single-node"
       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
   sist2-admin:
-    image: simon987/sist2:3.0.7-x64-linux
+    image: simon987/sist2:3.1.0-x64-linux
     restart: unless-stopped
     volumes:
       - ./sist2-admin-data/:/sist2-admin/
@@ -206,7 +206,7 @@ docker run --rm --entrypoint cat my-sist2-image /root/sist2 > sist2-x64-linux
 3. Install vcpkg dependencies
 
     ```bash
-    vcpkg install curl[core,openssl] sqlite3[core,fts5] cpp-jwt pcre cjson brotli libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 libmupdf gtest mongoose libmagic libraw gumbo ffmpeg[core,avcodec,avformat,swscale,swresample]
+    vcpkg install curl[core,openssl] sqlite3[core,fts5] cpp-jwt pcre cjson brotli libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 libmupdf gtest mongoose libmagic libraw gumbo ffmpeg[core,avcodec,avformat,swscale,swresample,webp]
     ```
 
 4. Build

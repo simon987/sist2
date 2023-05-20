@@ -490,7 +490,7 @@ int main(int argc, const char *argv[]) {
             OPT_GROUP("Scan options"),
             OPT_INTEGER('t', "threads", &common_threads, "Number of threads. DEFAULT: 1"),
             OPT_INTEGER('q', "thumbnail-quality", &scan_args->tn_quality,
-                        "Thumbnail quality, on a scale of 2 to 31, 2 being the best. DEFAULT: 2",
+                        "Thumbnail quality, on a scale of 0 to 100, 100 being the best. DEFAULT: 50",
                         set_to_negative_if_value_is_zero, (intptr_t) &scan_args->tn_quality),
             OPT_INTEGER(0, "thumbnail-size", &scan_args->tn_size,
                         "Thumbnail size, in pixels. DEFAULT: 552",

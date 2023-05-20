@@ -68,7 +68,7 @@ void *scale_frame(const AVCodecContext *decoder, const AVFrame *frame, int size)
 
     struct SwsContext *sws_ctx = sws_getContext(
             decoder->width, decoder->height, decoder->pix_fmt,
-            dstW, dstH, AV_PIX_FMT_YUVJ420P,
+            dstW, dstH, AV_PIX_FMT_YUV420P,
             SIST_SWS_ALGO, 0, 0, 0
     );
 
@@ -436,7 +436,8 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
         }
 
         if (seek_ok == FALSE && thumbnail_index != 0) {
-            CTX_LOG_WARNING(doc->filepath, "(media.c) Could not seek media file. Can't generate additional thumbnails.");
+            CTX_LOG_WARNING(doc->filepath,
+                            "(media.c) Could not seek media file. Can't generate additional thumbnails.");
             return SAVE_THUMBNAIL_FAILED;
         }
     }
@@ -470,18 +471,19 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
 
         ctx->store(doc->doc_id, 0, frame_and_packet->packet->data, frame_and_packet->packet->size);
     } else {
-        // Encode frame to jpeg
-        AVCodecContext *jpeg_encoder = alloc_jpeg_encoder(scaled_frame->width, scaled_frame->height,
-                                                          ctx->tn_qscale);
-        avcodec_send_frame(jpeg_encoder, scaled_frame);
+        // Encode frame
+        AVCodecContext *thumbnail_encoder = alloc_webp_encoder(scaled_frame->width, scaled_frame->height,
+                                                               ctx->tn_qscale);
+        avcodec_send_frame(thumbnail_encoder, scaled_frame);
+        avcodec_send_frame(thumbnail_encoder, NULL); // send EOF
 
-        AVPacket jpeg_packet;
-        av_init_packet(&jpeg_packet);
-        avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
+        AVPacket thumbnail_packet;
+        av_init_packet(&thumbnail_packet);
+        avcodec_receive_packet(thumbnail_encoder, &thumbnail_packet);
 
         // Save thumbnail
         if (thumbnail_index == 0) {
-            ctx->store(doc->doc_id, 0, jpeg_packet.data, jpeg_packet.size);
+            ctx->store(doc->doc_id, 0, thumbnail_packet.data, thumbnail_packet.size);
             return_value = SAVE_THUMBNAIL_OK;
 
         } else if (thumbnail_index > 1) {
@@ -489,15 +491,15 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
             //  I figure out a better fix.
             thumbnail_index -= 1;
 
-            ctx->store(doc->doc_id, thumbnail_index, jpeg_packet.data, jpeg_packet.size);
+            ctx->store(doc->doc_id, thumbnail_index, thumbnail_packet.data, thumbnail_packet.size);
 
             return_value = SAVE_THUMBNAIL_OK;
         } else {
             return_value = SAVE_THUMBNAIL_SKIPPED;
         }
 
-        avcodec_free_context(&jpeg_encoder);
-        av_packet_unref(&jpeg_packet);
+        avcodec_free_context(&thumbnail_encoder);
+        av_packet_unref(&thumbnail_packet);
         av_free(*scaled_frame->data);
         av_frame_free(&scaled_frame);
     }
@@ -854,9 +856,10 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
         ctx->store(doc->doc_id, 0, frame_and_packet->packet->data, frame_and_packet->packet->size);
     } else {
         // Encode frame to jpeg
-        AVCodecContext *jpeg_encoder = alloc_jpeg_encoder(scaled_frame->width, scaled_frame->height,
+        AVCodecContext *jpeg_encoder = alloc_webp_encoder(scaled_frame->width, scaled_frame->height,
                                                           ctx->tn_qscale);
         avcodec_send_frame(jpeg_encoder, scaled_frame);
+        avcodec_send_frame(jpeg_encoder, NULL); // Send EOF
 
         AVPacket jpeg_packet;
         av_init_packet(&jpeg_packet);

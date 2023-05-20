@@ -17,7 +17,7 @@ Lightning-fast file system indexer and search tool.
 
 Scan options
     -t, --threads=<int>               Number of threads. DEFAULT: 1
-    -q, --thumbnail-quality=<int>     Thumbnail quality, on a scale of 2 to 31, 2 being the best. DEFAULT: 2
+    -q, --thumbnail-quality=<int>     Thumbnail quality, on a scale of 0 to 100, 100 being the best. DEFAULT: 50
     --thumbnail-size=<int>            Thumbnail size, in pixels. DEFAULT: 552
     --thumbnail-count=<int>           Number of thumbnails to generate. Set a value > 1 to create video previews, set to 0 to disable thumbnails. DEFAULT: 1
     --content-size=<int>              Number of bytes to be extracted from text documents. Set to 0 to disable. DEFAULT: 32768
@@ -88,8 +88,8 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
 
 See chart below for rough estimate of thumbnail size vs. thumbnail size & quality arguments:
 
-For example, `--thumbnail-size=500`, `--thumbnail-quality=2` for a directory with 8 million images will create a thumbnail database 
-that is about `8000000 * 36kB = 288GB`.
+For example, `--thumbnail-size=500`, `--thumbnail-quality=50` for a directory with 8 million images will create a thumbnail database 
+that is about `8000000 * 11.8kB = 94.4GB`.
 
 ![thumbnail_size](thumbnail_size.png)
 

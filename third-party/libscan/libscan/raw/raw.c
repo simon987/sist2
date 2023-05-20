@@ -52,7 +52,7 @@ int store_thumbnail_rgb24(scan_raw_ctx_t *ctx, libraw_processed_image_t *img, do
 
     struct SwsContext *sws_ctx = sws_getContext(
             img->width, img->height, AV_PIX_FMT_RGB24,
-            dstW, dstH, AV_PIX_FMT_YUVJ420P,
+            dstW, dstH, AV_PIX_FMT_YUV420P,
             SIST_SWS_ALGO, 0, 0, 0
     );
 
@@ -76,20 +76,21 @@ int store_thumbnail_rgb24(scan_raw_ctx_t *ctx, libraw_processed_image_t *img, do
 
     sws_freeContext(sws_ctx);
 
-    AVCodecContext *jpeg_encoder = alloc_jpeg_encoder(scaled_frame->width, scaled_frame->height, 1.0f);
-    avcodec_send_frame(jpeg_encoder, scaled_frame);
+    AVCodecContext *thumbnail_encoder = alloc_webp_encoder(scaled_frame->width, scaled_frame->height, ctx->tn_qscale);
+    avcodec_send_frame(thumbnail_encoder, scaled_frame);
+    avcodec_send_frame(thumbnail_encoder, NULL); // Send EOF
 
-    AVPacket jpeg_packet;
-    av_init_packet(&jpeg_packet);
-    avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
+    AVPacket thumbnail_packet;
+    av_init_packet(&thumbnail_packet);
+    avcodec_receive_packet(thumbnail_encoder, &thumbnail_packet);
 
     APPEND_LONG_META(doc, MetaThumbnail, 1);
-    ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), (char *) jpeg_packet.data, jpeg_packet.size);
+    ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), (char *) thumbnail_packet.data, thumbnail_packet.size);
 
-    av_packet_unref(&jpeg_packet);
+    av_packet_unref(&thumbnail_packet);
     av_free(*scaled_frame->data);
     av_frame_free(&scaled_frame);
-    avcodec_free_context(&jpeg_encoder);
+    avcodec_free_context(&thumbnail_encoder);
 
     return TRUE;
 }

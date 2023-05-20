@@ -153,22 +153,23 @@ int render_cover(scan_ebook_ctx_t *ctx, fz_context *fzctx, document_t *doc, fz_d
 
     sws_freeContext(sws_ctx);
 
-    // YUV420p -> JPEG
-    AVCodecContext *jpeg_encoder = alloc_jpeg_encoder(pixmap->w, pixmap->h, ctx->tn_qscale);
-    avcodec_send_frame(jpeg_encoder, scaled_frame);
+    // YUV420p -> JPEG/WEBP
+    AVCodecContext *thumbnail_encoder = alloc_webp_encoder(pixmap->w, pixmap->h, ctx->tn_qscale);
+    avcodec_send_frame(thumbnail_encoder, scaled_frame);
+    avcodec_send_frame(thumbnail_encoder, NULL); // Send EOF
 
-    AVPacket jpeg_packet;
-    av_init_packet(&jpeg_packet);
-    avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
+    AVPacket thumbnail_packet;
+    av_init_packet(&thumbnail_packet);
+    avcodec_receive_packet(thumbnail_encoder, &thumbnail_packet);
 
     APPEND_LONG_META(doc, MetaThumbnail, 1);
-    ctx->store(doc->doc_id, 0, (char *) jpeg_packet.data, jpeg_packet.size);
+    ctx->store(doc->doc_id, 0, (char *) thumbnail_packet.data, thumbnail_packet.size);
 
     free(samples);
-    av_packet_unref(&jpeg_packet);
+    av_packet_unref(&thumbnail_packet);
     av_free(*scaled_frame->data);
     av_frame_free(&scaled_frame);
-    avcodec_free_context(&jpeg_encoder);
+    avcodec_free_context(&thumbnail_encoder);
 
     fz_drop_pixmap(fzctx, pixmap);
     fz_drop_page(fzctx, cover);
