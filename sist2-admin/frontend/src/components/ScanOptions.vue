@@ -7,7 +7,7 @@
     <b-form-input type="number" min="1" v-model="options.threads" @change="update()"></b-form-input>
 
     <label>{{ $t("scanOptions.thumbnailQuality") }}</label>
-    <b-form-input type="number" min="1" max="31" v-model="options.thumbnail_quality" @change="update()"></b-form-input>
+    <b-form-input type="number" min="0" max="100" v-model="options.thumbnail_quality" @change="update()"></b-form-input>
 
     <label>{{ $t("scanOptions.thumbnailCount") }}</label>
     <b-form-input type="number" min="0" max="1000" v-model="options.thumbnail_count" @change="update()"></b-form-input>

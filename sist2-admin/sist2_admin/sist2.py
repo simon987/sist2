@@ -109,7 +109,7 @@ ARCHIVE_RECURSE = "recurse"
 class ScanOptions(BaseModel):
     path: str
     threads: int = 1
-    thumbnail_quality: int = 2
+    thumbnail_quality: int = 50
     thumbnail_size: int = 552
     thumbnail_count: int = 1
     content_size: int = 32768

@@ -66,7 +66,7 @@ export default {
             path: "Path",
             threads: "Number of threads",
             memThrottle: "Total memory threshold in MiB for scan throttling",
-            thumbnailQuality: "Thumbnail quality, on a scale of 2 to 32, 2 being the best",
+            thumbnailQuality: "Thumbnail quality, on a scale of 0 to 100, 100 being the best",
             thumbnailCount: "Number of thumbnails to generate. Set a value > 1 to create video previews, set to 0 to disable thumbnails.",
             thumbnailSize: "Thumbnail size, in pixels",
             contentSize: "Number of bytes to be extracted from text documents. Set to 0 to disable",
