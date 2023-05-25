@@ -68,7 +68,7 @@
     },
     "mtime": {
       "type": "date",
-      "format": "epoch_millis"
+      "format": "epoch_second"
     },
     "size": {
       "type": "long"
