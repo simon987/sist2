@@ -53,7 +53,7 @@ class Sist2Job(BaseModel):
             name=name,
             scan_options=ScanOptions(path="/"),
             index_options=IndexOptions(),
-            last_modified=datetime.now(),
+            last_modified=datetime.utcnow(),
             cron_expression="0 0 * * *"
         )
 
@@ -111,7 +111,7 @@ class Sist2Task:
             self._logger.info(json.dumps(log_json))
 
     def run(self, sist2: Sist2, db: PersistentState):
-        self.started = datetime.now()
+        self.started = datetime.utcnow()
 
         logger.info(f"Started task {self.display_name}")
 
@@ -132,14 +132,14 @@ class Sist2ScanTask(Sist2Task):
             self.pid = pid
 
         return_code = sist2.scan(self.job.scan_options, logs_cb=self.log_callback, set_pid_cb=set_pid)
-        self.ended = datetime.now()
+        self.ended = datetime.utcnow()
 
         if return_code != 0:
             self._logger.error(json.dumps({"sist2-admin": f"Process returned non-zero exit code ({return_code})"}))
             logger.info(f"Task {self.display_name} failed ({return_code})")
         else:
             self.job.index_path = self.job.scan_options.output
-            self.job.last_index_date = datetime.now()
+            self.job.last_index_date = datetime.utcnow()
             self.job.do_full_scan = False
             db["jobs"][self.job.name] = self.job
             self._logger.info(json.dumps({"sist2-admin": f"Save last_index_date={self.job.last_index_date}"}))
@@ -172,7 +172,7 @@ class Sist2IndexTask(Sist2Task):
         self.job.index_options.path = self.job.scan_options.output
 
         return_code = sist2.index(self.job.index_options, logs_cb=self.log_callback)
-        self.ended = datetime.now()
+        self.ended = datetime.utcnow()
 
         duration = self.ended - self.started
 

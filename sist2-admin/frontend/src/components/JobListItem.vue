@@ -44,8 +44,7 @@ export default {
         return "";
       }
 
-      const date = Date.parse(dateString);
-      return moment(date).fromNow();
+      return moment.utc(dateString).local().fromNow();
     }
   }
 }

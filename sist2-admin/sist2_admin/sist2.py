@@ -238,7 +238,7 @@ class Sist2:
         if options.output is None:
             options.output = os.path.join(
                 self._data_dir,
-                f"scan-{options.name.replace('/', '_')}-{datetime.now()}.sist2"
+                f"scan-{options.name.replace('/', '_')}-{datetime.utcnow()}.sist2"
             )
 
         args = [

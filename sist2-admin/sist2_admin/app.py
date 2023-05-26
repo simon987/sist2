@@ -80,9 +80,8 @@ async def get_jobs():
 
 @app.put("/api/job/{name:str}")
 async def update_job(name: str, new_job: Sist2Job):
-    # TODO: Check etag
 
-    new_job.last_modified = datetime.now()
+    new_job.last_modified = datetime.utcnow()
     job = db["jobs"][name]
     if not job:
         raise HTTPException(status_code=404)
@@ -135,7 +134,7 @@ async def kill_job(task_id: str):
 
 
 def _run_job(job: Sist2Job):
-    job.last_modified = datetime.now()
+    job.last_modified = datetime.utcnow()
     if job.status == JobStatus("created"):
         job.status = JobStatus("started")
     db["jobs"][job.name] = job
@@ -352,7 +351,7 @@ async def ws_tail_log(websocket: WebSocket, task_id: str, n: int):
 
 
 def main():
-    uvicorn.run(app, port=WEBSERVER_PORT, host="0.0.0.0")
+    uvicorn.run(app, port=WEBSERVER_PORT, host="0.0.0.0", timeout_graceful_shutdown=0)
 
 
 def initialize_db():
