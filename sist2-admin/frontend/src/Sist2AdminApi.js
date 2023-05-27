@@ -112,6 +112,16 @@ class Sist2AdminApi {
     getSist2AdminInfo() {
         return axios.get(`${this.baseUrl}/api/`);
     }
+
+    getLogsToDelete(jobName, n) {
+        return axios.get(`${this.baseUrl}/api/job/${jobName}/logs_to_delete`, {
+            params: {n: n}
+        });
+    }
+
+    deleteTaskLogs(taskId) {
+        return axios.post(`${this.baseUrl}/api/task/${taskId}/delete_logs`);
+    }
 }
 
 export default new Sist2AdminApi()

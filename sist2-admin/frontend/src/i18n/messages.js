@@ -5,10 +5,13 @@ export default {
         go: "Go",
         online: "online",
         offline: "offline",
+        view: "View",
         delete: "Delete",
         runNow: "Index now",
         create: "Create",
+        cancel: "Cancel",
         test: "Test",
+        confirmation: "Confirmation",
 
         jobTitle: "job configuration",
         tasks: "Tasks",
@@ -99,6 +102,8 @@ export default {
         jobOptions: {
             title: "Job options",
             cron: "Job schedule",
+            keepNLogs: "Keep last N log files. Set to -1 to keep all logs.",
+            deleteNow: "Delete now",
             scheduleEnabled: "Enable scheduled re-scan",
             noJobAvailable: "No jobs available.",
             desktopNotifications: "Desktop notifications"

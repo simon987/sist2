@@ -16,7 +16,7 @@ from pydantic import BaseModel
 from config import logger, LOG_FOLDER
 from notifications import Notifications
 from sist2 import ScanOptions, IndexOptions, Sist2
-from state import RUNNING_FRONTENDS
+from state import RUNNING_FRONTENDS, get_log_files_to_remove, delete_log_file
 from web import Sist2Frontend
 
 
@@ -34,6 +34,8 @@ class Sist2Job(BaseModel):
 
     cron_expression: str
     schedule_enabled: bool = False
+
+    keep_last_n_logs: int = -1
 
     previous_index: str = None
     index_path: str = None
@@ -301,8 +303,14 @@ class TaskQueue:
                 "ended": task.ended,
                 "started": task.started,
                 "name": task.display_name,
-                "return_code": task_result
+                "return_code": task_result,
+                "has_logs": 1
             }
+
+            logs_to_delete = get_log_files_to_remove(self._db, task.job.name, task.job.keep_last_n_logs)
+            for row in logs_to_delete:
+                delete_log_file(self._db, row["id"])
+
         if isinstance(task, Sist2IndexTask):
             self._notifications.notify({
                 "message": "notifications.indexCompleted",

@@ -21,7 +21,8 @@ from config import LOG_FOLDER, logger, WEBSERVER_PORT, DATA_FOLDER, SIST2_BINARY
 from jobs import Sist2Job, Sist2ScanTask, TaskQueue, Sist2IndexTask, JobStatus
 from notifications import Subscribe, Notifications
 from sist2 import Sist2
-from state import migrate_v1_to_v2, RUNNING_FRONTENDS, TESSERACT_LANGS, DB_SCHEMA_VERSION
+from state import migrate_v1_to_v2, RUNNING_FRONTENDS, TESSERACT_LANGS, DB_SCHEMA_VERSION, migrate_v3_to_v4, \
+    get_log_files_to_remove, delete_log_file
 from web import Sist2Frontend
 
 sist2 = Sist2(SIST2_BINARY, DATA_FOLDER)
@@ -80,7 +81,6 @@ async def get_jobs():
 
 @app.put("/api/job/{name:str}")
 async def update_job(name: str, new_job: Sist2Job):
-
     new_job.last_modified = datetime.utcnow()
     job = db["jobs"][name]
     if not job:
@@ -133,6 +133,16 @@ async def kill_job(task_id: str):
     return task_queue.kill_task(task_id)
 
 
+@app.post("/api/task/{task_id:str}/delete_logs")
+async def delete_task_logs(task_id: str):
+    if not db["task_done"][task_id]:
+        raise HTTPException(status_code=404)
+
+    delete_log_file(db, task_id)
+
+    return "ok"
+
+
 def _run_job(job: Sist2Job):
     job.last_modified = datetime.utcnow()
     if job.status == JobStatus("created"):
@@ -155,6 +165,11 @@ async def run_job(name: str):
     _run_job(job)
 
     return "ok"
+
+
+@app.get("/api/job/{name:str}/logs_to_delete")
+async def task_history(n: int, name: str):
+    return get_log_files_to_remove(db, name, n)
 
 
 @app.delete("/api/job/{name:str}")
@@ -320,7 +335,6 @@ async def ws_tail_log(websocket: WebSocket):
         async with Subscribe(notifications) as ob:
             async for notification in ob.notifications():
                 await websocket.send_json(notification)
-                print(notification)
 
     except ConnectionClosed:
         return
@@ -380,6 +394,9 @@ if __name__ == '__main__':
     if db["sist2_admin"]["info"]["version"] == "2":
         logger.error("Cannot migrate database from v2 to v3. Delete state.db to proceed.")
         exit(-1)
+    if db["sist2_admin"]["info"]["version"] == "3":
+        logger.info("Migrating to v4 database schema")
+        migrate_v3_to_v4(db)
 
     start_frontends()
     cron.initialize(db, _run_job)

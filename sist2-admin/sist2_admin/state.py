@@ -1,16 +1,19 @@
 from typing import Dict
+import os
 import shutil
 
 from hexlib.db import Table, PersistentState
 import pickle
 
 from tesseract import get_tesseract_langs
+import sqlite3
+from config import LOG_FOLDER
 
 RUNNING_FRONTENDS: Dict[str, int] = {}
 
 TESSERACT_LANGS = get_tesseract_langs()
 
-DB_SCHEMA_VERSION = "3"
+DB_SCHEMA_VERSION = "4"
 
 from pydantic import BaseModel
 
@@ -50,8 +53,35 @@ class PickleTable(Table):
             yield dict((k, _deserialize(v)) for k, v in row.items())
 
 
-def migrate_v1_to_v2(db: PersistentState):
+def get_log_files_to_remove(db: PersistentState, job_name: str, n: int):
+    if n < 0:
+        return []
 
+    counter = 0
+    to_remove = []
+
+    for row in db["task_done"].sql("WHERE has_logs=1 ORDER BY started DESC"):
+        if row["name"].endswith(f"[{job_name}]"):
+            counter += 1
+
+        if counter > n:
+            to_remove.append(row)
+
+    return to_remove
+
+
+def delete_log_file(db: PersistentState, task_id: str):
+    db["task_done"][task_id] = {
+        "has_logs": 0
+    }
+
+    try:
+        os.remove(os.path.join(LOG_FOLDER, f"sist2-{task_id}.log"))
+    except:
+        pass
+
+
+def migrate_v1_to_v2(db: PersistentState):
     shutil.copy(db.dbfile, db.dbfile + "-before-migrate-v2.bak")
 
     # Frontends
@@ -76,4 +106,17 @@ def migrate_v1_to_v2(db: PersistentState):
 
     db["sist2_admin"]["info"] = {
         "version": "2"
+    }
+
+
+def migrate_v3_to_v4(db: PersistentState):
+    shutil.copy(db.dbfile, db.dbfile + "-before-migrate-v4.bak")
+
+    conn = sqlite3.connect(db.dbfile)
+    conn.execute("ALTER TABLE task_done ADD COLUMN has_logs INTEGER DEFAULT 1")
+    conn.commit()
+    conn.close()
+
+    db["sist2_admin"]["info"] = {
+        "version": "4"
     }
