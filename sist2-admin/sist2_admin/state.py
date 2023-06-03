@@ -7,7 +7,8 @@ import pickle
 
 from tesseract import get_tesseract_langs
 import sqlite3
-from config import LOG_FOLDER
+from config import LOG_FOLDER, logger
+from sist2 import SearchBackendType, Sist2SearchBackend
 
 RUNNING_FRONTENDS: Dict[str, int] = {}
 
@@ -109,13 +110,26 @@ def migrate_v1_to_v2(db: PersistentState):
     }
 
 
+def create_default_search_backends(db: PersistentState):
+    es_backend = Sist2SearchBackend.create_default(name="elasticsearch",
+                                                   backend_type=SearchBackendType("elasticsearch"))
+    db["search_backends"]["elasticsearch"] = es_backend
+    sqlite_backend = Sist2SearchBackend.create_default(name="sqlite", backend_type=SearchBackendType("sqlite"))
+    db["search_backends"]["sqlite"] = sqlite_backend
+
+
 def migrate_v3_to_v4(db: PersistentState):
     shutil.copy(db.dbfile, db.dbfile + "-before-migrate-v4.bak")
 
-    conn = sqlite3.connect(db.dbfile)
-    conn.execute("ALTER TABLE task_done ADD COLUMN has_logs INTEGER DEFAULT 1")
-    conn.commit()
-    conn.close()
+    create_default_search_backends(db)
+
+    try:
+        conn = sqlite3.connect(db.dbfile)
+        conn.execute("ALTER TABLE task_done ADD COLUMN has_logs INTEGER DEFAULT 1")
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.exception(e)
 
     db["sist2_admin"]["info"] = {
         "version": "4"

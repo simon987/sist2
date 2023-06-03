@@ -59,11 +59,6 @@ class Sist2Job(BaseModel):
             cron_expression="0 0 * * *"
         )
 
-    # @validator("etag", always=True)
-    # def validate_etag(cls, value, values):
-    #     s = values["name"] + values["scan_options"].json() + values["index_options"].json() + values["cron_expression"]
-    #     return md5(s.encode()).hexdigest()
-
 
 class Sist2TaskProgress:
 
@@ -173,7 +168,14 @@ class Sist2IndexTask(Sist2Task):
 
         self.job.index_options.path = self.job.scan_options.output
 
-        return_code = sist2.index(self.job.index_options, logs_cb=self.log_callback)
+        search_backend = db["search_backends"][self.job.index_options.search_backend]
+        if search_backend is None:
+            logger.error(f"Error while running task: search backend not found: {self.job.index_options.search_backend}")
+            return -1
+
+        logger.debug(f"Fetched search backend options for {self.job.index_options.search_backend}")
+
+        return_code = sist2.index(self.job.index_options, search_backend, logs_cb=self.log_callback)
         self.ended = datetime.utcnow()
 
         duration = self.ended - self.started
@@ -208,9 +210,17 @@ class Sist2IndexTask(Sist2Task):
             except ChildProcessError:
                 pass
 
+            backend_name = frontend.web_options.search_backend
+            search_backend = db["search_backends"][backend_name]
+            if search_backend is None:
+                logger.error(f"Error while running task: search backend not found: {backend_name}")
+                return -1
+
+            logger.debug(f"Fetched search backend options for {backend_name}")
+
             frontend.web_options.indices = map(lambda j: db["jobs"][j].index_path, frontend.jobs)
 
-            pid = sist2.web(frontend.web_options, frontend.name)
+            pid = sist2.web(frontend.web_options, search_backend, frontend.name)
             RUNNING_FRONTENDS[frontend_name] = pid
 
             self._logger.info(json.dumps({"sist2-admin": f"Restart frontend {pid=} {frontend_name=}"}))

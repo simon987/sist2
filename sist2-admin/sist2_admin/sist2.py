@@ -3,6 +3,7 @@ import json
 import logging
 import os.path
 from datetime import datetime
+from enum import Enum
 from io import TextIOWrapper
 from logging import FileHandler
 from subprocess import Popen, PIPE
@@ -12,7 +13,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from config import logger, LOG_FOLDER
+from config import logger, LOG_FOLDER, DATA_FOLDER
 
 
 class Sist2Version:
@@ -25,77 +26,57 @@ class Sist2Version:
         return f"{self.major}.{self.minor}.{self.patch}"
 
 
-class WebOptions(BaseModel):
-    indices: List[str] = []
+class SearchBackendType(Enum):
+    SQLITE = "sqlite"
+    ELASTICSEARCH = "elasticsearch"
+
+
+class Sist2SearchBackend(BaseModel):
+    backend_type: SearchBackendType = SearchBackendType("elasticsearch")
+    name: str
+
+    search_index: str = ""
+
     es_url: str = "http://elasticsearch:9200"
     es_insecure_ssl: bool = False
     es_index: str = "sist2"
-    bind: str = "0.0.0.0:4090"
-    auth: str = None
-    tag_auth: str = None
-    tagline: str = "Lightning-fast file system indexer and search tool"
-    dev: bool = False
-    lang: str = "en"
-    auth0_audience: str = None
-    auth0_domain: str = None
-    auth0_client_id: str = None
-    auth0_public_key: str = None
-    auth0_public_key_file: str = None
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def args(self):
-        args = ["web", f"--es-url={self.es_url}", f"--es-index={self.es_index}", f"--bind={self.bind}",
-                f"--tagline={self.tagline}", f"--lang={self.lang}"]
-
-        if self.auth0_audience:
-            args.append(f"--auth0-audience={self.auth0_audience}")
-        if self.auth0_domain:
-            args.append(f"--auth0-domain={self.auth0_domain}")
-        if self.auth0_client_id:
-            args.append(f"--auth0-client-id={self.auth0_client_id}")
-        if self.auth0_public_key_file:
-            args.append(f"--auth0-public-key-file={self.auth0_public_key_file}")
-        if self.es_insecure_ssl:
-            args.append(f"--es-insecure-ssl")
-        if self.auth:
-            args.append(f"--auth={self.auth}")
-        if self.tag_auth:
-            args.append(f"--tag-auth={self.tag_auth}")
-        if self.dev:
-            args.append(f"--dev")
-
-        args.extend(self.indices)
-
-        return args
-
-
-class IndexOptions(BaseModel):
-    path: str = None
     threads: int = 1
-    es_url: str = "http://elasticsearch:9200"
-    es_insecure_ssl: bool = False
-    es_index: str = "sist2"
-    incremental_index: bool = True
     script: str = ""
     script_file: str = None
     batch_size: int = 70
 
+    @staticmethod
+    def create_default(name: str, backend_type: SearchBackendType = SearchBackendType("elasticsearch")):
+        return Sist2SearchBackend(
+            name=name,
+            search_index=os.path.join(DATA_FOLDER, f"search-index-{name.replace('/', '_')}.sist2"),
+            backend_type=backend_type
+        )
+
+
+class IndexOptions(BaseModel):
+    path: str = None
+    incremental_index: bool = True
+    search_backend: str = None
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def args(self):
+    def args(self, search_backend):
+        if search_backend.backend_type == SearchBackendType("sqlite"):
+            args = ["sqlite-index", self.path, "--search-index", search_backend.search_index]
+        else:
+            args = ["index", self.path, f"--threads={search_backend.threads}",
+                    f"--es-url={search_backend.es_url}",
+                    f"--es-index={search_backend.es_index}",
+                    f"--batch-size={search_backend.batch_size}"]
 
-        args = ["index", self.path, f"--threads={self.threads}", f"--es-url={self.es_url}",
-                f"--es-index={self.es_index}", f"--batch-size={self.batch_size}"]
-
-        if self.script_file:
-            args.append(f"--script-file={self.script_file}")
-        if self.es_insecure_ssl:
-            args.append(f"--es-insecure-ssl")
-        if self.incremental_index:
-            args.append(f"--incremental-index")
+            if search_backend.script_file:
+                args.append(f"--script-file={search_backend.script_file}")
+            if search_backend.es_insecure_ssl:
+                args.append(f"--es-insecure-ssl")
+            if self.incremental_index:
+                args.append(f"--incremental-index")
 
         return args
 
@@ -200,6 +181,56 @@ class Sist2Index:
     def name(self) -> str:
         return self._descriptor["name"]
 
+class WebOptions(BaseModel):
+    indices: List[str] = []
+
+    search_backend: str = "elasticsearch"
+
+    bind: str = "0.0.0.0:4090"
+    auth: str = None
+    tag_auth: str = None
+    tagline: str = "Lightning-fast file system indexer and search tool"
+    dev: bool = False
+    lang: str = "en"
+    auth0_audience: str = None
+    auth0_domain: str = None
+    auth0_client_id: str = None
+    auth0_public_key: str = None
+    auth0_public_key_file: str = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def args(self, search_backend: Sist2SearchBackend):
+        args = ["web", f"--bind={self.bind}", f"--tagline={self.tagline}",
+                f"--lang={self.lang}"]
+
+        if search_backend.backend_type == SearchBackendType("sqlite"):
+            args.append(f"--search-index={search_backend.search_index}")
+        else:
+            args.append(f"--es-url={search_backend.es_url}")
+            args.append(f"--es-index={search_backend.es_index}")
+            if search_backend.es_insecure_ssl:
+                args.append(f"--es-insecure-ssl")
+
+        if self.auth0_audience:
+            args.append(f"--auth0-audience={self.auth0_audience}")
+        if self.auth0_domain:
+            args.append(f"--auth0-domain={self.auth0_domain}")
+        if self.auth0_client_id:
+            args.append(f"--auth0-client-id={self.auth0_client_id}")
+        if self.auth0_public_key_file:
+            args.append(f"--auth0-public-key-file={self.auth0_public_key_file}")
+        if self.auth:
+            args.append(f"--auth={self.auth}")
+        if self.tag_auth:
+            args.append(f"--tag-auth={self.tag_auth}")
+        if self.dev:
+            args.append(f"--dev")
+
+        args.extend(self.indices)
+
+        return args
 
 class Sist2:
 
@@ -207,21 +238,23 @@ class Sist2:
         self._bin_path = bin_path
         self._data_dir = data_directory
 
-    def index(self, options: IndexOptions, logs_cb):
+    def index(self, options: IndexOptions, search_backend: Sist2SearchBackend, logs_cb):
 
-        if options.script:
+        if search_backend.script and search_backend.backend_type == SearchBackendType("elasticsearch"):
             with NamedTemporaryFile("w", prefix="sist2-admin", suffix=".painless", delete=False) as f:
-                f.write(options.script)
-            options.script_file = f.name
+                f.write(search_backend.script)
+            search_backend.script_file = f.name
         else:
-            options.script_file = None
+            search_backend.script_file = None
 
         args = [
             self._bin_path,
-            *options.args(),
+            *options.args(search_backend),
             "--json-logs",
             "--very-verbose"
         ]
+
+        logs_cb({"sist2-admin": f"Starting sist2 command with args {args}"})
         proc = Popen(args, stdout=PIPE, stderr=PIPE)
 
         t_stderr = Thread(target=self._consume_logs_stderr, args=(logs_cb, proc))
@@ -290,7 +323,7 @@ class Sist2:
                 except NameError:
                     pass
 
-    def web(self, options: WebOptions, name: str):
+    def web(self, options: WebOptions, search_backend: Sist2SearchBackend, name: str):
 
         if options.auth0_public_key:
             with NamedTemporaryFile("w", prefix="sist2-admin", suffix=".txt", delete=False) as f:
@@ -301,7 +334,7 @@ class Sist2:
 
         args = [
             self._bin_path,
-            *options.args()
+            *options.args(search_backend)
         ]
 
         web_logger = logging.Logger(name=f"sist2-frontend-{name}")
@@ -321,3 +354,5 @@ class Sist2:
         t_stdout.start()
 
         return proc.pid
+
+

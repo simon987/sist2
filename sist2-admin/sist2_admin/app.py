@@ -20,9 +20,9 @@ import cron
 from config import LOG_FOLDER, logger, WEBSERVER_PORT, DATA_FOLDER, SIST2_BINARY
 from jobs import Sist2Job, Sist2ScanTask, TaskQueue, Sist2IndexTask, JobStatus
 from notifications import Subscribe, Notifications
-from sist2 import Sist2
+from sist2 import Sist2, Sist2SearchBackend
 from state import migrate_v1_to_v2, RUNNING_FRONTENDS, TESSERACT_LANGS, DB_SCHEMA_VERSION, migrate_v3_to_v4, \
-    get_log_files_to_remove, delete_log_file
+    get_log_files_to_remove, delete_log_file, create_default_search_backends
 from web import Sist2Frontend
 
 sist2 = Sist2(SIST2_BINARY, DATA_FOLDER)
@@ -174,11 +174,21 @@ async def task_history(n: int, name: str):
 
 @app.delete("/api/job/{name:str}")
 async def delete_job(name: str):
-    job = db["jobs"][name]
-    if job:
-        del db["jobs"][name]
-    else:
+    job: Sist2Job = db["jobs"][name]
+    if not job:
         raise HTTPException(status_code=404)
+
+    if any(name in frontend.jobs for frontend in db["frontends"]):
+        raise HTTPException(status_code=400, detail="in use (frontend)")
+
+    try:
+        os.remove(job.previous_index)
+    except:
+        pass
+
+    del db["jobs"][name]
+
+    return "ok"
 
 
 @app.delete("/api/frontend/{name:str}")
@@ -267,7 +277,16 @@ def check_es_version(es_url: str, insecure: bool):
 def start_frontend_(frontend: Sist2Frontend):
     frontend.web_options.indices = list(map(lambda j: db["jobs"][j].index_path, frontend.jobs))
 
-    pid = sist2.web(frontend.web_options, frontend.name)
+    backend_name = frontend.web_options.search_backend
+    search_backend = db["search_backends"][backend_name]
+    if search_backend is None:
+        logger.error(
+            f"Error while running task: search backend not found: {backend_name}")
+        return -1
+
+    logger.debug(f"Fetched search backend options for {backend_name}")
+
+    pid = sist2.web(frontend.web_options, search_backend, frontend.name)
     RUNNING_FRONTENDS[frontend.name] = pid
 
 
@@ -295,6 +314,62 @@ async def get_frontends():
         frontend.running = frontend.name in RUNNING_FRONTENDS
         res.append(frontend)
     return res
+
+
+@app.get("/api/search_backend/")
+async def get_search_backends():
+    return list(db["search_backends"])
+
+
+@app.put("/api/search_backend/{name:str}")
+async def update_search_backend(name: str, backend: Sist2SearchBackend):
+    if not db["search_backends"][name]:
+        raise HTTPException(status_code=404)
+
+    db["search_backends"][name] = backend
+    return "ok"
+
+
+@app.get("/api/search_backend/{name:str}")
+def get_search_backend(name: str):
+    backend = db["search_backends"][name]
+    if not backend:
+        raise HTTPException(status_code=404)
+
+    return backend
+
+
+@app.delete("/api/search_backend/{name:str}")
+def delete_search_backend(name: str):
+    backend: Sist2SearchBackend = db["search_backends"][name]
+    if not backend:
+        raise HTTPException(status_code=404)
+
+    if any(frontend.web_options.search_backend == name for frontend in db["frontends"]):
+        raise HTTPException(status_code=400, detail="in use (frontend)")
+
+    if any(job.index_options.search_backend == name for job in db["jobs"]):
+        raise HTTPException(status_code=400, detail="in use (job)")
+
+    del db["search_backends"][name]
+
+    try:
+        os.remove(backend.search_index)
+    except:
+        pass
+
+    return "ok"
+
+
+@app.post("/api/search_backend/{name:str}")
+def create_search_backend(name: str):
+    if db["search_backends"][name] is not None:
+        return HTTPException(status_code=400, detail="already exists")
+
+    backend = Sist2SearchBackend.create_default(name)
+    db["search_backends"][name] = backend
+
+    return backend
 
 
 def tail(filepath: str, n: int):
@@ -374,6 +449,8 @@ def initialize_db():
     frontend = Sist2Frontend.create_default("default")
     db["frontends"]["default"] = frontend
 
+    create_default_search_backends(db)
+
     logger.info("Initialized database.")
 
 
@@ -397,6 +474,9 @@ if __name__ == '__main__':
     if db["sist2_admin"]["info"]["version"] == "3":
         logger.info("Migrating to v4 database schema")
         migrate_v3_to_v4(db)
+
+    if db["sist2_admin"]["info"]["version"] != DB_SCHEMA_VERSION:
+        raise Exception(f"Incompatible database version for {db.dbfile}")
 
     start_frontends()
     cron.initialize(db, _run_job)

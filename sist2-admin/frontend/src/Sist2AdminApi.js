@@ -33,9 +33,26 @@ class Sist2AdminApi {
         return axios.get(`${this.baseUrl}/api/job/${name}`);
     }
 
-    /**
-     * @param {string} name
-     */
+    getSearchBackend(name) {
+        return axios.get(`${this.baseUrl}/api/search_backend/${name}`);
+    }
+
+    updateSearchBackend(name, data) {
+        return axios.put(`${this.baseUrl}/api/search_backend/${name}`, data);
+    }
+
+    getSearchBackends() {
+        return axios.get(`${this.baseUrl}/api/search_backend/`);
+    }
+
+    deleteBackend(name) {
+        return axios.delete(`${this.baseUrl}/api/search_backend/${name}`)
+    }
+
+    createBackend(name) {
+        return axios.post(`${this.baseUrl}/api/search_backend/${name}`);
+    }
+
     getFrontend(name) {
         return axios.get(`${this.baseUrl}/api/frontend/${name}`);
     }

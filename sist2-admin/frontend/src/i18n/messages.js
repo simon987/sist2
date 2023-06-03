@@ -48,12 +48,13 @@ export default {
         extraQueryArgs: "Extra query arguments when launching from sist2-admin",
         customUrl: "Custom URL when launching from sist2-admin",
 
+        searchBackends: "Search backends",
+        searchBackendTitle: "search backend configuration",
+        newBackendName: "New search backend name",
+
         selectJobs: "Select jobs",
         webOptions: {
             title: "Web options",
-            esUrl: "Elasticsearch URL",
-            esIndex: "Elasticsearch index name",
-            esInsecure: "Do not verify SSL connections to Elasticsearch.",
             lang: "UI Language",
             bind: "Listen address",
             tagline: "Tagline in navbar",
@@ -63,6 +64,18 @@ export default {
             auth0Domain: "Auth0 domain",
             auth0ClientId: "Auth0 client ID",
             auth0PublicKey: "Auth0 public key",
+        },
+        backendOptions: {
+            title: "Search backend options",
+            searchBackend: "Search backend",
+            type: "Search backend type",
+            esUrl: "Elasticsearch URL",
+            esIndex: "Elasticsearch index name",
+            esInsecure: "Do not verify SSL connections to Elasticsearch.",
+            threads: "Number of threads",
+            batchSize: "Index batch size",
+            script: "User script",
+            searchIndex: "Search index file location"
         },
         scanOptions: {
             title: "Scanning options",
@@ -90,15 +103,6 @@ export default {
             treemapThreshold: "Relative size threshold for treemap",
             optimizeIndex: "Defragment index file after scan to reduce its file size."
         },
-        indexOptions: {
-            title: "Indexing options",
-            threads: "Number of threads",
-            esUrl: "Elasticsearch URL",
-            esIndex: "Elasticsearch index name",
-            esInsecure: "Do not verify SSL connections to Elasticsearch.",
-            batchSize: "Index batch size",
-            script: "User script"
-        },
         jobOptions: {
             title: "Job options",
             cron: "Job schedule",
@@ -106,6 +110,7 @@ export default {
             deleteNow: "Delete now",
             scheduleEnabled: "Enable scheduled re-scan",
             noJobAvailable: "No jobs available.",
+            noBackendError: "You must select a search backend to run this job",
             desktopNotifications: "Desktop notifications"
         },
         frontendOptions: {
