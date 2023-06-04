@@ -3,6 +3,7 @@
 
 
 #include <signal.h>
+
 #define LOG_MAX_LENGTH 8192
 
 #define LOG_SIST_DEBUG 0
@@ -33,11 +34,12 @@
 
 #define LOG_FATALF(filepath, fmt, ...)\
     sist_logf(filepath, LOG_SIST_FATAL, fmt, __VA_ARGS__);\
-    raise(SIGUSR1)
+    raise(SIGUSR1);                   \
+    exit(-1)
 #define LOG_FATAL(filepath, str) \
     sist_log(filepath, LOG_SIST_FATAL, str);\
-    exit(SIGUSR1)
-
+    raise(SIGUSR1);                   \
+    exit(-1)
 #define LOG_FATALF_NO_EXIT(filepath, fmt, ...) \
     sist_logf(filepath, LOG_SIST_FATAL, fmt, __VA_ARGS__)
 #define LOG_FATAL_NO_EXIT(filepath, str) \
@@ -46,6 +48,7 @@
 #include "sist.h"
 
 void sist_logf(const char *filepath, int level, char *format, ...);
+
 void vsist_logf(const char *filepath, int level, char *format, va_list ap);
 
 void sist_log(const char *filepath, int level, char *str);

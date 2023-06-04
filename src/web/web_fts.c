@@ -170,7 +170,7 @@ fts_search_req_t *get_search_req(struct mg_http_message *hm) {
         cJSON_Delete(json);
         return NULL;
     }
-    if (req_path.val && (strstr(req_path.val->valuestring, "*") || strlen(req_path.val) >= PATH_MAX)) {
+    if (req_path.val && (strstr(req_path.val->valuestring, "*") || strlen(req_path.val->valuestring) >= PATH_MAX)) {
         cJSON_Delete(json);
         return NULL;
     }

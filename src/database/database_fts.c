@@ -466,8 +466,8 @@ cJSON *database_fts_search(database_t *db, const char *query, const char *path, 
     const char *path_where = path_where_clause(path);
     const char *size_where = size_where_clause(size_min, size_max);
     const char *date_where = date_where_clause(date_min, date_max);
-    const char *index_id_where = index_ids_where_clause(index_ids);
-    const char *mime_where = mime_types_where_clause(mime_types);
+    char *index_id_where = index_ids_where_clause(index_ids);
+    char *mime_where = mime_types_where_clause(mime_types);
     const char *query_where = match_where(query);
     const char *after_where = get_after_where(after, sort);
     const char *tags_where = tags_where_clause(tags);

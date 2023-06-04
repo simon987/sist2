@@ -38,3 +38,4 @@ build/
 __pycache__/
 sist2-vue/dist
 sist2-admin/frontend/dist
+*.fts

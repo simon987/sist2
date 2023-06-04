@@ -93,9 +93,12 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (abs_path == NULL) {
         LOG_FATALF("cli.c", "Invalid PATH argument. File not found: %s", argv[1]);
     } else {
-        abs_path = realloc(abs_path, strlen(abs_path) + 2);
-        strcat(abs_path, "/");
-        args->path = abs_path;
+        char *new_abs_path = realloc(abs_path, strlen(abs_path) + 2);
+        if (new_abs_path == NULL) {
+            LOG_FATALF("cli.c", "FIXME: realloc() failed for argv[1]=%s, abs_path=%s", argv[1], abs_path);
+        }
+        strcat(new_abs_path, "/");
+        args->path = new_abs_path;
     }
 
     if (args->tn_quality == OPTION_VALUE_UNSPECIFIED) {
@@ -142,10 +145,14 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
 
     char *abs_output = abspath(args->output);
     if (args->incremental && abs_output == NULL) {
-        LOG_WARNINGF("main.c", "Could not open original index for incremental scan: %s. Will not perform incremental scan.", args->output);
+        LOG_WARNINGF("main.c",
+                     "Could not open original index for incremental scan: %s. Will not perform incremental scan.",
+                     args->output);
         args->incremental = FALSE;
     } else if (!args->incremental && abs_output != NULL) {
-        LOG_FATALF("main.c", "Index already exists: %s. If you wish to perform incremental scan, you must specify --incremental", abs_output);
+        LOG_FATALF("main.c",
+                   "Index already exists: %s. If you wish to perform incremental scan, you must specify --incremental",
+                   abs_output);
     }
     free(abs_output);
 
