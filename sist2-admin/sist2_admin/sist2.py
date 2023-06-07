@@ -49,7 +49,7 @@ class Sist2SearchBackend(BaseModel):
     def create_default(name: str, backend_type: SearchBackendType = SearchBackendType("elasticsearch")):
         return Sist2SearchBackend(
             name=name,
-            search_index=os.path.join(DATA_FOLDER, f"search-index-{name.replace('/', '_')}.sist2"),
+            search_index=f"search-index-{name.replace('/', '_')}.sist2",
             backend_type=backend_type
         )
 
@@ -63,10 +63,13 @@ class IndexOptions(BaseModel):
         super().__init__(**kwargs)
 
     def args(self, search_backend):
+        absolute_path = os.path.join(DATA_FOLDER, self.path)
+
         if search_backend.backend_type == SearchBackendType("sqlite"):
-            args = ["sqlite-index", self.path, "--search-index", search_backend.search_index]
+            search_index_absolute = os.path.join(DATA_FOLDER, search_backend.search_index)
+            args = ["sqlite-index", absolute_path, "--search-index", search_index_absolute]
         else:
-            args = ["index", self.path, f"--threads={search_backend.threads}",
+            args = ["index", absolute_path, f"--threads={search_backend.threads}",
                     f"--es-url={search_backend.es_url}",
                     f"--es-index={search_backend.es_index}",
                     f"--batch-size={search_backend.batch_size}"]
@@ -118,9 +121,12 @@ class ScanOptions(BaseModel):
         super().__init__(**kwargs)
 
     def args(self):
+
+        output_path = os.path.join(DATA_FOLDER, self.output)
+
         args = ["scan", self.path, f"--threads={self.threads}", f"--thumbnail-quality={self.thumbnail_quality}",
                 f"--thumbnail-count={self.thumbnail_count}", f"--thumbnail-size={self.thumbnail_size}",
-                f"--content-size={self.content_size}", f"--output={self.output}", f"--depth={self.depth}",
+                f"--content-size={self.content_size}", f"--output={output_path}", f"--depth={self.depth}",
                 f"--archive={self.archive}", f"--mem-buffer={self.mem_buffer}"]
 
         if self.incremental:
@@ -269,10 +275,7 @@ class Sist2:
     def scan(self, options: ScanOptions, logs_cb, set_pid_cb):
 
         if options.output is None:
-            options.output = os.path.join(
-                self._data_dir,
-                f"scan-{options.name.replace('/', '_')}-{datetime.utcnow()}.sist2"
-            )
+            options.output = f"scan-{options.name.replace('/', '_')}-{datetime.utcnow()}.sist2"
 
         args = [
             self._bin_path,

@@ -13,7 +13,7 @@ from uuid import uuid4, UUID
 from hexlib.db import PersistentState
 from pydantic import BaseModel
 
-from config import logger, LOG_FOLDER
+from config import logger, LOG_FOLDER, DATA_FOLDER
 from notifications import Notifications
 from sist2 import ScanOptions, IndexOptions, Sist2
 from state import RUNNING_FRONTENDS, get_log_files_to_remove, delete_log_file
@@ -218,7 +218,10 @@ class Sist2IndexTask(Sist2Task):
 
             logger.debug(f"Fetched search backend options for {backend_name}")
 
-            frontend.web_options.indices = map(lambda j: db["jobs"][j].index_path, frontend.jobs)
+            frontend.web_options.indices = [
+                os.path.join(DATA_FOLDER, db["jobs"][j].index_path)
+                for j in frontend.jobs
+            ]
 
             pid = sist2.web(frontend.web_options, search_backend, frontend.name)
             RUNNING_FRONTENDS[frontend_name] = pid

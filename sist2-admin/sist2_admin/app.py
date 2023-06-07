@@ -275,7 +275,10 @@ def check_es_version(es_url: str, insecure: bool):
 
 
 def start_frontend_(frontend: Sist2Frontend):
-    frontend.web_options.indices = list(map(lambda j: db["jobs"][j].index_path, frontend.jobs))
+    frontend.web_options.indices = [
+        os.path.join(DATA_FOLDER, db["jobs"][j].index_path)
+        for j in frontend.jobs
+    ]
 
     backend_name = frontend.web_options.search_backend
     search_backend = db["search_backends"][backend_name]
@@ -354,7 +357,7 @@ def delete_search_backend(name: str):
     del db["search_backends"][name]
 
     try:
-        os.remove(backend.search_index)
+        os.remove(os.path.join(DATA_FOLDER, backend.search_index))
     except:
         pass
 
