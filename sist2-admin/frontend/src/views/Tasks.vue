@@ -134,7 +134,7 @@ export default {
                     duration: this.taskDuration(row),
                     time: moment.utc(row.started).local().format("dd, MMM Do YYYY, HH:mm:ss"),
                     logs: null,
-                    status: row.return_code === 0 ? "ok" : "failed",
+                    status: [0,1].includes(row.return_code) ? "ok" : "failed",
                     _row: row
                 }));
             });

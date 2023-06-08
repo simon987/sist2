@@ -131,7 +131,9 @@ class Sist2ScanTask(Sist2Task):
         return_code = sist2.scan(self.job.scan_options, logs_cb=self.log_callback, set_pid_cb=set_pid)
         self.ended = datetime.utcnow()
 
-        if return_code != 0:
+        is_ok = return_code in (0, 1)
+
+        if not is_ok:
             self._logger.error(json.dumps({"sist2-admin": f"Process returned non-zero exit code ({return_code})"}))
             logger.info(f"Task {self.display_name} failed ({return_code})")
         else:
@@ -144,7 +146,7 @@ class Sist2ScanTask(Sist2Task):
         logger.info(f"Completed {self.display_name} ({return_code=})")
 
         # Remove old index
-        if return_code == 0:
+        if is_ok:
             if self.job.previous_index_path is not None and self.job.previous_index_path != self.job.index_path:
                 self._logger.info(json.dumps({"sist2-admin": f"Remove {self.job.previous_index_path=}"}))
                 try:
@@ -247,7 +249,7 @@ class TaskQueue:
     def _tasks_failed(self):
         done = set()
 
-        for row in self._db["task_done"].sql("WHERE return_code != 0"):
+        for row in self._db["task_done"].sql("WHERE return_code NOT IN (0,1)"):
             done.add(uuid.UUID(row["id"]))
 
         return done

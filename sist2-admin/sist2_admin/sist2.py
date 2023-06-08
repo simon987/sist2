@@ -241,7 +241,7 @@ class WebOptions(BaseModel):
 class Sist2:
 
     def __init__(self, bin_path: str, data_directory: str):
-        self._bin_path = bin_path
+        self.bin_path = bin_path
         self._data_dir = data_directory
 
     def index(self, options: IndexOptions, search_backend: Sist2SearchBackend, logs_cb):
@@ -254,7 +254,7 @@ class Sist2:
             search_backend.script_file = None
 
         args = [
-            self._bin_path,
+            self.bin_path,
             *options.args(search_backend),
             "--json-logs",
             "--very-verbose"
@@ -278,7 +278,7 @@ class Sist2:
             options.output = f"scan-{options.name.replace('/', '_')}-{datetime.utcnow()}.sist2"
 
         args = [
-            self._bin_path,
+            self.bin_path,
             *options.args(),
             "--json-logs",
             "--very-verbose"
@@ -336,7 +336,7 @@ class Sist2:
             options.auth0_public_key_file = None
 
         args = [
-            self._bin_path,
+            self.bin_path,
             *options.args(search_backend)
         ]
 
