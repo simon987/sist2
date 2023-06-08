@@ -65,8 +65,8 @@ def get_log_files_to_remove(db: PersistentState, job_name: str, n: int):
         if row["name"].endswith(f"[{job_name}]"):
             counter += 1
 
-        if counter > n:
-            to_remove.append(row)
+            if counter > n:
+                to_remove.append(row)
 
     return to_remove
 
