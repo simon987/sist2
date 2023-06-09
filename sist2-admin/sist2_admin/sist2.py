@@ -187,6 +187,7 @@ class Sist2Index:
     def name(self) -> str:
         return self._descriptor["name"]
 
+
 class WebOptions(BaseModel):
     indices: List[str] = []
 
@@ -212,7 +213,8 @@ class WebOptions(BaseModel):
                 f"--lang={self.lang}"]
 
         if search_backend.backend_type == SearchBackendType("sqlite"):
-            args.append(f"--search-index={search_backend.search_index}")
+            search_index_absolute = os.path.join(DATA_FOLDER, search_backend.search_index)
+            args.append(f"--search-index={search_index_absolute}")
         else:
             args.append(f"--es-url={search_backend.es_url}")
             args.append(f"--es-index={search_backend.es_index}")
@@ -237,6 +239,7 @@ class WebOptions(BaseModel):
         args.extend(self.indices)
 
         return args
+
 
 class Sist2:
 
@@ -357,5 +360,3 @@ class Sist2:
         t_stdout.start()
 
         return proc.pid
-
-
