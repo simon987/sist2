@@ -53,9 +53,9 @@ file_type_t get_file_type(unsigned int mime, size_t size, const char *filepath) 
     } else if (IS_FONT(mime)) {
         return FILETYPE_FONT;
     } else if (ScanCtx.arc_ctx.mode != ARC_MODE_SKIP && (
-                    IS_ARC(mime) ||
-                    (IS_ARC_FILTER(mime) && should_parse_filtered_file(filepath))
-            )) {
+            IS_ARC(mime) ||
+            (IS_ARC_FILTER(mime) && should_parse_filtered_file(filepath))
+    )) {
         return FILETYPE_ARCHIVE;
     } else if ((ScanCtx.ooxml_ctx.content_size > 0 || ScanCtx.media_ctx.tn_size > 0) && IS_DOC(mime)) {
         return FILETYPE_OOXML;
@@ -155,19 +155,17 @@ void parse(parse_job_t *job) {
     doc->meta_head = NULL;
     doc->meta_tail = NULL;
     doc->size = job->vfile.st_size;
-    doc->mtime = job->vfile.mtime;
+    doc->mtime = MAX(job->vfile.mtime, 0);
     doc->mime = get_mime(job);
     generate_doc_id(doc->filepath + ScanCtx.index.desc.root_len, doc->doc_id);
 
     if (doc->mime == GET_MIME_ERROR_FATAL) {
-
         CLOSE_FILE(job->vfile)
         free(doc);
         return;
     }
 
     if (database_mark_document(ProcData.index_db, doc->doc_id, doc->mtime)) {
-
         CLOSE_FILE(job->vfile)
         free(doc);
         return;
