@@ -531,8 +531,8 @@ class Sist2Api {
             size: 0
         }).then(res => {
             const range = {
-                min: res.aggregations.dateMin.value,
-                max: res.aggregations.dateMax.value,
+                min: res.aggregations.dateMin.value / 1000,
+                max: res.aggregations.dateMax.value / 1000,
             }
 
             if (range.min == null) {
