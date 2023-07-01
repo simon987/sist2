@@ -528,6 +528,7 @@ void tag(struct mg_connection *nc, struct mg_http_message *hm) {
     tag_req_t *req = parse_tag_request(json);
     if (req == NULL) {
         LOG_DEBUGF("serve.c", "Could not parse tag request", arg_index);
+        cJSON_Delete(json);
         HTTP_REPLY_BAD_REQUEST
         return;
     }
