@@ -248,9 +248,11 @@ void serve_file_from_disk(cJSON *json, index_t *idx, struct mg_connection *nc, s
 
     char mime_mapping[8192];
     if (strlen(ext) == 0) {
-        snprintf(mime_mapping, sizeof(mime_mapping), "%s=%s", full_path, mime);
+        snprintf(mime_mapping, sizeof(mime_mapping), "%s=%s%s",
+                 full_path, mime, STR_STARTS_WITH_CONSTANT(mime, "text/") ? "; charset=utf8" : "");
     } else {
-        snprintf(mime_mapping, sizeof(mime_mapping), "%s=%s", ext, mime);
+        snprintf(mime_mapping, sizeof(mime_mapping), "%s=%s%s",
+                 ext, mime, STR_STARTS_WITH_CONSTANT(mime, "text/") ? "; charset=utf8" : "");
     }
 
     struct mg_http_serve_opts opts = {
