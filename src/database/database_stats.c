@@ -149,6 +149,7 @@ void database_generate_stats(database_t *db, double treemap_threshold) {
 
             merged_rows += 1;
         }
+        free(iter);
     } while (merged_rows > TREEMAP_MINIMUM_MERGES_TO_CONTINUE);
 
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db,

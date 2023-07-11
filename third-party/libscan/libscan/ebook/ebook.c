@@ -11,8 +11,6 @@
 pthread_mutex_t Mutex;
 #endif
 
-/* fill_image callback doesn't let us pass opaque pointers unless I create my own device */
-__thread text_buffer_t thread_buffer;
 __thread scan_ebook_ctx_t thread_ctx;
 
 static void my_fz_lock(UNUSED(void *user), int lock) {
@@ -232,21 +230,54 @@ static int read_stext_block(fz_stext_block *block, text_buffer_t *tex) {
     return 0;
 }
 
-static void fill_image_ocr_cb(const char* text, size_t len) {
-  text_buffer_append_string(&thread_buffer, text, len - 1);
+static int ocr_progress(fz_context *fzctx, void *user_data, int progress) {
+    scan_ebook_ctx_t *ctx = user_data;
+    CTX_LOG_INFOF("ebook.c", "OCR PROGRESS=%d", progress);
+
+    return 0;
 }
 
-void fill_image(fz_context *fzctx, UNUSED(fz_device *dev),
-                fz_image *img, UNUSED(fz_matrix ctm), UNUSED(float alpha),
-                UNUSED(fz_color_params color_params)) {
+int read_stext(text_buffer_t *tex, fz_stext_page *stext) {
 
-    int l2factor = 0;
+    int count = 0;
 
-    if (img->w >= MIN_OCR_WIDTH && img->h >= MIN_OCR_HEIGHT && OCR_IS_VALID_BPP(img->n)) {
-        fz_pixmap *pix = img->get_pixmap(fzctx, img, NULL, img->w, img->h, &l2factor);
-        ocr_extract_text(thread_ctx.tesseract_path, thread_ctx.tesseract_lang, pix->samples, pix->w, pix->h, pix->n, (int)pix->stride, pix->xres, fill_image_ocr_cb);
-        fz_drop_pixmap(fzctx, pix);
+    fz_stext_block *block = stext->first_block;
+
+    while (block != NULL) {
+        int ret = read_stext_block(block, tex);
+        count += 1;
+        if (ret == TEXT_BUF_FULL) {
+            break;
+        }
+        block = block->next;
     }
+
+    return count;
+}
+
+int load_page(fz_context *fzctx, fz_document *fzdoc, int current_page, fz_page **page) {
+    int err = 0;
+
+    fz_var(err);
+    fz_try(fzctx)(*page) = fz_load_page(fzctx, fzdoc, current_page);
+    fz_catch(fzctx)err = fzctx->error.errcode;
+
+    return err;
+}
+
+fz_device *new_stext_dev(fz_context *fzctx, fz_stext_page *stext) {
+    fz_stext_options opts = {
+            .flags = FZ_STEXT_DEHYPHENATE,
+            .scale = 0
+    };
+
+    fz_device *stext_dev = fz_new_stext_device(fzctx, stext, &opts);
+    stext_dev->stroke_path = NULL;
+    stext_dev->stroke_text = NULL;
+    stext_dev->clip_text = NULL;
+    stext_dev->clip_stroke_path = NULL;
+    stext_dev->clip_stroke_text = NULL;
+    return stext_dev;
 }
 
 void
@@ -326,46 +357,37 @@ parse_ebook_mem(scan_ebook_ctx_t *ctx, void *buf, size_t buf_len, const char *mi
 
 
     if (ctx->content_size > 0) {
-        fz_stext_options opts = {0};
-        thread_buffer = text_buffer_create(ctx->content_size);
+        text_buffer_t tex = text_buffer_create(ctx->content_size);
 
         for (int current_page = 0; current_page < page_count; current_page++) {
             fz_page *page = NULL;
-            fz_var(err);
-            fz_try(fzctx)page = fz_load_page(fzctx, fzdoc, current_page);
-            fz_catch(fzctx)err = fzctx->error.errcode;
+            err = load_page(fzctx, fzdoc, current_page, &page);
+
             if (err != 0) {
-                CTX_LOG_WARNINGF(doc->filepath, "fz_load_page() returned error code [%d] %s", err, fzctx->error.message);
-                text_buffer_destroy(&thread_buffer);
+                CTX_LOG_WARNINGF(doc->filepath,
+                                 "fz_load_page() returned error code [%d] %s", err, fzctx->error.message);
+                text_buffer_destroy(&tex);
                 fz_drop_page(fzctx, page);
                 fz_drop_stream(fzctx, stream);
                 fz_drop_document(fzctx, fzdoc);
                 fz_drop_context(fzctx);
                 return;
             }
+            fz_rect page_mediabox = fz_bound_page(fzctx, page);
 
-            fz_stext_page *stext = fz_new_stext_page(fzctx, fz_bound_page(fzctx, page));
-            fz_device *dev = fz_new_stext_device(fzctx, stext, &opts);
-            dev->stroke_path = NULL;
-            dev->stroke_text = NULL;
-            dev->clip_text = NULL;
-            dev->clip_stroke_path = NULL;
-            dev->clip_stroke_text = NULL;
-
-            if (ctx->tesseract_lang != NULL) {
-                dev->fill_image = fill_image;
-            }
+            fz_stext_page *stext = fz_new_stext_page(fzctx, page_mediabox);
+            fz_device *stext_dev = new_stext_dev(fzctx, stext);
 
             fz_var(err);
-            fz_try(fzctx)fz_run_page(fzctx, page, dev, fz_identity, NULL);
+            fz_try(fzctx)fz_run_page(fzctx, page, stext_dev, fz_identity, NULL);
             fz_always(fzctx) {
-                    fz_close_device(fzctx, dev);
-                    fz_drop_device(fzctx, dev);
-                } fz_catch(fzctx)err = fzctx->error.errcode;
+                    fz_close_device(fzctx, stext_dev);
+                    fz_drop_device(fzctx, stext_dev);
+                } fz_catch(fzctx) err = fzctx->error.errcode;
 
             if (err != 0) {
                 CTX_LOG_WARNINGF(doc->filepath, "fz_run_page() returned error code [%d] %s", err, fzctx->error.message);
-                text_buffer_destroy(&thread_buffer);
+                text_buffer_destroy(&tex);
                 fz_drop_page(fzctx, page);
                 fz_drop_stext_page(fzctx, stext);
                 fz_drop_stream(fzctx, stream);
@@ -374,29 +396,63 @@ parse_ebook_mem(scan_ebook_ctx_t *ctx, void *buf, size_t buf_len, const char *mi
                 return;
             }
 
-            fz_stext_block *block = stext->first_block;
-            while (block != NULL) {
-                int ret = read_stext_block(block, &thread_buffer);
-                if (ret == TEXT_BUF_FULL) {
-                    break;
-                }
-                block = block->next;
-            }
-            fz_drop_stext_page(fzctx, stext);
-            fz_drop_page(fzctx, page);
+            int num_blocks_read = read_stext(&tex, stext);
 
-            if (thread_buffer.dyn_buffer.cur >= ctx->content_size) {
+            fz_drop_stext_page(fzctx, stext);
+
+            if (tex.dyn_buffer.cur >= ctx->content_size) {
+                fz_drop_page(fzctx, page);
                 break;
             }
-        }
-        text_buffer_terminate_string(&thread_buffer);
 
-        meta_line_t *meta_content = malloc(sizeof(meta_line_t) + thread_buffer.dyn_buffer.cur);
+            // If OCR is enabled and no text is found on the page
+            if (ctx->tesseract_lang != NULL && num_blocks_read == 0) {
+                stext = fz_new_stext_page(fzctx, page_mediabox);
+                stext_dev = new_stext_dev(fzctx, stext);
+
+                fz_device *ocr_dev = fz_new_ocr_device(fzctx, stext_dev, fz_identity,
+                                                       page_mediabox, TRUE,
+                                                       ctx->tesseract_lang,
+                                                       ctx->tesseract_path,
+                                                       ocr_progress, ctx);
+
+                fz_var(err);
+                fz_try(fzctx)fz_run_page(fzctx, page, ocr_dev, fz_identity, NULL);
+                fz_always(fzctx) {
+                        fz_close_device(fzctx, ocr_dev);
+                        fz_drop_device(fzctx, ocr_dev);
+                    } fz_catch(fzctx) err = fzctx->error.errcode;
+
+                if (err != 0) {
+                    CTX_LOG_WARNINGF(doc->filepath, "fz_run_page() returned error code [%d] %s", err, fzctx->error.message);
+                    fz_close_device(fzctx, stext_dev);
+                    fz_drop_device(fzctx, stext_dev);
+                    text_buffer_destroy(&tex);
+                    fz_drop_page(fzctx, page);
+                    fz_drop_stext_page(fzctx, stext);
+                    fz_drop_stream(fzctx, stream);
+                    fz_drop_document(fzctx, fzdoc);
+                    fz_drop_context(fzctx);
+                    return;
+                }
+
+                fz_close_device(fzctx, stext_dev);
+                fz_drop_device(fzctx, stext_dev);
+
+                read_stext(&tex, stext);
+                fz_drop_stext_page(fzctx, stext);
+            }
+
+            fz_drop_page(fzctx, page);
+        }
+        text_buffer_terminate_string(&tex);
+
+        meta_line_t *meta_content = malloc(sizeof(meta_line_t) + tex.dyn_buffer.cur);
         meta_content->key = MetaContent;
-        memcpy(meta_content->str_val, thread_buffer.dyn_buffer.buf, thread_buffer.dyn_buffer.cur);
+        memcpy(meta_content->str_val, tex.dyn_buffer.buf, tex.dyn_buffer.cur);
         APPEND_META(doc, meta_content);
 
-        text_buffer_destroy(&thread_buffer);
+        text_buffer_destroy(&tex);
     }
 
     fz_drop_stream(fzctx, stream);

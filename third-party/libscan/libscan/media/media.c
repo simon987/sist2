@@ -118,12 +118,11 @@ static void read_subtitles(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, i
     AVPacket packet;
     AVSubtitle subtitle;
 
-    AVCodec *subtitle_codec = avcodec_find_decoder(pFormatCtx->streams[stream_idx]->codecpar->codec_id);
+    const AVCodec *subtitle_codec = avcodec_find_decoder(pFormatCtx->streams[stream_idx]->codecpar->codec_id);
     AVCodecContext *decoder = avcodec_alloc_context3(subtitle_codec);
+    decoder->thread_count = 1;
     avcodec_parameters_to_context(decoder, pFormatCtx->streams[stream_idx]->codecpar);
     avcodec_open2(decoder, subtitle_codec, NULL);
-
-    decoder->sub_text_format = FF_SUB_TEXT_FMT_ASS;
 
     int got_sub;
 
@@ -176,8 +175,6 @@ read_frame(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, AVCodecContext *d
     frame_and_packet_t *result = calloc(1, sizeof(frame_and_packet_t));
     result->packet = av_packet_alloc();
     result->frame = av_frame_alloc();
-
-    av_init_packet(result->packet);
 
     int receive_ret = -EAGAIN;
     while (receive_ret == -EAGAIN) {
@@ -477,13 +474,12 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
         avcodec_send_frame(thumbnail_encoder, scaled_frame);
         avcodec_send_frame(thumbnail_encoder, NULL); // send EOF
 
-        AVPacket thumbnail_packet;
-        av_init_packet(&thumbnail_packet);
-        avcodec_receive_packet(thumbnail_encoder, &thumbnail_packet);
+        AVPacket *thumbnail_packet = av_packet_alloc();
+        avcodec_receive_packet(thumbnail_encoder, thumbnail_packet);
 
         // Save thumbnail
         if (thumbnail_index == 0) {
-            ctx->store(doc->doc_id, 0, thumbnail_packet.data, thumbnail_packet.size);
+            ctx->store(doc->doc_id, 0, thumbnail_packet->data, thumbnail_packet->size);
             return_value = SAVE_THUMBNAIL_OK;
 
         } else if (thumbnail_index > 1) {
@@ -491,7 +487,7 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
             //  I figure out a better fix.
             thumbnail_index -= 1;
 
-            ctx->store(doc->doc_id, thumbnail_index, thumbnail_packet.data, thumbnail_packet.size);
+            ctx->store(doc->doc_id, thumbnail_index, thumbnail_packet->data, thumbnail_packet->size);
 
             return_value = SAVE_THUMBNAIL_OK;
         } else {
@@ -499,7 +495,7 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
         }
 
         avcodec_free_context(&thumbnail_encoder);
-        av_packet_unref(&thumbnail_packet);
+        av_packet_free(&thumbnail_packet);
         av_free(*scaled_frame->data);
         av_frame_free(&scaled_frame);
     }
@@ -578,8 +574,9 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
         }
 
         // Decoder
-        AVCodec *video_codec = avcodec_find_decoder(stream->codecpar->codec_id);
+        const AVCodec *video_codec = avcodec_find_decoder(stream->codecpar->codec_id);
         AVCodecContext *decoder = avcodec_alloc_context3(video_codec);
+        decoder->thread_count = 1;
         avcodec_parameters_to_context(decoder, stream->codecpar);
         avcodec_open2(decoder, video_codec, NULL);
 
@@ -630,6 +627,9 @@ void parse_media_filename(scan_media_ctx_t *ctx, const char *filepath, document_
         CTX_LOG_ERROR(doc->filepath, "(media.c) Could not allocate context with avformat_alloc_context()");
         return;
     }
+    pFormatCtx->max_analyze_duration = 100000000;
+    pFormatCtx->probesize = 100000000;
+
     int res = avformat_open_input(&pFormatCtx, filepath, NULL, NULL);
     if (res < 0) {
         CTX_LOG_ERRORF(doc->filepath, "(media.c) avformat_open_input() returned [%d] %s", res, av_err2str(res));
@@ -729,6 +729,9 @@ void parse_media_vfile(scan_media_ctx_t *ctx, struct vfile *f, document_t *doc, 
         CTX_LOG_ERROR(doc->filepath, "(media.c) Could not allocate context with avformat_alloc_context()");
         return;
     }
+    pFormatCtx->max_analyze_duration = 100000000;
+    pFormatCtx->probesize = 100000000;
+
 
     unsigned char *buffer = (unsigned char *) av_malloc(AVIO_BUF_SIZE);
     AVIOContext *io_ctx = NULL;
@@ -792,6 +795,8 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
         CTX_LOG_ERROR(doc->filepath, "(media.c) Could not allocate context with avformat_alloc_context()");
         return FALSE;
     }
+    pFormatCtx->max_analyze_duration = 100000000;
+    pFormatCtx->probesize = 100000000;
 
     unsigned char *buffer = (unsigned char *) av_malloc(AVIO_BUF_SIZE);
 
@@ -823,6 +828,7 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
     // Decoder
     const AVCodec *video_codec = avcodec_find_decoder(stream->codecpar->codec_id);
     AVCodecContext *decoder = avcodec_alloc_context3(video_codec);
+    decoder->thread_count = 1;
     avcodec_parameters_to_context(decoder, stream->codecpar);
     avcodec_open2(decoder, video_codec, NULL);
 
@@ -861,15 +867,14 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
         avcodec_send_frame(jpeg_encoder, scaled_frame);
         avcodec_send_frame(jpeg_encoder, NULL); // Send EOF
 
-        AVPacket jpeg_packet;
-        av_init_packet(&jpeg_packet);
-        avcodec_receive_packet(jpeg_encoder, &jpeg_packet);
+        AVPacket *jpeg_packet = av_packet_alloc();
+        avcodec_receive_packet(jpeg_encoder, jpeg_packet);
 
         // Save thumbnail
         APPEND_LONG_META(doc, MetaThumbnail, 1);
-        ctx->store(doc->doc_id, 0, jpeg_packet.data, jpeg_packet.size);
+        ctx->store(doc->doc_id, 0, jpeg_packet->data, jpeg_packet->size);
 
-        av_packet_unref(&jpeg_packet);
+        av_packet_free(&jpeg_packet);
         avcodec_free_context(&jpeg_encoder);
         av_free(*scaled_frame->data);
         av_frame_free(&scaled_frame);
