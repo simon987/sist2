@@ -1,6 +1,24 @@
 FROM simon987/sist2-build-arm64 as build
 MAINTAINER simon987 <me@simon987.net>
 
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash
+RUN apt update -y; apt install -y nodejs && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build/
+
+COPY scripts scripts
+COPY schema schema
+COPY CMakeLists.txt .
+COPY third-party third-party
+COPY src src
+COPY sist2-vue sist2-vue
+COPY sist2-admin sist2-admin
+
+RUN cd sist2-vue/ && npm install && npm run build
+RUN cd sist2-admin/frontend/ && npm install && npm run build
+
 WORKDIR /build/
 ADD . /build/
 RUN mkdir build && cd build && cmake -DSIST_PLATFORM=arm64_linux_docker -DSIST_DEBUG_INFO=on -DSIST_DEBUG=off -DBUILD_TESTS=off -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake ..
