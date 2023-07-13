@@ -4,6 +4,18 @@ VCPKG_ROOT="/vcpkg"
 
 git submodule update --init --recursive
 
+(
+  cd sist2-vue/
+  npm install
+  npm run build
+)
+
+(
+  cd sist2-admin/frontend/
+  npm install
+  npm run build
+)
+
 mkdir build
 (
   cd build
