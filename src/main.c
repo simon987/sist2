@@ -68,9 +68,7 @@ void database_scan_begin(scan_args_t *args) {
         desc->version_patch = VersionPatch;
 
         // generate new index id based on timestamp
-        unsigned char index_md5[MD5_DIGEST_LENGTH];
-        MD5((unsigned char *) &ScanCtx.index.desc.timestamp, sizeof(ScanCtx.index.desc.timestamp), index_md5);
-        buf2hex(index_md5, MD5_DIGEST_LENGTH, ScanCtx.index.desc.id);
+        md5_hexdigest(&ScanCtx.index.desc.timestamp, sizeof(ScanCtx.index.desc.timestamp), ScanCtx.index.desc.id);
 
         database_initialize(db);
         database_open(db);

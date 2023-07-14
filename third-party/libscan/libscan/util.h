@@ -6,6 +6,7 @@
 #include "string.h"
 #include "../third-party/utf8.h/utf8.h"
 #include "macros.h"
+#include <openssl/evp.h>
 
 #define STR_STARTS_WITH_CONSTANT(x, y) (strncmp(y, x, sizeof(y) - 1) == 0)
 
@@ -339,7 +340,7 @@ static void *read_all(vfile_t *f, size_t *size) {
 #define STACK_BUFFER_SIZE (size_t)(4096 * 8)
 
 __always_inline
-static void safe_sha1_update(SHA_CTX *ctx, void *buf, size_t size) {
+static void safe_digest_update(EVP_MD_CTX *ctx, void *buf, size_t size) {
     unsigned char stack_buf[STACK_BUFFER_SIZE];
 
     void *sha1_buf;
@@ -351,7 +352,7 @@ static void safe_sha1_update(SHA_CTX *ctx, void *buf, size_t size) {
     }
 
     memcpy(sha1_buf, buf, size);
-    SHA1_Update(ctx, (const void *) sha1_buf, size);
+    EVP_DigestUpdate(ctx, sha1_buf, size);
 
     if (sha1_buf != stack_buf) {
         free(sha1_buf);

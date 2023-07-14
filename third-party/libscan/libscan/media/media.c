@@ -697,9 +697,10 @@ int memfile_open(vfile_t *f, memfile_t *mem) {
     mem->file = fmemopen(mem->buf, mem->size, "rb");
 
     if (f->calculate_checksum) {
-        SHA1_Init(&f->sha1_ctx);
-        safe_sha1_update(&f->sha1_ctx, mem->buf, mem->size);
-        SHA1_Final(f->sha1_digest, &f->sha1_ctx);
+        safe_digest_update(f->sha1_ctx, mem->buf, mem->size);
+        EVP_DigestFinal_ex(f->sha1_ctx, f->sha1_digest, NULL);
+        EVP_MD_CTX_free(f->sha1_ctx);
+        f->sha1_ctx = NULL;
         f->has_checksum = TRUE;
     }
 

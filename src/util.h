@@ -7,6 +7,7 @@
 
 #include "third-party/utf8.h/utf8.h"
 #include "libscan/scan.h"
+#include <openssl/evp.h>
 
 
 char *abspath(const char *path);
@@ -86,13 +87,22 @@ static void buf2hex(const unsigned char *buf, size_t buflen, char *hex_string) {
     *s = '\0';
 }
 
+static void md5_hexdigest(void *data, size_t size, char *output) {
+    EVP_MD_CTX *md_ctx = EVP_MD_CTX_new();
+    EVP_DigestInit_ex(md_ctx, EVP_md5(), NULL);
+
+    EVP_DigestUpdate(md_ctx, data, size);
+
+    unsigned char digest[MD5_DIGEST_LENGTH];
+    EVP_DigestFinal_ex(md_ctx, digest, NULL);
+    EVP_MD_CTX_free(md_ctx);
+
+    buf2hex(digest, MD5_DIGEST_LENGTH, output);
+}
 
 __always_inline
 static void generate_doc_id(const char *rel_path, char *doc_id) {
-    unsigned char md[MD5_DIGEST_LENGTH];
-
-    MD5((unsigned char *) rel_path, strlen(rel_path), md);
-    buf2hex(md, sizeof(md), doc_id);
+    md5_hexdigest(rel_path, strlen(rel_path), doc_id);
 }
 
 #define MILLISECOND 1000

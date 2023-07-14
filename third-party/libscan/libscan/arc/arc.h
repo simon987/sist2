@@ -35,7 +35,8 @@ static int vfile_open_callback(struct archive *a, void *user_data) {
     arc_data_t *data = (arc_data_t *) user_data;
 
     if (!data->f->is_fs_file) {
-        SHA1_Init(&data->f->sha1_ctx);
+        data->f->sha1_ctx = EVP_MD_CTX_new();
+        EVP_DigestInit(data->f->sha1_ctx, EVP_md5());
     }
 
     return ARCHIVE_OK;
@@ -49,7 +50,7 @@ static long vfile_read_callback(struct archive *a, void *user_data, const void *
 
     if (!data->f->is_fs_file && ret > 0) {
         data->f->has_checksum = TRUE;
-        safe_sha1_update(&data->f->sha1_ctx, (unsigned char*)data->buf, ret);
+        safe_digest_update(data->f->sha1_ctx, (unsigned char *) data->buf, ret);
     }
 
     return ret;
@@ -59,7 +60,9 @@ static int vfile_close_callback(struct archive *a, void *user_data) {
     arc_data_t *data = (arc_data_t *) user_data;
 
     if (!data->f->is_fs_file) {
-        SHA1_Final((unsigned char *) data->f->sha1_digest, &data->f->sha1_ctx);
+        EVP_DigestFinal_ex(data->f->sha1_ctx, data->f->sha1_digest, NULL);
+        EVP_MD_CTX_free(data->f->sha1_ctx);
+        data->f->sha1_ctx = NULL;
     }
 
     return ARCHIVE_OK;

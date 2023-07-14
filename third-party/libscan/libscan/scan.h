@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <openssl/evp.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
 
@@ -146,7 +147,7 @@ typedef struct vfile {
     int mtime;
     size_t st_size;
 
-    SHA_CTX sha1_ctx;
+    EVP_MD_CTX *sha1_ctx;
     unsigned char sha1_digest[SHA1_DIGEST_LENGTH];
 
     void *rewind_buffer;

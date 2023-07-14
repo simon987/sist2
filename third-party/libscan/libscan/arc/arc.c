@@ -22,7 +22,11 @@ int should_parse_filtered_file(const char *filepath) {
 }
 
 void arc_close(struct vfile *f) {
-    SHA1_Final(f->sha1_digest, &f->sha1_ctx);
+    if (f->sha1_ctx != NULL) {
+        EVP_DigestFinal_ex(f->sha1_ctx, f->sha1_digest, NULL);
+        EVP_MD_CTX_free(f->sha1_ctx);
+        f->sha1_ctx = NULL;
+    }
 
     if (f->rewind_buffer != NULL) {
         free(f->rewind_buffer);
@@ -59,7 +63,7 @@ int arc_read(struct vfile *f, void *buf, size_t size) {
     if (bytes_read != 0 && bytes_read <= size && f->calculate_checksum) {
         f->has_checksum = TRUE;
 
-        safe_sha1_update(&f->sha1_ctx, (unsigned char *) buf, bytes_read);
+        safe_digest_update(f->sha1_ctx, (unsigned char *) buf, bytes_read);
     }
 
     if (bytes_read != size && archive_errno(f->arc) != 0) {
@@ -237,9 +241,12 @@ scan_code_t parse_archive(scan_arc_ctx_t *ctx, vfile_t *f, document_t *doc, pcre
                     sub_job->ext = (int) strlen(sub_job->filepath);
                 }
 
-                SHA1_Init(&sub_job->vfile.sha1_ctx);
+                sub_job->vfile.sha1_ctx = EVP_MD_CTX_new();
+                EVP_DigestInit(sub_job->vfile.sha1_ctx, EVP_sha1());
 
                 ctx->parse(sub_job);
+
+                sub_job->vfile.close(&sub_job->vfile);
             }
         }
 
