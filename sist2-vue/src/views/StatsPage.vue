@@ -57,7 +57,9 @@ export default {
                 };
             })
         },
-        indices: () => this.$store.state.indices
+        indices() {
+            return this.$store.state.indices;
+        }
     }
 }
 </script>
