@@ -447,12 +447,16 @@ database_summary_stats_t database_fts_get_date_range(database_t *db) {
     return stats;
 }
 
-char *get_after_where(char **after, fts_sort_t sort) {
+char *get_after_where(char **after, fts_sort_t sort, int sort_asc) {
     if (after == NULL) {
         return NULL;
     }
 
-    return "(sort_var, doc.ROWID) > (?3, ?4)";
+    if (sort_asc) {
+        return "(sort_var, doc.ROWID) > (?3, ?4)";
+    }
+
+    return "(sort_var, doc.ROWID) < (?3, ?4)";
 }
 
 cJSON *database_fts_search(database_t *db, const char *query, const char *path, long size_min,
@@ -469,7 +473,7 @@ cJSON *database_fts_search(database_t *db, const char *query, const char *path, 
     char *index_id_where = index_ids_where_clause(index_ids);
     char *mime_where = mime_types_where_clause(mime_types);
     const char *query_where = match_where(query);
-    const char *after_where = get_after_where(after, sort);
+    const char *after_where = get_after_where(after, sort, sort_asc);
     const char *tags_where = tags_where_clause(tags);
 
     if (!query_where && sort == FTS_SORT_SCORE) {

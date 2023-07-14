@@ -83,6 +83,10 @@ void exec_args_destroy(exec_args_t *args) {
     free(args);
 }
 
+void sqlite_index_args_destroy(sqlite_index_args_t *args) {
+    // TODO
+}
+
 int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (argc < 2) {
         fprintf(stderr, "Required positional argument: PATH.\n");

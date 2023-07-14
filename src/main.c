@@ -681,6 +681,7 @@ int main(int argc, const char *argv[]) {
     index_args_destroy(index_args);
     web_args_destroy(web_args);
     exec_args_destroy(exec_args);
+    sqlite_index_args_destroy(sqlite_index_args);
 
     return 0;
 }

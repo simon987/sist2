@@ -134,5 +134,7 @@ void exec_args_destroy(exec_args_t *args);
 
 int exec_args_validate(exec_args_t *args, int argc, const char **argv);
 
+void sqlite_index_args_destroy(sqlite_index_args_t *args);
+
 
 #endif
