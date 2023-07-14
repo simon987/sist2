@@ -230,13 +230,6 @@ static int read_stext_block(fz_stext_block *block, text_buffer_t *tex) {
     return 0;
 }
 
-static int ocr_progress(fz_context *fzctx, void *user_data, int progress) {
-    scan_ebook_ctx_t *ctx = user_data;
-    CTX_LOG_INFOF("ebook.c", "OCR PROGRESS=%d", progress);
-
-    return 0;
-}
-
 int read_stext(text_buffer_t *tex, fz_stext_page *stext) {
 
     int count = 0;
@@ -414,7 +407,7 @@ parse_ebook_mem(scan_ebook_ctx_t *ctx, void *buf, size_t buf_len, const char *mi
                                                        page_mediabox, TRUE,
                                                        ctx->tesseract_lang,
                                                        ctx->tesseract_path,
-                                                       ocr_progress, ctx);
+                                                       NULL, NULL);
 
                 fz_var(err);
                 fz_try(fzctx)fz_run_page(fzctx, page, ocr_dev, fz_identity, NULL);
