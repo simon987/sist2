@@ -7,15 +7,15 @@ class Sist2AdminApi {
     }
 
     getJobs() {
-        return axios.get(`${this.baseUrl}/api/job/`);
+        return axios.get(`${this.baseUrl}/api/job`);
     }
 
     getFrontends() {
-        return axios.get(`${this.baseUrl}/api/frontend/`);
+        return axios.get(`${this.baseUrl}/api/frontend`);
     }
 
     getTasks() {
-        return axios.get(`${this.baseUrl}/api/task/`);
+        return axios.get(`${this.baseUrl}/api/task`);
     }
 
     killTask(taskId) {
@@ -42,7 +42,7 @@ class Sist2AdminApi {
     }
 
     getSearchBackends() {
-        return axios.get(`${this.baseUrl}/api/search_backend/`);
+        return axios.get(`${this.baseUrl}/api/search_backend`);
     }
 
     deleteBackend(name) {
@@ -127,7 +127,7 @@ class Sist2AdminApi {
     }
 
     getSist2AdminInfo() {
-        return axios.get(`${this.baseUrl}/api/`);
+        return axios.get(`${this.baseUrl}/api`);
     }
 
     getLogsToDelete(jobName, n) {
