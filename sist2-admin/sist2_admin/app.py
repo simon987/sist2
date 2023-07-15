@@ -74,7 +74,7 @@ async def get_frontend(name: str):
     raise HTTPException(status_code=404)
 
 
-@app.get("/api/job/")
+@app.get("/api/job")
 async def get_jobs():
     return list(db["jobs"])
 
@@ -118,7 +118,7 @@ async def update_frontend(name: str, frontend: Sist2Frontend):
     return "ok"
 
 
-@app.get("/api/task/")
+@app.get("/api/task")
 async def get_tasks():
     return list(map(lambda t: t.json(), task_queue.tasks()))
 
@@ -309,7 +309,7 @@ async def stop_frontend(name: str):
         del RUNNING_FRONTENDS[name]
 
 
-@app.get("/api/frontend/")
+@app.get("/api/frontend")
 async def get_frontends():
     res = []
     for frontend in db["frontends"]:
@@ -319,7 +319,7 @@ async def get_frontends():
     return res
 
 
-@app.get("/api/search_backend/")
+@app.get("/api/search_backend")
 async def get_search_backends():
     return list(db["search_backends"])
 
