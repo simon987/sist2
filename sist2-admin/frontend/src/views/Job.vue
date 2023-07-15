@@ -24,18 +24,18 @@
 
             <br/>
 
-            <h4>{{ $t("scanOptions.title") }}</h4>
-            <b-card>
-                <ScanOptions :options="job.scan_options" @change="update()"></ScanOptions>
-            </b-card>
-
-            <br/>
-
             <h4>{{ $t("backendOptions.title") }}</h4>
             <b-card>
                 <b-alert v-if="!valid" variant="warning" show>{{ $t("jobOptions.noBackendError") }}</b-alert>
                 <SearchBackendSelect :value="job.index_options.search_backend"
                                      @change="onBackendSelect($event)"></SearchBackendSelect>
+            </b-card>
+
+            <br/>
+
+            <h4>{{ $t("scanOptions.title") }}</h4>
+            <b-card>
+                <ScanOptions :options="job.scan_options" @change="update()"></ScanOptions>
             </b-card>
 
         </b-card-body>

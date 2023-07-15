@@ -8,6 +8,7 @@
             </small>
         </b-card-title>
 
+        <!-- Action buttons-->
         <div class="mb-3" v-if="!loading">
             <b-button class="mr-1" :disabled="frontend.running || !valid" variant="success" @click="start()">{{
                 $t("start")
@@ -23,9 +24,25 @@
             <b-button variant="danger" @click="deleteFrontend()">{{ $t("delete") }}</b-button>
         </div>
 
-
         <b-progress v-if="loading" striped animated value="100"></b-progress>
         <b-card-body v-else>
+
+            <h4>{{ $t("backendOptions.title") }}</h4>
+            <b-card>
+                <b-alert v-if="!valid" variant="warning" show>{{ $t("frontendOptions.noJobSelectedWarning") }}</b-alert>
+
+                <SearchBackendSelect :value="frontend.web_options.search_backend"
+                                     @change="onBackendSelect($event)"></SearchBackendSelect>
+
+                <br>
+                <JobCheckboxGroup :frontend="frontend" @input="update()"></JobCheckboxGroup>
+            </b-card>
+
+            <br/>
+
+            <WebOptions :options="frontend.web_options" :frontend-name="$route.params.name"
+                        @change="update()"></WebOptions>
+            <br/>
 
             <h4>{{ $t("frontendOptions.title") }}</h4>
             <b-card>
@@ -38,32 +55,8 @@
 
                 <label>{{ $t("customUrl") }}</label>
                 <b-form-input v-model="frontend.custom_url" @change="update()" placeholder="http://"></b-form-input>
-
-                <br/>
-
-                <b-alert v-if="!valid" variant="warning" show>{{ $t("frontendOptions.noJobSelectedWarning") }}</b-alert>
-
-                <JobCheckboxGroup :frontend="frontend" @input="update()"></JobCheckboxGroup>
-            </b-card>
-
-            <br/>
-
-            <h4>{{ $t("webOptions.title") }}</h4>
-            <b-card>
-                <WebOptions :options="frontend.web_options" :frontend-name="$route.params.name"
-                            @change="update()"></WebOptions>
-            </b-card>
-
-            <br>
-
-            <h4>{{ $t("backendOptions.title") }}</h4>
-            <b-card>
-                <SearchBackendSelect :value="frontend.web_options.search_backend"
-                                     @change="onBackendSelect($event)"></SearchBackendSelect>
             </b-card>
         </b-card-body>
-
-
     </b-card>
 </template>
 
@@ -137,6 +130,7 @@ export default {
         },
         onBackendSelect(backend) {
             this.frontend.web_options.search_backend = backend;
+            this.frontend.jobs = [];
             this.update();
         }
     }

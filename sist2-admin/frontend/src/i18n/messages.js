@@ -52,7 +52,10 @@ export default {
         searchBackendTitle: "search backend configuration",
         newBackendName: "New search backend name",
 
-        selectJobs: "Select jobs",
+        frontendTab: "Frontend",
+        backendTab: "Backend",
+
+        selectJobs: "Available jobs",
         webOptions: {
             title: "Web options",
             lang: "UI Language",
@@ -109,12 +112,13 @@ export default {
             keepNLogs: "Keep last N log files. Set to -1 to keep all logs.",
             deleteNow: "Delete now",
             scheduleEnabled: "Enable scheduled re-scan",
-            noJobAvailable: "No jobs available.",
+            noJobAvailable: "No jobs available for this search backend.",
+            notIndexed: "Has not been indexed yet",
             noBackendError: "You must select a search backend to run this job",
             desktopNotifications: "Desktop notifications"
         },
         frontendOptions: {
-            title: "Frontend options",
+            title: "Advanced options",
             noJobSelectedWarning: "You must select at least one job to start this frontend"
         },
         notifications: {
