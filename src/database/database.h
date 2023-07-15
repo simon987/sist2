@@ -126,6 +126,8 @@ void database_open(database_t *db);
 
 void database_close(database_t *, int optimize);
 
+void database_increment_version(database_t *db);
+
 void database_write_thumbnail(database_t *db, const char *id, int num, void *data, size_t data_size);
 
 void *database_read_thumbnail(database_t *db, const char *id, int num, size_t *return_value_len);

@@ -163,7 +163,7 @@ void database_open(database_t *db) {
                 &db->write_document_sidecar_stmt, NULL));
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db,
-                "REPLACE INTO document (id, mtime, size, json_data) VALUES (?, ?, ?, ?);", -1,
+                "REPLACE INTO document (id, mtime, size, json_data, version) VALUES (?, ?, ?, ?, (SELECT max(id) FROM version));", -1,
                 &db->write_document_stmt, NULL));
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db,
@@ -795,4 +795,9 @@ cJSON *database_get_document(database_t *db, char *doc_id) {
     CRASH_IF_NOT_SQLITE_OK(sqlite3_reset(db->get_document));
 
     return json;
+}
+
+void database_increment_version(database_t *db) {
+    CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
+            db->db, "INSERT INTO version DEFAULT VALUES", NULL, NULL, NULL));
 }

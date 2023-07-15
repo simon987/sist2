@@ -75,6 +75,8 @@ void database_scan_begin(scan_args_t *args) {
         database_write_index_descriptor(db, desc);
     }
 
+    database_increment_version(db);
+
     database_close(db, FALSE);
 }
 
