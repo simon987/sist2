@@ -18,6 +18,7 @@
     "dom-to-image": "^2.6.0",
     "fslightbox-vue": "fslightbox-vue.tgz",
     "nouislider": "^15.2.0",
+    "onnxruntime-web": "^1.15.1",
     "underscore": "^1.13.1",
     "vue": "^2.6.12",
     "vue-color": "^2.8.1",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@babel/polyfill": "^7.12.1",
+    "@types/underscore": "^1.11.6",
     "@vue/cli-plugin-babel": "~5.0.8",
     "@vue/cli-plugin-router": "~5.0.8",
     "@vue/cli-plugin-typescript": "^5.0.8",

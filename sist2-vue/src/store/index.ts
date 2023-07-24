@@ -23,6 +23,8 @@ export default new Vuex.Store({
         dateMin: undefined,
         dateMax: undefined,
         searchText: "",
+        embeddingText: "",
+        embedding: null,
         pathText: "",
         sortMode: "score",
 
@@ -91,10 +93,11 @@ export default new Vuex.Store({
         uiMimeMap: [] as any[],
 
         auth0Token: null,
-        mlModel: {
+        nerModel: {
             model: null,
             name: null
         },
+        embeddingsModel: null
     },
     mutations: {
         setUiShowDetails: (state, val) => state.uiShowDetails = val,
@@ -129,6 +132,8 @@ export default new Vuex.Store({
         setDateBoundsMin: (state, val) => state.dateBoundsMin = val,
         setDateBoundsMax: (state, val) => state.dateBoundsMax = val,
         setSearchText: (state, val) => state.searchText = val,
+        setEmbeddingText: (state, val) => state.embeddingText = val,
+        setEmbedding: (state, val) => state.embedding= val,
         setFuzzy: (state, val) => state.fuzzy = val,
         setLastQueryResult: (state, val) => state.lastQueryResults = val,
         setFirstQueryResult: (state, val) => state.firstQueryResults = val,
@@ -212,7 +217,8 @@ export default new Vuex.Store({
             // noop
         },
         setAuth0Token: (state, val) => state.auth0Token = val,
-        setMlModel: (state, val) => state.mlModel = val,
+        setNerModel: (state, val) => state.nerModel = val,
+        setEmbeddingsModel: (state, val) => state.embeddingsModel = val,
     },
     actions: {
         setSist2Info: (store, val) => {
@@ -370,7 +376,9 @@ export default new Vuex.Store({
     },
     modules: {},
     getters: {
-        mlModel: (state) => state.mlModel,
+        nerModel: (state) => state.nerModel,
+        embeddingsModel: (state) => state.embeddingsModel,
+        embedding: (state) => state.embedding,
         seed: (state) => state.seed,
         getPathText: (state) => state.pathText,
         indices: state => state.indices,
@@ -389,6 +397,7 @@ export default new Vuex.Store({
         sizeMin: state => state.sizeMin,
         sizeMax: state => state.sizeMax,
         searchText: state => state.searchText,
+        embeddingText: state => state.embeddingText,
         pathText: state => state.pathText,
         fuzzy: state => state.fuzzy,
         size: state => state.optSize,

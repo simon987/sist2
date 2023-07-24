@@ -87,7 +87,7 @@ static void buf2hex(const unsigned char *buf, size_t buflen, char *hex_string) {
     *s = '\0';
 }
 
-static void md5_hexdigest(void *data, size_t size, char *output) {
+static void md5_hexdigest(const void *data, size_t size, char *output) {
     EVP_MD_CTX *md_ctx = EVP_MD_CTX_new();
     EVP_DigestInit_ex(md_ctx, EVP_md5(), NULL);
 
@@ -120,7 +120,7 @@ struct timespec timespec_add(struct timespec ts1, long usec);
 #define pthread_cond_timedwait_ms(cond, mutex, delay_ms) do {\
         struct timespec now; \
         clock_gettime(CLOCK_REALTIME, &now); \
-        struct timespec end_time = timespec_add(now, MILLISECOND * delay_ms); \
+        struct timespec end_time = timespec_add(now, MILLISECOND * (delay_ms)); \
         pthread_cond_timedwait(cond, mutex, &end_time); \
     } while (0)
 

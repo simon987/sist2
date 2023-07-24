@@ -163,7 +163,8 @@ void database_open(database_t *db) {
                 &db->write_document_sidecar_stmt, NULL));
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db,
-                "REPLACE INTO document (id, mtime, size, json_data, version) VALUES (?, ?, ?, ?, (SELECT max(id) FROM version));", -1,
+                "REPLACE INTO document (id, mtime, size, json_data, version) VALUES (?, ?, ?, ?, (SELECT max(id) FROM version));",
+                -1,
                 &db->write_document_stmt, NULL));
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db,
@@ -175,6 +176,10 @@ void database_open(database_t *db) {
                 db->db, "SELECT json_data FROM document WHERE id=?", -1,
                 &db->get_document, NULL));
 
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT * FROM model", -1,
+                &db->get_models, NULL));
+
         // Create functions
         sqlite3_create_function(
                 db->db,
@@ -183,6 +188,17 @@ void database_open(database_t *db) {
                 SQLITE_UTF8,
                 NULL,
                 path_parent_func,
+                NULL,
+                NULL
+        );
+
+        sqlite3_create_function(
+                db->db,
+                "embedding_to_json",
+                5,
+                SQLITE_UTF8,
+                NULL,
+                embedding_to_json_func,
                 NULL,
                 NULL
         );
@@ -249,6 +265,10 @@ void database_open(database_t *db) {
                 &db->fts_get_tags, NULL));
 
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT size FROM model WHERE id=?", -1,
+                &db->fts_model_size, NULL));
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db, "SELECT path, count FROM path_index"
                         " WHERE (index_id=?1 OR ?1 IS NULL) AND depth BETWEEN ? AND ?"
                         " AND (path = ?4 or path GLOB ?5)"
@@ -299,6 +319,17 @@ void database_open(database_t *db) {
                 SQLITE_UTF8,
                 &db->tag_array,
                 tag_matches_func,
+                NULL,
+                NULL
+        );
+
+        sqlite3_create_function(
+                db->db,
+                "cosine_sim",
+                3,
+                SQLITE_UTF8,
+                NULL,
+                cosine_sim_func,
                 NULL,
                 NULL
         );
@@ -462,8 +493,6 @@ char *database_delete_list_iter(database_iterator_t *iter) {
 database_iterator_t *database_create_document_iterator(database_t *db) {
 
     sqlite3_stmt *stmt;
-
-    // TODO optimization: remove mtime, size, _id from json_data
 
     sqlite3_prepare_v2(db->db, "WITH doc (j) AS (SELECT CASE"
                                " WHEN sc.json_data IS NULL THEN"

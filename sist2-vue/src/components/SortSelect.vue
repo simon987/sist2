@@ -1,5 +1,5 @@
 <template>
-  <b-dropdown variant="primary">
+  <b-dropdown variant="primary" :disabled="$store.getters.embeddingText !== ''">
     <b-dropdown-item :class="{'dropdown-active': sort === 'score'}" @click="onSelect('score')">{{
         $t("sort.relevance")
       }}

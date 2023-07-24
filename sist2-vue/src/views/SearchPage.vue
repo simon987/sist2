@@ -13,6 +13,7 @@
 
         <b-card v-show="!uiLoading && !showEsConnectionError" id="search-panel">
             <SearchBar @show-help="showHelp=true"></SearchBar>
+            <EmbeddingsSearchBar class="mt-3"></EmbeddingsSearchBar>
             <b-row>
                 <b-col style="height: 70px;" sm="6">
                     <SizeSlider></SizeSlider>
@@ -58,16 +59,14 @@
     </div>
 </template>
 
-<script lang="ts">
+<script>
 import Preloader from "@/components/Preloader.vue";
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import sist2 from "../Sist2Api";
-import Sist2Api, {EsHit, EsResult} from "../Sist2Api";
 import SearchBar from "@/components/SearchBar.vue";
 import IndexPicker from "@/components/IndexPicker.vue";
 import Vue from "vue";
 import Sist2Query from "@/Sist2ElasticsearchQuery";
-import _debounce from "lodash/debounce";
+import {debounce as _debounce} from "underscore";
 import DocCardWall from "@/components/DocCardWall.vue";
 import Lightbox from "@/components/Lightbox.vue";
 import LightboxCaption from "@/components/LightboxCaption.vue";
@@ -79,11 +78,13 @@ import DateSlider from "@/components/DateSlider.vue";
 import TagPicker from "@/components/TagPicker.vue";
 import DocList from "@/components/DocList.vue";
 import HelpDialog from "@/components/HelpDialog.vue";
-import Sist2SqliteQuery from "@/Sist2SqliteQuery";
+import EmbeddingsSearchBar from "@/components/EmbeddingsSearchBar.vue";
+import Sist2Api from "@/Sist2Api";
 
 
 export default Vue.extend({
     components: {
+        EmbeddingsSearchBar,
         HelpDialog,
         DocList,
         TagPicker,
@@ -93,8 +94,8 @@ export default Vue.extend({
     data: () => ({
         loading: false,
         uiLoading: true,
-        search: undefined as any,
-        docs: [] as EsHit[],
+        search: undefined,
+        docs: [],
         docIds: new Set(),
         docChecksums: new Set(),
         searchBusy: false,
@@ -108,16 +109,16 @@ export default Vue.extend({
     mounted() {
         // Handle touch events
         window.ontouchend = () => this.$store.commit("busTouchEnd");
-        window.ontouchcancel = this.$store.commit("busTouchEnd");
+        window.ontouchcancel = () => this.$store.commit("busTouchEnd");
 
-        this.search = _debounce(async (clear: boolean) => {
+        this.search = _debounce(async (clear) => {
             if (clear) {
                 await this.clearResults();
             }
 
             await this.searchNow();
 
-        }, 350, {leading: false});
+        }, 350, false);
 
         this.$store.dispatch("loadFromArgs", this.$route).then(() => {
             this.$store.subscribe(() => this.$store.dispatch("updateArgs", this.$router));
@@ -126,6 +127,7 @@ export default Vue.extend({
                     "setSizeMin", "setSizeMax", "setDateMin", "setDateMax", "setSearchText", "setPathText",
                     "setSortMode", "setOptHighlight", "setOptFragmentSize", "setFuzzy", "setSize", "setSelectedIndices",
                     "setSelectedMimeTypes", "setSelectedTags", "setOptQueryMode", "setOptSearchInPath",
+                    "setEmbedding"
                 ].includes(mutation.type)) {
                     if (this.searchBusy) {
                         return;
@@ -152,7 +154,7 @@ export default Vue.extend({
         }).catch(error => {
             console.log(error);
 
-            if (error.response.status == 503 || error.response.status == 500) {
+            if (error.response.status === 503 || error.response.status === 500) {
                 this.showEsConnectionError = true;
                 this.uiLoading = false;
             } else {
@@ -181,7 +183,7 @@ export default Vue.extend({
                     bodyClass: "toast-body-error",
                 });
         },
-        showSyntaxErrorToast: function (): void {
+        showSyntaxErrorToast: function () {
             this.$bvToast.toast(
                 this.$t("toast.esQueryErr"),
                 {
@@ -197,7 +199,7 @@ export default Vue.extend({
             await this.$store.dispatch("incrementQuerySequence");
             this.$store.commit("busSearch");
 
-            Sist2Api.search().then(async (resp: EsResult) => {
+            Sist2Api.search().then(async (resp) => {
                 await this.handleSearch(resp);
                 this.searchBusy = false;
             }).catch(err => {
@@ -215,8 +217,8 @@ export default Vue.extend({
             await this.$store.dispatch("clearResults");
             this.$store.commit("setUiReachedScrollEnd", false);
         },
-        async handleSearch(resp: EsResult) {
-            if (resp.hits.hits.length == 0 || resp.hits.hits.length < this.$store.state.optSize) {
+        async handleSearch(resp) {
+            if (resp.hits.hits.length === 0 || resp.hits.hits.length < this.$store.state.optSize) {
                 this.$store.commit("setUiReachedScrollEnd", true);
             }
 

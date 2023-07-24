@@ -321,6 +321,8 @@ void sist2_index(index_args_t *args) {
         strcpy(doc_id, cJSON_GetObjectItem(json, "_id")->valuestring);
         cJSON_DeleteItemFromObject(json, "_id");
 
+        // TODO: delete tag if empty
+
         if (args->print) {
             print_json(json, doc_id);
         } else {
@@ -461,6 +463,11 @@ int set_to_negative_if_value_is_zero(UNUSED(struct argparse *self), const struct
 
 int main(int argc, const char *argv[]) {
     setlocale(LC_ALL, "");
+
+//    database_t *db = database_create("clip.sist2", INDEX_DATABASE);
+//    database_open(db);
+//    database_test(db);
+//    exit(0);
 
     scan_args_t *scan_args = scan_args_create();
     index_args_t *index_args = index_args_create();

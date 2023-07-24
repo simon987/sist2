@@ -210,4 +210,8 @@ export default {
 .theme-black .inspire-tree .matched > .wholerow {
     background: rgba(251, 191, 41, 0.25);
 }
+#tagTree {
+    max-height: 350px;
+    overflow: auto;
+}
 </style>

@@ -9,7 +9,7 @@
             <b-button :disabled="mlPredictionsLoading || mlLoading" @click="mlAnalyze" variant="primary"
             >{{ $t("ml.analyzeText") }}
             </b-button>
-            <b-select :disabled="mlPredictionsLoading || mlLoading" class="ml-2" v-model="mlModel">
+            <b-select :disabled="mlPredictionsLoading || mlLoading" class="ml-2" v-model="nerModel">
                 <b-select-option :value="opt.value" v-for="opt of ModelsRepo.getOptions()">{{ opt.text }}
                 </b-select-option>
             </b-select>
@@ -57,16 +57,16 @@ export default {
             modelPredictionProgress: 0,
             mlPredictionsLoading: false,
             mlLoading: false,
-            mlModel: null,
+            nerModel: null,
             analyzedContentSpans: []
         }
     },
     mounted() {
 
         if (this.$store.getters.optMlDefaultModel) {
-            this.mlModel = this.$store.getters.optMlDefaultModel
+            this.nerModel = this.$store.getters.optMlDefaultModel
         } else {
-            this.mlModel = ModelsRepo.getDefaultModel();
+            this.nerModel = ModelsRepo.getDefaultModel();
         }
 
         Sist2Api
@@ -86,7 +86,7 @@ export default {
     computed: {
         ...mapGetters(["optAutoAnalyze"]),
         modelSize() {
-            const modelData = ModelsRepo.data[this.mlModel];
+            const modelData = ModelsRepo.data[this.nerModel];
             if (!modelData) {
                 return 0;
             }
@@ -110,10 +110,10 @@ export default {
             }
         },
         async getMlModel() {
-            if (this.$store.getters.mlModel.name !== this.mlModel) {
+            if (this.$store.getters.nerModel.name !== this.nerModel) {
                 this.mlLoading = true;
                 this.modelLoadingProgress = 0;
-                const modelInfo = ModelsRepo.data[this.mlModel];
+                const modelInfo = ModelsRepo.data[this.nerModel];
 
                 const model = new BertNerModel(
                     modelInfo.vocabUrl,
@@ -122,25 +122,25 @@ export default {
                 )
 
                 await model.init(progress => this.modelLoadingProgress = progress);
-                this.$store.commit("setMlModel", {model, name: this.mlModel});
+                this.$store.commit("setNerModel", {model, name: this.nerModel});
 
                 this.mlLoading = false;
                 return model
             }
 
-            return this.$store.getters.mlModel.model;
+            return this.$store.getters.nerModel.model;
         },
         async mlAnalyze() {
             if (!this.content) {
                 return;
             }
 
-            const modelInfo = ModelsRepo.data[this.mlModel];
+            const modelInfo = ModelsRepo.data[this.nerModel];
             if (modelInfo === undefined) {
                 return;
             }
 
-            this.$store.commit("setOptMlDefaultModel", this.mlModel);
+            this.$store.commit("setOptMlDefaultModel", this.nerModel);
             await this.$store.dispatch("updateConfiguration");
 
             const model = await this.getMlModel();

@@ -28,7 +28,15 @@ static struct mg_http_serve_opts DefaultServeOpts = {
         .fs = NULL,
         .ssi_pattern = NULL,
         .root_dir = NULL,
-        .mime_types = ""
+        .mime_types = HTTP_SERVER_HEADER
+};
+
+static struct mg_http_serve_opts IndexServeOpts = {
+        .fs = NULL,
+        .ssi_pattern = NULL,
+        .root_dir = NULL,
+        .mime_types = "",
+        .extra_headers = HTTP_SERVER_HEADER "Cross-Origin-Embedder-Policy: require-corp\r\nCross-Origin-Opener-Policy: same-origin\r\n"
 };
 
 void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
@@ -67,7 +75,7 @@ void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
 
 void serve_index_html(struct mg_connection *nc, struct mg_http_message *hm) {
     if (WebCtx.dev) {
-        mg_http_serve_file(nc, hm, "sist2-vue/dist/index.html", &DefaultServeOpts);
+        mg_http_serve_file(nc, hm, "sist2-vue/dist/index.html", &IndexServeOpts);
     } else {
         web_serve_asset_index_html(nc);
     }
@@ -334,6 +342,9 @@ void index_info(struct mg_connection *nc) {
         cJSON_AddStringToObject(idx_json, "rewriteUrl", idx->desc.rewrite_url);
         cJSON_AddNumberToObject(idx_json, "timestamp", (double) idx->desc.timestamp);
         cJSON_AddItemToArray(arr, idx_json);
+
+        cJSON *models = database_get_models(idx->db);
+        cJSON_AddItemToObject(idx_json, "models", models);
     }
 
     if (WebCtx.search_backend == SQLITE_SEARCH_BACKEND) {

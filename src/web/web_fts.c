@@ -32,6 +32,9 @@ typedef struct {
     int fetch_aggregations;
     int highlight;
     int highlight_context_size;
+    int model;
+    float *embedding;
+    int embedding_size;
 } fts_search_req_t;
 
 fts_sort_t get_sort_mode(const cJSON *req_sort) {
@@ -45,11 +48,27 @@ fts_sort_t get_sort_mode(const cJSON *req_sort) {
         return FTS_SORT_RANDOM;
     } else if (strcmp(req_sort->valuestring, "name") == 0) {
         return FTS_SORT_NAME;
+    } else if (strcmp(req_sort->valuestring, "embedding") == 0) {
+        return FTS_SORT_EMBEDDING;
     }
 
     return FTS_SORT_INVALID;
 }
 
+float *get_float_buffer(cJSON *arr, int *size) {
+    *size = cJSON_GetArraySize(arr);
+
+    float *floats = malloc(sizeof(float) * *size);
+
+    cJSON *elem;
+    int i = 0;
+    cJSON_ArrayForEach(elem, arr) {
+        floats[i] = (float) elem->valuedouble;
+        i += 1;
+    }
+
+    return floats;
+}
 
 static json_value get_json_string(cJSON *object, const char *name) {
 
@@ -84,6 +103,25 @@ static json_value get_json_bool(cJSON *object, const char *name) {
     }
     if (!cJSON_IsBool(item)) {
         return (json_value) {NULL, TRUE};
+    }
+
+    return (json_value) {item, FALSE};
+}
+
+static json_value get_json_float_array(cJSON *object, const char *name) {
+    cJSON *item = cJSON_GetObjectItem(object, name);
+    if (item == NULL || cJSON_IsNull(item)) {
+        return (json_value) {NULL, FALSE};
+    }
+    if (!cJSON_IsArray(item) || cJSON_GetArraySize(item) == 0) {
+        return (json_value) {NULL, TRUE};
+    }
+
+    cJSON *elem;
+    cJSON_ArrayForEach(elem, item) {
+        if (!cJSON_IsNumber(elem)) {
+            return (json_value) {NULL, TRUE};
+        }
     }
 
     return (json_value) {item, FALSE};
@@ -131,7 +169,7 @@ fts_search_req_t *get_search_req(struct mg_http_message *hm) {
 
     json_value req_query, req_path, req_size_min, req_size_max, req_date_min, req_date_max, req_page_size,
             req_index_ids, req_mime_types, req_tags, req_sort_asc, req_sort, req_seed, req_after,
-            req_fetch_aggregations, req_highlight, req_highlight_context_size;
+            req_fetch_aggregations, req_highlight, req_highlight_context_size, req_embedding, req_model;
 
     if (!cJSON_IsObject(json) ||
         (req_query = get_json_string(json, "query")).invalid ||
@@ -150,6 +188,8 @@ fts_search_req_t *get_search_req(struct mg_http_message *hm) {
         (req_mime_types = get_json_array(json, "mimeTypes")).invalid ||
         (req_highlight = get_json_bool(json, "highlight")).invalid ||
         (req_highlight_context_size = get_json_number(json, "highlightContextSize")).invalid ||
+        (req_embedding = get_json_float_array(json, "embedding")).invalid ||
+        (req_model = get_json_number(json, "model")).invalid ||
         (req_tags = get_json_array(json, "tags")).invalid) {
         cJSON_Delete(json);
         return NULL;
@@ -190,7 +230,11 @@ fts_search_req_t *get_search_req(struct mg_http_message *hm) {
         cJSON_Delete(json);
         return NULL;
     }
-    if (req_highlight_context_size.val->valueint < 0) {
+    if (req_highlight_context_size.val && req_highlight_context_size.val->valueint < 0) {
+        cJSON_Delete(json);
+        return NULL;
+    }
+    if (req_model.val && !req_embedding.val || !req_model.val && req_embedding.val) {
         cJSON_Delete(json);
         return NULL;
     }
@@ -216,6 +260,10 @@ fts_search_req_t *get_search_req(struct mg_http_message *hm) {
     req->highlight_context_size = req_highlight_context_size.val
                                   ? req_highlight_context_size.val->valueint
                                   : DEFAULT_HIGHLIGHT_CONTEXT_SIZE;
+    req->model = req_model.val ? req_model.val->valueint : 0;
+    req->embedding = req_model.val
+            ? get_float_buffer(req_embedding.val, &req->embedding_size)
+            : NULL;
 
     cJSON_Delete(json);
 
@@ -237,6 +285,10 @@ void destroy_search_req(fts_search_req_t *req) {
     destroy_array(req->index_ids);
     destroy_array(req->mime_types);
     destroy_array(req->tags);
+
+    if (req->embedding) {
+        free(req->embedding);
+    }
 
     free(req);
 }
@@ -331,7 +383,13 @@ void fts_search(struct mg_connection *nc, struct mg_http_message *hm) {
                                       req->page_size, req->index_ids, req->mime_types,
                                       req->tags, req->sort_asc, req->sort, req->seed,
                                       req->after, req->fetch_aggregations, req->highlight,
-                                      req->highlight_context_size);
+                                      req->highlight_context_size, req->model,
+                                      req->embedding, req->embedding_size);
+
+    if (json == NULL) {
+        HTTP_REPLY_BAD_REQUEST
+        return;
+    }
 
     destroy_search_req(req);
     mg_send_json(nc, json);

@@ -41,6 +41,7 @@ typedef enum {
     FTS_SORT_RANDOM,
     FTS_SORT_NAME,
     FTS_SORT_ID,
+    FTS_SORT_EMBEDDING
 } fts_sort_t;
 
 typedef struct {
@@ -83,6 +84,7 @@ typedef struct database {
     sqlite3_stmt *write_document_sidecar_stmt;
     sqlite3_stmt *write_thumbnail_stmt;
     sqlite3_stmt *get_document;
+    sqlite3_stmt *get_models;
 
     sqlite3_stmt *delete_tag_stmt;
     sqlite3_stmt *write_tag_stmt;
@@ -100,6 +102,8 @@ typedef struct database {
     sqlite3_stmt *fts_get_document;
     sqlite3_stmt *fts_suggest_tag;
     sqlite3_stmt *fts_get_tags;
+    sqlite3_stmt *fts_model_size;
+
 
     char **tag_array;
 
@@ -210,7 +214,8 @@ cJSON *database_fts_search(database_t *db, const char *query, const char *path, 
                            long size_max, long date_min, long date_max, int page_size,
                            char **index_ids, char **mime_types, char **tags, int sort_asc,
                            fts_sort_t sort, int seed, char **after, int fetch_aggregations,
-                           int highlight, int highlight_context_size);
+                           int highlight, int highlight_context_size, int model,
+                           const float *embedding, int embedding_size);
 
 void database_write_tag(database_t *db, char *doc_id, char *tag);
 
@@ -227,5 +232,11 @@ cJSON *database_fts_suggest_tag(database_t *db, char *prefix);
 cJSON *database_fts_get_tags(database_t *db);
 
 cJSON *database_get_document(database_t *db, char *doc_id);
+
+void cosine_sim_func(sqlite3_context *ctx, int argc, sqlite3_value **argv);
+
+void embedding_to_json_func(sqlite3_context *ctx, int argc, sqlite3_value **argv);
+
+cJSON *database_get_models(database_t *db);
 
 #endif
