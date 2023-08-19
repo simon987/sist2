@@ -48,5 +48,6 @@ COPY --from=build /build/build/sist2 /root/sist2
 # sist2-admin
 WORKDIR /root/sist2-admin
 COPY sist2-admin/requirements.txt /root/sist2-admin/
-RUN python3 -m pip install --no-cache -r /root/sist2-admin/requirements.txt
+RUN ln /usr/bin/python3 /usr/bin/python
+RUN python -m pip install --no-cache -r /root/sist2-admin/requirements.txt
 COPY --from=build /build/sist2-admin/ /root/sist2-admin/
