@@ -102,16 +102,6 @@ typedef struct web_args {
     search_backend_t search_backend;
 } web_args_t;
 
-typedef struct exec_args {
-    char *es_url;
-    char *es_index;
-    int es_insecure_ssl;
-    char *index_path;
-    const char *script_path;
-    int async_script;
-    char *script;
-} exec_args_t;
-
 index_args_t *index_args_create();
 
 sqlite_index_args_t *sqlite_index_args_create();
@@ -127,12 +117,6 @@ int index_args_validate(index_args_t *args, int argc, const char **argv);
 int sqlite_index_args_validate(sqlite_index_args_t *args, int argc, const char **argv);
 
 int web_args_validate(web_args_t *args, int argc, const char **argv);
-
-exec_args_t *exec_args_create();
-
-void exec_args_destroy(exec_args_t *args);
-
-int exec_args_validate(exec_args_t *args, int argc, const char **argv);
 
 void sqlite_index_args_destroy(sqlite_index_args_t *args);
 

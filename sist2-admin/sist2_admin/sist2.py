@@ -41,8 +41,6 @@ class Sist2SearchBackend(BaseModel):
     es_insecure_ssl: bool = False
     es_index: str = "sist2"
     threads: int = 1
-    script: str = ""
-    script_file: str = None
     batch_size: int = 70
 
     @staticmethod
@@ -74,8 +72,6 @@ class IndexOptions(BaseModel):
                     f"--es-index={search_backend.es_index}",
                     f"--batch-size={search_backend.batch_size}"]
 
-            if search_backend.script_file:
-                args.append(f"--script-file={search_backend.script_file}")
             if search_backend.es_insecure_ssl:
                 args.append(f"--es-insecure-ssl")
             if self.incremental_index:
@@ -248,13 +244,6 @@ class Sist2:
         self._data_dir = data_directory
 
     def index(self, options: IndexOptions, search_backend: Sist2SearchBackend, logs_cb):
-
-        if search_backend.script and search_backend.backend_type == SearchBackendType("elasticsearch"):
-            with NamedTemporaryFile("w", prefix="sist2-admin", suffix=".painless", delete=False) as f:
-                f.write(search_backend.script)
-            search_backend.script_file = f.name
-        else:
-            search_backend.script_file = None
 
         args = [
             self.bin_path,

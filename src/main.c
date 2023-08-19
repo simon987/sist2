@@ -24,7 +24,6 @@ static const char *const usage[] = {
         "sist2 index [OPTION]... INDEX",
         "sist2 sqlite-index [OPTION]... INDEX",
         "sist2 web [OPTION]... INDEX...",
-        "sist2 exec-script [OPTION]... INDEX",
         NULL,
 };
 
@@ -321,6 +320,8 @@ void sist2_index(index_args_t *args) {
         strcpy(doc_id, cJSON_GetObjectItem(json, "_id")->valuestring);
         cJSON_DeleteItemFromObject(json, "_id");
 
+        // TODO: delete tag if empty
+
         if (args->print) {
             print_json(json, doc_id);
         } else {
@@ -347,7 +348,7 @@ void sist2_index(index_args_t *args) {
     tpool_destroy(IndexCtx.pool);
 
     if (IndexCtx.needs_es_connection) {
-        finish_indexer(args->script, args->async_script, desc->id);
+        finish_indexer(desc->id);
     }
     free(desc);
 }
@@ -366,25 +367,6 @@ void sist2_sqlite_index(sqlite_index_args_t *args) {
 
     database_close(db, FALSE);
     database_close(search_db, FALSE);
-}
-
-void sist2_exec_script(exec_args_t *args) {
-    LogCtx.verbose = TRUE;
-
-    IndexCtx.es_url = args->es_url;
-    IndexCtx.es_index = args->es_index;
-    IndexCtx.es_insecure_ssl = args->es_insecure_ssl;
-    IndexCtx.needs_es_connection = TRUE;
-
-    database_t *db = database_create(args->index_path, INDEX_DATABASE);
-    database_open(db);
-
-    index_descriptor_t *desc = database_read_index_descriptor(db);
-    LOG_DEBUGF("main.c", "Index version %s", desc->version);
-
-    execute_update_script(args->script, args->async_script, desc->id);
-    free(args->script);
-    database_close(db, FALSE);
 }
 
 void sist2_web(web_args_t *args) {
@@ -465,7 +447,6 @@ int main(int argc, const char *argv[]) {
     scan_args_t *scan_args = scan_args_create();
     index_args_t *index_args = index_args_create();
     web_args_t *web_args = web_args_create();
-    exec_args_t *exec_args = exec_args_create();
     sqlite_index_args_t *sqlite_index_args = sqlite_index_args_create();
 
     int arg_version = 0;
@@ -474,7 +455,6 @@ int main(int argc, const char *argv[]) {
     int common_es_insecure_ssl = 0;
     char *common_es_index = NULL;
     char *common_script_path = NULL;
-    int common_async_script = 0;
     int common_threads = 0;
     int common_optimize_database = 0;
     char *common_search_index = NULL;
@@ -549,7 +529,6 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
             OPT_STRING(0, "mappings-file", &index_args->es_mappings_path, "Path to Elasticsearch mappings."),
             OPT_STRING(0, "settings-file", &index_args->es_settings_path, "Path to Elasticsearch settings."),
-            OPT_BOOLEAN(0, "async-script", &common_async_script, "Execute user script asynchronously."),
             OPT_INTEGER(0, "batch-size", &index_args->batch_size, "Index batch size. DEFAULT: 70"),
             OPT_BOOLEAN('f', "force-reset", &index_args->force_reset, "Reset Elasticsearch mappings and settings."),
 
@@ -560,7 +539,6 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT: http://localhost:9200"),
             OPT_BOOLEAN(0, "es-insecure-ssl", &common_es_insecure_ssl,
                         "Do not verify SSL connections to Elasticsearch."),
-    // TODO: change arg name (?)
             OPT_STRING(0, "search-index", &common_search_index, "Path to SQLite search index."),
             OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT: sist2"),
             OPT_STRING(0, "bind", &web_args->listen_address,
@@ -575,14 +553,6 @@ int main(int argc, const char *argv[]) {
             OPT_STRING(0, "tagline", &web_args->tagline, "Tagline in navbar"),
             OPT_BOOLEAN(0, "dev", &web_args->dev, "Serve html & js files from disk (for development)"),
             OPT_STRING(0, "lang", &web_args->lang, "Default UI language. Can be changed by the user"),
-
-            OPT_GROUP("Exec-script options"),
-            OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT: http://localhost:9200"),
-            OPT_BOOLEAN(0, "es-insecure-ssl", &common_es_insecure_ssl,
-                        "Do not verify SSL connections to Elasticsearch."),
-            OPT_STRING(0, "es-index", &common_es_index, "Elasticsearch index name. DEFAULT: sist2"),
-            OPT_STRING(0, "script-file", &common_script_path, "Path to user script."),
-            OPT_BOOLEAN(0, "async-script", &common_async_script, "Execute user script asynchronously."),
 
             OPT_END(),
     };
@@ -607,22 +577,16 @@ int main(int argc, const char *argv[]) {
 
     web_args->es_url = common_es_url;
     index_args->es_url = common_es_url;
-    exec_args->es_url = common_es_url;
 
     web_args->es_index = common_es_index;
     index_args->es_index = common_es_index;
-    exec_args->es_index = common_es_index;
 
     web_args->es_insecure_ssl = common_es_insecure_ssl;
     index_args->es_insecure_ssl = common_es_insecure_ssl;
-    exec_args->es_insecure_ssl = common_es_insecure_ssl;
 
     index_args->script_path = common_script_path;
-    exec_args->script_path = common_script_path;
     index_args->threads = common_threads;
     scan_args->threads = common_threads;
-    exec_args->async_script = common_async_script;
-    index_args->async_script = common_async_script;
 
     scan_args->optimize_database = common_optimize_database;
 
@@ -664,14 +628,6 @@ int main(int argc, const char *argv[]) {
         }
         sist2_web(web_args);
 
-    } else if (strcmp(argv[0], "exec-script") == 0) {
-
-        int err = exec_args_validate(exec_args, argc, argv);
-        if (err != 0) {
-            goto end;
-        }
-        sist2_exec_script(exec_args);
-
     } else {
         argparse_usage(&argparse);
         LOG_FATALF("main.c", "Invalid command: '%s'\n", argv[0]);
@@ -682,7 +638,6 @@ int main(int argc, const char *argv[]) {
     scan_args_destroy(scan_args);
     index_args_destroy(index_args);
     web_args_destroy(web_args);
-    exec_args_destroy(exec_args);
     sqlite_index_args_destroy(sqlite_index_args);
 
     return 0;

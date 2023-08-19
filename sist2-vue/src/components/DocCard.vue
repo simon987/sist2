@@ -24,6 +24,7 @@
                 <!-- Title line -->
                 <div style="display: flex">
                     <span class="info-icon" @click="onInfoClick()"></span>
+                    <MLIcon v-if="doc._source.embedding" clickable @click="onEmbeddingClick()"></MLIcon>
                     <DocFileTitle :doc="doc"></DocFileTitle>
                 </div>
 
@@ -49,10 +50,12 @@ import DocInfoModal from "@/components/DocInfoModal.vue";
 import ContentDiv from "@/components/ContentDiv.vue";
 import FullThumbnail from "@/components/FullThumbnail";
 import FeaturedFieldsLine from "@/components/FeaturedFieldsLine";
+import MLIcon from "@/components/icons/MlIcon.vue";
+import Sist2Api from "@/Sist2Api";
 
 
 export default {
-    components: {FeaturedFieldsLine, FullThumbnail, ContentDiv, DocInfoModal, DocFileTitle, TagContainer},
+    components: {MLIcon, FeaturedFieldsLine, FullThumbnail, ContentDiv, DocInfoModal, DocFileTitle, TagContainer},
     props: ["doc", "width"],
     data() {
         return {
@@ -70,6 +73,13 @@ export default {
         humanTime: humanTime,
         onInfoClick() {
             this.showInfo = true;
+        },
+        onEmbeddingClick() {
+            Sist2Api.getEmbeddings(this.doc._source.index, this.doc._id, this.$store.state.embeddingsModel).then(embeddings => {
+                this.$store.commit("setEmbeddingText", "");
+                this.$store.commit("setEmbedding", embeddings);
+                this.$store.commit("setEmbeddingDoc", this.doc);
+            })
         },
         async onThumbnailClick() {
             this.$store.commit("setUiLightboxSlide", this.doc._seq);

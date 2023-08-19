@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-tabs content-class="mt-3">
+        <b-tabs content-class="mt-3" v-model="tab" @input="onTabChange($event)">
             <b-tab :title="$t('backendTab')">
 
                 <b-card>
@@ -25,7 +25,6 @@
                         <SearchBackendListItem v-for="backend in backends"
                                                :key="backend.name" :backend="backend"></SearchBackendListItem>
                     </b-list-group>
-
                 </b-card>
 
                 <br/>
@@ -36,12 +35,12 @@
                         <b-col>
                             <b-input id="new-job" v-model="newJobName" :placeholder="$t('newJobName')"></b-input>
                             <b-popover
-                                :show.sync="showHelp"
-                                target="new-job"
-                                placement="top"
-                                triggers="manual"
-                                variant="primary"
-                                :content="$t('newJobHelp')"
+                                    :show.sync="showHelp"
+                                    target="new-job"
+                                    placement="top"
+                                    triggers="manual"
+                                    variant="primary"
+                                    :content="$t('newJobHelp')"
                             ></b-popover>
                         </b-col>
                         <b-col>
@@ -57,6 +56,37 @@
                     <b-list-group v-else>
                         <JobListItem v-for="job in jobs" :key="job.name" :job="job"></JobListItem>
                     </b-list-group>
+                </b-card>
+            </b-tab>
+            <b-tab :title="$t('scripts')">
+
+                <b-progress v-if="scriptsLoading" striped animated value="100"></b-progress>
+                <b-card v-else>
+                    <b-card-title>{{ $t("scripts") }}</b-card-title>
+
+                    <label>Select template</label>
+                    <b-form-radio-group stacked :options="scriptTemplates" v-model="scriptTemplate"></b-form-radio-group>
+                    <br>
+
+                    <b-row>
+                        <b-col>
+                            <b-form-input v-model="newScriptName" :disabled="!scriptTemplate" :placeholder="$t('newScriptName')"></b-form-input>
+                        </b-col>
+                        <b-col>
+                            <b-button variant="primary" @click="createScript()"
+                                      :disabled="!scriptNameValid(newScriptName)">
+                                {{ $t("create") }}
+                            </b-button>
+                        </b-col>
+                    </b-row>
+
+                    <hr/>
+
+                    <b-list-group>
+                        <UserScriptListItem v-for="script in scripts"
+                                            :key="script.name" :script="script"></UserScriptListItem>
+                    </b-list-group>
+
                 </b-card>
             </b-tab>
             <b-tab :title="$t('frontendTab')">
@@ -96,10 +126,11 @@ import {formatBindAddress} from "@/util";
 import Sist2AdminApi from "@/Sist2AdminApi";
 import FrontendListItem from "@/components/FrontendListItem";
 import SearchBackendListItem from "@/components/SearchBackendListItem.vue";
+import UserScriptListItem from "@/components/UserScriptListItem.vue";
 
 export default {
     name: "Jobs",
-    components: {SearchBackendListItem, JobListItem, FrontendListItem},
+    components: {UserScriptListItem, SearchBackendListItem, JobListItem, FrontendListItem},
     data() {
         return {
             jobsLoading: true,
@@ -115,11 +146,24 @@ export default {
             backendsLoading: true,
             newBackendName: "",
 
-            showHelp: false
+            scripts: [],
+            scriptTemplates: [],
+            newScriptName: "",
+            scriptTemplate: null,
+            scriptsLoading: true,
+
+            showHelp: false,
+            tab: 0
         }
     },
     mounted() {
         this.loading = true;
+        if (this.$route.params.tab) {
+            console.log("mounted " + this.$route.params.tab)
+            window.setTimeout(() => {
+                this.tab = Math.round(Number(this.$route.params.tab));
+            }, 1)
+        }
         this.reload();
     },
     methods: {
@@ -144,11 +188,20 @@ export default {
 
             return /^[a-zA-Z0-9-_,.; ]+$/.test(name);
         },
+        scriptNameValid(name) {
+            if (this.scripts.some(script => script.name === name)) {
+                return false;
+            }
+            if (name.length > 16) {
+                return false;
+            }
+
+            return /^[a-zA-Z0-9-_,.; ]+$/.test(name);
+        },
         reload() {
             Sist2AdminApi.getJobs().then(resp => {
                 this.jobs = resp.data;
                 this.jobsLoading = false;
-
                 this.showHelp = this.jobs.length === 0;
             });
             Sist2AdminApi.getFrontends().then(resp => {
@@ -159,6 +212,11 @@ export default {
                 this.backends = resp.data;
                 this.backendsLoading = false;
             })
+            Sist2AdminApi.getUserScripts().then(resp => {
+                this.scripts = resp.data;
+                this.scriptTemplates = this.$store.state.sist2AdminInfo.user_script_templates;
+                this.scriptsLoading = false;
+            })
         },
         createJob() {
             Sist2AdminApi.createJob(this.newJobName).then(this.reload);
@@ -168,6 +226,14 @@ export default {
         },
         createBackend() {
             Sist2AdminApi.createBackend(this.newBackendName).then(this.reload);
+        },
+        createScript() {
+            Sist2AdminApi.createUserScript(this.newScriptName, this.scriptTemplate).then(this.reload)
+        },
+        onTabChange(tab) {
+            if (this.$route.params.tab != tab) {
+                this.$router.push({params: {tab: tab}})
+            }
         }
     }
 }

@@ -103,6 +103,16 @@ class Sist2ElasticsearchQuery {
             q["highlightContextSize"] = Number(getters.optFragmentSize);
         }
 
+        if (getters.embedding) {
+            q["model"] = getters.embeddingsModel;
+            q["embedding"] = getters.embedding;
+            q["sort"] = "embedding";
+            q["sortAsc"] = false;
+        } else if (getters.sortMode == "embedding") {
+            q["sort"] = "sort"
+            q["sortAsc"] = true;
+        }
+
         return q;
     }
 }

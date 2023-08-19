@@ -12,7 +12,7 @@ export default {
     props: ["span", "text"],
     methods: {
         getStyle() {
-            return ModelsRepo.data[this.$store.getters.mlModel.name].labelStyles[this.span.label];
+            return ModelsRepo.data[this.$store.getters.nerModel.name].labelStyles[this.span.label];
         }
     }
 }

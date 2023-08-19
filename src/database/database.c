@@ -163,7 +163,8 @@ void database_open(database_t *db) {
                 &db->write_document_sidecar_stmt, NULL));
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db,
-                "REPLACE INTO document (id, mtime, size, json_data, version) VALUES (?, ?, ?, ?, (SELECT max(id) FROM version));", -1,
+                "REPLACE INTO document (id, mtime, size, json_data, version) VALUES (?, ?, ?, ?, (SELECT max(id) FROM version));",
+                -1,
                 &db->write_document_stmt, NULL));
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db,
@@ -175,6 +176,14 @@ void database_open(database_t *db) {
                 db->db, "SELECT json_data FROM document WHERE id=?", -1,
                 &db->get_document, NULL));
 
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT * FROM model", -1,
+                &db->get_models, NULL));
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT embedding FROM embedding WHERE id=? AND model_id=? AND start=0", -1,
+                &db->get_embedding, NULL));
+
         // Create functions
         sqlite3_create_function(
                 db->db,
@@ -183,6 +192,17 @@ void database_open(database_t *db) {
                 SQLITE_UTF8,
                 NULL,
                 path_parent_func,
+                NULL,
+                NULL
+        );
+
+        sqlite3_create_function(
+                db->db,
+                "emb_to_json",
+                1,
+                SQLITE_UTF8,
+                NULL,
+                emb_to_json_func,
                 NULL,
                 NULL
         );
@@ -249,6 +269,10 @@ void database_open(database_t *db) {
                 &db->fts_get_tags, NULL));
 
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db, "SELECT size FROM model WHERE id=?", -1,
+                &db->fts_model_size, NULL));
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db, "SELECT path, count FROM path_index"
                         " WHERE (index_id=?1 OR ?1 IS NULL) AND depth BETWEEN ? AND ?"
                         " AND (path = ?4 or path GLOB ?5)"
@@ -299,6 +323,17 @@ void database_open(database_t *db) {
                 SQLITE_UTF8,
                 &db->tag_array,
                 tag_matches_func,
+                NULL,
+                NULL
+        );
+
+        sqlite3_create_function(
+                db->db,
+                "cosine_sim",
+                3,
+                SQLITE_UTF8,
+                NULL,
+                cosine_sim_func,
                 NULL,
                 NULL
         );
@@ -463,31 +498,31 @@ database_iterator_t *database_create_document_iterator(database_t *db) {
 
     sqlite3_stmt *stmt;
 
-    // TODO optimization: remove mtime, size, _id from json_data
-
-    sqlite3_prepare_v2(db->db, "WITH doc (j) AS (SELECT CASE"
-                               " WHEN sc.json_data IS NULL THEN"
-                               "  CASE"
-                               "   WHEN t.tag IS NULL THEN"
-                               "    json_set(document.json_data, '$._id', document.id, '$.size', document.size, '$.mtime', document.mtime)"
-                               "   ELSE"
-                               "    json_set(document.json_data, '$._id', document.id, '$.size', document.size, '$.mtime', document.mtime, '$.tag', json_group_array(t.tag))"
-                               "   END"
-                               " ELSE"
-                               "  CASE"
-                               "   WHEN t.tag IS NULL THEN"
-                               "    json_patch(json_set(document.json_data, '$._id', document.id, '$.size', document.size, '$.mtime', document.mtime), sc.json_data)"
-                               "   ELSE"
-                               //   This will overwrite any tags specified in the sidecar file!
-                               //   TODO: concatenate the two arrays?
-                               "    json_set(json_patch(document.json_data, sc.json_data), '$._id', document.id, '$.size', document.size, '$.mtime', document.mtime, '$.tag', json_group_array(t.tag))"
-                               "   END"
-                               " END"
-                               " FROM document"
-                               " LEFT JOIN document_sidecar sc ON document.id = sc.id"
-                               " LEFT JOIN tag t ON document.id = t.id"
-                               " GROUP BY document.id)"
-                               " SELECT json_set(j, '$.index', (SELECT id FROM descriptor)) FROM doc", -1, &stmt, NULL);
+    CRASH_IF_NOT_SQLITE_OK(
+            sqlite3_prepare_v2(
+                    db->db,
+                    "WITH doc (j) AS (SELECT CASE"
+                    " WHEN emb.embedding IS NULL THEN"
+                    "  json_set(document.json_data, "
+                    "      '$._id', document.id, "
+                    "      '$.size', document.size, "
+                    "      '$.mtime', document.mtime, "
+                    "      '$.tag', json_group_array((SELECT tag FROM tag WHERE document.id = tag.id)))"
+                    " ELSE"
+                    "  json_set(document.json_data,"
+                    "      '$._id', document.id,"
+                    "      '$.size', document.size,"
+                    "      '$.mtime', document.mtime,"
+                    "      '$.tag', json_group_array((SELECT tag FROM tag WHERE document.id = tag.id)),"
+                    "      '$.emb', json_group_object(m.path, json(emb_to_json(emb.embedding))),"
+                    "      '$.embedding', 1)"
+                    " END"
+                    " FROM document"
+                    " LEFT JOIN embedding emb ON document.id = emb.id"
+                    " LEFT JOIN model m ON emb.model_id = m.id"
+                    " GROUP BY document.id)"
+                    " SELECT json_set(j, '$.index', (SELECT id FROM descriptor)) FROM doc",
+                    -1, &stmt, NULL));
 
     database_iterator_t *iter = malloc(sizeof(database_iterator_t));
 
@@ -495,6 +530,13 @@ database_iterator_t *database_create_document_iterator(database_t *db) {
     iter->db = db;
 
     return iter;
+}
+
+void remove_tag_if_null(cJSON *doc) {
+    cJSON *tags = cJSON_GetObjectItem(doc, "tag");
+    if (tags != NULL && cJSON_IsNull(cJSON_GetArrayItem(tags, 0))) {
+        cJSON_DeleteItemFromObject(doc, "tag");
+    }
 }
 
 cJSON *database_document_iter(database_iterator_t *iter) {
@@ -508,7 +550,12 @@ cJSON *database_document_iter(database_iterator_t *iter) {
 
     if (ret == SQLITE_ROW) {
         const char *json_string = (const char *) sqlite3_column_text(iter->stmt, 0);
-        return cJSON_Parse(json_string);
+
+        cJSON *doc = cJSON_Parse(json_string);
+
+        remove_tag_if_null(doc);
+
+        return doc;
     }
 
     if (ret != SQLITE_DONE) {

@@ -54,8 +54,18 @@ export default {
 
         frontendTab: "Frontend",
         backendTab: "Backend",
+        scripts: "User Scripts",
+        script: "User Script",
+        testScript: "Test/debug User Script",
+        newScriptName: "New script name",
+        scriptType: "Script type",
+        scriptCode: "Script code (Python)",
+        scriptOptions: "User scripts",
+        gitRepository: "Git repository URL",
+        extraArgs: "Extra command line arguments",
 
         selectJobs: "Available jobs",
+        selectJob: "Select a job",
         webOptions: {
             title: "Web options",
             lang: "UI Language",

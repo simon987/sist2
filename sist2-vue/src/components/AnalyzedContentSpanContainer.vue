@@ -22,7 +22,7 @@ export default {
     props: ["spans", "text"],
     computed: {
         legend() {
-            return Object.entries(ModelsRepo.data[this.$store.state.mlModel.name].legend)
+            return Object.entries(ModelsRepo.data[this.$store.state.nerModel.name].legend)
                 .map(([label, name]) => ({
                     text: name,
                     id: label,

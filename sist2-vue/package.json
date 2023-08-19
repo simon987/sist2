@@ -1,6 +1,6 @@
 {
   "name": "sist2",
-  "version": "2.11.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -9,7 +9,6 @@
   "dependencies": {
     "@auth0/auth0-spa-js": "^2.0.2",
     "@egjs/vue-infinitegrid": "3.3.0",
-    "@tensorflow/tfjs": "^4.4.0",
     "axios": "^0.25.0",
     "bootstrap-vue": "^2.21.2",
     "core-js": "^3.6.5",
@@ -18,6 +17,7 @@
     "dom-to-image": "^2.6.0",
     "fslightbox-vue": "fslightbox-vue.tgz",
     "nouislider": "^15.2.0",
+    "onnxruntime-web": "^1.15.1",
     "underscore": "^1.13.1",
     "vue": "^2.6.12",
     "vue-color": "^2.8.1",
@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@babel/polyfill": "^7.12.1",
+    "@types/underscore": "^1.11.6",
     "@vue/cli-plugin-babel": "~5.0.8",
     "@vue/cli-plugin-router": "~5.0.8",
     "@vue/cli-plugin-typescript": "^5.0.8",
@@ -43,8 +44,8 @@
     "portal-vue": "^2.1.7",
     "sass": "^1.26.11",
     "sass-loader": "^10.0.2",
-    "typescript": "~4.1.5",
-    "vue-cli-plugin-bootstrap-vue": "~0.7.0",
+    "typescript": "^4.9.5",
+    "vue-cli-plugin-bootstrap-vue": "~0.8.2",
     "vue-template-compiler": "^2.6.11"
   },
   "browserslist": [

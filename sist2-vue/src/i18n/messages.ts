@@ -18,6 +18,7 @@ export default {
         tags: "Tags",
         tagFilter: "Filter tags",
         forExample: "For example:",
+        embeddingsSearchPlaceholder: "Embeddings search",
         help: {
             simpleSearch: "Simple search",
             advancedSearch: "Advanced search",

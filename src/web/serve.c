@@ -28,8 +28,59 @@ static struct mg_http_serve_opts DefaultServeOpts = {
         .fs = NULL,
         .ssi_pattern = NULL,
         .root_dir = NULL,
-        .mime_types = ""
+        .mime_types = HTTP_SERVER_HEADER
 };
+
+static struct mg_http_serve_opts IndexServeOpts = {
+        .fs = NULL,
+        .ssi_pattern = NULL,
+        .root_dir = NULL,
+        .mime_types = "",
+        .extra_headers = HTTP_SERVER_HEADER HTTP_CROSS_ORIGIN_HEADERS
+};
+
+void get_embedding(struct mg_connection *nc, struct mg_http_message *hm) {
+
+    if (WebCtx.search_backend == ES_SEARCH_BACKEND && WebCtx.es_version != NULL && !HAS_KNN(WebCtx.es_version)) {
+        LOG_WARNINGF("serve.c",
+                     "Your Elasticsearch version (%d.%d.%d) does not support approximate kNN search and will"
+                     " fallback to a brute-force search. Please install ES 8.x.x+ for better search performance.",
+                     WebCtx.es_version->major, WebCtx.es_version->minor, WebCtx.es_version->patch);
+    }
+
+    if (hm->uri.len != SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 2 + 4) {
+        LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) hm->uri.len, hm->uri.ptr);
+        HTTP_REPLY_NOT_FOUND
+        return;
+    }
+
+    char doc_id[SIST_DOC_ID_LEN];
+    char index_id[SIST_INDEX_ID_LEN];
+
+    memcpy(index_id, hm->uri.ptr + 3, SIST_INDEX_ID_LEN);
+    *(index_id + SIST_INDEX_ID_LEN - 1) = '\0';
+    memcpy(doc_id, hm->uri.ptr + 3 + SIST_INDEX_ID_LEN, SIST_DOC_ID_LEN);
+    *(doc_id + SIST_DOC_ID_LEN - 1) = '\0';
+
+    int model_id = (int) strtol(hm->uri.ptr + SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 3, NULL, 10);
+
+    database_t *db = web_get_database(index_id);
+    if (db == NULL) {
+        LOG_DEBUGF("serve.c", "Could not get database for index: %s", index_id);
+        HTTP_REPLY_NOT_FOUND
+        return;
+    }
+
+    cJSON *json = database_get_embedding(db, doc_id, model_id);
+
+    if (json == NULL) {
+        HTTP_REPLY_NOT_FOUND
+        return;
+    }
+
+    mg_send_json(nc, json);
+    cJSON_Delete(json);
+}
 
 void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
 
@@ -67,7 +118,7 @@ void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
 
 void serve_index_html(struct mg_connection *nc, struct mg_http_message *hm) {
     if (WebCtx.dev) {
-        mg_http_serve_file(nc, hm, "sist2-vue/dist/index.html", &DefaultServeOpts);
+        mg_http_serve_file(nc, hm, "sist2-vue/dist/index.html", &IndexServeOpts);
     } else {
         web_serve_asset_index_html(nc);
     }
@@ -308,6 +359,7 @@ void index_info(struct mg_connection *nc) {
 
     cJSON_AddBoolToObject(json, "esVersionSupported", IS_SUPPORTED_ES_VERSION(WebCtx.es_version));
     cJSON_AddBoolToObject(json, "esVersionLegacy", IS_LEGACY_VERSION(WebCtx.es_version));
+    cJSON_AddBoolToObject(json, "esVersionHasKnn", HAS_KNN(WebCtx.es_version));
     cJSON_AddStringToObject(json, "lang", WebCtx.lang);
 
     cJSON_AddBoolToObject(json, "auth0Enabled", WebCtx.auth0_enabled);
@@ -334,6 +386,9 @@ void index_info(struct mg_connection *nc) {
         cJSON_AddStringToObject(idx_json, "rewriteUrl", idx->desc.rewrite_url);
         cJSON_AddNumberToObject(idx_json, "timestamp", (double) idx->desc.timestamp);
         cJSON_AddItemToArray(arr, idx_json);
+
+        cJSON *models = database_get_models(idx->db);
+        cJSON_AddItemToObject(idx_json, "models", models);
     }
 
     if (WebCtx.search_backend == SQLITE_SEARCH_BACKEND) {
@@ -697,6 +752,9 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
                 return;
             }
             tag(nc, hm);
+        } else if (mg_http_match_uri(hm, "/e/*/*/*")) {
+            get_embedding(nc, hm);
+            return;
         } else {
             HTTP_REPLY_NOT_FOUND
         }

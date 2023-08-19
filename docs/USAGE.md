@@ -5,7 +5,6 @@ Usage: sist2 scan [OPTION]... PATH
    or: sist2 index [OPTION]... INDEX
    or: sist2 sqlite-index [OPTION]... INDEX
    or: sist2 web [OPTION]... INDEX...
-   or: sist2 exec-script [OPTION]... INDEX
 
 Lightning-fast file system indexer and search tool.
 
@@ -73,13 +72,6 @@ Web options
     --tagline=<str>                   Tagline in navbar
     --dev                             Serve html & js files from disk (for development)
     --lang=<str>                      Default UI language. Can be changed by the user
-
-Exec-script options
-    --es-url=<str>                    Elasticsearch url. DEFAULT: http://localhost:9200
-    --es-insecure-ssl                 Do not verify SSL connections to Elasticsearch.
-    --es-index=<str>                  Elasticsearch index name. DEFAULT: sist2
-    --script-file=<str>               Path to user script.
-    --async-script                    Execute user script asynchronously.
 
 Made by simon987 <me@simon987.net>. Released under GPL-3.0
 ```
@@ -182,11 +174,6 @@ Using a version >=7.14.0 is recommended to enable the following features:
 
 When using a legacy version of ES, a notice will be displayed next to the sist2 version in the web UI.
 If you don't care about the features above, you can ignore it or disable it in the configuration page.
-
-## exec-script
-
-The `exec-script` command is used to execute a user script for an index that has already been imported to Elasticsearch with the `index` command. Note that the documents will not be reset to their default state before each execution as the `index` command does: if you make undesired changes to the documents by accident, you will need to run `index` again to revert to the original state.
-
 
 # Tagging
 

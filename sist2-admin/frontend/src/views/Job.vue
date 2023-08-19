@@ -30,6 +30,13 @@
                 <SearchBackendSelect :value="job.index_options.search_backend"
                                      @change="onBackendSelect($event)"></SearchBackendSelect>
             </b-card>
+            <br/>
+
+            <h4>{{ $t("scriptOptions") }}</h4>
+            <b-card>
+                <UserScriptPicker :selected-scripts="job.user_scripts"
+                                  @change="onScriptChange($event)"></UserScriptPicker>
+            </b-card>
 
             <br/>
 
@@ -48,10 +55,12 @@ import ScanOptions from "@/components/ScanOptions";
 import Sist2AdminApi from "@/Sist2AdminApi";
 import JobOptions from "@/components/JobOptions";
 import SearchBackendSelect from "@/components/SearchBackendSelect.vue";
+import UserScriptPicker from "@/components/UserScriptPicker.vue";
 
 export default {
     name: "Job",
     components: {
+        UserScriptPicker,
         SearchBackendSelect,
         ScanOptions,
         JobOptions
@@ -94,6 +103,10 @@ export default {
         },
         onBackendSelect(backend) {
             this.job.index_options.search_backend = backend;
+            this.update();
+        },
+        onScriptChange(scripts) {
+            this.job.user_scripts = scripts;
             this.update();
         }
     },

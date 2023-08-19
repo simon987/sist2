@@ -139,6 +139,38 @@ class Sist2AdminApi {
     deleteTaskLogs(taskId) {
         return axios.post(`${this.baseUrl}/api/task/${taskId}/delete_logs`);
     }
+
+    getUserScripts() {
+        return axios.get(`${this.baseUrl}/api/user_script`);
+    }
+
+    getUserScript(name) {
+        return axios.get(`${this.baseUrl}/api/user_script/${name}`);
+    }
+
+    createUserScript(name, template) {
+        return axios.post(`${this.baseUrl}/api/user_script/${name}`, null, {
+            params: {
+                template: template
+            }
+        });
+    }
+
+    updateUserScript(name, data) {
+        return axios.put(`${this.baseUrl}/api/user_script/${name}`, data);
+    }
+
+    deleteUserScript(name) {
+        return axios.delete(`${this.baseUrl}/api/user_script/${name}`);
+    }
+
+    testUserScript(name, job) {
+        return axios.get(`${this.baseUrl}/api/user_script/${name}/run`, {
+            params: {
+                job: job
+            }
+        });
+    }
 }
 
 export default new Sist2AdminApi()

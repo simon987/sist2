@@ -63,7 +63,7 @@ add_executable(
         src/database/database_schema.c
         src/database/database_fts.c
         src/web/web_fts.c
-)
+        src/database/database_embeddings.c)
 set_target_properties(sist2 PROPERTIES LINKER_LANGUAGE C)
 
 target_link_directories(sist2 PRIVATE BEFORE ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/)
@@ -76,6 +76,7 @@ find_package(unofficial-mongoose CONFIG REQUIRED)
 find_package(CURL CONFIG REQUIRED)
 find_library(MAGIC_LIB NAMES libmagic.a REQUIRED)
 find_package(unofficial-sqlite3 CONFIG REQUIRED)
+find_package(OpenBLAS CONFIG REQUIRED)
 
 
 target_include_directories(
@@ -158,6 +159,7 @@ target_link_libraries(
 
         ${MAGIC_LIB}
         unofficial::sqlite3::sqlite3
+        OpenBLAS::OpenBLAS
 )
 
 add_custom_target(
