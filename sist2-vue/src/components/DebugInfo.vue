@@ -45,7 +45,8 @@ export default {
                 items.push(
                     {key: "esVersion", value: this.$store.state.sist2Info.esVersion},
                     {key: "esVersionSupported", value: this.$store.state.sist2Info.esVersionSupported},
-                    {key: "esVersionLegacy", value: this.$store.state.sist2Info.esVersionLegacy}
+                    {key: "esVersionLegacy", value: this.$store.state.sist2Info.esVersionLegacy},
+                    {key: "esVersionHasKnn", value: this.$store.state.sist2Info.esVersionHasKnn},
                 );
             }
 

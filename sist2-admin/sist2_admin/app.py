@@ -18,12 +18,13 @@ from websockets.exceptions import ConnectionClosed
 
 import cron
 from config import LOG_FOLDER, logger, WEBSERVER_PORT, DATA_FOLDER, SIST2_BINARY
-from jobs import Sist2Job, Sist2ScanTask, TaskQueue, Sist2IndexTask, JobStatus
+from jobs import Sist2Job, Sist2ScanTask, TaskQueue, Sist2IndexTask, JobStatus, Sist2UserScriptTask
 from notifications import Subscribe, Notifications
 from sist2 import Sist2, Sist2SearchBackend
 from state import migrate_v1_to_v2, RUNNING_FRONTENDS, TESSERACT_LANGS, DB_SCHEMA_VERSION, migrate_v3_to_v4, \
     get_log_files_to_remove, delete_log_file, create_default_search_backends
 from web import Sist2Frontend
+from script import UserScript, SCRIPT_TEMPLATES
 
 sist2 = Sist2(SIST2_BINARY, DATA_FOLDER)
 db = PersistentState(dbfile=os.path.join(DATA_FOLDER, "state.db"))
@@ -52,7 +53,8 @@ async def home():
 async def api():
     return {
         "tesseract_langs": TESSERACT_LANGS,
-        "logs_folder": LOG_FOLDER
+        "logs_folder": LOG_FOLDER,
+        "user_script_templates": list(SCRIPT_TEMPLATES.keys())
     }
 
 
@@ -113,8 +115,6 @@ async def update_job(name: str, new_job: Sist2Job):
 async def update_frontend(name: str, frontend: Sist2Frontend):
     db["frontends"][name] = frontend
 
-    # TODO: Check etag
-
     return "ok"
 
 
@@ -150,9 +150,21 @@ def _run_job(job: Sist2Job):
     db["jobs"][job.name] = job
 
     scan_task = Sist2ScanTask(job, f"Scan [{job.name}]")
-    index_task = Sist2IndexTask(job, f"Index [{job.name}]", depends_on=scan_task)
+
+    index_depends_on = scan_task
+    script_tasks = []
+    for script_name in job.user_scripts:
+        script = db["user_scripts"][script_name]
+
+        task = Sist2UserScriptTask(script, job, f"Script <{script_name}> [{job.name}]", depends_on=scan_task)
+        script_tasks.append(task)
+        index_depends_on = task
+
+    index_task = Sist2IndexTask(job, f"Index [{job.name}]", depends_on=index_depends_on)
 
     task_queue.submit(scan_task)
+    for task in script_tasks:
+        task_queue.submit(task)
     task_queue.submit(index_task)
 
 
@@ -163,6 +175,22 @@ async def run_job(name: str):
         raise HTTPException(status_code=404)
 
     _run_job(job)
+
+    return "ok"
+
+
+@app.get("/api/user_script/{name:str}/run")
+def run_user_script(name: str, job: str):
+    script = db["user_scripts"][name]
+    if not script:
+        raise HTTPException(status_code=404)
+    job = db["jobs"][job]
+    if not job:
+        raise HTTPException(status_code=404)
+
+    script_task = Sist2UserScriptTask(script, job, f"Script <{name}> [{job.name}]")
+
+    task_queue.submit(script_task)
 
     return "ok"
 
@@ -239,7 +267,7 @@ def check_es_version(es_url: str, insecure: bool):
             es_url = f"{url.scheme}://{url.hostname}:{url.port}"
         else:
             auth = None
-        r = requests.get(es_url, verify=insecure, auth=auth)
+        r = requests.get(es_url, verify=not insecure, auth=auth)
     except SSLError:
         return {
             "ok": False,
@@ -375,6 +403,59 @@ def create_search_backend(name: str):
     return backend
 
 
+@app.delete("/api/user_script/{name:str}")
+def delete_user_script(name: str):
+    if db["user_scripts"][name] is None:
+        return HTTPException(status_code=404)
+
+    if any(name in job.user_scripts for job in db["jobs"]):
+        raise HTTPException(status_code=400, detail="in use (job)")
+
+    script: UserScript = db["user_scripts"][name]
+    script.delete_dir()
+
+    del db["user_scripts"][name]
+
+    return "ok"
+
+
+@app.post("/api/user_script/{name:str}")
+def create_user_script(name: str, template: str):
+    if db["user_scripts"][name] is not None:
+        return HTTPException(status_code=400, detail="already exists")
+
+    script = SCRIPT_TEMPLATES[template](name)
+    db["user_scripts"][name] = script
+
+    return script
+
+
+@app.get("/api/user_script")
+async def get_user_scripts():
+    return list(db["user_scripts"])
+
+
+@app.get("/api/user_script/{name:str}")
+async def get_user_script(name: str):
+    backend = db["user_scripts"][name]
+    if not backend:
+        raise HTTPException(status_code=404)
+
+    return backend
+
+
+@app.put("/api/user_script/{name:str}")
+async def update_user_script(name: str, script: UserScript):
+    previous_version: UserScript = db["user_scripts"][name]
+
+    if previous_version and previous_version.git_repository != script.git_repository:
+        script.force_clone = True
+
+    db["user_scripts"][name] = script
+
+    return "ok"
+
+
 def tail(filepath: str, n: int):
     with open(filepath) as file:
 
@@ -479,7 +560,8 @@ if __name__ == '__main__':
         migrate_v3_to_v4(db)
 
     if db["sist2_admin"]["info"]["version"] != DB_SCHEMA_VERSION:
-        raise Exception(f"Incompatible database version for {db.dbfile}")
+        raise Exception(f"Incompatible database {db.dbfile}. "
+                        f"Automatic migration is not available, please delete the database file to continue.")
 
     start_frontends()
     cron.initialize(db, _run_job)

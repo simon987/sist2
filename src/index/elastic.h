@@ -24,6 +24,8 @@ typedef struct {
 
 #define IS_SUPPORTED_ES_VERSION(es_version) ((es_version) != NULL && VERSION_GE((es_version), 6, 8) && VERSION_LT((es_version), 9, 0))
 #define IS_LEGACY_VERSION(es_version) ((es_version) != NULL && VERSION_LT((es_version), 7, 14))
+#define HAS_KNN(es_version) ((es_version) != NULL && VERSION_GE((es_version), 8, 0))
+
 
 __always_inline
 static const char *format_es_version(es_version_t *version) {
@@ -51,7 +53,7 @@ void delete_document(const char *document_id);
 es_indexer_t *create_indexer(const char *url, const char *index);
 
 void elastic_cleanup();
-void finish_indexer(char *script, int async_script, char *index_id);
+void finish_indexer(char *index_id);
 
 void elastic_init(int force_reset, const char* user_mappings, const char* user_settings);
 
@@ -60,7 +62,5 @@ cJSON *elastic_get_document(const char *id_str);
 char *elastic_get_status();
 
 es_version_t *elastic_get_version(const char *es_url, int insecure);
-
-void execute_update_script(const char *script, int async, const char index_id[SIST_INDEX_ID_LEN]);
 
 #endif

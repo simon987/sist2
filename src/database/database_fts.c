@@ -67,6 +67,11 @@ void database_fts_index(database_t *db) {
             "REPLACE INTO fts.embedding (id, model_id, start, end, embedding)"
             " SELECT id, model_id, start, end, embedding FROM embedding", NULL, NULL, NULL));
 
+    CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
+            db->db,
+            "INSERT INTO fts.model (id, size)"
+            " SELECT id, size FROM model WHERE TRUE ON CONFLICT (id) DO NOTHING", NULL, NULL, NULL));
+
     // TODO: delete old embeddings
 
     LOG_DEBUG("database_fts.c", "Deleting old documents");
@@ -518,20 +523,15 @@ cJSON *database_fts_search(database_t *db, const char *query, const char *path, 
 
     const char *json_object_sql;
     if (highlight && query_where != NULL) {
-        json_object_sql = "json_remove(json_set(doc.json_data,"
+        json_object_sql = "json_set(json_remove(doc.json_data, '$.content'),"
                           "'$.index', doc.index_id,"
+                          "'$.embedding', (CASE WHEN emb.id IS NOT NULL THEN 1 ELSE 0 END),"
                           "'$._highlight.name', snippet(search, 0, '<mark>', '</mark>', '', ?6),"
-                          "'$._highlight.content', snippet(search, 1, '<mark>', '</mark>', '', ?6)),"
-                          "'$.content')";
+                          "'$._highlight.content', snippet(search, 1, '<mark>', '</mark>', '', ?6))";
     } else {
-        json_object_sql = "json_remove(json_set(doc.json_data,"
-                          "'$.index', doc.index_id),"
-                          "'$.content')";
-    }
-
-    const char *embedding_join = "";
-    if (embedding) {
-        embedding_join = "LEFT JOIN embedding emb ON emb.id = doc.id AND emb.model_id=?9";
+        json_object_sql = "json_set(json_remove(doc.json_data, '$.content'),"
+                          "'$.index', doc.index_id,"
+                          "'$.embedding', (CASE WHEN emb.id IS NOT NULL THEN 1 ELSE 0 END))";
     }
 
     char *sql;
@@ -544,12 +544,11 @@ cJSON *database_fts_search(database_t *db, const char *query, const char *path, 
                 " %s, %s as sort_var, doc.ROWID"
                 " FROM search"
                 " INNER JOIN document_index doc on doc.ROWID = search.ROWID"
-                " %s"
+                " LEFT JOIN embedding emb on emb.id = doc.id"
                 " WHERE %s"
                 " ORDER BY sort_var%s, doc.ROWID"
                 " LIMIT ?2",
                 json_object_sql, get_sort_var(sort),
-                embedding_join,
                 where,
                 sort_asc ? "" : " DESC");
 
@@ -567,12 +566,11 @@ cJSON *database_fts_search(database_t *db, const char *query, const char *path, 
                 "SELECT"
                 " %s, %s as sort_var, doc.ROWID"
                 " FROM document_index doc"
-                " %s"
+                " LEFT JOIN embedding emb on emb.id = doc.id"
                 " WHERE %s"
                 " ORDER BY sort_var%s,doc.ROWID"
                 " LIMIT ?2",
                 json_object_sql, get_sort_var(sort),
-                embedding_join,
                 where,
                 sort_asc ? "" : " DESC");
 
@@ -624,7 +622,7 @@ cJSON *database_fts_search(database_t *db, const char *query, const char *path, 
     if (after_where) {
         if (sort == FTS_SORT_NAME || sort == FTS_SORT_ID) {
             sqlite3_bind_text(stmt, 3, after[0], -1, SQLITE_STATIC);
-        } else if (sort == FTS_SORT_SCORE) {
+        } else if (sort == FTS_SORT_SCORE || sort == FTS_SORT_EMBEDDING) {
             sqlite3_bind_double(stmt, 3, strtod(after[0], NULL));
         } else {
             sqlite3_bind_int64(stmt, 3, strtol(after[0], NULL, 10));

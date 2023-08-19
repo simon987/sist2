@@ -1,13 +1,18 @@
 import json
 import logging
 import os.path
+import shlex
 import signal
 import uuid
 from datetime import datetime
 from enum import Enum
+from io import TextIOWrapper
 from logging import FileHandler
+from subprocess import Popen
+import subprocess
 from threading import Lock, Thread
 from time import sleep
+from typing import List
 from uuid import uuid4, UUID
 
 from hexlib.db import PersistentState
@@ -18,6 +23,7 @@ from notifications import Notifications
 from sist2 import ScanOptions, IndexOptions, Sist2
 from state import RUNNING_FRONTENDS, get_log_files_to_remove, delete_log_file
 from web import Sist2Frontend
+from script import UserScript
 
 
 class JobStatus(Enum):
@@ -31,6 +37,8 @@ class Sist2Job(BaseModel):
     name: str
     scan_options: ScanOptions
     index_options: IndexOptions
+
+    user_scripts: List[str] = []
 
     cron_expression: str
     schedule_enabled: bool = False
@@ -182,7 +190,7 @@ class Sist2IndexTask(Sist2Task):
 
         duration = self.ended - self.started
 
-        ok = return_code == 0
+        ok = return_code in (0, 1)
 
         if ok:
             self.restart_running_frontends(db, sist2)
@@ -229,6 +237,65 @@ class Sist2IndexTask(Sist2Task):
             RUNNING_FRONTENDS[frontend_name] = pid
 
             self._logger.info(json.dumps({"sist2-admin": f"Restart frontend {pid=} {frontend_name=}"}))
+
+
+class Sist2UserScriptTask(Sist2Task):
+
+    def __init__(self, user_script: UserScript, job: Sist2Job, display_name: str, depends_on: Sist2Task = None):
+        super().__init__(job, display_name, depends_on=depends_on.id if depends_on else None)
+        self.user_script = user_script
+
+    def run(self, sist2: Sist2, db: PersistentState):
+        super().run(sist2, db)
+
+        try:
+            self.user_script.setup(self.log_callback)
+        except Exception as e:
+            logger.error(f"Setup for {self.user_script.name} failed: ")
+            logger.exception(e)
+            self.log_callback({"sist2-admin": f"Setup for {self.user_script.name} failed: {e}"})
+            return -1
+
+        executable = self.user_script.get_executable()
+        index_path = os.path.join(DATA_FOLDER, self.job.index_path)
+        extra_args = self.user_script.extra_args
+
+        args = [
+            executable,
+            index_path,
+            *shlex.split(extra_args)
+        ]
+
+        self.log_callback({"sist2-admin": f"Starting user script with {executable=}, {index_path=}, {extra_args=}"})
+
+        proc = Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.user_script.script_dir())
+        self.pid = proc.pid
+
+        t_stderr = Thread(target=self._consume_logs, args=(self.log_callback, proc, "stderr", False))
+        t_stderr.start()
+
+        self._consume_logs(self.log_callback, proc, "stdout", True)
+
+        self.ended = datetime.utcnow()
+
+        return 0
+
+    @staticmethod
+    def _consume_logs(logs_cb, proc, stream, wait):
+        pipe_wrapper = TextIOWrapper(getattr(proc, stream), encoding="utf8", errors="ignore")
+        try:
+            for line in pipe_wrapper:
+                if line.strip() == "":
+                    continue
+                if line.startswith("$PROGRESS"):
+                    progress = json.loads(line[len("$PROGRESS "):])
+                    logs_cb({"progress": progress})
+                    continue
+                logs_cb({stream: line})
+        finally:
+            if wait:
+                proc.wait()
+            pipe_wrapper.close()
 
 
 class TaskQueue:

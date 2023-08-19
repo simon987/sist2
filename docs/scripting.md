@@ -1,18 +1,47 @@
 ## User scripts
 
-*This document is under construction, more in-depth guide coming soon*
+User scripts are used to augment your sist2 index with additional metadata, neural network embeddings, tags etc.
+
+
+Since version 3.2.0, user scripts are written in Python, and are ran against the sist2 index file. User scripts do not 
+need a connection to the search backend.
+
+You can create a user script based on a template from the sist2-admin interface:
+
+![sist2-admin-scripts](sist2-admin-scripts.png)
+
+User scripts leverage the [sist2-python](https://github.com/simon987/sist2-python) library to interface with the
+index file*. You can find sist2-python documentation and examples
+here: [sist2-python.readthedocs.io](https://sist2-python.readthedocs.io/).
+
+If you are not using the sist2-admin interface, you can run user scripts manually from the command line:
+
+```
+pip install git+https://github.com/simon987/sist2-python.git
+
+python my_script.py /path/to/my_index.sist2
+```
+
+\* It is possible to manually update the index using raw SQL queries, but the database schema is not stable and
+can change at any time; it is recommended to use the more stable sist2-python wrapper instead.
+
+<hr>
+
+<details>
+  <summary>Legacy user scripts (sist2 version < 3.2.0)</summary>
 
 During the `index` step, you can use the `--script-file <script>` option to
 modify documents or add user tags. This option is mainly used to
 implement automatic tagging based on file attributes.
 
-The scripting language used 
-([Painless Scripting Language](https://www.elastic.co/guide/en/elasticsearch/painless/7.4/index.html)) 
+The scripting language used
+([Painless Scripting Language](https://www.elastic.co/guide/en/elasticsearch/painless/7.4/index.html))
 is very similar to Java, but you should be able to create user scripts
 without programming experience at all if you're somewhat familiar with
 regex.
 
 This is the base structure of the documents we're working with:
+
 ```json
 {
   "_id": "e171405c-fdb5-4feb-bb32-82637bc32084",
@@ -34,7 +63,8 @@ This is the base structure of the documents we're working with:
 **Example script**
 
 This script checks if the `genre` attribute exists, if it does
-it adds the `genre.<genre>` tag. 
+it adds the `genre.<genre>` tag.
+
 ```Java
 ArrayList tags = ctx._source.tag = new ArrayList();
 
@@ -47,21 +77,23 @@ You can use `.` to create a hierarchical tag tree:
 
 ![scripting/genre_example](genre_example.png)
 
-
 To use regular expressions, you need to add this line in `/etc/elasticsearch/elasticsearch.yml`
+
 ```yaml
 script.painless.regex.enabled: true
 ```
+
 Or, if you're using docker add `-e "script.painless.regex.enabled=true"`
 
 **Tag color**
 
-You can specify the color for an individual tag by appending an 
+You can specify the color for an individual tag by appending an
 hexadecimal color code (`#RRGGBBAA`) to the tag name.
 
 ### Examples
 
 If `(20XX)` is in the file name, add the `year.<year>` tag:
+
 ```Java
 ArrayList tags = ctx._source.tag = new ArrayList();
 
@@ -72,6 +104,7 @@ if (m.find()) {
 ```
 
 Use default *Calibre* folder structure to infer author.
+
 ```Java
 ArrayList tags = ctx._source.tag = new ArrayList();
 
@@ -84,8 +117,9 @@ if (ctx._source.name.contains("-") && ctx._source.extension == "pdf") {
 }
 ```
 
-If the file matches a specific pattern `AAAA-000 fName1 lName1, <fName2 lName2>...`, add the `actress.<actress>` and 
+If the file matches a specific pattern `AAAA-000 fName1 lName1, <fName2 lName2>...`, add the `actress.<actress>` and
 `studio.<studio>` tag:
+
 ```Java
 ArrayList tags = ctx._source.tag = new ArrayList();
 
@@ -102,16 +136,18 @@ if (m.find()) {
 ```
 
 Set the name of the last folder (`/path/to/<studio>/file.mp4`) to `studio.<studio>` tag
+
 ```Java
 ArrayList tags = ctx._source.tag = new ArrayList();
 
 if (ctx._source.path != "") {
-    String[] names = ctx._source.path.splitOnToken('/');
+    String[] names = ctx._source.path.splitOnToken('/');
     tags.add("studio." + names[names.length-1]);
 }
 ```
 
 Parse `EXIF:F Number` tag
+
 ```Java
 if (ctx._source?.exif_fnumber != null) {
     String[] values = ctx._source.exif_fnumber.splitOnToken(' ');
@@ -124,6 +160,7 @@ if (ctx._source?.exif_fnumber != null) {
 ```
 
 Display year and months from `EXIF:DateTime` tag
+
 ```Java
 if (ctx._source?.exif_datetime != null) {
     SimpleDateFormat parser = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
@@ -140,3 +177,6 @@ if (ctx._source?.exif_datetime != null) {
 }
 
 ```
+
+</details>
+

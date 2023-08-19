@@ -3,7 +3,7 @@
 
 
 void web_serve_asset_index_html(struct mg_connection *nc) {
-    web_send_headers(nc, 200, sizeof(index_html), "Content-Type: text/html");
+    web_send_headers(nc, 200, sizeof(index_html), HTTP_CROSS_ORIGIN_HEADERS "Content-Type: text/html");
     mg_send(nc, index_html, sizeof(index_html));
 }
 

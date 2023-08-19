@@ -85,6 +85,7 @@ typedef struct database {
     sqlite3_stmt *write_thumbnail_stmt;
     sqlite3_stmt *get_document;
     sqlite3_stmt *get_models;
+    sqlite3_stmt *get_embedding;
 
     sqlite3_stmt *delete_tag_stmt;
     sqlite3_stmt *write_tag_stmt;
@@ -143,6 +144,8 @@ index_descriptor_t *database_read_index_descriptor(database_t *db);
 void database_write_document(database_t *db, document_t *doc, const char *json_data);
 
 database_iterator_t *database_create_document_iterator(database_t *db);
+
+void emb_to_json_func(sqlite3_context *ctx, int argc, sqlite3_value **argv);
 
 cJSON *database_document_iter(database_iterator_t *);
 
@@ -235,8 +238,10 @@ cJSON *database_get_document(database_t *db, char *doc_id);
 
 void cosine_sim_func(sqlite3_context *ctx, int argc, sqlite3_value **argv);
 
-void embedding_to_json_func(sqlite3_context *ctx, int argc, sqlite3_value **argv);
-
 cJSON *database_get_models(database_t *db);
+
+int database_fts_get_model_size(database_t *db, int model_id);
+
+cJSON *database_get_embedding(database_t *db, char *doc_id, int model_id);
 
 #endif

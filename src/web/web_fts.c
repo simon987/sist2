@@ -262,8 +262,8 @@ fts_search_req_t *get_search_req(struct mg_http_message *hm) {
                                   : DEFAULT_HIGHLIGHT_CONTEXT_SIZE;
     req->model = req_model.val ? req_model.val->valueint : 0;
     req->embedding = req_model.val
-            ? get_float_buffer(req_embedding.val, &req->embedding_size)
-            : NULL;
+                     ? get_float_buffer(req_embedding.val, &req->embedding_size)
+                     : NULL;
 
     cJSON_Delete(json);
 

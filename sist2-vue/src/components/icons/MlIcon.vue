@@ -1,6 +1,6 @@
 <template>
-    <svg height="20px" width="20px" xmlns="http://www.w3.org/2000/svg"
-         viewBox="0 0 512 512" xml:space="preserve">
+    <svg class="ml-icon" :class="{'m-icon': 1, 'ml-icon-big': big, 'ml-icon-clickable': clickable}" xmlns="http://www.w3.org/2000/svg"
+         viewBox="0 0 512 512" xml:space="preserve" fill="currentColor" stroke="currentColor" @click="$emit('click')">
                 <g>
 	<path class="st0" d="M167.314,14.993C167.314,6.712,160.602,0,152.332,0h-5.514c-8.27,0-14.982,6.712-14.982,14.993v41.466h35.478
 		V14.993z"/>
@@ -42,9 +42,35 @@
 
 <script>
 export default {
-    name: "MLIcon"
+    name: "MLIcon",
+    props: {
+        "big": Boolean,
+        "clickable": Boolean
+    }
 }
 </script>
 
 <style scoped>
+.ml-icon-clickable {
+    cursor: pointer;
+}
+
+.ml-icon-big {
+    width: 24px !important;
+    height: 24px !important;
+}
+
+.ml-icon {
+    width: 1rem;
+    min-width: 1rem;
+    margin-right: 0.2rem;
+    line-height: 1rem;
+    height: 1rem;
+    min-height: 1rem;
+    filter: brightness(45%);
+}
+
+.theme-black .ml-icon {
+    filter: brightness(80%);
+}
 </style>

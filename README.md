@@ -146,17 +146,17 @@ sist2 v3.0.7+ supports SQLite search backend. The SQLite search backend has
 fewer features and generally comparable query performance for medium-size
 indices, but it uses much less memory and is easier to set up.
 
-|                                              |                  SQLite                  |                                                             Elasticsearch                                                             |
-|----------------------------------------------|:----------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------:|
-| Requires separate search engine installation |                                          |                                                                   ✓                                                                   |
-| Memory footprint                             |                  ~20MB                   |                                                                >500MB                                                                 |
-| Query syntax                                 | [fts5](https://www.sqlite.org/fts5.html) | [query_string](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax) |
-| Fuzzy search                                 |                                          |                                                                   ✓                                                                   |
-| Media Types tree real-time updating          |                                          |                                                                   ✓                                                                   |
-| Search in file `path`                        |                                          |                                                                   ✓                                                                   |
-| Manual tagging                               |                    ✓                     |                                                                   ✓                                                                   |
-| User scripts                                 |                                          |                                                                   ✓                                                                   |
-| Media Type breakdown for search results      |                                          |                                                                   ✓                                                                   |
+|                                              |                       SQLite                        |                                                             Elasticsearch                                                             |
+|----------------------------------------------|:---------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------:|
+| Requires separate search engine installation |                                                     |                                                                   ✓                                                                   |
+| Memory footprint                             |                        ~20MB                        |                                                                >500MB                                                                 |
+| Query syntax                                 |      [fts5](https://www.sqlite.org/fts5.html)       | [query_string](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax) |
+| Fuzzy search                                 |                                                     |                                                                   ✓                                                                   |
+| Media Types tree real-time updating          |                                                     |                                                                   ✓                                                                   |
+| Search in file `path`                        | [WIP](https://github.com/simon987/sist2/issues/402) |                                                                   ✓                                                                   |
+| Manual tagging                               |                          ✓                          |                                                                   ✓                                                                   |
+| User scripts                                 |                          ✓                          |                                                                   ✓                                                                   |
+| Media Type breakdown for search results      |                                                     |                                                                   ✓                                                                   |
 
 ### NER
 
@@ -206,7 +206,7 @@ docker run --rm --entrypoint cat my-sist2-image /root/sist2 > sist2-x64-linux
 3. Install vcpkg dependencies
 
     ```bash
-    vcpkg install curl[core,openssl] sqlite3[core,fts5] cpp-jwt pcre cjson brotli libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 libmupdf gtest mongoose libmagic libraw gumbo ffmpeg[core,avcodec,avformat,swscale,swresample,webp,opus,mp3lame,vpx,ffprobe,zlib]
+    vcpkg install openblas curl[core,openssl] sqlite3[core,fts5] cpp-jwt pcre cjson brotli libarchive[core,bzip2,libxml2,lz4,lzma,lzo] pthread tesseract libxml2 libmupdf gtest mongoose libmagic libraw gumbo ffmpeg[core,avcodec,avformat,swscale,swresample,webp,opus,mp3lame,vpx,ffprobe,zlib]
     ```
 
 4. Build

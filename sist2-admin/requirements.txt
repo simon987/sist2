@@ -3,3 +3,5 @@ git+https://github.com/simon987/hexlib.git
 uvicorn
 websockets
 pycron
+GitPython
+git+https://github.com/simon987/sist2-python.git

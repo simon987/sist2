@@ -2,6 +2,7 @@ import * as ort from "onnxruntime-web";
 import {BPETokenizer} from "@/ml/BPETokenizer";
 import axios from "axios";
 import {downloadToBuffer, ORT_WASM_PATHS} from "@/ml/mlUtils";
+import ModelStore from "@/ml/ModelStore";
 
 export class CLIPTransformerModel {
 
@@ -21,9 +22,17 @@ export class CLIPTransformerModel {
 
     async loadModel(onProgress) {
         ort.env.wasm.wasmPaths = ORT_WASM_PATHS;
-        const buf = await downloadToBuffer(this._modelUrl, onProgress);
+        ort.env.wasm.numThreads = 2;
 
-        this._model = await ort.InferenceSession.create(buf.buffer, {executionProviders: ["wasm"]});
+        let buf = await ModelStore.get(this._modelUrl);
+        if (!buf) {
+            buf = await downloadToBuffer(this._modelUrl, onProgress);
+            await ModelStore.set(this._modelUrl, buf);
+        }
+
+        this._model = await ort.InferenceSession.create(buf.buffer, {
+            executionProviders: ["wasm"],
+        });
     }
 
     async loadTokenizer() {
@@ -34,11 +43,11 @@ export class CLIPTransformerModel {
     async predict(text) {
         const tokenized = this._tokenizer.encode(text);
 
-        const feeds = {
+        const inputs = {
             input_ids: new ort.Tensor("int32", tokenized, [1, 77])
         };
 
-        const results = await this._model.run(feeds);
+        const results = await this._model.run(inputs);
 
         return Array.from(
             Object.values(results)

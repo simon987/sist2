@@ -25,6 +25,7 @@ export interface Index {
     id: string
     idPrefix: string
     timestamp: number
+    models: []
 }
 
 export interface EsHit {
@@ -117,6 +118,15 @@ class Sist2Api {
         return this.sist2Info.searchBackend;
     }
 
+    models() {
+        const allModels = this.sist2Info.indices
+            .map(idx => idx.models)
+            .flat();
+
+        return allModels
+            .filter((v, i, a) => a.findIndex(v2 => (v2.id === v.id)) === i)
+    }
+
     getSist2Info(): Promise<any> {
         return axios.get(`${this.baseUrl}i`).then(resp => {
             const indices = resp.data.indices as Index[];
@@ -127,7 +137,8 @@ class Sist2Api {
                     name: idx.name,
                     timestamp: idx.timestamp,
                     version: idx.version,
-                    idPrefix: getIdPrefix(indices, idx.id)
+                    models: idx.models,
+                    idPrefix: getIdPrefix(indices, idx.id),
                 } as Index;
             });
 
@@ -618,6 +629,15 @@ class Sist2Api {
             }
         }
 
+        if ("knn" in query) {
+            query.query = {
+                bool: {
+                    must: []
+                }
+            };
+            delete query.knn;
+        }
+
         if ("function_score" in query.query) {
             query.query = query.query.function_score.query;
         }
@@ -701,6 +721,11 @@ class Sist2Api {
             });
             return result;
         });
+    }
+
+    getEmbeddings(indexId, docId, modelId) {
+        return axios.post(`${this.baseUrl}/e/${indexId}/${docId}/${modelId.toString().padStart(3, '0')}`)
+            .then(resp => (resp.data));
     }
 }
 

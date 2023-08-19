@@ -103,7 +103,7 @@ class Sist2ElasticsearchQuery {
             q["highlightContextSize"] = Number(getters.optFragmentSize);
         }
 
-        if (getters.embeddingText) {
+        if (getters.embedding) {
             q["model"] = getters.embeddingsModel;
             q["embedding"] = getters.embedding;
             q["sort"] = "embedding";

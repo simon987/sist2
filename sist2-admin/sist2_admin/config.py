@@ -9,9 +9,11 @@ MAX_LOG_SIZE = 1 * 1024 * 1024
 SIST2_BINARY = os.environ.get("SIST2_BINARY", "/root/sist2")
 DATA_FOLDER = os.environ.get("DATA_FOLDER", "/sist2-admin/")
 LOG_FOLDER = os.path.join(DATA_FOLDER, "logs")
+SCRIPT_FOLDER = os.path.join(DATA_FOLDER, "scripts")
 WEBSERVER_PORT = 8080
 
 os.makedirs(LOG_FOLDER, exist_ok=True)
+os.makedirs(SCRIPT_FOLDER, exist_ok=True)
 os.makedirs(DATA_FOLDER, exist_ok=True)
 
 logger = logging.Logger("sist2-admin")

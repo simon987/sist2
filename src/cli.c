@@ -38,11 +38,6 @@ scan_args_t *scan_args_create() {
     return args;
 }
 
-exec_args_t *exec_args_create() {
-    exec_args_t *args = calloc(sizeof(exec_args_t), 1);
-    return args;
-}
-
 void scan_args_destroy(scan_args_t *args) {
     if (args->name != NULL) {
         free(args->name);
@@ -74,17 +69,9 @@ void web_args_destroy(web_args_t *args) {
     free(args);
 }
 
-void exec_args_destroy(exec_args_t *args) {
-
-    if (args->index_path != NULL) {
-        free(args->index_path);
-    }
-
-    free(args);
-}
-
 void sqlite_index_args_destroy(sqlite_index_args_t *args) {
-    // TODO
+    free(args->index_path);
+    free(args);
 }
 
 int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
@@ -625,44 +612,4 @@ sqlite_index_args_t *sqlite_index_args_create() {
 web_args_t *web_args_create() {
     web_args_t *args = calloc(sizeof(web_args_t), 1);
     return args;
-}
-
-int exec_args_validate(exec_args_t *args, int argc, const char **argv) {
-
-    if (argc < 2) {
-        fprintf(stderr, "Required positional argument: PATH.\n");
-        return 1;
-    }
-
-    char *index_path = abspath(argv[1]);
-    if (index_path == NULL) {
-        LOG_FATALF("cli.c", "Invalid index PATH argument. File not found: %s", argv[1]);
-    } else {
-        args->index_path = index_path;
-    }
-
-    if (args->es_url == NULL) {
-        args->es_url = DEFAULT_ES_URL;
-    }
-
-    if (args->es_index == NULL) {
-        args->es_index = DEFAULT_ES_INDEX;
-    }
-
-    if (args->script_path == NULL) {
-        LOG_FATAL("cli.c", "--script-file argument is required");
-    }
-
-    if (load_external_file(args->script_path, &args->script) != 0) {
-        return 1;
-    }
-
-    LOG_DEBUGF("cli.c", "arg script_path=%s", args->script_path);
-
-    char log_buf[5000];
-    strncpy(log_buf, args->script, sizeof(log_buf));
-    *(log_buf + sizeof(log_buf) - 1) = '\0';
-    LOG_DEBUGF("cli.c", "arg script=%s", log_buf);
-
-    return 0;
 }

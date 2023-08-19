@@ -16,6 +16,7 @@ typedef struct {
 
 typedef struct tpool {
     pthread_t threads[256];
+    void *start_thread_args[256];
     int num_threads;
 
     int print_progress;
@@ -293,6 +294,8 @@ void tpool_destroy(tpool_t *pool) {
             void *_;
             pthread_join(thread, &_);
         }
+
+        free(pool->start_thread_args[i]);
     }
 
     pthread_mutex_destroy(&pool->shm->ipc_ctx.mutex);
@@ -320,6 +323,7 @@ tpool_t *tpool_create(int thread_cnt, int print_progress) {
     pool->shm->waiting = FALSE;
     pool->shm->job_type = JOB_UNDEFINED;
     memset(pool->threads, 0, sizeof(pool->threads));
+    memset(pool->start_thread_args, 0, sizeof(pool->start_thread_args));
     pool->print_progress = print_progress;
     sprintf(pool->shm->ipc_database_filepath, "/dev/shm/sist2-ipc-%d.sqlite", getpid());
 
@@ -361,6 +365,7 @@ void tpool_start(tpool_t *pool) {
         arg->pool = pool;
 
         pthread_create(&pool->threads[i], NULL, tpool_worker, arg);
+        pool->start_thread_args[i] = arg;
     }
 
     // Only open the database when all workers are done initializing

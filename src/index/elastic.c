@@ -98,61 +98,6 @@ void index_json(cJSON *document, const char doc_id[SIST_DOC_ID_LEN]) {
     free(bulk_line);
 }
 
-void execute_update_script(const char *script, int async, const char index_id[SIST_INDEX_ID_LEN]) {
-
-    if (Indexer == NULL) {
-        Indexer = create_indexer(IndexCtx.es_url, IndexCtx.es_index);
-    }
-
-    cJSON *body = cJSON_CreateObject();
-    cJSON *script_obj = cJSON_AddObjectToObject(body, "script");
-    cJSON_AddStringToObject(script_obj, "lang", "painless");
-    cJSON_AddStringToObject(script_obj, "source", script);
-
-    cJSON *query = cJSON_AddObjectToObject(body, "query");
-    cJSON *term_obj = cJSON_AddObjectToObject(query, "term");
-    cJSON_AddStringToObject(term_obj, "index", index_id);
-
-    char *str = cJSON_PrintUnformatted(body);
-
-    char url[4096];
-    if (async) {
-        snprintf(url, sizeof(url), "%s/%s/_update_by_query?wait_for_completion=false", Indexer->es_url,
-                 Indexer->es_index);
-    } else {
-        snprintf(url, sizeof(url), "%s/%s/_update_by_query", Indexer->es_url, Indexer->es_index);
-    }
-    response_t *r = web_post(url, str, IndexCtx.es_insecure_ssl);
-    if (!async) {
-        LOG_INFOF("elastic.c", "Executed user script <%d>", r->status_code);
-    }
-    cJSON *resp = cJSON_Parse(r->body);
-
-    cJSON_free(str);
-    cJSON_Delete(body);
-    free_response(r);
-
-    cJSON *error = cJSON_GetObjectItem(resp, "error");
-    if (error != NULL) {
-        char *error_str = cJSON_Print(error);
-
-        LOG_ERRORF("elastic.c", "User script error: \n%s", error_str);
-        cJSON_free(error_str);
-    }
-
-    if (async) {
-        cJSON *task = cJSON_GetObjectItem(resp, "task");
-
-        if (task == NULL) {
-            LOG_FATALF("elastic.c", "FIXME: Could not get task id: %s", r->body);
-        }
-
-        LOG_INFOF("elastic.c", "User script queued: %s/_tasks/%s", Indexer->es_url, task->valuestring);
-    }
-
-    cJSON_Delete(resp);
-}
-
 void *create_bulk_buffer(int max, int *count, size_t *buf_len, int legacy) {
     es_bulk_line_t *line = Indexer->line_head;
     *count = 0;
@@ -403,7 +348,7 @@ es_indexer_t *create_indexer(const char *url, const char *index) {
     return indexer;
 }
 
-void finish_indexer(char *script, int async_script, char *index_id) {
+void finish_indexer(char *index_id) {
 
     char url[4096];
 
@@ -411,16 +356,6 @@ void finish_indexer(char *script, int async_script, char *index_id) {
     response_t *r = web_post(url, "", IndexCtx.es_insecure_ssl);
     LOG_INFOF("elastic.c", "Refresh index <%d>", r->status_code);
     free_response(r);
-
-    if (script != NULL) {
-        execute_update_script(script, async_script, index_id);
-        free(script);
-
-        snprintf(url, sizeof(url), "%s/%s/_refresh", IndexCtx.es_url, IndexCtx.es_index);
-        r = web_post(url, "", IndexCtx.es_insecure_ssl);
-        LOG_INFOF("elastic.c", "Refresh index <%d>", r->status_code);
-        free_response(r);
-    }
 
     snprintf(url, sizeof(url), "%s/%s/_forcemerge", IndexCtx.es_url, IndexCtx.es_index);
     r = web_post(url, "", IndexCtx.es_insecure_ssl);

@@ -13,7 +13,7 @@
 
         <b-card v-show="!uiLoading && !showEsConnectionError" id="search-panel">
             <SearchBar @show-help="showHelp=true"></SearchBar>
-            <EmbeddingsSearchBar class="mt-3"></EmbeddingsSearchBar>
+            <EmbeddingsSearchBar v-if="hasEmbeddings" class="mt-3"></EmbeddingsSearchBar>
             <b-row>
                 <b-col style="height: 70px;" sm="6">
                     <SizeSlider></SizeSlider>
@@ -172,6 +172,12 @@ export default Vue.extend({
             setDateBoundsMax: "setDateBoundsMax",
             setTags: "setTags",
         }),
+        hasEmbeddings() {
+            if (!this.loading) {
+                return false;
+            }
+            return Sist2Api.models().some();
+        },
         showErrorToast() {
             this.$bvToast.toast(
                 this.$t("toast.esConnErr"),
@@ -203,6 +209,7 @@ export default Vue.extend({
                 await this.handleSearch(resp);
                 this.searchBusy = false;
             }).catch(err => {
+                console.log(err)
                 if (err.response.status === 500 && this.$store.state.optQueryMode === "advanced") {
                     this.showSyntaxErrorToast();
                 } else {

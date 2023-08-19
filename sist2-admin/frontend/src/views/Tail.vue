@@ -92,6 +92,9 @@ export default {
                     if ("stderr" in message) {
                         message.level = "ERROR";
                         message.message = message["stderr"];
+                    } else if ("stdout" in message) {
+                        message.level = "INFO";
+                        message.message = message["stdout"];
                     } else {
                         message.level = "ADMIN";
                         message.message = message["sist2-admin"];

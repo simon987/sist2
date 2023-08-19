@@ -202,6 +202,46 @@
     },
     "modified_by": {
       "type": "text"
+    },
+    "emb.384.*": {
+      "type": "dense_vector",
+      "dims": 384
+    },
+    "emb.idx_384.*": {
+      "type": "dense_vector",
+      "dims": 384,
+      "index": true,
+      "similarity": "cosine"
+    },
+    "emb.idx_512.clip": {
+      "type": "dense_vector",
+      "dims": 512,
+      "index": true,
+      "similarity": "cosine"
+    },
+    "emb.512.*": {
+      "type": "dense_vector",
+      "dims": 512
+    },
+    "emb.idx_768.*": {
+      "type": "dense_vector",
+      "dims": 768,
+      "index": true,
+      "similarity": "cosine"
+    },
+    "emb.768.*": {
+      "type": "dense_vector",
+      "dims": 768
+    },
+    "emb.idx_1024.*": {
+      "type": "dense_vector",
+      "dims": 1024,
+      "index": true,
+      "similarity": "cosine"
+    },
+    "emb.1024.*": {
+      "type": "dense_vector",
+      "dims": 1024
     }
   }
 }

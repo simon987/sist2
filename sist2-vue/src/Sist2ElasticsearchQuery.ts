@@ -1,5 +1,5 @@
 import store from "./store";
-import {EsHit, Index} from "@/Sist2Api";
+import sist2Api, {EsHit, Index} from "@/Sist2Api";
 
 const SORT_MODES = {
     score: {
@@ -79,8 +79,10 @@ class Sist2ElasticsearchQuery {
         const selectedIndexIds = getters.selectedIndices.map((idx: Index) => idx.id)
         const selectedMimeTypes = getters.selectedMimeTypes;
         const selectedTags = getters.selectedTags;
+        const sortMode = getters.embedding ? "score" : getters.sortMode;
 
         const legacyES = store.state.sist2Info.esVersionLegacy;
+        const hasKnn = store.state.sist2Info.esVersionHasKnn;
 
         const filters = [
             {terms: {index: selectedIndexIds}}
@@ -162,14 +164,14 @@ class Sist2ElasticsearchQuery {
 
         const q = {
             _source: {
-                excludes: ["content", "_tie"]
+                excludes: ["content", "_tie", "emb.*"]
             },
             query: {
                 bool: {
                     filter: filters,
                 }
             },
-            sort: SORT_MODES[getters.sortMode].mode,
+            sort: SORT_MODES[sortMode].mode,
             size: size,
         } as any;
 
@@ -181,14 +183,57 @@ class Sist2ElasticsearchQuery {
         }
 
         if (!empty && !blankSearch) {
-            q.query.bool.must = query;
+            if (getters.embedding) {
+                filters.push(query)
+            } else {
+                q.query.bool.must = query;
+            }
+        }
+
+        if (getters.embedding) {
+            delete q.query;
+
+            const field = "emb." + sist2Api.models().find(m => m.id == getters.embeddingsModel).path;
+
+            if (hasKnn) {
+                // Use knn (8.8+)
+                q.knn = {
+                    field: field,
+                    query_vector: getters.embedding,
+
+                    k: 600,
+                    num_candidates: 600,
+
+                    filter: filters
+                }
+            } else {
+                // Use brute-force as a fallback
+
+                filters.push({exists: {field: field}});
+
+                q.query = {
+                    function_score: {
+                        query: {
+                            bool: {
+                                must: filters,
+                            }
+                        },
+                        script_score: {
+                            script: {
+                                source: `cosineSimilarity(params.query_vector, "${field}") + 1.0`,
+                                params: {query_vector: getters.embedding}
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if (after) {
-            q.search_after = [SORT_MODES[getters.sortMode].key(after), after["_id"]];
+            q.search_after = [SORT_MODES[sortMode].key(after), after["_id"]];
         }
 
-        if (getters.optHighlight) {
+        if (getters.optHighlight && !getters.embedding) {
             q.highlight = {
                 pre_tags: ["<mark>"],
                 post_tags: ["</mark>"],
@@ -214,7 +259,7 @@ class Sist2ElasticsearchQuery {
             }
         }
 
-        if (getters.sortMode === "random") {
+        if (sortMode === "random") {
             q.query = {
                 function_score: {
                     query: {

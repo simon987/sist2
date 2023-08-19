@@ -25,6 +25,7 @@ export default new Vuex.Store({
         searchText: "",
         embeddingText: "",
         embedding: null,
+        embeddingDoc: null,
         pathText: "",
         sortMode: "score",
 
@@ -133,7 +134,8 @@ export default new Vuex.Store({
         setDateBoundsMax: (state, val) => state.dateBoundsMax = val,
         setSearchText: (state, val) => state.searchText = val,
         setEmbeddingText: (state, val) => state.embeddingText = val,
-        setEmbedding: (state, val) => state.embedding= val,
+        setEmbedding: (state, val) => state.embedding = val,
+        setEmbeddingDoc: (state, val) => state.embeddingDoc = val,
         setFuzzy: (state, val) => state.fuzzy = val,
         setLastQueryResult: (state, val) => state.lastQueryResults = val,
         setFirstQueryResult: (state, val) => state.firstQueryResults = val,

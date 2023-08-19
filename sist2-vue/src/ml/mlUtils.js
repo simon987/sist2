@@ -17,7 +17,6 @@ export async function downloadToBuffer(url, onProgress) {
             break;
         }
 
-        console.log(`Sending ${value.length} bytes into ${buf.length} at offset ${cursor} (${buf.length - cursor} free)`)
         buf.set(value, cursor);
         cursor += value.length;
 
