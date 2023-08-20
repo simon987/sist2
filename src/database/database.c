@@ -591,7 +591,7 @@ cJSON *database_incremental_scan_end(database_t *db) {
 
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db,
-            "INSERT INTO delete_list (id) SELECT id FROM document WHERE marked=0;",
+            "INSERT INTO delete_list (id) SELECT id FROM document WHERE marked=0 ON CONFLICT DO NOTHING;",
             NULL, NULL, NULL
     ));
 
