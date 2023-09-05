@@ -7,7 +7,6 @@ typedef struct {
     long content_size;
     log_callback_t log;
     logf_callback_t logf;
-    store_callback_t store;
 
     int tn_qscale;
     int tn_size;

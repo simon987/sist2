@@ -54,7 +54,6 @@ void parse_comic(scan_comic_ctx_t *ctx, vfile_t *f, document_t *doc) {
                         .max_media_buffer = 0,
                         .log = ctx->log,
                         .logf = ctx->logf,
-                        .store = ctx->store,
                 };
 
                 ret = store_image_thumbnail(&media_ctx, buf, entry_size, doc, file_path);

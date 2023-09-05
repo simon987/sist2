@@ -1,5 +1,5 @@
 <template>
-    <a :href="`f/${doc._source.index}/${doc._id}`"
+    <a :href="`f/${sid(doc)}`"
        :class="doc._source.embedding ? 'file-title-anchor-with-embedding' : 'file-title-anchor'" target="_blank">
         <div class="file-title" :title="doc._source.path + '/' + doc._source.name + ext(doc)"
              v-html="fileName() + ext(doc)"></div>
@@ -7,12 +7,13 @@
 </template>
 
 <script>
-import {ext} from "@/util";
+import {ext, sid} from "@/util";
 
 export default {
     name: "DocFileTitle",
     props: ["doc"],
     methods: {
+        sid: sid,
         ext: ext,
         fileName() {
             if (!this.doc.highlight) {

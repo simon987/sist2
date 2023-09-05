@@ -32,8 +32,6 @@ char *get_meta_key_text(enum metakey meta_key) {
             return "title";
         case MetaFontName:
             return "font_name";
-        case MetaParent:
-            return "parent";
         case MetaExifMake:
             return "exif_make";
         case MetaExifDescription:
@@ -58,8 +56,6 @@ char *get_meta_key_text(enum metakey meta_key) {
             return "author";
         case MetaModifiedBy:
             return "modified_by";
-        case MetaThumbnail:
-            return "thumbnail";
         case MetaPages:
             return "pages";
         case MetaExifGpsLongitudeRef:
@@ -81,21 +77,23 @@ char *get_meta_key_text(enum metakey meta_key) {
     }
 }
 
-char *build_json_string(document_t *doc) {
+typedef struct {
+    meta_line_t *meta_head;
+    meta_line_t *meta_tail;
+} linked_list_t;
+
+
+void write_document(document_t *doc) {
+    linked_list_t thumbnails_to_write = {.meta_head = NULL, .meta_tail = NULL};
+
     cJSON *json = cJSON_CreateObject();
     int buffer_size_guess = 8192;
-
-    const char *mime_text = mime_get_mime_text(doc->mime);
-    if (mime_text == NULL) {
-        cJSON_AddNullToObject(json, "mime");
-    } else {
-        cJSON_AddStringToObject(json, "mime", mime_text);
-    }
 
     // Ignore root directory in the file path
     doc->ext = (short) (doc->ext - ScanCtx.index.desc.root_len);
     doc->base = (short) (doc->base - ScanCtx.index.desc.root_len);
-    char *filepath = doc->filepath + ScanCtx.index.desc.root_len;
+    char filepath[PATH_MAX * 3];
+    strcpy(filepath, doc->filepath + ScanCtx.index.desc.root_len);
 
     cJSON_AddStringToObject(json, "extension", filepath + doc->ext);
 
@@ -125,7 +123,6 @@ char *build_json_string(document_t *doc) {
     while (meta != NULL) {
 
         switch (meta->key) {
-            case MetaThumbnail:
             case MetaPages:
             case MetaWidth:
             case MetaHeight:
@@ -143,7 +140,6 @@ char *build_json_string(document_t *doc) {
             case MetaAlbumArtist:
             case MetaGenre:
             case MetaFontName:
-            case MetaParent:
             case MetaExifMake:
             case MetaExifDescription:
             case MetaExifSoftware:
@@ -168,6 +164,11 @@ char *build_json_string(document_t *doc) {
                 buffer_size_guess += (int) strlen(meta->str_val);
                 break;
             }
+            case MetaThumbnail: {
+                // Keep a list of thumbnails to write after we know what the sid is
+                APPEND_THUMBNAIL(&thumbnails_to_write, meta->str_val, meta->size);
+                break;
+            }
             default:
             LOG_FATALF("serialize.c", "Invalid meta key: %x %s", meta->key, get_meta_key_text(meta->key));
         }
@@ -180,13 +181,19 @@ char *build_json_string(document_t *doc) {
     char *json_str = cJSON_PrintBuffered(json, buffer_size_guess, FALSE);
     cJSON_Delete(json);
 
-    return json_str;
-}
-
-void write_document(document_t *doc) {
-    char *json_str = build_json_string(doc);
-
-    database_write_document(ProcData.index_db, doc, json_str);
+    int doc_id = database_write_document(ProcData.index_db, doc, json_str);
     free(doc);
     free(json_str);
+
+    // Write thumbnails
+    meta = thumbnails_to_write.meta_head;
+    int index_num = 0;
+    while (meta != NULL) {
+        database_write_thumbnail(ProcData.index_db, doc_id, index_num, meta->str_val, meta->size);
+
+        meta_line_t *tmp = meta;
+        meta = meta->next;
+        free(tmp);
+        index_num += 1;
+    }
 }

@@ -222,7 +222,10 @@ async def delete_job(name: str):
 @app.delete("/api/frontend/{name:str}")
 async def delete_frontend(name: str):
     if name in RUNNING_FRONTENDS:
-        os.kill(RUNNING_FRONTENDS[name], signal.SIGTERM)
+        try:
+            os.kill(RUNNING_FRONTENDS[name], signal.SIGTERM)
+        except ProcessLookupError:
+            pass
         del RUNNING_FRONTENDS[name]
 
     frontend = db["frontends"][name]

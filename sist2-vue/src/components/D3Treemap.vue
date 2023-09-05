@@ -9,8 +9,7 @@
 
 <script>
 import * as d3 from "d3";
-import {burrow} from "@/util-js"
-import {humanFileSize} from "@/util";
+import {humanFileSize, burrow} from "@/util";
 import Sist2Api from "@/Sist2Api";
 import domtoimage from "dom-to-image";
 

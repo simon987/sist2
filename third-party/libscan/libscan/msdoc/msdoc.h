@@ -7,7 +7,6 @@ typedef struct {
     long content_size;
     log_callback_t log;
     logf_callback_t logf;
-    store_callback_t store;
     unsigned int msdoc_mime;
 } scan_msdoc_ctx_t;
 

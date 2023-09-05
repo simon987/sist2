@@ -21,7 +21,7 @@ const authGuard = (to, from, next) => {
     next();
 }
 
-const routes: Array<RouteConfig> = [
+const routes = [
     {
         path: "/",
         name: "SearchPage",

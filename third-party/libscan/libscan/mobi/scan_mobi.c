@@ -31,7 +31,6 @@ int store_cover(scan_mobi_ctx_t *ctx, document_t *doc, MOBIData *m) {
             .max_media_buffer = 0,
             .log = ctx->log,
             .logf = ctx->logf,
-            .store = ctx->store,
     };
 
     store_image_thumbnail(&media_ctx, record->data, record->size, doc, "img.jpg");

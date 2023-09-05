@@ -47,7 +47,7 @@ void elastic_cleanup() {
     destroy_indexer(Indexer);
 }
 
-void print_json(cJSON *document, const char id_str[SIST_DOC_ID_LEN]) {
+void print_json(cJSON *document, const char id_str[SIST_SID_LEN]) {
 
     cJSON *line = cJSON_CreateObject();
 
@@ -64,12 +64,12 @@ void print_json(cJSON *document, const char id_str[SIST_DOC_ID_LEN]) {
     cJSON_Delete(line);
 }
 
-void delete_document(const char *document_id) {
+void delete_document(const char *sid) {
     es_bulk_line_t bulk_line;
 
     bulk_line.type = ES_BULK_LINE_DELETE;
     bulk_line.next = NULL;
-    strcpy(bulk_line.doc_id, document_id);
+    strcpy(bulk_line.sid, sid);
 
     tpool_add_work(IndexCtx.pool, &(job_t) {
             .type = JOB_BULK_LINE,
@@ -78,14 +78,14 @@ void delete_document(const char *document_id) {
 }
 
 
-void index_json(cJSON *document, const char doc_id[SIST_DOC_ID_LEN]) {
+void index_json(cJSON *document, const char doc_id[SIST_SID_LEN]) {
     char *json = cJSON_PrintUnformatted(document);
 
     size_t json_len = strlen(json);
     es_bulk_line_t *bulk_line = malloc(sizeof(es_bulk_line_t) + json_len + 2);
     bulk_line->type = ES_BULK_LINE_INDEX;
     memcpy(bulk_line->line, json, json_len);
-    strcpy(bulk_line->doc_id, doc_id);
+    strcpy(bulk_line->sid, doc_id);
     *(bulk_line->line + json_len) = '\n';
     *(bulk_line->line + json_len + 1) = '\0';
     bulk_line->next = NULL;
@@ -124,13 +124,13 @@ void *create_bulk_buffer(int max, int *count, size_t *buf_len, int legacy) {
                 snprintf(
                         action_str, sizeof(action_str),
                         "{\"index\":{\"_id\":\"%s\",\"_type\":\"_doc\",\"_index\":\"%s\"}}\n",
-                        line->doc_id, Indexer->es_index
+                        line->sid, Indexer->es_index
                 );
             } else {
                 snprintf(
                         action_str, sizeof(action_str),
                         "{\"index\":{\"_id\":\"%s\",\"_index\":\"%s\"}}\n",
-                        line->doc_id, Indexer->es_index
+                        line->sid, Indexer->es_index
                 );
             }
 
@@ -148,7 +148,7 @@ void *create_bulk_buffer(int max, int *count, size_t *buf_len, int legacy) {
             snprintf(
                     action_str, sizeof(action_str),
                     "{\"delete\":{\"_id\":\"%s\",\"_index\":\"%s\"}}\n",
-                    line->doc_id, Indexer->es_index
+                    line->sid, Indexer->es_index
             );
 
             size_t action_str_len = strlen(action_str);
@@ -236,7 +236,7 @@ void _elastic_flush(int max) {
     if (r->status_code == 413) {
 
         if (max <= 1) {
-            LOG_ERRORF("elastic.c", "Single document too large, giving up: {%s}", Indexer->line_head->doc_id);
+            LOG_ERRORF("elastic.c", "Single document too large, giving up: {%s}", Indexer->line_head->sid);
             free_response(r);
             free(buf);
             free_queue(1);
@@ -348,7 +348,7 @@ es_indexer_t *create_indexer(const char *url, const char *index) {
     return indexer;
 }
 
-void finish_indexer(char *index_id) {
+void finish_indexer(int index_id) {
 
     char url[4096];
 

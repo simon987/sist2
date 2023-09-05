@@ -16,9 +16,9 @@ Lightning-fast file system indexer and search tool.
 
 Scan options
     -t, --threads=<int>               Number of threads. DEFAULT: 1
-    -q, --thumbnail-quality=<int>     Thumbnail quality, on a scale of 0 to 100, 100 being the best. DEFAULT: 50
-    --thumbnail-size=<int>            Thumbnail size, in pixels. DEFAULT: 552
-    --thumbnail-count=<int>           Number of thumbnails to generate. Set a value > 1 to create video previews, set to 0 to disable thumbnails. DEFAULT: 1
+    -q, --thumbnail_count-quality=<int>     Thumbnail quality, on a scale of 0 to 100, 100 being the best. DEFAULT: 50
+    --thumbnail_count-size=<int>            Thumbnail size, in pixels. DEFAULT: 552
+    --thumbnail_count-count=<int>           Number of thumbnails to generate. Set a value > 1 to create video previews, set to 0 to disable thumbnails. DEFAULT: 1
     --content-size=<int>              Number of bytes to be extracted from text documents. Set to 0 to disable. DEFAULT: 32768
     -o, --output=<str>                Output index file path. DEFAULT: index.sist2
     --incremental                     If the output file path exists, only scan new or modified files.
@@ -78,9 +78,9 @@ Made by simon987 <me@simon987.net>. Released under GPL-3.0
 
 #### Thumbnail database size estimation
 
-See chart below for rough estimate of thumbnail size vs. thumbnail size & quality arguments:
+See chart below for rough estimate of thumbnail_count size vs. thumbnail_count size & quality arguments:
 
-For example, `--thumbnail-size=500`, `--thumbnail-quality=50` for a directory with 8 million images will create a thumbnail database 
+For example, `--thumbnail_count-size=500`, `--thumbnail_count-quality=50` for a directory with 8 million images will create a thumbnail_count database 
 that is about `8000000 * 11.8kB = 94.4GB`.
 
 ![thumbnail_size](thumbnail_size.png)
@@ -92,7 +92,7 @@ Simple scan
 sist2 scan ~/Documents
 
 sist2 scan \
-    --threads 4 --content-size 16000000 --thumbnail-quality 2 --archive shallow \
+    --threads 4 --content-size 16000000 --thumbnail_count-quality 2 --archive shallow \
     --name "My Documents" --rewrite-url "http://nas.domain.local/My Documents/" \
     ~/Documents -o ./documents.sist2
 ```

@@ -37,15 +37,22 @@
     meta_long->long_val = value; \
     APPEND_META(doc, meta_long);}} while(0)
 
+#define APPEND_THUMBNAIL(doc, data, data_len) do{ \
+    {meta_line_t *meta_tn = malloc(sizeof(meta_line_t) + (data_len)); \
+    meta_tn->key = MetaThumbnail; \
+    meta_tn->size = data_len; \
+    memcpy(meta_tn->str_val, data, data_len); \
+    APPEND_META(doc, meta_tn);}} while(0)
+
 
 #define APPEND_META(doc, meta) do {\
-    meta->next = NULL;\
-    if (doc->meta_head == NULL) {\
-        doc->meta_head = meta;\
-        doc->meta_tail = doc->meta_head;\
+    (meta)->next = NULL;\
+    if ((doc)->meta_head == NULL) {\
+        (doc)->meta_head = meta;\
+        (doc)->meta_tail = (doc)->meta_head;\
     } else {\
-        doc->meta_tail->next = meta;\
-        doc->meta_tail = meta;\
+        (doc)->meta_tail->next = meta;\
+        (doc)->meta_tail = meta;\
     }}while(0)
 
 #define APPEND_UTF8_META(doc, keyname, str) \

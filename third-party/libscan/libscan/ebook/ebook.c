@@ -160,8 +160,8 @@ int render_cover(scan_ebook_ctx_t *ctx, fz_context *fzctx, document_t *doc, fz_d
     av_init_packet(&thumbnail_packet);
     avcodec_receive_packet(thumbnail_encoder, &thumbnail_packet);
 
-    APPEND_LONG_META(doc, MetaThumbnail, 1);
-    ctx->store(doc->doc_id, 0, (char *) thumbnail_packet.data, thumbnail_packet.size);
+    doc->thumbnail_count = 1;
+    APPEND_THUMBNAIL(doc, (char *) thumbnail_packet.data, thumbnail_packet.size);
 
     free(samples);
     av_packet_unref(&thumbnail_packet);

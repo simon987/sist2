@@ -16,7 +16,7 @@
             <!-- Audio player-->
             <audio v-if="doc._props.isAudio" ref="audio" preload="none" class="audio-fit fit" controls
                    :type="doc._source.mime"
-                   :src="`f/${doc._source.index}/${doc._id}`"
+                   :src="`f/${sid(doc)}`"
                    @play="onAudioPlay()"></audio>
 
             <b-card-body class="padding-03">
@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import {ext, humanFileSize, humanTime} from "@/util";
+import {ext, humanFileSize, humanTime, sid} from "@/util";
 import TagContainer from "@/components/TagContainer.vue";
 import DocFileTitle from "@/components/DocFileTitle.vue";
 import DocInfoModal from "@/components/DocInfoModal.vue";
@@ -69,13 +69,14 @@ export default {
         }
     },
     methods: {
+        sid: sid,
         humanFileSize: humanFileSize,
         humanTime: humanTime,
         onInfoClick() {
             this.showInfo = true;
         },
         onEmbeddingClick() {
-            Sist2Api.getEmbeddings(this.doc._source.index, this.doc._id, this.$store.state.embeddingsModel).then(embeddings => {
+            Sist2Api.getEmbeddings(sid(this.doc), this.$store.state.embeddingsModel).then(embeddings => {
                 this.$store.commit("setEmbeddingText", "");
                 this.$store.commit("setEmbedding", embeddings);
                 this.$store.commit("setEmbeddingDoc", this.doc);

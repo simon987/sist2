@@ -1,5 +1,5 @@
 <template>
-  <div class="thumbnail-progress-bar" :style="{width: `${percentProgress}%`}"></div>
+  <div class="thumbnail_count-progress-bar" :style="{width: `${percentProgress}%`}"></div>
 </template>
 
 <script>
@@ -16,7 +16,7 @@ export default {
 
 <style scoped>
 
-.thumbnail-progress-bar {
+.thumbnail_count-progress-bar {
   position: absolute;
   left: 0;
   bottom: 0;
@@ -27,11 +27,11 @@ export default {
   z-index: 9;
 }
 
-.theme-black .thumbnail-progress-bar {
+.theme-black .thumbnail_count-progress-bar {
   background: rgba(0, 188, 212, 0.95);
 }
 
-.sub-document .thumbnail-progress-bar {
+.sub-document .thumbnail_count-progress-bar {
   max-width: calc(100% - 8px);
   left: 4px;
 }

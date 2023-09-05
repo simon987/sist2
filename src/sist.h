@@ -3,19 +3,19 @@
 
 #define _GNU_SOURCE
 
-#ifndef	FALSE
-#define	FALSE	(0)
+#ifndef    FALSE
+#define    FALSE    (0)
 #define BOOL int
 #endif
 
-#ifndef	TRUE
-#define	TRUE	(!FALSE)
+#ifndef    TRUE
+#define    TRUE    (!FALSE)
 #endif
 
-#undef	MAX
+#undef    MAX
 #define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 
-#undef	MIN
+#undef    MIN
 #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
 
 #ifndef PATH_MAX
@@ -23,7 +23,7 @@
 #endif
 
 #undef ABS
-#define ABS(a)	   (((a) < 0) ? -(a) : (a))
+#define ABS(a)       (((a) < 0) ? -(a) : (a))
 
 #define UNUSED(x) __attribute__((__unused__))  x
 
@@ -51,11 +51,11 @@
 #include <ctype.h>
 #include "git_hash.h"
 
-#define VERSION "3.2.1"
+#define VERSION "3.3.0"
 static const char *const Version = VERSION;
 static const int VersionMajor = 3;
-static const int VersionMinor = 2;
-static const int VersionPatch = 1;
+static const int VersionMinor = 3;
+static const int VersionPatch = 0;
 
 #ifndef SIST_PLATFORM
 #define SIST_PLATFORM unknown

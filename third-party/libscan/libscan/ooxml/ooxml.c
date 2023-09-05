@@ -190,8 +190,7 @@ void read_thumbnail(scan_ooxml_ctx_t *ctx, document_t *doc, struct archive *a, s
     char *buf = malloc(entry_size);
     archive_read_data(a, buf, entry_size);
 
-    APPEND_LONG_META(doc, MetaThumbnail, 1);
-    ctx->store(doc->doc_id, 1, buf, entry_size);
+    doc->thumbnail_count = 1;
     free(buf);
 }
 
@@ -238,7 +237,7 @@ void parse_ooxml(scan_ooxml_ctx_t *ctx, vfile_t *f, document_t *doc) {
                 if (read_doc_props(ctx, a, doc) != 0) {
                     break;
                 }
-            } else if (ctx->enable_tn && strcmp(path, "docProps/thumbnail.jpeg") == 0) {
+            } else if (ctx->enable_tn && strcmp(path, "docProps/thumbnail_count.jpeg") == 0) {
                 read_thumbnail(ctx, doc, a, entry);
             }
         }

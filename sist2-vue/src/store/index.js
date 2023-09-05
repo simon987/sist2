@@ -1,20 +1,18 @@
 import Vue from "vue"
 import Vuex from "vuex"
-import VueRouter, {Route} from "vue-router";
-import {EsHit, EsResult, EsTag, Index} from "@/Sist2Api";
 import {deserializeMimes, randomSeed, serializeMimes} from "@/util";
 import {getInstance} from "@/plugins/auth0.js";
 
 const CONF_VERSION = 3;
 
-Vue.use(Vuex)
+Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
         seed: 0,
-        indices: [] as Index[],
-        tags: [] as EsTag[],
-        sist2Info: null as any,
+        indices: [],
+        tags: [],
+        sist2Info: null,
 
         sizeMin: undefined,
         sizeMax: undefined,
@@ -64,12 +62,12 @@ export default new Vuex.Store({
         optAutoAnalyze: false,
         optMlDefaultModel: null,
 
-        _onLoadSelectedIndices: [] as string[],
-        _onLoadSelectedMimeTypes: [] as string[],
-        _onLoadSelectedTags: [] as string[],
-        selectedIndices: [] as Index[],
-        selectedMimeTypes: [] as string[],
-        selectedTags: [] as string[],
+        _onLoadSelectedIndices: [],
+        _onLoadSelectedMimeTypes: [],
+        _onLoadSelectedTags: [],
+        selectedIndices: [],
+        selectedMimeTypes: [],
+        selectedTags: [],
 
         lastQueryResults: null,
         firstQueryResults: null,
@@ -80,10 +78,10 @@ export default new Vuex.Store({
         uiSqliteMode: false,
         uiLightboxIsOpen: false,
         uiShowLightbox: false,
-        uiLightboxSources: [] as string[],
-        uiLightboxThumbs: [] as string[],
-        uiLightboxCaptions: [] as any[],
-        uiLightboxTypes: [] as string[],
+        uiLightboxSources: [],
+        uiLightboxThumbs: [],
+        uiLightboxCaptions: [],
+        uiLightboxTypes: [],
         uiLightboxKey: 0,
         uiLightboxSlide: 0,
         uiReachedScrollEnd: false,
@@ -91,7 +89,7 @@ export default new Vuex.Store({
         uiDetailsMimeAgg: null,
         uiShowDetails: false,
 
-        uiMimeMap: [] as any[],
+        uiMimeMap: [],
 
         auth0Token: null,
         nerModel: {
@@ -122,7 +120,7 @@ export default new Vuex.Store({
             if (state._onLoadSelectedIndices.length > 0) {
 
                 state.selectedIndices = val.filter(
-                    (idx: Index) => state._onLoadSelectedIndices.some(prefix => idx.id.startsWith(prefix))
+                    (idx) => state._onLoadSelectedIndices.some(id => id === idx.id.toString(16))
                 );
             } else {
                 state.selectedIndices = val;
@@ -145,18 +143,18 @@ export default new Vuex.Store({
         setSelectedIndices: (state, val) => state.selectedIndices = val,
         setSelectedMimeTypes: (state, val) => state.selectedMimeTypes = val,
         setSelectedTags: (state, val) => state.selectedTags = val,
-        setUiLightboxIsOpen: (state, val: boolean) => state.uiLightboxIsOpen = val,
-        _setUiShowLightbox: (state, val: boolean) => state.uiShowLightbox = val,
-        setUiLightboxKey: (state, val: number) => state.uiLightboxKey = val,
-        _setKeySequence: (state, val: number) => state.keySequence = val,
-        _setQuerySequence: (state, val: number) => state.querySequence = val,
+        setUiLightboxIsOpen: (state, val) => state.uiLightboxIsOpen = val,
+        _setUiShowLightbox: (state, val) => state.uiShowLightbox = val,
+        setUiLightboxKey: (state, val) => state.uiLightboxKey = val,
+        _setKeySequence: (state, val) => state.keySequence = val,
+        _setQuerySequence: (state, val) => state.querySequence = val,
         addLightboxSource: (state, {source, thumbnail, caption, type}) => {
             state.uiLightboxSources.push(source);
             state.uiLightboxThumbs.push(thumbnail);
             state.uiLightboxCaptions.push(caption);
             state.uiLightboxTypes.push(type);
         },
-        setUiLightboxSlide: (state, val: number) => state.uiLightboxSlide = val,
+        setUiLightboxSlide: (state, val) => state.uiLightboxSlide = val,
 
         setUiLightboxSources: (state, val) => state.uiLightboxSources = val,
         setUiLightboxThumbs: (state, val) => state.uiLightboxThumbs = val,
@@ -230,7 +228,7 @@ export default new Vuex.Store({
                 store.commit("setOptLang", val.lang);
             }
         },
-        loadFromArgs({commit}, route: Route) {
+        loadFromArgs({commit}, route) {
 
             if (route.query.q) {
                 commit("setSearchText", route.query.q);
@@ -265,11 +263,11 @@ export default new Vuex.Store({
             }
 
             if (route.query.m) {
-                commit("_setOnLoadSelectedMimeTypes", deserializeMimes(route.query.m as string));
+                commit("_setOnLoadSelectedMimeTypes", deserializeMimes(route.query.m));
             }
 
             if (route.query.t) {
-                commit("_setOnLoadSelectedTags", (route.query.t as string).split(","));
+                commit("_setOnLoadSelectedTags", (route.query.t).split(","));
             }
 
             if (route.query.sort) {
@@ -280,7 +278,7 @@ export default new Vuex.Store({
                 commit("setSeed", Number(route.query.seed));
             }
         },
-        async updateArgs({state}, router: VueRouter) {
+        async updateArgs({state}, router) {
 
             if (router.currentRoute.path !== "/") {
                 return;
@@ -290,14 +288,14 @@ export default new Vuex.Store({
                 query: {
                     q: state.searchText.trim() ? state.searchText.trim().replace(/\s+/g, " ") : undefined,
                     fuzzy: state.fuzzy ? null : undefined,
-                    i: state.selectedIndices ? state.selectedIndices.map((idx: Index) => idx.idPrefix) : undefined,
+                    i: state.selectedIndices ? state.selectedIndices.map((idx) => idx.id.toString(16)) : undefined,
                     dMin: state.dateMin,
                     dMax: state.dateMax,
                     sMin: state.sizeMin,
                     sMax: state.sizeMax,
                     path: state.pathText ? state.pathText : undefined,
                     m: serializeMimes(state.selectedMimeTypes),
-                    t: state.selectedTags.length == 0 ? undefined : state.selectedTags.join(","),
+                    t: state.selectedTags.length === 0 ? undefined : state.selectedTags.join(","),
                     sort: state.sortMode === "score" ? undefined : state.sortMode,
                     seed: state.sortMode === "random" ? state.seed.toString() : undefined
                 }
@@ -306,11 +304,11 @@ export default new Vuex.Store({
             });
         },
         updateConfiguration({state}) {
-            const conf = {} as any;
+            const conf = {};
 
             Object.keys(state).forEach((key) => {
                 if (key.startsWith("opt")) {
-                    conf[key] = (state as any)[key];
+                    conf[key] = (state)[key];
                 }
             });
 
@@ -323,14 +321,14 @@ export default new Vuex.Store({
             if (confString) {
                 const conf = JSON.parse(confString);
 
-                if (!("version" in conf) || conf["version"] != CONF_VERSION) {
+                if (!("version" in conf) || conf["version"] !== CONF_VERSION) {
                     localStorage.removeItem("sist2_configuration");
                     window.location.reload();
                 }
 
                 Object.keys(state).forEach((key) => {
                     if (key.startsWith("opt")) {
-                        (state as any)[key] = conf[key];
+                        (state)[key] = conf[key];
                     }
                 });
             }
@@ -386,7 +384,7 @@ export default new Vuex.Store({
         indices: state => state.indices,
         sist2Info: state => state.sist2Info,
         indexMap: state => {
-            const map = {} as any;
+            const map = {};
             state.indices.forEach(idx => map[idx.id] = idx);
             return map;
         },
@@ -405,12 +403,12 @@ export default new Vuex.Store({
         size: state => state.optSize,
         sortMode: state => state.sortMode,
         lastQueryResult: state => state.lastQueryResults,
-        lastDoc: function (state): EsHit | null {
+        lastDoc: function (state) {
             if (state.lastQueryResults == null) {
                 return null;
             }
 
-            return (state.lastQueryResults as unknown as EsResult).hits.hits.slice(-1)[0];
+            return (state.lastQueryResults).hits.hits.slice(-1)[0];
         },
         uiShowLightbox: state => state.uiShowLightbox,
         uiLightboxSources: state => state.uiLightboxSources,
@@ -451,7 +449,7 @@ export default new Vuex.Store({
         optMlRepositories: state => state.optMlRepositories,
         mlRepositoryList: state => {
             const repos = state.optMlRepositories.split("\n")
-            return repos[0] == "" ? [] : repos;
+            return repos[0] === "" ? [] : repos;
         },
         optMlDefaultModel: state => state.optMlDefaultModel,
         optAutoAnalyze: state => state.optAutoAnalyze,

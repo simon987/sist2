@@ -27,11 +27,12 @@
                     @click.shift="shiftClick(idx, $event)"
                     class="d-flex justify-content-between align-items-center list-group-item-action pointer"
                     :class="{active: lastClickIndex === idx}"
+                    :key="idx.id"
             >
                 <div class="d-flex">
                     <b-checkbox style="pointer-events: none" :checked="isSelected(idx)"></b-checkbox>
                     {{ idx.name }}
-                    <div style="vertical-align: center; margin-left: 5px">
+                    <div v-if="hasEmbeddings(idx)" style="vertical-align: center; margin-left: 5px">
                         <MLIcon small style="top: -1px; position: relative"></MLIcon>
                     </div>
                     <span class="text-muted timestamp-text ml-2"
@@ -43,7 +44,7 @@
     </div>
 </template>
 
-<script lang="ts">
+<script>
 import SmallBadge from "./SmallBadge.vue"
 import {mapActions, mapGetters} from "vuex";
 import Vue from "vue";
@@ -111,7 +112,7 @@ export default Vue.extend({
         onSelect(value) {
             this.setSelectedIndices(this.indices.filter(idx => value.includes(idx.id)));
         },
-        formatIdxDate(timestamp: number): string {
+        formatIdxDate(timestamp) {
             return format(new Date(timestamp * 1000), "yyyy-MM-dd");
         },
         toggleIndex(index, e) {
@@ -121,14 +122,17 @@ export default Vue.extend({
 
             this.lastClickIndex = index;
             if (this.isSelected(index)) {
-                this.setSelectedIndices(this.selectedIndices.filter(idx => idx.id != index.id));
+                this.setSelectedIndices(this.selectedIndices.filter(idx => idx.id !== index.id));
             } else {
                 this.setSelectedIndices([index, ...this.selectedIndices]);
             }
         },
         isSelected(index) {
-            return this.selectedIndices.find(idx => idx.id == index.id) != null;
-        }
+            return this.selectedIndices.find(idx => idx.id === index.id) != null;
+        },
+        hasEmbeddings(index) {
+            return index.models.length > 0;
+        },
     },
 })
 </script>

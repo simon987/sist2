@@ -8,7 +8,7 @@
 
 typedef struct es_bulk_line {
     struct es_bulk_line *next;
-    char doc_id[SIST_DOC_ID_LEN];
+    char sid[SIST_SID_LEN];
     int type;
     char line[0];
 } es_bulk_line_t;
@@ -44,16 +44,16 @@ typedef struct es_indexer es_indexer_t;
 
 void elastic_index_line(es_bulk_line_t *line);
 
-void print_json(cJSON *document, const char index_id_str[SIST_INDEX_ID_LEN]);
+void print_json(cJSON *document, const char doc_id[SIST_SID_LEN]);
 
-void index_json(cJSON *document, const char doc_id[SIST_INDEX_ID_LEN]);
+void index_json(cJSON *document, const char doc_id[SIST_SID_LEN]);
 
-void delete_document(const char *document_id);
+void delete_document(const char *sid);
 
 es_indexer_t *create_indexer(const char *url, const char *index);
 
 void elastic_cleanup();
-void finish_indexer(char *index_id);
+void finish_indexer(int index_id);
 
 void elastic_init(int force_reset, const char* user_mappings, const char* user_settings);
 

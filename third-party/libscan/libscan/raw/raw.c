@@ -13,7 +13,6 @@ int store_thumbnail_jpeg(scan_raw_ctx_t *ctx, libraw_thumbnail_t img, document_t
             .read_subtitles = FALSE,
             .tn_count = 1,
             .max_media_buffer = 0,
-            .store = ctx->store,
             .log = ctx->log,
             .logf = ctx->logf,
             .tn_size = ctx->tn_size,
@@ -84,8 +83,8 @@ int store_thumbnail_rgb24(scan_raw_ctx_t *ctx, libraw_processed_image_t *img, do
     av_init_packet(&thumbnail_packet);
     avcodec_receive_packet(thumbnail_encoder, &thumbnail_packet);
 
-    APPEND_LONG_META(doc, MetaThumbnail, 1);
-    ctx->store((char *) doc->doc_id, sizeof(doc->doc_id), (char *) thumbnail_packet.data, thumbnail_packet.size);
+    doc->thumbnail_count = 1;
+    APPEND_THUMBNAIL(doc, (char *) thumbnail_packet.data, thumbnail_packet.size);
 
     av_packet_unref(&thumbnail_packet);
     av_free(*scaled_frame->data);

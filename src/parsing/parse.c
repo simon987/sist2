@@ -4,10 +4,8 @@
 #include "src/ctx.h"
 #include "mime.h"
 #include "src/io/serialize.h"
-#include "src/parsing/sidecar.h"
 #include "src/parsing/fs_util.h"
 #include "src/parsing/magic_util.h"
-#include <pthread.h>
 
 
 #define MIN_VIDEO_SIZE (1024 * 64)
@@ -27,7 +25,6 @@ typedef enum {
     FILETYPE_OOXML,
     FILETYPE_COMIC,
     FILETYPE_MOBI,
-    FILETYPE_SIST2_SIDECAR,
     FILETYPE_MSDOC,
     FILETYPE_JSON,
     FILETYPE_NDJSON,
@@ -63,8 +60,6 @@ file_type_t get_file_type(unsigned int mime, size_t size, const char *filepath) 
         return FILETYPE_COMIC;
     } else if (IS_MOBI(mime)) {
         return FILETYPE_MOBI;
-    } else if (mime == MIME_SIST2_SIDECAR) {
-        return FILETYPE_SIST2_SIDECAR;
     } else if (is_msdoc(&ScanCtx.msdoc_ctx, mime)) {
         return FILETYPE_MSDOC;
     } else if (is_json(&ScanCtx.json_ctx, mime)) {
@@ -157,7 +152,8 @@ void parse(parse_job_t *job) {
     doc->size = job->vfile.st_size;
     doc->mtime = MAX(job->vfile.mtime, 0);
     doc->mime = get_mime(job);
-    generate_doc_id(doc->filepath + ScanCtx.index.desc.root_len, doc->doc_id);
+    doc->thumbnail_count = 0;
+    strcpy(doc->parent, job->parent);
 
     if (doc->mime == GET_MIME_ERROR_FATAL) {
         CLOSE_FILE(job->vfile)
@@ -165,14 +161,10 @@ void parse(parse_job_t *job) {
         return;
     }
 
-    if (database_mark_document(ProcData.index_db, doc->doc_id, doc->mtime)) {
+    if (database_mark_document(ProcData.index_db, doc->filepath + ScanCtx.index.desc.root_len, doc->mtime)) {
         CLOSE_FILE(job->vfile)
         free(doc);
         return;
-    }
-
-    if (LogCtx.very_verbose) {
-        LOG_DEBUGF(job->filepath, "Starting parse job {%s}", doc->doc_id);
     }
 
     switch (get_file_type(doc->mime, doc->size, doc->filepath)) {
@@ -195,6 +187,10 @@ void parse(parse_job_t *job) {
             parse_font(&ScanCtx.font_ctx, &job->vfile, doc);
             break;
         case FILETYPE_ARCHIVE:
+
+            // Insert the document now so that the children documents can link to an existing ID
+            database_write_document(ProcData.index_db, doc, NULL);
+
             parse_archive(&ScanCtx.arc_ctx, &job->vfile, doc, ScanCtx.exclude, ScanCtx.exclude_extra);
             break;
         case FILETYPE_OOXML:
@@ -206,11 +202,6 @@ void parse(parse_job_t *job) {
         case FILETYPE_MOBI:
             parse_mobi(&ScanCtx.mobi_ctx, &job->vfile, doc);
             break;
-        case FILETYPE_SIST2_SIDECAR:
-            parse_sidecar(&job->vfile, doc);
-            CLOSE_FILE(job->vfile)
-            free(doc);
-            return;
         case FILETYPE_MSDOC:
             parse_msdoc(&ScanCtx.msdoc_ctx, &job->vfile, doc);
             break;
@@ -223,14 +214,6 @@ void parse(parse_job_t *job) {
         case FILETYPE_DONT_PARSE:
         default:
             break;
-    }
-
-    //Parent meta
-    if (job->parent[0] != '\0') {
-        meta_line_t *meta_parent = malloc(sizeof(meta_line_t) + SIST_INDEX_ID_LEN);
-        meta_parent->key = MetaParent;
-        strcpy(meta_parent->str_val, job->parent);
-        APPEND_META((doc), meta_parent);
     }
 
     CLOSE_FILE(job->vfile)

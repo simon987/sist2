@@ -10,7 +10,7 @@
             >{{ $t("ml.analyzeText") }}
             </b-button>
             <b-select :disabled="mlPredictionsLoading || mlLoading" class="ml-2" v-model="nerModel">
-                <b-select-option :value="opt.value" v-for="opt of ModelsRepo.getOptions()">{{ opt.text }}
+                <b-select-option :value="opt.value" v-for="opt of ModelsRepo.getOptions()" :key="opt.value">{{ opt.text }}
                 </b-select-option>
             </b-select>
         </b-form>
@@ -46,7 +46,7 @@ import {mapGetters, mapMutations} from "vuex";
 export default {
     name: "LazyContentDiv",
     components: {AnalyzedContentSpansContainer, Preloader},
-    props: ["docId"],
+    props: ["sid"],
     data() {
         return {
             ModelsRepo,
@@ -70,7 +70,7 @@ export default {
         }
 
         Sist2Api
-            .getDocument(this.docId, this.$store.state.optHighlight, this.$store.state.fuzzy)
+            .getDocument(this.sid, this.$store.state.optHighlight, this.$store.state.fuzzy)
             .then(doc => {
                 this.loading = false;
 

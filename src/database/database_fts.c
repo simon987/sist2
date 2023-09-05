@@ -42,21 +42,23 @@ void database_fts_index(database_t *db) {
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db,
             "WITH docs AS ("
-            " SELECT document.id as id, (SELECT id FROM descriptor) as index_id, size,"
+            " SELECT "
+            "  ((SELECT id FROM descriptor) << 32) | document.id as id,"
+            "  (SELECT id FROM descriptor) as index_id,"
+            "  size,"
             "  document.json_data ->> 'name' as name,"
             "  document.json_data ->> 'path' as path,"
             "  mtime,"
-            "  document.json_data ->> 'mime' as mime,"
-            "    json_set(document.json_data, "
-            "             '$._id',document.id,"
-            "             '$.size',document.size, "
-            "             '$.mtime',document.mtime)"
+            "  m.name as mime,"
+            "  thumbnail_count,"
+            "  document.json_data"
             " FROM document"
+            " LEFT JOIN mime m ON m.id=document.mime"
             " )"
             " INSERT"
-            " INTO fts.document_index (id, index_id, size, name, path, mtime, mime, json_data)"
+            " INTO fts.document_index (id, index_id, size, name, path, mtime, mime, thumbnail_count, json_data)"
             " SELECT * FROM docs WHERE true"
-            " on conflict (id, index_id) do update set "
+            " on conflict (id) do update set "
             "  size=excluded.size, mtime=excluded.mtime, mime=excluded.mime, json_data=excluded.json_data;",
             NULL, NULL, NULL));
 
@@ -64,13 +66,14 @@ void database_fts_index(database_t *db) {
 
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db,
-            "REPLACE INTO fts.embedding (id, model_id, start, end, embedding)"
-            " SELECT id, model_id, start, end, embedding FROM embedding", NULL, NULL, NULL));
+            "REPLACE INTO fts.model (id, size)"
+            " SELECT id, size FROM model", NULL, NULL, NULL));
 
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db,
-            "INSERT INTO fts.model (id, size)"
-            " SELECT id, size FROM model WHERE TRUE ON CONFLICT (id) DO NOTHING", NULL, NULL, NULL));
+            "REPLACE INTO fts.embedding (id, model_id, start, end, embedding)"
+            " SELECT (SELECT id FROM descriptor) << 32 | id, model_id, start, end, embedding FROM embedding "
+            " WHERE TRUE ON CONFLICT (id, model_id, start) DO NOTHING;", NULL, NULL, NULL));
 
     // TODO: delete old embeddings
 
@@ -172,7 +175,7 @@ void database_fts_optimize(database_t *db) {
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA fts.optimize;", NULL, NULL, NULL));
 }
 
-cJSON *database_fts_get_paths(database_t *db, const char *index_id, int depth_min, int depth_max, const char *prefix,
+cJSON *database_fts_get_paths(database_t *db, int index_id, int depth_min, int depth_max, const char *prefix,
                               int suggest) {
 
     sqlite3_stmt *stmt;
@@ -192,7 +195,7 @@ cJSON *database_fts_get_paths(database_t *db, const char *index_id, int depth_mi
     } else if (prefix) {
         stmt = db->fts_search_paths_w_prefix;
         if (index_id) {
-            sqlite3_bind_text(stmt, 1, index_id, -1, SQLITE_STATIC);
+            sqlite3_bind_int(stmt, 1, index_id);
         } else {
             sqlite3_bind_null(stmt, 1);
         }
@@ -207,7 +210,7 @@ cJSON *database_fts_get_paths(database_t *db, const char *index_id, int depth_mi
     } else {
         stmt = db->fts_search_paths;
         if (index_id) {
-            sqlite3_bind_text(stmt, 1, index_id, -1, SQLITE_STATIC);
+            sqlite3_bind_int(stmt, 1, index_id);
         } else {
             sqlite3_bind_null(stmt, 1);
         }
@@ -290,13 +293,23 @@ const char *date_where_clause(long date_min, long date_max) {
 }
 
 int array_length(char **arr) {
-
     if (arr == NULL) {
         return 0;
     }
 
     int count = -1;
     while (arr[++count] != NULL);
+
+    return count;
+}
+
+int int_array_length(const int *arr) {
+    if (arr == NULL) {
+        return 0;
+    }
+
+    int count = -1;
+    while (arr[++count] != 0);
 
     return count;
 }
@@ -351,8 +364,8 @@ char *build_where_clause(const char *path_where, const char *size_where, const c
     return where;
 }
 
-char *index_ids_where_clause(char **index_ids) {
-    int param_count = array_length(index_ids);
+char *index_ids_where_clause(int *index_ids) {
+    int param_count = int_array_length(index_ids);
 
     char *clause = malloc(13 + 2 + 6 * param_count);
 
@@ -483,7 +496,7 @@ int database_fts_get_model_size(database_t *db, int model_id) {
 
 cJSON *database_fts_search(database_t *db, const char *query, const char *path, long size_min,
                            long size_max, long date_min, long date_max, int page_size,
-                           char **index_ids, char **mime_types, char **tags, int sort_asc,
+                           int *index_ids, char **mime_types, char **tags, int sort_asc,
                            fts_sort_t sort, int seed, char **after, int fetch_aggregations,
                            int highlight, int highlight_context_size, int model,
                            const float *embedding, int embedding_size) {
@@ -524,13 +537,21 @@ cJSON *database_fts_search(database_t *db, const char *query, const char *path, 
     const char *json_object_sql;
     if (highlight && query_where != NULL) {
         json_object_sql = "json_set(json_remove(doc.json_data, '$.content'),"
+                          "'$._id', CAST(doc.id AS TEXT),"
                           "'$.index', doc.index_id,"
+                          "'$.thumbnail', doc.thumbnail_count,"
+                          "'$.mime', doc.mime,"
+                          "'$.size', doc.size,"
                           "'$.embedding', (CASE WHEN emb.id IS NOT NULL THEN 1 ELSE 0 END),"
                           "'$._highlight.name', snippet(search, 0, '<mark>', '</mark>', '', ?6),"
                           "'$._highlight.content', snippet(search, 1, '<mark>', '</mark>', '', ?6))";
     } else {
         json_object_sql = "json_set(json_remove(doc.json_data, '$.content'),"
+                          "'$._id', CAST(doc.id AS TEXT),"
                           "'$.index', doc.index_id,"
+                          "'$.thumbnail', doc.thumbnail_count,"
+                          "'$.mime', doc.mime,"
+                          "'$.size', doc.size,"
                           "'$.embedding', (CASE WHEN emb.id IS NOT NULL THEN 1 ELSE 0 END))";
     }
 
@@ -592,7 +613,7 @@ cJSON *database_fts_search(database_t *db, const char *query, const char *path, 
 
     if (index_ids) {
         array_foreach(index_ids) {
-            sqlite3_bind_text(stmt, INDEX_ID_PARAM_OFFSET + i, index_ids[i], -1, SQLITE_STATIC);
+            sqlite3_bind_int(stmt, INDEX_ID_PARAM_OFFSET + i, index_ids[i]);
         }
     }
     if (mime_types) {
@@ -692,7 +713,7 @@ cJSON *database_fts_search(database_t *db, const char *query, const char *path, 
 
         if (index_ids) {
             array_foreach(index_ids) {
-                sqlite3_bind_text(agg_stmt, INDEX_ID_PARAM_OFFSET + i, index_ids[i], -1, SQLITE_STATIC);
+                sqlite3_bind_int(agg_stmt, INDEX_ID_PARAM_OFFSET + i, index_ids[i]);
             }
         }
         if (mime_types) {
@@ -764,19 +785,20 @@ database_summary_stats_t database_fts_sync_tags(database_t *db) {
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db,
             "DELETE FROM fts.tag WHERE"
-            " (id, tag) NOT IN (SELECT id, tag FROM tag)",
+            " (id, index_id, tag) NOT IN (SELECT ((SELECT id FROM descriptor) << 32) | id, (SELECT id FROM descriptor), tag FROM tag)"
+            " AND index_id = (SELECT id FROM descriptor)",
             NULL, NULL, NULL));
 
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db,
-            "INSERT INTO fts.tag (id, tag) "
-            " SELECT id, tag FROM tag "
-            " WHERE (id, tag) NOT IN (SELECT * FROM fts.tag)",
+            "INSERT INTO fts.tag (id, index_id, tag) "
+            " SELECT (((SELECT id FROM descriptor) << 32) | id) as sid, (SELECT id FROM descriptor), tag FROM tag "
+            " WHERE (sid, tag) NOT IN (SELECT id, tag FROM fts.tag)",
             NULL, NULL, NULL));
 }
 
-cJSON *database_fts_get_document(database_t *db, char *doc_id) {
-    sqlite3_bind_text(db->fts_get_document, 1, doc_id, -1, NULL);
+cJSON *database_fts_get_document(database_t *db, long sid) {
+    sqlite3_bind_int64(db->fts_get_document, 1, sid);
 
     int ret = sqlite3_step(db->fts_get_document);
     cJSON *json = NULL;
@@ -843,4 +865,12 @@ cJSON *database_fts_get_tags(database_t *db) {
     sqlite3_reset(db->fts_get_tags);
 
     return json;
+}
+void database_fts_write_tag(database_t *db, long sid, char *tag) {
+    sqlite3_bind_int64(db->fts_write_tag_stmt, 1, sid);
+    sqlite3_bind_int(db->fts_write_tag_stmt, 2, (int) (sid >> 32));
+    sqlite3_bind_text(db->fts_write_tag_stmt, 3, tag, -1, SQLITE_STATIC);
+
+    CRASH_IF_STMT_FAIL(sqlite3_step(db->fts_write_tag_stmt));
+    CRASH_IF_NOT_SQLITE_OK(sqlite3_reset(db->fts_write_tag_stmt));
 }

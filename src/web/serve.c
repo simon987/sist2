@@ -48,30 +48,24 @@ void get_embedding(struct mg_connection *nc, struct mg_http_message *hm) {
                      WebCtx.es_version->major, WebCtx.es_version->minor, WebCtx.es_version->patch);
     }
 
-    if (hm->uri.len != SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 2 + 4) {
-        LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) hm->uri.len, hm->uri.ptr);
+    sist_id_t sid;
+
+    if (hm->uri.len != SIST_SID_LEN + 2 + 4 || !parse_sid(&sid, hm->uri.ptr + 3)) {
+        LOG_DEBUGF("serve.c", "Invalid embedding path: %.*s", (int) hm->uri.len, hm->uri.ptr);
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
-    char doc_id[SIST_DOC_ID_LEN];
-    char index_id[SIST_INDEX_ID_LEN];
+    int model_id = (int) strtol(hm->uri.ptr + SIST_SID_LEN + 3, NULL, 10);
 
-    memcpy(index_id, hm->uri.ptr + 3, SIST_INDEX_ID_LEN);
-    *(index_id + SIST_INDEX_ID_LEN - 1) = '\0';
-    memcpy(doc_id, hm->uri.ptr + 3 + SIST_INDEX_ID_LEN, SIST_DOC_ID_LEN);
-    *(doc_id + SIST_DOC_ID_LEN - 1) = '\0';
-
-    int model_id = (int) strtol(hm->uri.ptr + SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 3, NULL, 10);
-
-    database_t *db = web_get_database(index_id);
+    database_t *db = web_get_database(sid.index_id);
     if (db == NULL) {
-        LOG_DEBUGF("serve.c", "Could not get database for index: %s", index_id);
+        LOG_DEBUGF("serve.c", "Could not get database for index: %s", sid.index_id);
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
-    cJSON *json = database_get_embedding(db, doc_id, model_id);
+    cJSON *json = database_get_embedding(db, sid.doc_id, model_id);
 
     if (json == NULL) {
         HTTP_REPLY_NOT_FOUND
@@ -84,17 +78,19 @@ void get_embedding(struct mg_connection *nc, struct mg_http_message *hm) {
 
 void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
 
-    if (hm->uri.len != SIST_INDEX_ID_LEN + 7) {
+    if (hm->uri.len != 17) {
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
-    char arg_index_id[SIST_INDEX_ID_LEN];
+    char index_id_str[9];
     char arg_stat_type[5];
 
-    memcpy(arg_index_id, hm->uri.ptr + 3, SIST_INDEX_ID_LEN);
-    *(arg_index_id + SIST_INDEX_ID_LEN - 1) = '\0';
-    memcpy(arg_stat_type, hm->uri.ptr + 3 + SIST_INDEX_ID_LEN, 4);
+    memcpy(index_id_str, hm->uri.ptr + 3, 8);
+    *(index_id_str + 8) = '\0';
+    int index_id = (int)strtol(index_id_str, NULL, 16);
+
+    memcpy(arg_stat_type, hm->uri.ptr + 3 + 9, 4);
     *(arg_stat_type + sizeof(arg_stat_type) - 1) = '\0';
 
     database_stat_type_d stat_type = database_get_stat_type_by_mnemonic(arg_stat_type);
@@ -103,9 +99,9 @@ void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
         return;
     }
 
-    database_t *db = web_get_database(arg_index_id);
+    database_t *db = web_get_database(index_id);
     if (db == NULL) {
-        LOG_DEBUGF("serve.c", "Could not get database for index: %s", arg_index_id);
+        LOG_DEBUGF("serve.c", "Could not get database for index: %d", index_id);
         HTTP_REPLY_NOT_FOUND
         return;
     }
@@ -152,19 +148,19 @@ void serve_chunk_vendors_css(struct mg_connection *nc, struct mg_http_message *h
     web_serve_asset_chunk_vendors_css(nc);
 }
 
-void serve_thumbnail(struct mg_connection *nc, struct mg_http_message *hm, const char *arg_index,
-                     const char *arg_doc_id, int arg_num) {
+void serve_thumbnail(struct mg_connection *nc, struct mg_http_message *hm, int index_id,
+                     int doc_id, int arg_num) {
 
-    database_t *db = web_get_database(arg_index);
+    database_t *db = web_get_database(index_id);
     if (db == NULL) {
-        LOG_DEBUGF("serve.c", "Could not get database for index: %s", arg_index);
+        LOG_DEBUGF("serve.c", "Could not get database for index: %d", index_id);
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
     size_t data_len = 0;
 
-    void *data = database_read_thumbnail(db, arg_doc_id, arg_num, &data_len);
+    void *data = database_read_thumbnail(db, doc_id, arg_num, &data_len);
 
     if (data_len != 0) {
         web_send_headers(
@@ -181,44 +177,29 @@ void serve_thumbnail(struct mg_connection *nc, struct mg_http_message *hm, const
 }
 
 void thumbnail_with_num(struct mg_connection *nc, struct mg_http_message *hm) {
-    if (hm->uri.len != SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 2 + 5) {
+    sist_id_t sid;
+
+    if (hm->uri.len != SIST_SID_LEN + 2 + 4 || !parse_sid(&sid, hm->uri.ptr + 3)) {
         LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) hm->uri.len, hm->uri.ptr);
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
-    char arg_doc_id[SIST_DOC_ID_LEN];
-    char arg_index[SIST_INDEX_ID_LEN];
-    char arg_num[5] = {0};
+    int num = (int) strtol(hm->uri.ptr + SIST_SID_LEN + 3, NULL, 10);
 
-    memcpy(arg_index, hm->uri.ptr + 3, SIST_INDEX_ID_LEN);
-    *(arg_index + SIST_INDEX_ID_LEN - 1) = '\0';
-    memcpy(arg_doc_id, hm->uri.ptr + 3 + SIST_INDEX_ID_LEN, SIST_DOC_ID_LEN);
-    *(arg_doc_id + SIST_DOC_ID_LEN - 1) = '\0';
-    memcpy(arg_num, hm->uri.ptr + SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 3, 4);
-
-    int num = (int) strtol(arg_num, NULL, 10);
-
-    serve_thumbnail(nc, hm, arg_index, arg_doc_id, num);
+    serve_thumbnail(nc, hm, sid.index_id, sid.doc_id, num);
 }
 
 void thumbnail(struct mg_connection *nc, struct mg_http_message *hm) {
+    sist_id_t sid;
 
-    if (hm->uri.len != SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 2) {
+    if (hm->uri.len != 20 || !parse_sid(&sid, hm->uri.ptr + 3)) {
         LOG_DEBUGF("serve.c", "Invalid thumbnail path: %.*s", (int) hm->uri.len, hm->uri.ptr);
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
-    char arg_doc_id[SIST_DOC_ID_LEN];
-    char arg_index[SIST_INDEX_ID_LEN];
-
-    memcpy(arg_index, hm->uri.ptr + 3, SIST_INDEX_ID_LEN);
-    *(arg_index + SIST_INDEX_ID_LEN - 1) = '\0';
-    memcpy(arg_doc_id, hm->uri.ptr + 3 + SIST_INDEX_ID_LEN, SIST_DOC_ID_LEN);
-    *(arg_doc_id + SIST_DOC_ID_LEN - 1) = '\0';
-
-    serve_thumbnail(nc, hm, arg_index, arg_doc_id, 0);
+    serve_thumbnail(nc, hm, sid.index_id, sid.doc_id, 0);
 }
 
 void search(struct mg_connection *nc, struct mg_http_message *hm) {
@@ -382,7 +363,7 @@ void index_info(struct mg_connection *nc) {
         cJSON *idx_json = cJSON_CreateObject();
         cJSON_AddStringToObject(idx_json, "name", idx->desc.name);
         cJSON_AddStringToObject(idx_json, "version", idx->desc.version);
-        cJSON_AddStringToObject(idx_json, "id", idx->desc.id);
+        cJSON_AddNumberToObject(idx_json, "id", idx->desc.id);
         cJSON_AddStringToObject(idx_json, "rewriteUrl", idx->desc.rewrite_url);
         cJSON_AddNumberToObject(idx_json, "timestamp", (double) idx->desc.timestamp);
         cJSON_AddItemToArray(arr, idx_json);
@@ -405,15 +386,14 @@ void index_info(struct mg_connection *nc) {
     cJSON_Delete(json);
 }
 
-cJSON *get_root_document_by_id(const char *index_id, const char *doc_id) {
+cJSON *get_root_document_by_id(int index_id, int doc_id) {
 
     database_t *db = web_get_database(index_id);
     if (!db) {
         return NULL;
     }
 
-    char next_id[SIST_DOC_ID_LEN];
-    strcpy(next_id, doc_id);
+    int next_id = doc_id;
 
     while (TRUE) {
         cJSON *doc = database_get_document(db, next_id);
@@ -423,38 +403,31 @@ cJSON *get_root_document_by_id(const char *index_id, const char *doc_id) {
         }
 
         cJSON *parent = cJSON_GetObjectItem(doc, "parent");
-        if (parent == NULL || cJSON_IsNull(parent)) {
+        if (parent == NULL || !cJSON_IsNumber(parent)) {
             return doc;
         }
 
-        strcpy(next_id, parent->valuestring);
-        cJSON_Delete(parent);
+        next_id = parent->valueint;
+        cJSON_Delete(doc);
     }
 }
 
 void file(struct mg_connection *nc, struct mg_http_message *hm) {
+    sist_id_t sid;
 
-    if (hm->uri.len != SIST_INDEX_ID_LEN + SIST_DOC_ID_LEN + 2) {
+    if (hm->uri.len != 20 || !parse_sid(&sid, hm->uri.ptr + 3)) {
         LOG_DEBUGF("serve.c", "Invalid file path: %.*s", (int) hm->uri.len, hm->uri.ptr);
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
-    char arg_doc_id[SIST_DOC_ID_LEN];
-    char arg_index[SIST_INDEX_ID_LEN];
-
-    memcpy(arg_index, hm->uri.ptr + 3, SIST_INDEX_ID_LEN);
-    *(arg_index + SIST_INDEX_ID_LEN - 1) = '\0';
-    memcpy(arg_doc_id, hm->uri.ptr + 3 + SIST_INDEX_ID_LEN, SIST_DOC_ID_LEN);
-    *(arg_doc_id + SIST_DOC_ID_LEN - 1) = '\0';
-
-    index_t *idx = web_get_index_by_id(arg_index);
+    index_t *idx = web_get_index_by_id(sid.index_id);
     if (idx == NULL) {
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
-    cJSON *source = get_root_document_by_id(arg_index, arg_doc_id);
+    cJSON *source = get_root_document_by_id(sid.index_id, sid.doc_id);
 
     if (strlen(idx->desc.rewrite_url) == 0) {
         serve_file_from_disk(source, idx, nc, hm);
@@ -478,7 +451,6 @@ void status(struct mg_connection *nc) {
 typedef struct {
     char *name;
     int delete;
-    char *doc_id;
 } tag_req_t;
 
 tag_req_t *parse_tag_request(cJSON *json) {
@@ -501,20 +473,14 @@ tag_req_t *parse_tag_request(cJSON *json) {
         return NULL;
     }
 
-    cJSON *arg_doc_id = cJSON_GetObjectItem(json, "doc_id");
-    if (arg_doc_id == NULL || !cJSON_IsString(arg_doc_id)) {
-        return NULL;
-    }
-
     tag_req_t *req = malloc(sizeof(tag_req_t));
     req->delete = arg_delete->valueint;
     req->name = arg_name->valuestring;
-    req->doc_id = arg_doc_id->valuestring;
 
     return req;
 }
 
-subreq_ctx_t *elastic_delete_tag(const tag_req_t *req) {
+subreq_ctx_t *elastic_delete_tag(const char* sid, const tag_req_t *req) {
     char *buf = malloc(sizeof(char) * 8192);
     snprintf(buf, 8192,
              "{"
@@ -529,12 +495,12 @@ subreq_ctx_t *elastic_delete_tag(const tag_req_t *req) {
     );
 
     char url[4096];
-    snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, req->doc_id);
+    snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, sid);
 
     return web_post_async(url, buf, WebCtx.es_insecure_ssl);
 }
 
-subreq_ctx_t *elastic_write_tag(const tag_req_t *req) {
+subreq_ctx_t *elastic_write_tag(const char* sid, const tag_req_t *req) {
     char *buf = malloc(sizeof(char) * 8192);
     snprintf(buf, 8192,
              "{"
@@ -549,20 +515,17 @@ subreq_ctx_t *elastic_write_tag(const tag_req_t *req) {
     );
 
     char url[4096];
-    snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, req->doc_id);
+    snprintf(url, sizeof(url), "%s/%s/_update/%s", WebCtx.es_url, WebCtx.es_index, sid);
     return web_post_async(url, buf, WebCtx.es_insecure_ssl);
 }
 
 void tag(struct mg_connection *nc, struct mg_http_message *hm) {
-    if (hm->uri.len != SIST_INDEX_ID_LEN + 4) {
+    sist_id_t sid;
+    if (hm->uri.len != 22 || !parse_sid(&sid, hm->uri.ptr + 5)) {
         LOG_DEBUGF("serve.c", "Invalid tag path: %.*s", (int) hm->uri.len, hm->uri.ptr);
         HTTP_REPLY_NOT_FOUND
         return;
     }
-
-    char arg_index[SIST_INDEX_ID_LEN];
-    memcpy(arg_index, hm->uri.ptr + 5, SIST_INDEX_ID_LEN);
-    *(arg_index + SIST_INDEX_ID_LEN - 1) = '\0';
 
     char *body = malloc(hm->body.len + 1);
     memcpy(body, hm->body.ptr, hm->body.len);
@@ -575,36 +538,36 @@ void tag(struct mg_connection *nc, struct mg_http_message *hm) {
         return;
     }
 
-    database_t *db = web_get_database(arg_index);
+    database_t *db = web_get_database(sid.index_id);
     if (db == NULL) {
-        LOG_DEBUGF("serve.c", "Could not get database for index: %s", arg_index);
+        LOG_DEBUGF("serve.c", "Could not get database for index: %d", sid.index_id);
         HTTP_REPLY_NOT_FOUND
         return;
     }
 
     tag_req_t *req = parse_tag_request(json);
     if (req == NULL) {
-        LOG_DEBUGF("serve.c", "Could not parse tag request", arg_index);
+        LOG_DEBUG("serve.c", "Could not parse tag request");
         cJSON_Delete(json);
         HTTP_REPLY_BAD_REQUEST
         return;
     }
 
     if (req->delete) {
-        database_delete_tag(db, req->doc_id, req->name);
+        database_delete_tag(db, sid.doc_id, req->name);
         if (WebCtx.search_backend == SQLITE_SEARCH_BACKEND) {
-            database_delete_tag(WebCtx.search_db, req->doc_id, req->name);
+            database_delete_tag(WebCtx.search_db, sid.sid_int64, req->name);
             HTTP_REPLY_OK
         } else {
-            nc->fn_data = elastic_delete_tag(req);
+            nc->fn_data = elastic_delete_tag(sid.sid_str, req);
         }
     } else {
-        database_write_tag(db, req->doc_id, req->name);
+        database_write_tag(db, sid.doc_id, req->name);
         if (WebCtx.search_backend == SQLITE_SEARCH_BACKEND) {
-            database_write_tag(WebCtx.search_db, req->doc_id, req->name);
+            database_fts_write_tag(WebCtx.search_db, sid.sid_int64, req->name);
             HTTP_REPLY_OK
         } else {
-            nc->fn_data = elastic_write_tag(req);
+            nc->fn_data = elastic_write_tag(sid.sid_str, req);
         }
     }
 
@@ -739,11 +702,11 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
 
         if (mg_http_match_uri(hm, "/status")) {
             status(nc);
-        } else if (mg_http_match_uri(hm, "/f/*/*")) {
+        } else if (mg_http_match_uri(hm, "/f/*")) {
             file(nc, hm);
-        } else if (mg_http_match_uri(hm, "/t/*/*/*")) {
-            thumbnail_with_num(nc, hm);
         } else if (mg_http_match_uri(hm, "/t/*/*")) {
+            thumbnail_with_num(nc, hm);
+        } else if (mg_http_match_uri(hm, "/t/*")) {
             thumbnail(nc, hm);
         } else if (mg_http_match_uri(hm, "/s/*/*")) {
             stats_files(nc, hm);
@@ -752,7 +715,7 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(vo
                 return;
             }
             tag(nc, hm);
-        } else if (mg_http_match_uri(hm, "/e/*/*/*")) {
+        } else if (mg_http_match_uri(hm, "/e/*/*")) {
             get_embedding(nc, hm);
             return;
         } else {

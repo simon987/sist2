@@ -3,7 +3,7 @@
 #include "src/web/web_util.h"
 
 typedef struct {
-    char *index_id;
+    int index_id;
     char *prefix;
     int min_depth;
     int max_depth;
@@ -23,7 +23,7 @@ typedef struct {
     double date_min;
     double date_max;
     int page_size;
-    char **index_ids;
+    int *index_ids;
     char **mime_types;
     char **tags;
     int sort_asc;
@@ -108,7 +108,7 @@ static json_value get_json_bool(cJSON *object, const char *name) {
     return (json_value) {item, FALSE};
 }
 
-static json_value get_json_float_array(cJSON *object, const char *name) {
+static json_value get_json_number_array(cJSON *object, const char *name) {
     cJSON *item = cJSON_GetObjectItem(object, name);
     if (item == NULL || cJSON_IsNull(item)) {
         return (json_value) {NULL, FALSE};
@@ -147,12 +147,22 @@ static json_value get_json_array(cJSON *object, const char *name) {
 }
 
 char **json_array_to_c_array(cJSON *json) {
-
     cJSON *element;
     char **arr = calloc(cJSON_GetArraySize(json) + 1, sizeof(char *));
     int i = 0;
     cJSON_ArrayForEach(element, json) {
         arr[i++] = strdup(element->valuestring);
+    }
+
+    return arr;
+}
+
+int *json_number_array_to_c_array(cJSON *json) {
+    cJSON *element;
+    int *arr = calloc(cJSON_GetArraySize(json) + 1, sizeof(int));
+    int i = 0;
+    cJSON_ArrayForEach(element, json) {
+        arr[i++] = (int) element->valuedouble;
     }
 
     return arr;
@@ -184,11 +194,11 @@ fts_search_req_t *get_search_req(struct mg_http_message *hm) {
         (req_seed = get_json_number(json, "seed")).invalid ||
         (req_fetch_aggregations = get_json_bool(json, "fetchAggregations")).invalid ||
         (req_sort_asc = get_json_bool(json, "sortAsc")).invalid ||
-        (req_index_ids = get_json_array(json, "indexIds")).invalid ||
+        (req_index_ids = get_json_number_array(json, "indexIds")).invalid ||
         (req_mime_types = get_json_array(json, "mimeTypes")).invalid ||
         (req_highlight = get_json_bool(json, "highlight")).invalid ||
         (req_highlight_context_size = get_json_number(json, "highlightContextSize")).invalid ||
-        (req_embedding = get_json_float_array(json, "embedding")).invalid ||
+        (req_embedding = get_json_number_array(json, "embedding")).invalid ||
         (req_model = get_json_number(json, "model")).invalid ||
         (req_tags = get_json_array(json, "tags")).invalid) {
         cJSON_Delete(json);
@@ -251,7 +261,7 @@ fts_search_req_t *get_search_req(struct mg_http_message *hm) {
     req->date_max = req_date_max.val ? req_date_max.val->valuedouble : 0;
     req->page_size = (int) req_page_size.val->valuedouble;
     req->sort_asc = req_sort_asc.val ? req_sort_asc.val->valueint : TRUE;
-    req->index_ids = req_index_ids.val ? json_array_to_c_array(req_index_ids.val) : NULL;
+    req->index_ids = req_index_ids.val ? json_number_array_to_c_array(req_index_ids.val) : NULL;
     req->after = req_after.val ? json_array_to_c_array(req_after.val) : NULL;
     req->mime_types = req_mime_types.val ? json_array_to_c_array(req_mime_types.val) : NULL;
     req->tags = req_tags.val ? json_array_to_c_array(req_tags.val) : NULL;
@@ -282,7 +292,9 @@ void destroy_search_req(fts_search_req_t *req) {
     free(req->query);
     free(req->path);
 
-    destroy_array(req->index_ids);
+    if (req->index_ids) {
+        free(req->index_ids);
+    }
     destroy_array(req->mime_types);
     destroy_array(req->tags);
 
@@ -303,7 +315,7 @@ fts_search_paths_req_t *get_search_paths_req(struct mg_http_message *hm) {
     json_value req_index_id, req_min_depth, req_max_depth, req_prefix;
 
     if (!cJSON_IsObject(json) ||
-        (req_index_id = get_json_string(json, "indexId")).invalid ||
+        (req_index_id = get_json_number(json, "indexId")).invalid ||
         (req_prefix = get_json_string(json, "prefix")).invalid ||
         (req_min_depth = get_json_number(json, "minDepth")).val == NULL ||
         (req_max_depth = get_json_number(json, "maxDepth")).val == NULL) {
@@ -313,19 +325,16 @@ fts_search_paths_req_t *get_search_paths_req(struct mg_http_message *hm) {
 
     fts_search_paths_req_t *req = malloc(sizeof(fts_search_paths_req_t));
 
-    req->index_id = req_index_id.val ? strdup(req_index_id.val->valuestring) : NULL;
+    req->index_id = req_index_id.val ? req_index_id.val->valueint : 0;
+    req->prefix = req_prefix.val ? strdup(req_prefix.val->valuestring) : NULL;
     req->min_depth = req_min_depth.val->valueint;
     req->max_depth = req_max_depth.val->valueint;
-    req->prefix = req_prefix.val ? strdup(req_prefix.val->valuestring) : NULL;
 
     cJSON_Delete(json);
     return req;
 }
 
 void destroy_search_paths_req(fts_search_paths_req_t *req) {
-    if (req->index_id) {
-        free(req->index_id);
-    }
     if (req->prefix) {
         free(req->prefix);
     }
@@ -398,11 +407,15 @@ void fts_search(struct mg_connection *nc, struct mg_http_message *hm) {
 
 void fts_get_document(struct mg_connection *nc, struct mg_http_message *hm) {
 
-    char doc_id[SIST_DOC_ID_LEN];
-    memcpy(doc_id, hm->uri.ptr + 7, SIST_INDEX_ID_LEN);
-    *(doc_id + SIST_INDEX_ID_LEN - 1) = '\0';
+    sist_id_t sid;
 
-    cJSON *json = database_fts_get_document(WebCtx.search_db, doc_id);
+    if (hm->uri.len != 24 || !parse_sid(&sid, hm->uri.ptr + 7)) {
+        LOG_DEBUGF("serve.c", "Invalid /fts/d/ path: %.*s", (int) hm->uri.len, hm->uri.ptr);
+        HTTP_REPLY_NOT_FOUND
+        return;
+    }
+
+    cJSON *json = database_fts_get_document(WebCtx.search_db, sid.sid_int64);
 
     if (!json) {
         HTTP_REPLY_NOT_FOUND

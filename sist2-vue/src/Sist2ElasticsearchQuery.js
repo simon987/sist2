@@ -1,5 +1,5 @@
-import store from "./store";
-import sist2Api, {EsHit, Index} from "@/Sist2Api";
+import store from "@/store";
+import Sist2Api from "@/Sist2Api";
 
 const SORT_MODES = {
     score: {
@@ -7,62 +7,62 @@ const SORT_MODES = {
             {_score: {order: "desc"}},
             {_tie: {order: "asc"}}
         ],
-        key: (hit: EsHit) => hit._score
+        key: (hit) => hit._score
     },
     random: {
         mode: [
             {_score: {order: "desc"}},
             {_tie: {order: "asc"}}
         ],
-        key: (hit: EsHit) => hit._score
+        key: (hit) => hit._score
     },
     dateAsc: {
         mode: [
             {mtime: {order: "asc"}},
             {_tie: {order: "asc"}}
         ],
-        key: (hit: EsHit) => hit._source.mtime
+        key: (hit) => hit._source.mtime
     },
     dateDesc: {
         mode: [
             {mtime: {order: "desc"}},
             {_tie: {order: "asc"}}
         ],
-        key: (hit: EsHit) => hit._source.mtime
+        key: (hit) => hit._source.mtime
     },
     sizeAsc: {
         mode: [
             {size: {order: "asc"}},
             {_tie: {order: "asc"}}
         ],
-        key: (hit: EsHit) => hit._source.size
+        key: (hit) => hit._source.size
     },
     sizeDesc: {
         mode: [
             {size: {order: "desc"}},
             {_tie: {order: "asc"}}
         ],
-        key: (hit: EsHit) => hit._source.size
+        key: (hit) => hit._source.size
     },
     nameAsc: {
         mode: [
             {name: {order: "asc"}},
             {_tie: {order: "asc"}}
         ],
-        key: (hit: EsHit) => hit._source.name
+        key: (hit) => hit._source.name
     },
     nameDesc: {
         mode: [
             {name: {order: "desc"}},
             {_tie: {order: "asc"}}
         ],
-        key: (hit: EsHit) => hit._source.name
+        key: (hit) => hit._source.name
     }
-} as any;
+};
 
 class Sist2ElasticsearchQuery {
 
-    searchQuery(blankSearch: boolean = false): any {
+    searchQuery(blankSearch = false) {
 
         const getters = store.getters;
 
@@ -76,7 +76,7 @@ class Sist2ElasticsearchQuery {
         const fuzzy = getters.fuzzy;
         const size = getters.size;
         const after = getters.lastDoc;
-        const selectedIndexIds = getters.selectedIndices.map((idx: Index) => idx.id)
+        const selectedIndexIds = getters.selectedIndices.map((idx) => idx.id)
         const selectedMimeTypes = getters.selectedMimeTypes;
         const selectedTags = getters.selectedTags;
         const sortMode = getters.embedding ? "score" : getters.sortMode;
@@ -86,7 +86,7 @@ class Sist2ElasticsearchQuery {
 
         const filters = [
             {terms: {index: selectedIndexIds}}
-        ] as any[];
+        ];
 
         const fields = [
             "name^8",
@@ -138,7 +138,7 @@ class Sist2ElasticsearchQuery {
                 if (getters.optTagOrOperator) {
                     filters.push({terms: {"tag": selectedTags}});
                 } else {
-                    selectedTags.forEach((tag: string) => filters.push({term: {"tag": tag}}));
+                    selectedTags.forEach((tag) => filters.push({term: {"tag": tag}}));
                 }
             }
         }
@@ -173,7 +173,7 @@ class Sist2ElasticsearchQuery {
             },
             sort: SORT_MODES[sortMode].mode,
             size: size,
-        } as any;
+        };
 
         if (!after) {
             q.aggs = {
@@ -193,7 +193,7 @@ class Sist2ElasticsearchQuery {
         if (getters.embedding) {
             delete q.query;
 
-            const field = "emb." + sist2Api.models().find(m => m.id == getters.embeddingsModel).path;
+            const field = "emb." + Sist2Api.models().find(m => m.id === getters.embeddingsModel).path;
 
             if (hasKnn) {
                 // Use knn (8.8+)

@@ -32,16 +32,16 @@ void web_serve_asset_chunk_vendors_css(struct mg_connection *nc) {
     mg_send(nc, chunk_vendors_css, sizeof(chunk_vendors_css));
 }
 
-index_t *web_get_index_by_id(const char *index_id) {
+index_t *web_get_index_by_id(int index_id) {
     for (int i = WebCtx.index_count; i >= 0; i--) {
-        if (strncmp(index_id, WebCtx.indices[i].desc.id, SIST_INDEX_ID_LEN) == 0) {
+        if (index_id == WebCtx.indices[i].desc.id) {
             return &WebCtx.indices[i];
         }
     }
     return NULL;
 }
 
-database_t *web_get_database(const char *index_id) {
+database_t *web_get_database(int index_id) {
     index_t *idx = web_get_index_by_id(index_id);
     if (idx != NULL) {
         return idx->db;

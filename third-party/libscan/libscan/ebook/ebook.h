@@ -12,7 +12,6 @@ typedef struct {
 
     log_callback_t log;
     logf_callback_t logf;
-    store_callback_t store;
     int fast_epub_parse;
     int tn_qscale;
 } scan_ebook_ctx_t;

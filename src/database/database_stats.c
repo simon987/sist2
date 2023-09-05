@@ -98,10 +98,10 @@ void database_generate_stats(database_t *db, double treemap_threshold) {
     // mime aggregation
     sqlite3_prepare_v2(db->db, "INSERT INTO stats_mime_agg"
                                " SELECT"
-                               "  (json_data->>'mime') as bucket,"
+                               "  m.name as bucket,"
                                "  sum(size),"
                                "  count(*)"
-                               " FROM document"
+                               " FROM document INNER JOIN mime m ON m.id=document.mime"
                                " WHERE bucket IS NOT NULL"
                                " GROUP BY bucket", -1, &stmt, NULL);
     CRASH_IF_STMT_FAIL(sqlite3_step(stmt));
@@ -117,8 +117,8 @@ void database_generate_stats(database_t *db, double treemap_threshold) {
 
     // flat map
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db,
-                                        "INSERT INTO tm (path, size) SELECT json_data->>'path' as path, sum(size)"
-                                        " FROM document WHERE json_data->>'parent' IS NULL GROUP BY path;",
+                                        "INSERT INTO tm (path, size) SELECT path, sum(size)"
+                                        " FROM document WHERE parent IS NULL GROUP BY path;",
                                         NULL, NULL, NULL));
 
     // Merge up

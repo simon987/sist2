@@ -7,6 +7,7 @@
 
 #include "third-party/utf8.h/utf8.h"
 #include "libscan/scan.h"
+#include "types.h"
 #include <openssl/evp.h>
 
 
@@ -18,7 +19,8 @@ dyn_buffer_t url_escape(char *str);
 
 extern int PrintingProgressBar;
 
-void progress_bar_print_json(size_t done, size_t count,  size_t tn_size, size_t index_size, int waiting);
+void progress_bar_print_json(size_t done, size_t count, size_t tn_size, size_t index_size, int waiting);
+
 void progress_bar_print(double percentage, size_t tn_size, size_t index_size);
 
 const char *find_file_in_paths(const char **paths, const char *filename);
@@ -87,24 +89,6 @@ static void buf2hex(const unsigned char *buf, size_t buflen, char *hex_string) {
     *s = '\0';
 }
 
-static void md5_hexdigest(const void *data, size_t size, char *output) {
-    EVP_MD_CTX *md_ctx = EVP_MD_CTX_new();
-    EVP_DigestInit_ex(md_ctx, EVP_md5(), NULL);
-
-    EVP_DigestUpdate(md_ctx, data, size);
-
-    unsigned char digest[MD5_DIGEST_LENGTH];
-    EVP_DigestFinal_ex(md_ctx, digest, NULL);
-    EVP_MD_CTX_free(md_ctx);
-
-    buf2hex(digest, MD5_DIGEST_LENGTH, output);
-}
-
-__always_inline
-static void generate_doc_id(const char *rel_path, char *doc_id) {
-    md5_hexdigest(rel_path, strlen(rel_path), doc_id);
-}
-
 #define MILLISECOND 1000
 
 struct timespec timespec_add(struct timespec ts1, long usec);
@@ -125,6 +109,29 @@ struct timespec timespec_add(struct timespec ts1, long usec);
     } while (0)
 
 #define array_foreach(arr) \
-    for (int i = 0; (arr)[i] != NULL; i++)
+    for (int i = 0; (arr)[i] != 0; i++)
+
+#define format_sid(out, index_id, doc_id) \
+    sprintf((out), "%08x.%08x", (index_id), (doc_id))
+
+static int parse_sid(sist_id_t *sid, const char doc_sid_str[SIST_SID_LEN]) {
+    if (doc_sid_str[8] != '.') {
+        return FALSE;
+    }
+
+    char tmp[9];
+
+    memcpy(tmp, doc_sid_str, 8);
+    sid->index_id = (int) strtol(tmp, NULL, 16);
+    memcpy(tmp, doc_sid_str + 9, 8);
+    sid->doc_id = (int) strtol(tmp, NULL, 16);
+
+    memcpy(sid->sid_str, doc_sid_str, SIST_SID_LEN - 1);
+    *(sid->sid_str + SIST_SID_LEN - 1) = '\0';
+
+    sid->sid_int64 = ((long) sid->index_id << 32) | sid->doc_id;
+
+    return TRUE;
+}
 
 #endif

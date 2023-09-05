@@ -32,7 +32,6 @@
     "@types/underscore": "^1.11.6",
     "@vue/cli-plugin-babel": "~5.0.8",
     "@vue/cli-plugin-router": "~5.0.8",
-    "@vue/cli-plugin-typescript": "^5.0.8",
     "@vue/cli-plugin-vuex": "~5.0.8",
     "@vue/cli-service": "^5.0.8",
     "@vue/test-utils": "^1.0.3",
@@ -44,7 +43,6 @@
     "portal-vue": "^2.1.7",
     "sass": "^1.26.11",
     "sass-loader": "^10.0.2",
-    "typescript": "^4.9.5",
     "vue-cli-plugin-bootstrap-vue": "~0.8.2",
     "vue-template-compiler": "^2.6.11"
   },

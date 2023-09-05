@@ -526,7 +526,7 @@ TEST(MediaVideo, Vid3Mp4) {
     ASSERT_EQ(get_meta(&doc, MetaMediaBitrate)->long_val, 825169);
     ASSERT_EQ(get_meta(&doc, MetaMediaDuration)->long_val, 10);
 
-    //TODO: Check that thumbnail was generated correctly
+    //TODO: Check that thumbnail_count was generated correctly
     cleanup(&doc, &f);
 }
 
@@ -541,7 +541,7 @@ TEST(MediaVideo, Vid3Ogv) {
     ASSERT_EQ(get_meta(&doc, MetaMediaBitrate)->long_val, 590261);
     ASSERT_EQ(get_meta(&doc, MetaMediaDuration)->long_val, 10);
 
-    //TODO: Check that thumbnail was generated correctly
+    //TODO: Check that thumbnail_count was generated correctly
     cleanup(&doc, &f);
 }
 
@@ -556,7 +556,7 @@ TEST(MediaVideo, Vid3Webm) {
     ASSERT_EQ(get_meta(&doc, MetaMediaBitrate)->long_val, 343153);
     ASSERT_EQ(get_meta(&doc, MetaMediaDuration)->long_val, 10);
 
-    //TODO: Check that thumbnail was generated correctly
+    //TODO: Check that thumbnail_count was generated correctly
     cleanup(&doc, &f);
 }
 

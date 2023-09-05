@@ -17,10 +17,10 @@
                     </div>
 
                     <img v-if="doc._props.isPlayableImage || doc._props.isPlayableVideo"
-                         :src="(doc._props.isGif && hover) ? `f/${doc._source.index}/${doc._id}` : `t/${doc._source.index}/${doc._id}`"
+                         :src="(doc._props.isGif && hover) ? `f/${sid(doc)}` : `t/${sid(doc)}`"
                          alt=""
                          class="pointer fit-sm" @click="onThumbnailClick()">
-                    <img v-else :src="`t/${doc._source.index}/${doc._id}`" alt=""
+                    <img v-else :src="`t/${sid(doc)}`" alt=""
                          class="fit-sm">
                 </div>
             </div>
@@ -70,6 +70,7 @@ import FileIcon from "@/components/icons/FileIcon";
 import FeaturedFieldsLine from "@/components/FeaturedFieldsLine";
 import MLIcon from "@/components/icons/MlIcon.vue";
 import Sist2Api from "@/Sist2Api";
+import {sid} from "@/util";
 
 export default {
     name: "DocListItem",
@@ -82,12 +83,13 @@ export default {
         }
     },
     methods: {
+        sid: sid,
         async onThumbnailClick() {
             this.$store.commit("setUiLightboxSlide", this.doc._seq);
             await this.$store.dispatch("showLightbox");
         },
         onEmbeddingClick() {
-            Sist2Api.getEmbeddings(this.doc._source.index, this.doc._id, this.$store.state.embeddingsModel).then(embeddings => {
+            Sist2Api.getEmbeddings(sid(this.doc), this.$store.state.embeddingsModel).then(embeddings => {
                 this.$store.commit("setEmbeddingText", "");
                 this.$store.commit("setEmbedding", embeddings);
                 this.$store.commit("setEmbeddingDoc", this.doc);

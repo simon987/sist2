@@ -69,9 +69,9 @@ cJSON *database_get_models(database_t *db) {
     return json;
 }
 
-cJSON *database_get_embedding(database_t *db, char *doc_id, int model_id) {
+cJSON *database_get_embedding(database_t *db, int doc_id, int model_id) {
 
-    sqlite3_bind_text(db->get_embedding, 1, doc_id, -1, SQLITE_STATIC);
+    sqlite3_bind_int(db->get_embedding, 1, doc_id);
     sqlite3_bind_int(db->get_embedding, 2, model_id);
     int ret = sqlite3_step(db->get_embedding);
     CRASH_IF_STMT_FAIL(ret);

@@ -231,8 +231,8 @@ void parse_font(scan_font_ctx_t *ctx, vfile_t *f, document_t *doc) {
     dyn_buffer_t bmp_data = dyn_buffer_create();
     bmp_format(&bmp_data, dimensions, bitmap);
 
-    APPEND_LONG_META(doc, MetaThumbnail, 1);
-    ctx->store(doc->doc_id, 0, bmp_data.buf, bmp_data.cur);
+    doc->thumbnail_count = 1;
+    APPEND_THUMBNAIL(doc, bmp_data.buf, bmp_data.cur);
 
     dyn_buffer_destroy(&bmp_data);
     free(bitmap);

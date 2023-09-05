@@ -466,7 +466,7 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
     if (scaled_frame == STORE_AS_IS) {
         return_value = SAVE_THUMBNAIL_OK;
 
-        ctx->store(doc->doc_id, 0, frame_and_packet->packet->data, frame_and_packet->packet->size);
+        APPEND_THUMBNAIL(doc, frame_and_packet->packet->data, frame_and_packet->packet->size);
     } else {
         // Encode frame
         AVCodecContext *thumbnail_encoder = alloc_webp_encoder(scaled_frame->width, scaled_frame->height,
@@ -477,9 +477,9 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
         AVPacket *thumbnail_packet = av_packet_alloc();
         avcodec_receive_packet(thumbnail_encoder, thumbnail_packet);
 
-        // Save thumbnail
+        // Save thumbnail_count
         if (thumbnail_index == 0) {
-            ctx->store(doc->doc_id, 0, thumbnail_packet->data, thumbnail_packet->size);
+            APPEND_THUMBNAIL(doc, thumbnail_packet->data, thumbnail_packet->size);
             return_value = SAVE_THUMBNAIL_OK;
 
         } else if (thumbnail_index > 1) {
@@ -487,7 +487,7 @@ int decode_frame_and_save_thumbnail(scan_media_ctx_t *ctx, AVFormatContext *pFor
             //  I figure out a better fix.
             thumbnail_index -= 1;
 
-            ctx->store(doc->doc_id, thumbnail_index, thumbnail_packet->data, thumbnail_packet->size);
+            APPEND_THUMBNAIL(doc, thumbnail_packet->data, thumbnail_packet->size);
 
             return_value = SAVE_THUMBNAIL_OK;
         } else {
@@ -584,7 +584,7 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
 
         int thumbnails_to_generate = (IS_VIDEO(pFormatCtx) && stream->codecpar->codec_id != AV_CODEC_ID_GIF &&
                                       video_duration_in_seconds >= 15)
-                                     // Limit to ~1 thumbnail every 7s
+                                     // Limit to ~1 thumbnail_count every 7s
                                      ? MAX(MIN(ctx->tn_count, video_duration_in_seconds / 7 + 1), 1) + 1
                                      : 1;
 
@@ -610,7 +610,7 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
         }
 
         if (number_of_thumbnails_generated > 0) {
-            APPEND_LONG_META(doc, MetaThumbnail, number_of_thumbnails_generated);
+            doc->thumbnail_count = number_of_thumbnails_generated;
         }
 
         avcodec_free_context(&decoder);
@@ -859,8 +859,8 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
     }
 
     if (scaled_frame == STORE_AS_IS) {
-        APPEND_LONG_META(doc, MetaThumbnail, 1);
-        ctx->store(doc->doc_id, 0, frame_and_packet->packet->data, frame_and_packet->packet->size);
+        doc->thumbnail_count = 1;
+        APPEND_THUMBNAIL(doc, frame_and_packet->packet->data, frame_and_packet->packet->size);
     } else {
         // Encode frame to jpeg
         AVCodecContext *jpeg_encoder = alloc_webp_encoder(scaled_frame->width, scaled_frame->height,
@@ -871,9 +871,9 @@ int store_image_thumbnail(scan_media_ctx_t *ctx, void *buf, size_t buf_len, docu
         AVPacket *jpeg_packet = av_packet_alloc();
         avcodec_receive_packet(jpeg_encoder, jpeg_packet);
 
-        // Save thumbnail
-        APPEND_LONG_META(doc, MetaThumbnail, 1);
-        ctx->store(doc->doc_id, 0, jpeg_packet->data, jpeg_packet->size);
+        // Save thumbnail_count
+        doc->thumbnail_count = 1;
+        APPEND_THUMBNAIL(doc, jpeg_packet->data, jpeg_packet->size);
 
         av_packet_free(&jpeg_packet);
         avcodec_free_context(&jpeg_encoder);

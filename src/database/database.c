@@ -4,6 +4,7 @@
 #include <string.h>
 #include <pthread.h>
 #include "src/util.h"
+#include "src/parsing/mime.h"
 
 #include <time.h>
 
@@ -64,9 +65,11 @@ static int sep_rfind(const char *str) {
 }
 
 void path_parent_func(sqlite3_context *ctx, int argc, sqlite3_value **argv) {
+#ifdef SIST_DEBUG
     if (argc != 1 || sqlite3_value_type(argv[0]) != SQLITE_TEXT) {
         sqlite3_result_error(ctx, "Invalid parameters", -1);
     }
+#endif
 
     const char *value = (const char *) sqlite3_value_text(argv[0]);
 
@@ -82,28 +85,27 @@ void path_parent_func(sqlite3_context *ctx, int argc, sqlite3_value **argv) {
 }
 
 void random_func(sqlite3_context *ctx, int argc, UNUSED(sqlite3_value **argv)) {
+#ifdef SIST_DEBUG
     if (argc != 1 || sqlite3_value_type(argv[0]) != SQLITE_INTEGER) {
         sqlite3_result_error(ctx, "Invalid parameters", -1);
     }
+#endif
 
-    char state_buf[128] = {0,};
-    struct random_data buf;
-    int result;
-
+    char state_buf[8] = {0,};
     long seed = sqlite3_value_int64(argv[0]);
 
-    initstate_r((int) seed, state_buf, sizeof(state_buf), &buf);
+    initstate((int) seed, state_buf, sizeof(state_buf));
 
-    random_r(&buf, &result);
-
-    sqlite3_result_int(ctx, result);
+    sqlite3_result_int(ctx, (int) random());
 }
 
 
 void save_current_job_info(sqlite3_context *ctx, int argc, sqlite3_value **argv) {
+#ifdef SIST_DEBUG
     if (argc != 1 || sqlite3_value_type(argv[0]) != SQLITE_TEXT) {
         sqlite3_result_error(ctx, "Invalid parameters", -1);
     }
+#endif
 
     database_ipc_ctx_t *ipc_ctx = sqlite3_user_data(ctx);
 
@@ -146,6 +148,12 @@ void database_open(database_t *db) {
         CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA temp_store = memory;", NULL, NULL, NULL));
     }
 
+#ifdef SIST_DEBUG
+    CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA foreign_keys = ON;", NULL, NULL, NULL));
+#else
+    CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA ignore_check_constraints = ON;", NULL, NULL, NULL));
+#endif
+
     if (db->type == INDEX_DATABASE) {
         // Prepare statements;
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
@@ -154,16 +162,15 @@ void database_open(database_t *db) {
                 &db->select_thumbnail_stmt, NULL));
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db,
-                "UPDATE document SET marked=1 WHERE id=? AND mtime=? RETURNING id",
+                "UPDATE marked SET marked=1 WHERE id=(SELECT ROWID FROM document WHERE path=?) AND mtime=? RETURNING id",
                 -1,
                 &db->mark_document_stmt, NULL));
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db,
-                "REPLACE INTO document_sidecar (id, json_data) VALUES (?,?)", -1,
-                &db->write_document_sidecar_stmt, NULL));
-        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
-                db->db,
-                "REPLACE INTO document (id, mtime, size, json_data, version) VALUES (?, ?, ?, ?, (SELECT max(id) FROM version));",
+                "INSERT INTO document (path, parent, mime, mtime, size, thumbnail_count, json_data, version) "
+                "VALUES (?, (SELECT id FROM document WHERE path=?), ?, ?, ?, ?, ?, (SELECT max(id) FROM version)) "
+                "ON CONFLICT (path) DO UPDATE SET json_data=excluded.json_data "
+                "RETURNING id;",
                 -1,
                 &db->write_document_stmt, NULL));
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
@@ -173,7 +180,12 @@ void database_open(database_t *db) {
                 &db->write_thumbnail_stmt, NULL));
 
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
-                db->db, "SELECT json_data FROM document WHERE id=?", -1,
+                db->db, "SELECT json_set(json_data, "
+                        "'$._id', CAST (doc.id AS TEXT),"
+                        "'$.thumbnail', doc.thumbnail_count,"
+                        "'$.mime', m.name,"
+                        "'$.size', doc.size"
+                        ") FROM document doc LEFT JOIN mime m ON m.id=doc.mime WHERE doc.id=?", -1,
                 &db->get_document, NULL));
 
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
@@ -183,6 +195,12 @@ void database_open(database_t *db) {
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db, "SELECT embedding FROM embedding WHERE id=? AND model_id=? AND start=0", -1,
                 &db->get_embedding, NULL));
+
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db,
+                "INSERT INTO tag (id, tag) VALUES (?,?) ON CONFLICT DO NOTHING;",
+                -1,
+                &db->write_tag_stmt, NULL));
 
         // Create functions
         sqlite3_create_function(
@@ -228,7 +246,7 @@ void database_open(database_t *db) {
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db,
                 "DELETE FROM index_job WHERE id = (SELECT MIN(id) FROM index_job)"
-                " RETURNING doc_id,type,line;",
+                " RETURNING sid,type,line;",
                 -1, &db->pop_index_job_stmt, NULL
         ));
 
@@ -243,7 +261,7 @@ void database_open(database_t *db) {
                 db->db, "INSERT INTO parse_job (filepath,mtime,st_size) VALUES (?,?,?);", -1,
                 &db->insert_parse_job_stmt, NULL));
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
-                db->db, "INSERT INTO index_job (doc_id,type,line) VALUES (?,?,?);", -1,
+                db->db, "INSERT INTO index_job (sid,type,line) VALUES (?,?,?);", -1,
                 &db->insert_index_job_stmt, NULL));
 
     } else if (db->type == FTS_DATABASE) {
@@ -294,6 +312,12 @@ void database_open(database_t *db) {
                 db->db, "SELECT mime, sum(count) FROM mime_index WHERE mime is not NULL GROUP BY mime", -1,
                 &db->fts_get_mimetypes, NULL));
 
+        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
+                db->db,
+                "INSERT INTO tag (id, index_id, tag) VALUES (?,?,?) ON CONFLICT DO NOTHING;",
+                -1,
+                &db->fts_write_tag_stmt, NULL));
+
         sqlite3_create_function(
                 db->db,
                 "random_seeded",
@@ -340,13 +364,6 @@ void database_open(database_t *db) {
     }
 
     if (db->type == FTS_DATABASE || db->type == INDEX_DATABASE) {
-        // Tag table is the same schema for FTS database & index database
-        CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
-                db->db,
-                "INSERT INTO tag (id, tag) VALUES (?,?) ON CONFLICT DO NOTHING;",
-                -1,
-                &db->write_tag_stmt, NULL));
-
         CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare_v2(
                 db->db,
                 "DELETE FROM tag WHERE id=? AND tag=?;",
@@ -376,8 +393,8 @@ void database_close(database_t *db, int optimize) {
     db = NULL;
 }
 
-void *database_read_thumbnail(database_t *db, const char *id, int num, size_t *return_value_len) {
-    sqlite3_bind_text(db->select_thumbnail_stmt, 1, id, -1, SQLITE_STATIC);
+void *database_read_thumbnail(database_t *db, int doc_id, int num, size_t *return_value_len) {
+    sqlite3_bind_int(db->select_thumbnail_stmt, 1, doc_id);
     sqlite3_bind_int(db->select_thumbnail_stmt, 2, num);
 
     int ret = sqlite3_step(db->select_thumbnail_stmt);
@@ -410,7 +427,7 @@ void database_write_index_descriptor(database_t *db, index_descriptor_t *desc) {
 
     sqlite3_prepare_v2(db->db, "INSERT INTO descriptor (id, version_major, version_minor, version_patch,"
                                " root, name, rewrite_url, timestamp) VALUES (?,?,?,?,?,?,?,?);", -1, &stmt, NULL);
-    sqlite3_bind_text(stmt, 1, desc->id, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 1, desc->id);
     sqlite3_bind_int(stmt, 2, desc->version_major);
     sqlite3_bind_int(stmt, 3, desc->version_minor);
     sqlite3_bind_int(stmt, 4, desc->version_patch);
@@ -433,7 +450,7 @@ index_descriptor_t *database_read_index_descriptor(database_t *db) {
 
     CRASH_IF_STMT_FAIL(sqlite3_step(stmt));
 
-    const char *id = (char *) sqlite3_column_text(stmt, 0);
+    int id = sqlite3_column_int(stmt, 0);
     int v_major = sqlite3_column_int(stmt, 1);
     int v_minor = sqlite3_column_int(stmt, 2);
     int v_patch = sqlite3_column_int(stmt, 3);
@@ -443,7 +460,7 @@ index_descriptor_t *database_read_index_descriptor(database_t *db) {
     int timestamp = sqlite3_column_int(stmt, 7);
 
     index_descriptor_t *desc = malloc(sizeof(index_descriptor_t));
-    strcpy(desc->id, id);
+    desc->id = id;
     snprintf(desc->version, sizeof(desc->version), "%d.%d.%d", v_major, v_minor, v_patch);
     desc->version_major = v_major;
     desc->version_minor = v_minor;
@@ -461,7 +478,8 @@ index_descriptor_t *database_read_index_descriptor(database_t *db) {
 database_iterator_t *database_create_delete_list_iterator(database_t *db) {
 
     sqlite3_stmt *stmt;
-    sqlite3_prepare_v2(db->db, "SELECT id FROM delete_list;", -1, &stmt, NULL);
+    sqlite3_prepare_v2(db->db, "SELECT doc.id FROM delete_list "
+                               "INNER JOIN document doc ON doc.ROWID = delete_list.id;", -1, &stmt, NULL);
 
     database_iterator_t *iter = malloc(sizeof(database_iterator_t));
 
@@ -471,14 +489,11 @@ database_iterator_t *database_create_delete_list_iterator(database_t *db) {
     return iter;
 }
 
-char *database_delete_list_iter(database_iterator_t *iter) {
+int database_delete_list_iter(database_iterator_t *iter) {
     int ret = sqlite3_step(iter->stmt);
 
     if (ret == SQLITE_ROW) {
-        const char *id = (const char *) sqlite3_column_text(iter->stmt, 0);
-        char *id_heap = malloc(strlen(id) + 1);
-        strcpy(id_heap, id);
-        return id_heap;
+        return sqlite3_column_int(iter->stmt, 0);
     }
 
     if (ret != SQLITE_DONE) {
@@ -491,7 +506,7 @@ char *database_delete_list_iter(database_iterator_t *iter) {
 
     iter->stmt = NULL;
 
-    return NULL;
+    return 0;
 }
 
 database_iterator_t *database_create_document_iterator(database_t *db) {
@@ -507,12 +522,16 @@ database_iterator_t *database_create_document_iterator(database_t *db) {
                     "      '$._id', document.id, "
                     "      '$.size', document.size, "
                     "      '$.mtime', document.mtime, "
+                    "      '$.mime', mim.name,"
+                    "      '$.thumbnail', document.thumbnail_count, "
                     "      '$.tag', json_group_array((SELECT tag FROM tag WHERE document.id = tag.id)))"
                     " ELSE"
                     "  json_set(document.json_data,"
                     "      '$._id', document.id,"
                     "      '$.size', document.size,"
                     "      '$.mtime', document.mtime,"
+                    "      '$.mime', mim.name,"
+                    "      '$.thumbnail', document.thumbnail_count, "
                     "      '$.tag', json_group_array((SELECT tag FROM tag WHERE document.id = tag.id)),"
                     "      '$.emb', json_group_object(m.path, json(emb_to_json(emb.embedding))),"
                     "      '$.embedding', 1)"
@@ -520,6 +539,7 @@ database_iterator_t *database_create_document_iterator(database_t *db) {
                     " FROM document"
                     " LEFT JOIN embedding emb ON document.id = emb.id"
                     " LEFT JOIN model m ON emb.model_id = m.id"
+                    " LEFT JOIN mime mim ON mim.id = document.mime"
                     " GROUP BY document.id)"
                     " SELECT json_set(j, '$.index', (SELECT id FROM descriptor)) FROM doc",
                     -1, &stmt, NULL));
@@ -573,43 +593,48 @@ cJSON *database_document_iter(database_iterator_t *iter) {
 
 cJSON *database_incremental_scan_begin(database_t *db) {
     LOG_DEBUG("database.c", "Preparing database for incremental scan");
-    CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "UPDATE document SET marked=0;", NULL, NULL, NULL));
+    CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "DELETE FROM marked;", NULL, NULL, NULL));
+    CRASH_IF_NOT_SQLITE_OK(
+            sqlite3_exec(db->db, "INSERT INTO marked SELECT ROWID, 0, mtime FROM document;", NULL, NULL, NULL));
 }
 
 cJSON *database_incremental_scan_end(database_t *db) {
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db,
-            "DELETE FROM delete_list WHERE id IN (SELECT id FROM document WHERE marked=1);",
+            "DELETE FROM delete_list WHERE id IN (SELECT id FROM marked WHERE marked = 1);",
             NULL, NULL, NULL
     ));
 
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db,
-            "DELETE FROM thumbnail WHERE id IN (SELECT id FROM document WHERE marked=0);",
+            "DELETE FROM thumbnail WHERE EXISTS ("
+            " SELECT document.id FROM document INNER JOIN marked m ON m.id = document.ROWID"
+            " WHERE marked=0 and document.id = thumbnail.id)",
             NULL, NULL, NULL
     ));
 
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db,
-            "INSERT INTO delete_list (id) SELECT id FROM document WHERE marked=0 ON CONFLICT DO NOTHING;",
+            "INSERT INTO delete_list (id) "
+            "SELECT id FROM marked WHERE marked=0 ON CONFLICT DO NOTHING;",
             NULL, NULL, NULL
     ));
 
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db,
-            "DELETE FROM document_sidecar WHERE id IN (SELECT id FROM document WHERE marked=0);",
+            "DELETE FROM document WHERE ROWID IN (SELECT id FROM marked WHERE marked=0);",
             NULL, NULL, NULL
     ));
 
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db,
-            "DELETE FROM document WHERE marked=0;",
+            "DELETE FROM marked;",
             NULL, NULL, NULL
     ));
 }
 
-int database_mark_document(database_t *db, const char *id, int mtime) {
-    sqlite3_bind_text(db->mark_document_stmt, 1, id, -1, SQLITE_STATIC);
+int database_mark_document(database_t *db, const char *path, int mtime) {
+    sqlite3_bind_text(db->mark_document_stmt, 1, path, -1, SQLITE_STATIC);
     sqlite3_bind_int(db->mark_document_stmt, 2, mtime);
 
     pthread_mutex_lock(&db->ipc_ctx->index_db_mutex);
@@ -631,31 +656,38 @@ int database_mark_document(database_t *db, const char *id, int mtime) {
     CRASH_IF_STMT_FAIL(ret);
 }
 
-void database_write_document(database_t *db, document_t *doc, const char *json_data) {
-    sqlite3_bind_text(db->write_document_stmt, 1, doc->doc_id, -1, SQLITE_STATIC);
-    sqlite3_bind_int(db->write_document_stmt, 2, doc->mtime);
-    sqlite3_bind_int64(db->write_document_stmt, 3, (long) doc->size);
-    sqlite3_bind_text(db->write_document_stmt, 4, json_data, -1, SQLITE_STATIC);
+int database_write_document(database_t *db, document_t *doc, const char *json_data) {
+
+    const char *rel_path = doc->filepath + ScanCtx.index.desc.root_len;
+    const char *parent_rel_path = doc->parent[0] != '\0'
+                                  ? doc->parent + ScanCtx.index.desc.root_len
+                                  : NULL;
+
+    // path, parent, mtime, size, json_data
+    sqlite3_bind_text(db->write_document_stmt, 1, rel_path, -1, SQLITE_STATIC);
+    sqlite3_bind_text(db->write_document_stmt, 2, parent_rel_path, -1, SQLITE_STATIC);
+    sqlite3_bind_int64(db->write_document_stmt, 3, doc->mime);
+    sqlite3_bind_int(db->write_document_stmt, 4, doc->mtime);
+    sqlite3_bind_int64(db->write_document_stmt, 5, (long) doc->size);
+    sqlite3_bind_int(db->write_document_stmt, 6, doc->thumbnail_count);
+    if (json_data) {
+        sqlite3_bind_text(db->write_document_stmt, 7, json_data, -1, SQLITE_STATIC);
+    } else {
+        sqlite3_bind_null(db->write_document_stmt, 7);
+    }
 
     pthread_mutex_lock(&db->ipc_ctx->index_db_mutex);
     CRASH_IF_STMT_FAIL(sqlite3_step(db->write_document_stmt));
+    int id = sqlite3_column_int(db->write_document_stmt, 0);
     CRASH_IF_NOT_SQLITE_OK(sqlite3_reset(db->write_document_stmt));
     pthread_mutex_unlock(&db->ipc_ctx->index_db_mutex);
+
+    return id;
 }
 
 
-void database_write_document_sidecar(database_t *db, const char *id, const char *json_data) {
-    sqlite3_bind_text(db->write_document_sidecar_stmt, 1, id, -1, SQLITE_STATIC);
-    sqlite3_bind_text(db->write_document_sidecar_stmt, 2, json_data, -1, SQLITE_STATIC);
-
-    pthread_mutex_lock(&db->ipc_ctx->index_db_mutex);
-    CRASH_IF_STMT_FAIL(sqlite3_step(db->write_document_sidecar_stmt));
-    CRASH_IF_NOT_SQLITE_OK(sqlite3_reset(db->write_document_sidecar_stmt));
-    pthread_mutex_unlock(&db->ipc_ctx->index_db_mutex);
-}
-
-void database_write_thumbnail(database_t *db, const char *id, int num, void *data, size_t data_size) {
-    sqlite3_bind_text(db->write_thumbnail_stmt, 1, id, -1, SQLITE_STATIC);
+void database_write_thumbnail(database_t *db, int doc_id, int num, void *data, size_t data_size) {
+    sqlite3_bind_int(db->write_thumbnail_stmt, 1, doc_id);
     sqlite3_bind_int(db->write_thumbnail_stmt, 2, num);
     sqlite3_bind_blob(db->write_thumbnail_stmt, 3, data, (int) data_size, SQLITE_STATIC);
 
@@ -716,7 +748,7 @@ job_t *database_get_work(database_t *db, job_type_t job_type) {
         } else {
             job->bulk_line = malloc(sizeof(es_bulk_line_t));
         }
-        strcpy(job->bulk_line->doc_id, (const char *) sqlite3_column_text(db->pop_index_job_stmt, 0));
+        strcpy(job->bulk_line->sid, (const char *) sqlite3_column_text(db->pop_index_job_stmt, 0));
         job->bulk_line->type = sqlite3_column_int(db->pop_index_job_stmt, 1);
         job->bulk_line->next = NULL;
 
@@ -767,7 +799,7 @@ void database_add_work(database_t *db, job_t *job) {
         } while (ret != SQLITE_DONE && ret != SQLITE_OK);
     } else if (job->type == JOB_BULK_LINE) {
         do {
-            sqlite3_bind_text(db->insert_index_job_stmt, 1, job->bulk_line->doc_id, -1, SQLITE_STATIC);
+            sqlite3_bind_text(db->insert_index_job_stmt, 1, job->bulk_line->sid, -1, SQLITE_STATIC);
             sqlite3_bind_int(db->insert_index_job_stmt, 2, job->bulk_line->type);
             if (job->bulk_line->type != ES_BULK_LINE_DELETE) {
                 sqlite3_bind_text(db->insert_index_job_stmt, 3, job->bulk_line->line, -1, SQLITE_STATIC);
@@ -808,24 +840,25 @@ void database_add_work(database_t *db, job_t *job) {
     pthread_mutex_unlock(&db->ipc_ctx->mutex);
 }
 
-void database_write_tag(database_t *db, char *doc_id, char *tag) {
-    sqlite3_bind_text(db->write_tag_stmt, 1, doc_id, -1, SQLITE_STATIC);
-    sqlite3_bind_text(db->write_tag_stmt, 2, tag, -1, SQLITE_STATIC);
+void database_write_tag(database_t *db, long sid, char *tag) {
+    sqlite3_bind_int64(db->write_tag_stmt, 1, sid);
+    sqlite3_bind_int(db->write_tag_stmt, 2, (int) (sid >> 32));
+    sqlite3_bind_text(db->write_tag_stmt, 3, tag, -1, SQLITE_STATIC);
 
     CRASH_IF_STMT_FAIL(sqlite3_step(db->write_tag_stmt));
     CRASH_IF_NOT_SQLITE_OK(sqlite3_reset(db->write_tag_stmt));
 }
 
-void database_delete_tag(database_t *db, char *doc_id, char *tag) {
-    sqlite3_bind_text(db->delete_tag_stmt, 1, doc_id, -1, SQLITE_STATIC);
+void database_delete_tag(database_t *db, long sid, char *tag) {
+    sqlite3_bind_int64(db->delete_tag_stmt, 1, sid);
     sqlite3_bind_text(db->delete_tag_stmt, 2, tag, -1, SQLITE_STATIC);
 
     CRASH_IF_STMT_FAIL(sqlite3_step(db->delete_tag_stmt));
     CRASH_IF_NOT_SQLITE_OK(sqlite3_reset(db->delete_tag_stmt));
 }
 
-cJSON *database_get_document(database_t *db, char *doc_id) {
-    sqlite3_bind_text(db->get_document, 1, doc_id, -1, SQLITE_STATIC);
+cJSON *database_get_document(database_t *db, int doc_id) {
+    sqlite3_bind_int(db->get_document, 1, doc_id);
 
     int ret = sqlite3_step(db->get_document);
     CRASH_IF_STMT_FAIL(ret);
@@ -833,7 +866,7 @@ cJSON *database_get_document(database_t *db, char *doc_id) {
     cJSON *json;
 
     if (ret == SQLITE_ROW) {
-        const char *json_str = sqlite3_column_text(db->get_document, 0);
+        const char *json_str = (char *) sqlite3_column_text(db->get_document, 0);
         json = cJSON_Parse(json_str);
     } else {
         json = NULL;
@@ -847,4 +880,24 @@ cJSON *database_get_document(database_t *db, char *doc_id) {
 void database_increment_version(database_t *db) {
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db, "INSERT INTO version DEFAULT VALUES", NULL, NULL, NULL));
+}
+
+void database_sync_mime_table(database_t *db) {
+    unsigned int *cur = get_mime_ids();
+
+    sqlite3_stmt *stmt;
+    CRASH_IF_NOT_SQLITE_OK(sqlite3_prepare(
+            db->db,
+            "REPLACE INTO mime (id, name) VALUES (?,?)", -1, &stmt, NULL));
+
+    while (*cur != 0) {
+        sqlite3_bind_int64(stmt, 1, (long) *cur);
+        sqlite3_bind_text(stmt, 2, mime_get_mime_text(*cur), -1, NULL);
+
+        CRASH_IF_STMT_FAIL(sqlite3_step(stmt));
+        sqlite3_reset(stmt);
+
+        cur += 1;
+    }
+    sqlite3_finalize(stmt);
 }

@@ -53,7 +53,6 @@ add_executable(
         src/types.h
         src/log.c src/log.h
         src/cli.c src/cli.h
-        src/parsing/sidecar.c src/parsing/sidecar.h
         src/database/database.c src/database/database.h
         src/parsing/fs_util.h
 

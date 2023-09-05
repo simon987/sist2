@@ -10,9 +10,9 @@
 // See https://web.dev/coop-coep/
 #define HTTP_CROSS_ORIGIN_HEADERS "Cross-Origin-Embedder-Policy: require-corp\r\nCross-Origin-Opener-Policy: same-origin\r\n"
 
-index_t *web_get_index_by_id(const char *index_id);
+index_t *web_get_index_by_id(int index_id);
 
-database_t *web_get_database(const char *index_id);
+database_t *web_get_database(int index_id);
 
 __always_inline
 static char *web_address_to_string(struct mg_addr *addr) {

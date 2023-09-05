@@ -81,7 +81,6 @@ typedef struct database {
 
     sqlite3_stmt *mark_document_stmt;
     sqlite3_stmt *write_document_stmt;
-    sqlite3_stmt *write_document_sidecar_stmt;
     sqlite3_stmt *write_thumbnail_stmt;
     sqlite3_stmt *get_document;
     sqlite3_stmt *get_models;
@@ -103,6 +102,7 @@ typedef struct database {
     sqlite3_stmt *fts_get_document;
     sqlite3_stmt *fts_suggest_tag;
     sqlite3_stmt *fts_get_tags;
+    sqlite3_stmt *fts_write_tag_stmt;
     sqlite3_stmt *fts_model_size;
 
 
@@ -133,15 +133,15 @@ void database_close(database_t *, int optimize);
 
 void database_increment_version(database_t *db);
 
-void database_write_thumbnail(database_t *db, const char *id, int num, void *data, size_t data_size);
+void database_write_thumbnail(database_t *db, int doc_id, int num, void *data, size_t data_size);
 
-void *database_read_thumbnail(database_t *db, const char *id, int num, size_t *return_value_len);
+void *database_read_thumbnail(database_t *db, int doc_id, int num, size_t *return_value_len);
 
 void database_write_index_descriptor(database_t *db, index_descriptor_t *desc);
 
 index_descriptor_t *database_read_index_descriptor(database_t *db);
 
-void database_write_document(database_t *db, document_t *doc, const char *json_data);
+int database_write_document(database_t *db, document_t *doc, const char *json_data);
 
 database_iterator_t *database_create_document_iterator(database_t *db);
 
@@ -154,10 +154,10 @@ cJSON *database_document_iter(database_iterator_t *);
 
 database_iterator_t *database_create_delete_list_iterator(database_t *db);
 
-char *database_delete_list_iter(database_iterator_t *iter);
+int database_delete_list_iter(database_iterator_t *iter);
 
 #define database_delete_list_iter_foreach(element, iter) \
-    for (char *(element) = database_delete_list_iter(iter); (element) != NULL; (element) = database_delete_list_iter(iter))
+    for (int (element) = database_delete_list_iter(iter); (element) != 0; (element) = database_delete_list_iter(iter))
 
 
 cJSON *database_incremental_scan_begin(database_t *db);
@@ -165,8 +165,6 @@ cJSON *database_incremental_scan_begin(database_t *db);
 cJSON *database_incremental_scan_end(database_t *db);
 
 int database_mark_document(database_t *db, const char *id, int mtime);
-
-void database_write_document_sidecar(database_t *db, const char *id, const char *json_data);
 
 database_iterator_t *database_create_treemap_iterator(database_t *db, long threshold);
 
@@ -206,7 +204,7 @@ void database_fts_index(database_t *db);
 
 void database_fts_optimize(database_t *db);
 
-cJSON *database_fts_get_paths(database_t *db, const char *index_id, int depth_min, int depth_max, const char *prefix,
+cJSON *database_fts_get_paths(database_t *db, int index_id, int depth_min, int depth_max, const char *prefix,
                               int suggest);
 
 cJSON *database_fts_get_mimetypes(database_t *db);
@@ -215,18 +213,20 @@ database_summary_stats_t database_fts_get_date_range(database_t *db);
 
 cJSON *database_fts_search(database_t *db, const char *query, const char *path, long size_min,
                            long size_max, long date_min, long date_max, int page_size,
-                           char **index_ids, char **mime_types, char **tags, int sort_asc,
+                           int *index_ids, char **mime_types, char **tags, int sort_asc,
                            fts_sort_t sort, int seed, char **after, int fetch_aggregations,
                            int highlight, int highlight_context_size, int model,
                            const float *embedding, int embedding_size);
 
-void database_write_tag(database_t *db, char *doc_id, char *tag);
+void database_write_tag(database_t *db, long sid, char *tag);
 
-void database_delete_tag(database_t *db, char *doc_id, char *tag);
+void database_fts_write_tag(database_t *db, long sid, char *tag);
+
+void database_delete_tag(database_t *db, long sid, char *tag);
 
 void database_fts_detach(database_t *db);
 
-cJSON *database_fts_get_document(database_t *db, char *doc_id);
+cJSON *database_fts_get_document(database_t *db, long sid);
 
 database_summary_stats_t database_fts_sync_tags(database_t *db);
 
@@ -234,7 +234,7 @@ cJSON *database_fts_suggest_tag(database_t *db, char *prefix);
 
 cJSON *database_fts_get_tags(database_t *db);
 
-cJSON *database_get_document(database_t *db, char *doc_id);
+cJSON *database_get_document(database_t *db, int doc_id);
 
 void cosine_sim_func(sqlite3_context *ctx, int argc, sqlite3_value **argv);
 
@@ -242,6 +242,8 @@ cJSON *database_get_models(database_t *db);
 
 int database_fts_get_model_size(database_t *db, int model_id);
 
-cJSON *database_get_embedding(database_t *db, char *doc_id, int model_id);
+cJSON *database_get_embedding(database_t *db, int doc_id, int model_id);
+
+void database_sync_mime_table(database_t *db);
 
 #endif

@@ -61,4 +61,6 @@ unsigned int mime_get_mime_by_ext(const char *ext);
 
 unsigned int mime_get_mime_by_string(const char *str);
 
+unsigned int* get_mime_ids();
+
 #endif

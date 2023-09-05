@@ -60,6 +60,7 @@
 </template>
 
 <script>
+import {sid} from "@/util";
 import Preloader from "@/components/Preloader.vue";
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import SearchBar from "@/components/SearchBar.vue";
@@ -92,7 +93,6 @@ export default Vue.extend({
         SizeSlider, PathTree, ResultsCard, MimePicker, Lightbox, DocCardWall, IndexPicker, SearchBar, Preloader
     },
     data: () => ({
-        loading: false,
         uiLoading: true,
         search: undefined,
         docs: [],
@@ -105,6 +105,9 @@ export default Vue.extend({
     }),
     computed: {
         ...mapGetters(["indices", "optDisplay"]),
+        hasEmbeddings() {
+            return Sist2Api.models().length > 0;
+        },
     },
     mounted() {
         // Handle touch events
@@ -172,12 +175,6 @@ export default Vue.extend({
             setDateBoundsMax: "setDateBoundsMax",
             setTags: "setTags",
         }),
-        hasEmbeddings() {
-            if (!this.loading) {
-                return false;
-            }
-            return Sist2Api.models().some();
-        },
         showErrorToast() {
             this.$bvToast.toast(
                 this.$t("toast.esConnErr"),
@@ -248,9 +245,9 @@ export default Vue.extend({
                 if (hit._props.isPlayableImage || hit._props.isPlayableVideo) {
                     hit._seq = await this.$store.dispatch("getKeySequence");
                     this.$store.commit("addLightboxSource", {
-                        source: `f/${hit._source.index}/${hit._id}`,
-                        thumbnail: hit._props.hasThumbnail
-                            ? `t/${hit._source.index}/${hit._id}`
+                        source: `f/${sid(hit)}`,
+                        thumbnail_count: hit._props.hasThumbnail
+                            ? `t/${sid(hit)}`
                             : null,
                         caption: {
                             component: LightboxCaption,

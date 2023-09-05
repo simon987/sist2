@@ -18,8 +18,6 @@
 
 #define UNUSED(x) __attribute__((__unused__))  x
 
-typedef void (*store_callback_t)(char *key, int num, void *buf, size_t buf_len);
-
 typedef void (*logf_callback_t)(const char *filepath, int level, char *format, ...);
 
 typedef void (*log_callback_t)(const char *filepath, int level, char *str);
@@ -50,8 +48,8 @@ typedef int scan_code_t;
 #define CTX_LOG_FATALF(filepath, fmt, ...) ctx->logf(filepath, LEVEL_FATAL, fmt, __VA_ARGS__); exit(-1)
 #define CTX_LOG_FATAL(filepath, str) ctx->log(filepath, LEVEL_FATAL, str); exit(-1)
 
-#define SIST_DOC_ID_LEN MD5_STR_LENGTH
-#define SIST_INDEX_ID_LEN MD5_STR_LENGTH
+// 0000000.000000000
+#define SIST_SID_LEN 18
 
 #define EBOOK_LOCKS 0
 
@@ -66,7 +64,6 @@ enum metakey {
     MetaGenre,
     MetaTitle,
     MetaFontName,
-    MetaParent,
     MetaExifMake,
     MetaExifDescription,
     MetaExifSoftware,
@@ -79,7 +76,6 @@ enum metakey {
     MetaExifDateTime,
     MetaAuthor,
     MetaModifiedBy,
-    MetaThumbnail,
     MetaChecksum,
 
     // Number
@@ -96,11 +92,15 @@ enum metakey {
     MetaExifGpsLatitudeRef,
     MetaExifGpsLatitudeDec,
     MetaExifGpsLongitudeDec,
+
+    // other
+    MetaThumbnail,
 };
 
 typedef struct meta_line {
     struct meta_line *next;
     enum metakey key;
+    size_t size;
     union {
         char str_val[0];
         unsigned long long_val;
@@ -109,7 +109,6 @@ typedef struct meta_line {
 
 
 typedef struct document {
-    char doc_id[SIST_DOC_ID_LEN];
     unsigned long size;
     unsigned int mime;
     int mtime;
@@ -117,7 +116,9 @@ typedef struct document {
     int ext;
     meta_line_t *meta_head;
     meta_line_t *meta_tail;
+    int thumbnail_count;
     char filepath[PATH_MAX * 2 + 1];
+    char parent[PATH_MAX * 2 + 1];
 } document_t;
 
 typedef struct vfile vfile_t;
@@ -166,7 +167,7 @@ typedef struct {
     int base;
     int ext;
     struct vfile vfile;
-    char parent[SIST_DOC_ID_LEN];
+    char parent[PATH_MAX * 2 + 1];
     char filepath[PATH_MAX * 2 + 1];
 } parse_job_t;
 

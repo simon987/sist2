@@ -13,7 +13,6 @@
 typedef struct {
     log_callback_t log;
     logf_callback_t logf;
-    store_callback_t store;
 
     int tn_size;
     int tn_qscale;

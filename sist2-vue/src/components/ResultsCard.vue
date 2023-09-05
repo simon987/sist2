@@ -43,8 +43,7 @@
     </b-card>
 </template>
 
-<script lang="ts">
-import Sist2Api, {EsResult} from "@/Sist2Api";
+<script>
 import Vue from "vue";
 import {humanFileSize} from "@/util";
 import DisplayModeToggle from "@/components/DisplayModeToggle.vue";
@@ -52,6 +51,7 @@ import SortSelect from "@/components/SortSelect.vue";
 import Preloader from "@/components/Preloader.vue";
 import Sist2Query from "@/Sist2ElasticsearchQuery";
 import ClipboardIcon from "@/components/icons/ClipboardIcon.vue";
+import Sist2Api from "@/Sist2Api";
 
 export default Vue.extend({
     name: "ResultsCard",
@@ -64,7 +64,7 @@ export default Vue.extend({
             return this.$store.state.lastQueryResults != null;
         },
         hitCount() {
-            return (this.$store.state.firstQueryResults as EsResult).aggregations.total_count.value;
+            return (this.$store.state.firstQueryResults).aggregations.total_count.value;
         },
         tableItems() {
             const items = [];
@@ -79,10 +79,10 @@ export default Vue.extend({
     },
     methods: {
         took() {
-            return (this.$store.state.lastQueryResults as EsResult).took + "ms";
+            return (this.$store.state.lastQueryResults).took + "ms";
         },
         totalSize() {
-            return humanFileSize((this.$store.state.firstQueryResults as EsResult).aggregations.total_size.value);
+            return humanFileSize((this.$store.state.firstQueryResults).aggregations.total_size.value);
         },
         onToggle() {
             const show = !document.getElementById("collapse-1").classList.contains("show");

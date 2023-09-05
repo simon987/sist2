@@ -31,8 +31,7 @@
 <script>
 import noUiSlider from 'nouislider';
 import 'nouislider/dist/nouislider.css';
-import {humanDate} from "@/util";
-import {mergeTooltips} from "@/util-js";
+import {humanDate, mergeTooltips} from "@/util";
 
 export default {
   name: "DateSlider",

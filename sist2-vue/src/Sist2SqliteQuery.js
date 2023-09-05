@@ -1,5 +1,4 @@
-import store from "./store";
-import {EsHit, Index} from "@/Sist2Api";
+import store from "@/store";
 
 const SORT_MODES = {
     score: {
@@ -29,18 +28,12 @@ const SORT_MODES = {
         "sort": "name",
         "sortAsc": false
     }
-} as any;
-
-interface SortMode {
-    text: string
-    mode: any[]
-    key: (hit: EsHit) => any
-}
+};
 
 
 class Sist2ElasticsearchQuery {
 
-    searchQuery(): any {
+    searchQuery() {
 
         const getters = store.getters;
 
@@ -52,7 +45,7 @@ class Sist2ElasticsearchQuery {
         const dateMax = getters.dateMax;
         const size = getters.size;
         const after = getters.lastDoc;
-        const selectedIndexIds = getters.selectedIndices.map((idx: Index) => idx.id)
+        const selectedIndexIds = getters.selectedIndices.map((idx) => idx.id)
         const selectedMimeTypes = getters.selectedMimeTypes;
         const selectedTags = getters.selectedTags;
 
@@ -95,7 +88,7 @@ class Sist2ElasticsearchQuery {
         if (selectedTags.length > 0) {
             q["tags"] = selectedTags
         }
-        if (getters.sortMode == "random") {
+        if (getters.sortMode === "random") {
             q["seed"] = getters.seed;
         }
         if (getters.optHighlight) {
@@ -108,7 +101,7 @@ class Sist2ElasticsearchQuery {
             q["embedding"] = getters.embedding;
             q["sort"] = "embedding";
             q["sortAsc"] = false;
-        } else if (getters.sortMode == "embedding") {
+        } else if (getters.sortMode === "embedding") {
             q["sort"] = "sort"
             q["sortAsc"] = true;
         }

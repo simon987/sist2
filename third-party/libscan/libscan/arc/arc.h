@@ -20,7 +20,6 @@ typedef struct {
     parse_callback_t parse;
     log_callback_t log;
     logf_callback_t logf;
-    store_callback_t store;
     char passphrase[4096];
 } scan_arc_ctx_t;
 

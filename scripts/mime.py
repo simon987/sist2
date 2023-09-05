@@ -3,6 +3,7 @@ import zlib
 mimes = {}
 noparse = set()
 ext_in_hash = set()
+mime_ids = {}
 
 major_mime = {
     "sist2": 0,
@@ -102,6 +103,9 @@ cnt = 1
 
 
 def mime_id(mime):
+    if mime in mime_ids:
+        return mime_ids[mime]
+
     global cnt
     major = mime.split("/")[0]
     mime_id = str((major_mime[major] << 16) + cnt)
@@ -127,9 +131,7 @@ def mime_id(mime):
     elif mime == "application/x-empty":
         cnt -= 1
         return "1"
-    elif mime == "sist2/sidecar":
-        cnt -= 1
-        return "2"
+    mime_ids[mime] = mime_id
     return mime_id
 
 
@@ -197,4 +199,12 @@ with open("scripts/mime.csv") as f:
         print(f"case {crc(mime)}: return {clean(mime)};")
 
     print("default: return 0;}}")
+
+    # mime list
+
+    mime_list = ",".join(mime_id(x) for x in mimes.keys()) + ",0"
+
+    print(f"unsigned int mime_ids[] = {{{mime_list}}};")
+    print("unsigned int* get_mime_ids() { return mime_ids; }")
+
     print("#endif")

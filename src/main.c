@@ -39,7 +39,7 @@ void database_scan_begin(scan_args_t *args) {
         index_descriptor_t *original_desc = database_read_index_descriptor(db);
 
         // copy original index id
-        strcpy(desc->id, original_desc->id);
+        desc->id = original_desc->id;
 
         if (original_desc->version_major != VersionMajor) {
             LOG_FATALF("main.c", "Version mismatch! Index is %s but executable is %s", original_desc->version, Version);
@@ -67,7 +67,7 @@ void database_scan_begin(scan_args_t *args) {
         desc->version_patch = VersionPatch;
 
         // generate new index id based on timestamp
-        md5_hexdigest(&ScanCtx.index.desc.timestamp, sizeof(ScanCtx.index.desc.timestamp), ScanCtx.index.desc.id);
+        desc->id = (int) ScanCtx.index.desc.timestamp;
 
         database_initialize(db);
         database_open(db);
@@ -75,12 +75,9 @@ void database_scan_begin(scan_args_t *args) {
     }
 
     database_increment_version(db);
+    database_sync_mime_table(db);
 
     database_close(db, FALSE);
-}
-
-void write_thumbnail_callback(char *key, int num, void *buf, size_t buf_len) {
-    database_write_thumbnail(ProcData.index_db, key, num, buf, buf_len);
 }
 
 void log_callback(const char *filepath, int level, char *str) {
@@ -140,7 +137,6 @@ void initialize_scan_context(scan_args_t *args) {
     // Comic
     ScanCtx.comic_ctx.log = log_callback;
     ScanCtx.comic_ctx.logf = logf_callback;
-    ScanCtx.comic_ctx.store = write_thumbnail_callback;
     ScanCtx.comic_ctx.enable_tn = args->tn_count > 0;
     ScanCtx.comic_ctx.tn_size = args->tn_size;
     ScanCtx.comic_ctx.tn_qscale = args->tn_quality;
@@ -157,7 +153,6 @@ void initialize_scan_context(scan_args_t *args) {
     }
     ScanCtx.ebook_ctx.log = log_callback;
     ScanCtx.ebook_ctx.logf = logf_callback;
-    ScanCtx.ebook_ctx.store = write_thumbnail_callback;
     ScanCtx.ebook_ctx.fast_epub_parse = args->fast_epub;
     ScanCtx.ebook_ctx.tn_qscale = args->tn_quality;
 
@@ -165,7 +160,6 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.font_ctx.enable_tn = args->tn_count > 0;
     ScanCtx.font_ctx.log = log_callback;
     ScanCtx.font_ctx.logf = logf_callback;
-    ScanCtx.font_ctx.store = write_thumbnail_callback;
 
     // Media
     ScanCtx.media_ctx.tn_qscale = args->tn_quality;
@@ -173,7 +167,6 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.media_ctx.tn_count = args->tn_count;
     ScanCtx.media_ctx.log = log_callback;
     ScanCtx.media_ctx.logf = logf_callback;
-    ScanCtx.media_ctx.store = write_thumbnail_callback;
     ScanCtx.media_ctx.max_media_buffer = (long) args->max_memory_buffer_mib * 1024 * 1024;
     ScanCtx.media_ctx.read_subtitles = args->read_subtitles;
     ScanCtx.media_ctx.read_subtitles = args->tn_count;
@@ -189,13 +182,11 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.ooxml_ctx.content_size = args->content_size;
     ScanCtx.ooxml_ctx.log = log_callback;
     ScanCtx.ooxml_ctx.logf = logf_callback;
-    ScanCtx.ooxml_ctx.store = write_thumbnail_callback;
 
     // MOBI
     ScanCtx.mobi_ctx.content_size = args->content_size;
     ScanCtx.mobi_ctx.log = log_callback;
     ScanCtx.mobi_ctx.logf = logf_callback;
-    ScanCtx.mobi_ctx.store = write_thumbnail_callback;
     ScanCtx.mobi_ctx.enable_tn = args->tn_count > 0;
     ScanCtx.mobi_ctx.tn_size = args->tn_size;
     ScanCtx.mobi_ctx.tn_qscale = args->tn_quality;
@@ -209,7 +200,6 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.msdoc_ctx.content_size = args->content_size;
     ScanCtx.msdoc_ctx.log = log_callback;
     ScanCtx.msdoc_ctx.logf = logf_callback;
-    ScanCtx.msdoc_ctx.store = write_thumbnail_callback;
     ScanCtx.msdoc_ctx.msdoc_mime = mime_get_mime_by_string("application/msword");
 
     ScanCtx.threads = args->threads;
@@ -228,7 +218,6 @@ void initialize_scan_context(scan_args_t *args) {
     ScanCtx.raw_ctx.tn_size = args->tn_size;
     ScanCtx.raw_ctx.log = log_callback;
     ScanCtx.raw_ctx.logf = logf_callback;
-    ScanCtx.raw_ctx.store = write_thumbnail_callback;
 
     // Wpd
     ScanCtx.wpd_ctx.content_size = args->content_size;
@@ -316,16 +305,15 @@ void sist2_index(index_args_t *args) {
     database_open(db);
     database_iterator_t *iterator = database_create_document_iterator(db);
     database_document_iter_foreach(json, iterator) {
-        char doc_id[SIST_DOC_ID_LEN];
-        strcpy(doc_id, cJSON_GetObjectItem(json, "_id")->valuestring);
+        char sid[SIST_SID_LEN];
+        int doc_id = cJSON_GetObjectItem(json, "_id")->valueint;
         cJSON_DeleteItemFromObject(json, "_id");
-
-        // TODO: delete tag if empty
+        format_sid(sid, desc->id, doc_id);
 
         if (args->print) {
-            print_json(json, doc_id);
+            print_json(json, sid);
         } else {
-            index_json(json, doc_id);
+            index_json(json, sid);
             cnt += 1;
         }
         cJSON_Delete(json);
@@ -334,10 +322,12 @@ void sist2_index(index_args_t *args) {
     free(iterator);
 
     if (!args->print) {
+        char sid[SIST_SID_LEN];
+
         database_iterator_t *del_iter = database_create_delete_list_iterator(db);
-        database_delete_list_iter_foreach(id, del_iter) {
-            delete_document(id);
-            free(id);
+        database_delete_list_iter_foreach(doc_id, del_iter) {
+            format_sid(sid, desc->id, doc_id);
+            delete_document(sid);
         }
         free(del_iter);
     }
@@ -533,7 +523,8 @@ int main(int argc, const char *argv[]) {
             OPT_BOOLEAN('f', "force-reset", &index_args->force_reset, "Reset Elasticsearch mappings and settings."),
 
             OPT_GROUP("sqlite-index options"),
-            OPT_STRING(0, "search-index", &common_search_index, "Path to search index. Will be created if it does not exist yet."),
+            OPT_STRING(0, "search-index", &common_search_index,
+                       "Path to search index. Will be created if it does not exist yet."),
 
             OPT_GROUP("Web options"),
             OPT_STRING(0, "es-url", &common_es_url, "Elasticsearch url. DEFAULT: http://localhost:9200"),

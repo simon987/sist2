@@ -5,8 +5,7 @@
 <script>
 import noUiSlider from 'nouislider';
 import 'nouislider/dist/nouislider.css';
-import {humanFileSize} from "@/util";
-import {mergeTooltips} from "@/util-js";
+import {humanFileSize, mergeTooltips} from "@/util";
 
 export default {
   name: "SizeSlider",

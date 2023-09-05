@@ -2,7 +2,7 @@
   <b-badge variant="secondary" :pill="pill">{{ text }}</b-badge>
 </template>
 
-<script lang="ts">
+<script>
 import Vue from "vue";
 
 export default Vue.extend({

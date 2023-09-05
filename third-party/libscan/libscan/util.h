@@ -8,7 +8,7 @@
 #include "macros.h"
 #include <openssl/evp.h>
 
-#define STR_STARTS_WITH_CONSTANT(x, y) (strncmp(y, x, sizeof(y) - 1) == 0)
+#define STR_STARTS_WITH_CONSTANT(x, y) ((x) != NULL && (y) != NULL && strncmp(y, x, sizeof(y) - 1) == 0)
 
 #define TEXT_BUF_FULL (-1)
 #define INITIAL_BUF_SIZE (1024 * 16)
