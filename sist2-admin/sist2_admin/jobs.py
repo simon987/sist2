@@ -120,6 +120,10 @@ class Sist2Task:
 
         logger.info(f"Started task {self.display_name}")
 
+    def set_pid(self, pid):
+        self.pid = pid
+
+
 
 class Sist2ScanTask(Sist2Task):
 
@@ -133,13 +137,10 @@ class Sist2ScanTask(Sist2Task):
         else:
             self.job.scan_options.output = None
 
-        def set_pid(pid):
-            self.pid = pid
-
-        return_code = sist2.scan(self.job.scan_options, logs_cb=self.log_callback, set_pid_cb=set_pid)
+        return_code = sist2.scan(self.job.scan_options, logs_cb=self.log_callback, set_pid_cb=self.set_pid)
         self.ended = datetime.utcnow()
 
-        is_ok = return_code in (0, 1)
+        is_ok = (return_code in (0, 1)) if "debug" in sist2.bin_path else (return_code == 0)
 
         if not is_ok:
             self._logger.error(json.dumps({"sist2-admin": f"Process returned non-zero exit code ({return_code})"}))
@@ -165,6 +166,9 @@ class Sist2ScanTask(Sist2Task):
             self.job.previous_index_path = self.job.index_path
             db["jobs"][self.job.name] = self.job
 
+        if is_ok:
+            return 0
+
         return return_code
 
 
@@ -185,7 +189,7 @@ class Sist2IndexTask(Sist2Task):
 
         logger.debug(f"Fetched search backend options for {self.job.index_options.search_backend}")
 
-        return_code = sist2.index(self.job.index_options, search_backend, logs_cb=self.log_callback)
+        return_code = sist2.index(self.job.index_options, search_backend, logs_cb=self.log_callback, set_pid_cb=self.set_pid)
         self.ended = datetime.utcnow()
 
         duration = self.ended - self.started
@@ -249,7 +253,7 @@ class Sist2UserScriptTask(Sist2Task):
         super().run(sist2, db)
 
         try:
-            self.user_script.setup(self.log_callback)
+            self.user_script.setup(self.log_callback, self.set_pid)
         except Exception as e:
             logger.error(f"Setup for {self.user_script.name} failed: ")
             logger.exception(e)
@@ -269,7 +273,7 @@ class Sist2UserScriptTask(Sist2Task):
         self.log_callback({"sist2-admin": f"Starting user script with {executable=}, {index_path=}, {extra_args=}"})
 
         proc = Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.user_script.script_dir())
-        self.pid = proc.pid
+        self.set_pid(proc.pid)
 
         t_stderr = Thread(target=self._consume_logs, args=(self.log_callback, proc, "stderr", False))
         t_stderr.start()
@@ -316,7 +320,7 @@ class TaskQueue:
     def _tasks_failed(self):
         done = set()
 
-        for row in self._db["task_done"].sql("WHERE return_code NOT IN (0,1)"):
+        for row in self._db["task_done"].sql("WHERE return_code != 0"):
             done.add(uuid.UUID(row["id"]))
 
         return done

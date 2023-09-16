@@ -20,7 +20,7 @@ def set_executable(file):
     os.chmod(file, os.stat(file).st_mode | stat.S_IEXEC)
 
 
-def _initialize_git_repository(url, path, log_cb, force_clone):
+def _initialize_git_repository(url, path, log_cb, force_clone, set_pid_cb):
     log_cb({"sist2-admin": f"Cloning {url}"})
 
     if force_clone or not os.path.exists(os.path.join(path, ".git")):
@@ -36,14 +36,18 @@ def _initialize_git_repository(url, path, log_cb, force_clone):
         log_cb({"sist2-admin": f"Executing setup script {setup_script}"})
 
         set_executable(setup_script)
-        result = subprocess.run([setup_script], cwd=path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        for line in result.stdout.split(b"\n"):
+        proc = subprocess.Popen([setup_script], cwd=path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        set_pid_cb(proc.pid)
+        proc.wait()
+        stdout = proc.stdout.read()
+
+        for line in stdout.split(b"\n"):
             if line:
                 log_cb({"stdout": line.decode()})
 
-        log_cb({"stdout": f"Executed setup script {setup_script}, return code = {result.returncode}"})
+        log_cb({"stdout": f"Executed setup script {setup_script}, return code = {proc.returncode}"})
 
-        if result.returncode != 0:
+        if proc.returncode != 0:
             raise Exception("Error when running setup script!")
 
     log_cb({"sist2-admin": f"Initialized git repository in {path}"})
@@ -60,11 +64,11 @@ class UserScript(BaseModel):
     def script_dir(self):
         return os.path.join(SCRIPT_FOLDER, self.name)
 
-    def setup(self, log_cb):
+    def setup(self, log_cb, set_pid_cb):
         os.makedirs(self.script_dir(), exist_ok=True)
 
         if self.type == ScriptType.GIT:
-            _initialize_git_repository(self.git_repository, self.script_dir(), log_cb, self.force_clone)
+            _initialize_git_repository(self.git_repository, self.script_dir(), log_cb, self.force_clone, set_pid_cb)
             self.force_clone = False
         elif self.type == ScriptType.SIMPLE:
             self._setup_simple()

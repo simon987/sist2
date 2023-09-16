@@ -31,9 +31,6 @@ typedef struct {
     int depth;
     int calculate_checksums;
 
-    size_t stat_tn_size;
-    size_t stat_index_size;
-
     pcre *exclude;
     pcre_extra *exclude_extra;
     int fast;

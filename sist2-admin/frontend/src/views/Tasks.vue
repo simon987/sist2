@@ -81,7 +81,7 @@ function humanDuration(sec_num) {
         return `${seconds}s`;
     }
 
-    return "<0s";
+    return "<1s";
 }
 
 export default {
@@ -134,7 +134,7 @@ export default {
                     duration: this.taskDuration(row),
                     time: moment.utc(row.started).local().format("dd, MMM Do YYYY, HH:mm:ss"),
                     logs: null,
-                    status: [0,1].includes(row.return_code) ? "ok" : "failed",
+                    status: row.return_code === 0 ? "ok" : "failed",
                     _row: row
                 }));
             });

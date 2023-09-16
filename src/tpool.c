@@ -110,11 +110,11 @@ static void worker_thread_loop(tpool_t *pool) {
             if (LogCtx.json_logs) {
                 progress_bar_print_json(done,
                                         count,
-                                        ScanCtx.stat_tn_size,
-                                        ScanCtx.stat_index_size, pool->shm->waiting);
+                                        0,
+                                        0, pool->shm->waiting);
             } else {
                 progress_bar_print((double) done / count,
-                                   ScanCtx.stat_tn_size, ScanCtx.stat_index_size);
+                                   0, 0);
             }
         }
 
@@ -272,7 +272,7 @@ void tpool_wait(tpool_t *pool) {
         }
     }
     if (pool->print_progress && !LogCtx.json_logs) {
-        progress_bar_print(1.0, ScanCtx.stat_tn_size, ScanCtx.stat_index_size);
+        progress_bar_print(1.0, 0, 0);
     }
     pthread_mutex_unlock(&pool->shm->mutex);
 

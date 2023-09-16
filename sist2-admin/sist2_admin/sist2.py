@@ -243,7 +243,7 @@ class Sist2:
         self.bin_path = bin_path
         self._data_dir = data_directory
 
-    def index(self, options: IndexOptions, search_backend: Sist2SearchBackend, logs_cb):
+    def index(self, options: IndexOptions, search_backend: Sist2SearchBackend, logs_cb, set_pid_cb):
 
         args = [
             self.bin_path,
@@ -254,6 +254,8 @@ class Sist2:
 
         logs_cb({"sist2-admin": f"Starting sist2 command with args {args}"})
         proc = Popen(args, stdout=PIPE, stderr=PIPE)
+
+        set_pid_cb(proc.pid)
 
         t_stderr = Thread(target=self._consume_logs_stderr, args=(logs_cb, proc))
         t_stderr.start()

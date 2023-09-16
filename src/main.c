@@ -260,9 +260,6 @@ void sist2_scan(scan_args_t *args) {
     tpool_wait(ScanCtx.pool);
     tpool_destroy(ScanCtx.pool);
 
-    LOG_DEBUGF("main.c", "Thumbnail store size: %lu", ScanCtx.stat_tn_size);
-    LOG_DEBUGF("main.c", "Index size: %lu", ScanCtx.stat_index_size);
-
     database_t *db = database_create(args->output, INDEX_DATABASE);
     database_open(db);
 
@@ -356,7 +353,6 @@ void sist2_sqlite_index(sqlite_index_args_t *args) {
     database_fts_optimize(db);
 
     database_close(db, FALSE);
-    database_close(search_db, FALSE);
 }
 
 void sist2_web(web_args_t *args) {

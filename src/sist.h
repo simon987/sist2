@@ -55,7 +55,7 @@
 static const char *const Version = VERSION;
 static const int VersionMajor = 3;
 static const int VersionMinor = 3;
-static const int VersionPatch = 0;
+static const int VersionPatch = 1;
 
 #ifndef SIST_PLATFORM
 #define SIST_PLATFORM unknown

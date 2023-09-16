@@ -149,7 +149,7 @@ void database_open(database_t *db) {
     }
 
 #ifdef SIST_DEBUG
-    CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA foreign_keys = ON;", NULL, NULL, NULL));
+        //    CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA foreign_keys = ON;", NULL, NULL, NULL));
 #else
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "PRAGMA ignore_check_constraints = ON;", NULL, NULL, NULL));
 #endif
@@ -373,7 +373,7 @@ void database_open(database_t *db) {
 }
 
 void database_close(database_t *db, int optimize) {
-    LOG_DEBUGF("database.c", "Closing database %s", db->filename);
+    LOG_DEBUGF("database.c", "Closing database %s (%p)", db->filename, db->db);
 
     if (optimize) {
         LOG_DEBUG("database.c", "Optimizing database");
@@ -594,8 +594,9 @@ cJSON *database_document_iter(database_iterator_t *iter) {
 cJSON *database_incremental_scan_begin(database_t *db) {
     LOG_DEBUG("database.c", "Preparing database for incremental scan");
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(db->db, "DELETE FROM marked;", NULL, NULL, NULL));
+    LOG_DEBUG("database.c", "Preparing database for incremental scan (create marked table)");
     CRASH_IF_NOT_SQLITE_OK(
-            sqlite3_exec(db->db, "INSERT INTO marked SELECT ROWID, 0, mtime FROM document;", NULL, NULL, NULL));
+            sqlite3_exec(db->db, "INSERT INTO marked SELECT id, 0, mtime FROM document;", NULL, NULL, NULL));
 }
 
 cJSON *database_incremental_scan_end(database_t *db) {
