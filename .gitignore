@@ -3,6 +3,7 @@ thumbs
 *.cbp
 CMakeCache.txt
 CMakeFiles
+cmake-build-default-event-trace
 cmake-build-debug
 cmake_install.cmake
 Makefile
