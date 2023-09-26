@@ -77,13 +77,13 @@ static void worker_thread_loop(tpool_t *pool) {
         job_t *job = database_get_work(ProcData.ipc_db, pool->shm->job_type);
 
         if (job != NULL) {
-            pthread_mutex_lock(&(pool->shm->data_mutex));
-            pool->shm->busy_count += 1;
-            pthread_mutex_unlock(&(pool->shm->data_mutex));
-
             if (pool->shm->stop) {
                 break;
             }
+
+            pthread_mutex_lock(&(pool->shm->data_mutex));
+            pool->shm->busy_count += 1;
+            pthread_mutex_unlock(&(pool->shm->data_mutex));
 
             if (job->type == JOB_PARSE_JOB) {
                 parse(job->parse_job);
@@ -200,11 +200,11 @@ static void *tpool_worker(void *arg) {
             pool->shm->ipc_ctx.completed_job_count += 1;
             pthread_mutex_unlock(&(pool->shm->ipc_ctx.mutex));
 
-            pthread_mutex_lock(&(pool->shm->data_mutex));
-            pool->shm->busy_count -= 1;
-            pthread_mutex_unlock(&(pool->shm->data_mutex));
-
             if (WIFSIGNALED(status)) {
+                pthread_mutex_lock(&(pool->shm->data_mutex));
+                pool->shm->busy_count -= 1;
+                pthread_mutex_unlock(&(pool->shm->data_mutex));
+
                 int crashed_thread_id = -1;
                 for (int i = 0; i < MAX_THREADS; i++) {
                     if (pool->shm->thread_id_to_pid_mapping[i] == pid) {
@@ -265,7 +265,7 @@ void tpool_wait(tpool_t *pool) {
         if (pool->shm->ipc_ctx.job_count > 0) {
             pthread_cond_wait(&(pool->shm->done_working_cond), &pool->shm->mutex);
         } else {
-            if (pool->shm->ipc_ctx.job_count == 0 && pool->shm->busy_count == 0) {
+            if (pool->shm->ipc_ctx.job_count == 0 && pool->shm->busy_count <= 0) {
                 pool->shm->stop = TRUE;
                 break;
             }
