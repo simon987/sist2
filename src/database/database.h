@@ -105,7 +105,6 @@ typedef struct database {
     sqlite3_stmt *fts_write_tag_stmt;
     sqlite3_stmt *fts_model_size;
 
-
     char **tag_array;
 
     database_ipc_ctx_t *ipc_ctx;
