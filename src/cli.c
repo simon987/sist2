@@ -74,6 +74,21 @@ void sqlite_index_args_destroy(sqlite_index_args_t *args) {
     free(args);
 }
 
+char *add_trailing_slash(char *abs_path) {
+    if (strcmp(abs_path, "/") == 0) {
+        // Special case: don't add trailing slash for "/"
+        return abs_path;
+    }
+
+    char *new_abs_path = realloc(abs_path, strlen(abs_path) + 2);
+    if (new_abs_path == NULL) {
+        LOG_FATALF("cli.c", "FIXME: realloc() failed for abs_path=%s", abs_path);
+    }
+    strcat(new_abs_path, "/");
+
+    return new_abs_path;
+}
+
 int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     if (argc < 2) {
         fprintf(stderr, "Required positional argument: PATH.\n");
@@ -83,14 +98,9 @@ int scan_args_validate(scan_args_t *args, int argc, const char **argv) {
     char *abs_path = abspath(argv[1]);
     if (abs_path == NULL) {
         LOG_FATALF("cli.c", "Invalid PATH argument. File not found: %s", argv[1]);
-    } else {
-        char *new_abs_path = realloc(abs_path, strlen(abs_path) + 2);
-        if (new_abs_path == NULL) {
-            LOG_FATALF("cli.c", "FIXME: realloc() failed for argv[1]=%s, abs_path=%s", argv[1], abs_path);
-        }
-        strcat(new_abs_path, "/");
-        args->path = new_abs_path;
     }
+
+    args->path = add_trailing_slash(abs_path);
 
     if (args->tn_quality == OPTION_VALUE_UNSPECIFIED) {
         args->tn_quality = DEFAULT_QUALITY;
