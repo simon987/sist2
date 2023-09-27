@@ -421,7 +421,9 @@ class Sist2Api {
         return axios.get(`${this.baseUrl}fts/dateRange`)
             .then(resp => ({
                 min: resp.data.dateMin,
-                max: resp.data.dateMax,
+                max: (resp.data.dateMax === resp.data.dateMin)
+                    ? resp.data.dateMax + 1
+                    : resp.data.dateMax,
             }));
     }
 
@@ -585,7 +587,7 @@ class Sist2Api {
         }
     }
 
-    getTagSuggestions(prefix)  {
+    getTagSuggestions(prefix) {
         if (this.backend() === "sqlite") {
             return this.getTagSuggestionsSqlite(prefix);
         } else {
