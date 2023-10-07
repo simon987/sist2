@@ -46,7 +46,7 @@ services:
       - "discovery.type=single-node"
       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
   sist2-admin:
-    image: simon987/sist2:3.1.4-x64-linux
+    image: simon987/sist2:3.3.3-x64-linux
     restart: unless-stopped
     volumes:
       - ./sist2-admin-data/:/sist2-admin/
