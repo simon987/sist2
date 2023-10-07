@@ -90,6 +90,7 @@ subreq_ctx_t *web_post_async(const char *url, char *data, int insecure) {
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
     if (insecure) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     }
 
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, req->curl_err_buffer);
@@ -123,6 +124,7 @@ response_t *web_get(const char *url, int timeout, int insecure) {
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
     if (insecure) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     }
 
     struct curl_slist *headers = NULL;
@@ -162,6 +164,7 @@ response_t *web_post(const char *url, const char *data, int insecure) {
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
     if (insecure) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     }
 
     char err_buffer[CURL_ERROR_SIZE + 1] = {};
@@ -207,6 +210,7 @@ response_t *web_put(const char *url, const char *data, int insecure) {
     curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURLOPT_DNS_LOCAL_IP4);
     if (insecure) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     }
 
     struct curl_slist *headers = NULL;
@@ -241,6 +245,7 @@ response_t *web_delete(const char *url, int insecure) {
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
     if (insecure) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
     }
 
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
