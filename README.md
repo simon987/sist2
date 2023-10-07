@@ -157,6 +157,7 @@ indices, but it uses much less memory and is easier to set up.
 | Manual tagging                               |                          ✓                          |                                                                   ✓                                                                   |
 | User scripts                                 |                          ✓                          |                                                                   ✓                                                                   |
 | Media Type breakdown for search results      |                                                     |                                                                   ✓                                                                   |
+| Embeddings search                            |                      ✓ *O(n)*                       |                                                              ✓ *O(logn)*                                                              |
 
 ### NER
 
