@@ -4,6 +4,8 @@
 
 **Demo**: [sist2.simon987.net](https://sist2.simon987.net/)
 
+**Community URL:** [Discord](https://discord.gg/2PEjDy3Rfs)
+
 # sist2
 
 sist2 (Simple incremental search tool)
