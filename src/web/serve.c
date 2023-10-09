@@ -88,7 +88,7 @@ void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
 
     memcpy(index_id_str, hm->uri.ptr + 3, 8);
     *(index_id_str + 8) = '\0';
-    int index_id = (int)strtol(index_id_str, NULL, 16);
+    int index_id = (int) strtol(index_id_str, NULL, 16);
 
     memcpy(arg_stat_type, hm->uri.ptr + 3 + 9, 4);
     *(arg_stat_type + sizeof(arg_stat_type) - 1) = '\0';
@@ -368,6 +368,10 @@ void index_info(struct mg_connection *nc) {
         cJSON_AddNumberToObject(idx_json, "timestamp", (double) idx->desc.timestamp);
         cJSON_AddItemToArray(arr, idx_json);
 
+#ifdef SIST_DEBUG_INFO
+        cJSON_AddStringToObject(idx_json, "root", idx->desc.root);
+#endif
+
         cJSON *models = database_get_models(idx->db);
         cJSON_AddItemToObject(idx_json, "models", models);
     }
@@ -480,7 +484,7 @@ tag_req_t *parse_tag_request(cJSON *json) {
     return req;
 }
 
-subreq_ctx_t *elastic_delete_tag(const char* sid, const tag_req_t *req) {
+subreq_ctx_t *elastic_delete_tag(const char *sid, const tag_req_t *req) {
     char *buf = malloc(sizeof(char) * 8192);
     snprintf(buf, 8192,
              "{"
@@ -500,7 +504,7 @@ subreq_ctx_t *elastic_delete_tag(const char* sid, const tag_req_t *req) {
     return web_post_async(url, buf, WebCtx.es_insecure_ssl);
 }
 
-subreq_ctx_t *elastic_write_tag(const char* sid, const tag_req_t *req) {
+subreq_ctx_t *elastic_write_tag(const char *sid, const tag_req_t *req) {
     char *buf = malloc(sizeof(char) * 8192);
     snprintf(buf, 8192,
              "{"

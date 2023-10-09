@@ -33,18 +33,6 @@ class Sist2Api {
 
     getSist2Info() {
         return axios.get(`${this.baseUrl}i`).then(resp => {
-            const indices = resp.data.indices;
-
-            resp.data.indices = indices.map(idx => {
-                return {
-                    id: idx.id,
-                    name: idx.name,
-                    timestamp: idx.timestamp,
-                    version: idx.version,
-                    models: idx.models,
-                };
-            });
-
             this.sist2Info = resp.data;
 
             return resp.data;
@@ -155,6 +143,12 @@ class Sist2Api {
         }
     }
 
+    _getIndexRoot(indexId) {
+        console.log(indexId)
+        console.log(this.sist2Info.indices.find(idx => idx.id === indexId))
+        return this.sist2Info.indices.find(idx => idx.id === indexId).root;
+    }
+
     esQuery(query) {
         return axios.post(`${this.baseUrl}es`, query).then(resp => {
             const res = resp.data;
@@ -163,6 +157,7 @@ class Sist2Api {
                 res.hits.hits.forEach((hit) => {
                     hit["_source"]["name"] = strUnescape(hit["_source"]["name"]);
                     hit["_source"]["path"] = strUnescape(hit["_source"]["path"]);
+                    hit["_source"]["indexRoot"] = this._getIndexRoot(hit["_source"]["index"]);
 
                     this.setHitProps(hit);
                     this.setHitTags(hit);
