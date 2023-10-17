@@ -136,7 +136,7 @@
                         {{ $t("opt.fuzzy") }}
                     </b-form-checkbox>
 
-                    <b-form-checkbox :disabled="uiSqliteMode" :checked="optSearchInPath" @input="setOptSearchInPath">{{
+                    <b-form-checkbox :checked="optSearchInPath" @input="setOptSearchInPath">{{
                         $t("opt.searchInPath")
                         }}
                     </b-form-checkbox>

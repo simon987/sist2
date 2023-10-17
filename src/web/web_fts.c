@@ -179,7 +179,8 @@ fts_search_req_t *get_search_req(struct mg_http_message *hm) {
 
     json_value req_query, req_path, req_size_min, req_size_max, req_date_min, req_date_max, req_page_size,
             req_index_ids, req_mime_types, req_tags, req_sort_asc, req_sort, req_seed, req_after,
-            req_fetch_aggregations, req_highlight, req_highlight_context_size, req_embedding, req_model;
+            req_fetch_aggregations, req_highlight, req_highlight_context_size, req_embedding, req_model,
+            req_search_in_path;
 
     if (!cJSON_IsObject(json) ||
         (req_query = get_json_string(json, "query")).invalid ||
@@ -197,6 +198,7 @@ fts_search_req_t *get_search_req(struct mg_http_message *hm) {
         (req_index_ids = get_json_number_array(json, "indexIds")).invalid ||
         (req_mime_types = get_json_array(json, "mimeTypes")).invalid ||
         (req_highlight = get_json_bool(json, "highlight")).invalid ||
+        (req_search_in_path = get_json_bool(json, "searchInPath")).invalid ||
         (req_highlight_context_size = get_json_number(json, "highlightContextSize")).invalid ||
         (req_embedding = get_json_number_array(json, "embedding")).invalid ||
         (req_model = get_json_number(json, "model")).invalid ||
@@ -252,7 +254,6 @@ fts_search_req_t *get_search_req(struct mg_http_message *hm) {
     fts_search_req_t *req = malloc(sizeof(fts_search_req_t));
 
     req->sort = sort;
-    req->query = req_query.val ? strdup(req_query.val->valuestring) : NULL;
     req->path = req_path.val ? strdup(req_path.val->valuestring) : NULL;
     req->size_min = req_size_min.val ? req_size_min.val->valuedouble : 0;
     req->size_max = req_size_max.val ? req_size_max.val->valuedouble : 0;
@@ -271,6 +272,16 @@ fts_search_req_t *get_search_req(struct mg_http_message *hm) {
                                   ? req_highlight_context_size.val->valueint
                                   : DEFAULT_HIGHLIGHT_CONTEXT_SIZE;
     req->model = req_model.val ? req_model.val->valueint : 0;
+
+    if (req_search_in_path.val->valueint == FALSE && req_query.val) {
+        if (asprintf(&req->query, "- path : %s", req_query.val->valuestring) == -1) {
+            cJSON_Delete(json);
+            return NULL;
+        }
+    } else {
+        req->query = req_query.val ? strdup(req_query.val->valuestring) : NULL;
+    }
+
     req->embedding = req_model.val
                      ? get_float_buffer(req_embedding.val, &req->embedding_size)
                      : NULL;

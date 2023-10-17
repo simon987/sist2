@@ -160,7 +160,8 @@ void database_fts_index(database_t *db) {
 
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db,
-            "INSERT INTO search(rowid, name, content, title) SELECT id, name, content, title from document_view",
+            "INSERT INTO search(rowid, name, content, title, path) "
+            "SELECT id, name, content, title, path from document_view",
             NULL, NULL, NULL));
 }
 

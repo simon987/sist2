@@ -106,6 +106,8 @@ class Sist2ElasticsearchQuery {
             q["sortAsc"] = true;
         }
 
+        q["searchInPath"] = getters.optSearchInPath;
+
         return q;
     }
 }
