@@ -89,9 +89,12 @@ class Sist2AdminApi {
 
     /**
      * @param {string} name
+     * @param {bool} full
      */
-    runJob(name) {
-        return axios.get(`${this.baseUrl}/api/job/${name}/run`);
+    runJob(name, full) {
+        return axios.get(`${this.baseUrl}/api/job/${name}/run`, {
+            params: {full}
+        });
     }
 
     /**

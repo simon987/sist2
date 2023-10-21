@@ -169,10 +169,13 @@ def _run_job(job: Sist2Job):
 
 
 @app.get("/api/job/{name:str}/run")
-async def run_job(name: str):
-    job = db["jobs"][name]
+async def run_job(name: str, full: bool = False):
+    job: Sist2Job = db["jobs"][name]
     if not job:
         raise HTTPException(status_code=404)
+
+    if full:
+        job.do_full_scan = True
 
     _run_job(job)
 

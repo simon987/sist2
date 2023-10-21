@@ -6,7 +6,19 @@
         </b-card-title>
 
         <div class="mb-3">
-            <b-button class="mr-1" variant="primary" @click="runJob()" :disabled="!valid">{{ $t("runNow") }}</b-button>
+
+            <b-dropdown
+                    split
+                    split-variant="primary"
+                    variant="primary"
+                    :text="$t('runNow')"
+                    class="mr-1"
+                    :disabled="!valid"
+                    @click="runJob()"
+            >
+                <b-dropdown-item href="#" @click="runJob(true)">{{ $t("runNowFull") }}</b-dropdown-item>
+            </b-dropdown>
+
             <b-button variant="danger" @click="deleteJob()">{{ $t("delete") }}</b-button>
         </div>
 
@@ -69,6 +81,7 @@ export default {
         return {
             loading: true,
             job: null,
+            console: console
         }
     },
     methods: {
@@ -78,8 +91,8 @@ export default {
         update() {
             Sist2AdminApi.updateJob(this.getName(), this.job);
         },
-        runJob() {
-            Sist2AdminApi.runJob(this.getName()).then(() => {
+        runJob(full = false) {
+            Sist2AdminApi.runJob(this.getName(), full).then(() => {
                 this.$bvToast.toast(this.$t("runJobConfirmation"), {
                     title: this.$t("runJobConfirmationTitle"),
                     variant: "success",

@@ -8,6 +8,7 @@ export default {
         view: "View",
         delete: "Delete",
         runNow: "Index now",
+        runNowFull: "Full re-index",
         create: "Create",
         cancel: "Cancel",
         test: "Test",
