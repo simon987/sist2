@@ -272,6 +272,7 @@ static void append_audio_meta(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx
             APPEND_TAG_META(MetaAlbum);
         } else if (strcmp(key, "comment") == 0) {
             append_tag_meta_if_not_exists(ctx, doc, tag, MetaContent);
+            APPEND_TAG_META(MetaMediaComment);
         }
     }
 }

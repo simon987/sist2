@@ -81,6 +81,7 @@
                             <li><code>doc.artist</code></li>
                             <li><code>doc.title</code></li>
                             <li><code>doc.genre</code></li>
+                            <li><code>doc.media_comment</code></li>
                             <li><code>doc.album_artist</code></li>
                             <li><code>doc.exif_make</code></li>
                             <li><code>doc.exif_model</code></li>

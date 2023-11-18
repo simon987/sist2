@@ -59,7 +59,7 @@ export default {
 
       const fields = [
         "title", "duration", "audioc", "videoc",
-        "bitrate", "artist", "album", "album_artist", "genre", "font_name", "author",
+        "bitrate", "artist", "album", "album_artist", "genre", "font_name", "author", "media_comment",
         "modified_by", "pages", "tag",
         "exif_make", "exif_software", "exif_exposure_time", "exif_fnumber", "exif_focal_length",
         "exif_user_comment", "exif_iso_speed_ratings", "exif_model", "exif_datetime",

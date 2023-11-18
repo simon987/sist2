@@ -30,6 +30,8 @@ char *get_meta_key_text(enum metakey meta_key) {
             return "genre";
         case MetaTitle:
             return "title";
+        case MetaMediaComment:
+            return "media_comment";
         case MetaFontName:
             return "font_name";
         case MetaExifMake:
@@ -159,6 +161,7 @@ void write_document(document_t *doc) {
             case MetaExifGpsLatitudeDec:
             case MetaExifGpsLatitudeRef:
             case MetaChecksum:
+            case MetaMediaComment:
             case MetaTitle: {
                 cJSON_AddStringToObject(json, get_meta_key_text(meta->key), meta->str_val);
                 buffer_size_guess += (int) strlen(meta->str_val);

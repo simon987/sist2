@@ -63,6 +63,7 @@ enum metakey {
     MetaAlbumArtist,
     MetaGenre,
     MetaTitle,
+    MetaMediaComment,
     MetaFontName,
     MetaExifMake,
     MetaExifDescription,

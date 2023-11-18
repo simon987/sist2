@@ -11,7 +11,6 @@
 #include "web/serve.h"
 #include "parsing/mime.h"
 #include "parsing/parse.h"
-#include "auth0/auth0_c_api.h"
 
 #include <signal.h>
 #include <pthread.h>
@@ -425,6 +424,8 @@ int set_to_negative_if_value_is_zero(UNUSED(struct argparse *self), const struct
         fprintf(stderr, "error: option `--%s` Value must be >= 0\n", option->long_name);
         exit(1);
     }
+
+    return 0;
 }
 
 int main(int argc, const char *argv[]) {
@@ -544,7 +545,7 @@ int main(int argc, const char *argv[]) {
             OPT_END(),
     };
 
-    struct argparse argparse;
+    struct argparse argparse = {};
     argparse_init(&argparse, options, usage, 0);
     argparse_describe(
             &argparse,
