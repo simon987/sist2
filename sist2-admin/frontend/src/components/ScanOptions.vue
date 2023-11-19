@@ -95,6 +95,7 @@ export default {
   methods: {
     onOcrLangChange() {
       this.options.ocr_lang = this.selectedOcrLangs.join("+");
+      this.update();
     },
     update() {
       this.disableOcrLang = this.options.ocr_images === false && this.options.ocr_ebooks === false;
