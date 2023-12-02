@@ -172,6 +172,10 @@ Using a version >=7.14.0 is recommended to enable the following features:
 
 - Bug fix for large documents (See #198)
 
+Using a version >=8.0.0 is recommended to enable the following features:
+
+- Approximate KNN search for Embeddings search (faster queries).
+
 When using a legacy version of ES, a notice will be displayed next to the sist2 version in the web UI.
 If you don't care about the features above, you can ignore it or disable it in the configuration page.
 
