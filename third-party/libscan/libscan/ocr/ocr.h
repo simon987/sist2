@@ -45,9 +45,6 @@ ocr_extract_text(const char *tesseract_path, const char *tesseract_lang,
         if (len >= MIN_OCR_LEN) {
             cb(text, len);
         }
-
-        fprintf(stderr, "OCR: '%s'\n", text);
-
         TessDeleteText(text);
     }
 
