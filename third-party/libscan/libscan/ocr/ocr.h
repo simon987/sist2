@@ -5,7 +5,7 @@
 #include <tesseract/capi.h>
 
 #define MIN_OCR_WIDTH 350
-#define MIN_OCR_HEIGHT 100
+#define MIN_OCR_HEIGHT 33
 #define MIN_OCR_LEN 10
 
 #define OCR_IS_VALID_BPP(d)                                                    \
@@ -28,7 +28,13 @@ ocr_extract_text(const char *tesseract_path, const char *tesseract_lang,
     TessBaseAPI *api = TessBaseAPICreate();
     TessBaseAPIInit3(api, tesseract_path, tesseract_lang);
 
-    TessBaseAPISetPageSegMode(api, PSM_AUTO_OSD);
+    // https://github.com/simon987/sist2/issues/443
+    if (strstr(tesseract_lang, "chi") != NULL) {
+        TessBaseAPISetVariable(api, "preserve_interword_spaces", "1");
+    }
+
+    // TODO: add this as param?
+//    TessBaseAPISetPageSegMode(api, PSM_AUTO_OSD);
 
     TessBaseAPISetImage(api, img_buf, img_w, img_h, img_bpp, img_stride);
     TessBaseAPISetSourceResolution(api, img_xres);
@@ -39,6 +45,9 @@ ocr_extract_text(const char *tesseract_path, const char *tesseract_lang,
         if (len >= MIN_OCR_LEN) {
             cb(text, len);
         }
+
+        fprintf(stderr, "OCR: '%s'\n", text);
+
         TessDeleteText(text);
     }
 
