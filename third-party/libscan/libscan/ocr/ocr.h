@@ -6,7 +6,7 @@
 
 #define MIN_OCR_WIDTH 350
 #define MIN_OCR_HEIGHT 33
-#define MIN_OCR_LEN 10
+#define MIN_OCR_LEN 3
 
 #define OCR_IS_VALID_BPP(d)                                                    \
   ((d) == 1 || (d) == 2 || (d) == 4 || (d) == 8 || (d) == 16 || (d) == 24 ||   \
