@@ -170,6 +170,6 @@ span.ADMIN {
     margin: 3px;
     white-space: pre;
     color: #000;
-    overflow: hidden;
+    overflow-y: hidden;
 }
 </style>
