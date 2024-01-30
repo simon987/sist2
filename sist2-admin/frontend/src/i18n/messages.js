@@ -65,6 +65,9 @@ export default {
         gitRepository: "Git repository URL",
         extraArgs: "Extra command line arguments",
 
+        couldNotStartFrontend: "Could not start frontend",
+        couldNotStartFrontendBody: "Unable to start the frontend, check server logs for more details.",
+
         selectJobs: "Available jobs",
         selectJob: "Select a job",
         webOptions: {

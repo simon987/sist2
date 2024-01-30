@@ -2,6 +2,7 @@ import asyncio
 import os
 import signal
 from datetime import datetime
+from time import sleep
 from urllib.parse import urlparse
 
 import requests
@@ -25,6 +26,7 @@ from state import migrate_v1_to_v2, RUNNING_FRONTENDS, TESSERACT_LANGS, DB_SCHEM
     get_log_files_to_remove, delete_log_file, create_default_search_backends
 from web import Sist2Frontend
 from script import UserScript, SCRIPT_TEMPLATES
+from util import tail_sync, pid_is_running
 
 sist2 = Sist2(SIST2_BINARY, DATA_FOLDER)
 db = PersistentState(dbfile=os.path.join(DATA_FOLDER, "state.db"))
@@ -324,7 +326,18 @@ def start_frontend_(frontend: Sist2Frontend):
     logger.debug(f"Fetched search backend options for {backend_name}")
 
     pid = sist2.web(frontend.web_options, search_backend, frontend.name)
+
+    sleep(0.2)
+    if not pid_is_running(pid):
+        frontend_log = frontend.get_log_path(LOG_FOLDER)
+        logger.error(f"Frontend exited too quickly, check {frontend_log} for more details:")
+        for line in tail_sync(frontend.get_log_path(LOG_FOLDER), 3):
+            logger.error(line.strip())
+
+        return False
+
     RUNNING_FRONTENDS[frontend.name] = pid
+    return True
 
 
 @app.post("/api/frontend/{name:str}/start")
@@ -333,7 +346,12 @@ async def start_frontend(name: str):
     if not frontend:
         raise HTTPException(status_code=404)
 
-    start_frontend_(frontend)
+    ok = start_frontend_(frontend)
+
+    if not ok:
+        raise HTTPException(status_code=500)
+
+    return "ok"
 
 
 @app.post("/api/frontend/{name:str}/stop")

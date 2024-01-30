@@ -257,7 +257,7 @@ class Sist2:
 
         set_pid_cb(proc.pid)
 
-        t_stderr = Thread(target=self._consume_logs_stderr, args=(logs_cb, proc))
+        t_stderr = Thread(target=self._consume_logs_stderr, args=(logs_cb, None, proc))
         t_stderr.start()
 
         self._consume_logs_stdout(logs_cb, proc)
@@ -284,7 +284,7 @@ class Sist2:
 
         set_pid_cb(proc.pid)
 
-        t_stderr = Thread(target=self._consume_logs_stderr, args=(logs_cb, proc))
+        t_stderr = Thread(target=self._consume_logs_stderr, args=(logs_cb, None, proc))
         t_stderr.start()
 
         self._consume_logs_stdout(logs_cb, proc)
@@ -294,7 +294,7 @@ class Sist2:
         return proc.returncode
 
     @staticmethod
-    def _consume_logs_stderr(logs_cb, proc):
+    def _consume_logs_stderr(logs_cb, exit_cb, proc):
         pipe_wrapper = TextIOWrapper(proc.stderr, encoding="utf8", errors="ignore")
         try:
             for line in pipe_wrapper:
@@ -302,7 +302,9 @@ class Sist2:
                     continue
                 logs_cb({"stderr": line})
         finally:
-            proc.wait()
+            return_code = proc.wait()
+            if exit_cb:
+                exit_cb(return_code)
             pipe_wrapper.close()
 
     @staticmethod
@@ -340,11 +342,14 @@ class Sist2:
         def logs_cb(message):
             web_logger.info(json.dumps(message))
 
+        def exit_cb(return_code):
+            logger.info(f"Web frontend exited with return code {return_code}")
+
         logger.info(f"Starting frontend {' '.join(args)}")
 
         proc = Popen(args, stdout=PIPE, stderr=PIPE)
 
-        t_stderr = Thread(target=self._consume_logs_stderr, args=(logs_cb, proc))
+        t_stderr = Thread(target=self._consume_logs_stderr, args=(logs_cb, exit_cb, proc))
         t_stderr.start()
 
         t_stdout = Thread(target=self._consume_logs_stdout, args=(logs_cb, proc))
