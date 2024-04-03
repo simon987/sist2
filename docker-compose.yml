@@ -4,15 +4,20 @@ services:
   elasticsearch:
     image: elasticsearch:7.17.9
     container_name: sist2-es
+    volumes:
+      # This directory must have 1000:1000 permissions (or update PUID & PGID below)
+      - /data/sist2-es-data/:/usr/share/elasticsearch/data
     environment:
       - "discovery.type=single-node"
       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - "PUID=1000"
+      - "PGID=1000"
   sist2-admin:
     build:
       context: .
     container_name: sist2-admin
     volumes:
-      - /mnt/array/sist2-admin-data/:/sist2-admin/
+      - /data/sist2-admin-data/:/sist2-admin/
       - /:/host
     ports:
       - 4090:4090
