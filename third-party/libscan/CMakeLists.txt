@@ -127,10 +127,11 @@ find_library(GOMP_LIB NAMES libgomp.a gomp
         /usr/lib/gcc/aarch64-linux-gnu/12/
 )
 find_package(Leptonica CONFIG REQUIRED)
-find_package(FFMPEG REQUIRED)
 find_package(libraw CONFIG REQUIRED)
 find_package(Freetype REQUIRED)
 
+find_package(FFMPEG REQUIRED)
+list(REMOVE_ITEM FFMPEG_LIBRARIES /usr/lib/x86_64-linux-gnu/libm.a)
 
 target_compile_options(
         scan
@@ -185,7 +186,6 @@ target_link_libraries(
         ${WPD_LIB_DIR}/libwpd-0.9.a
         ${WPD_LIB_DIR}/libwpd-stream-0.9.a
 
-        ${FREETYPE_LIB}
         ${HARFBUZZ_LIB}
         ${JBIG2DEC_LIB}
 

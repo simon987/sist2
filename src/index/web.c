@@ -206,7 +206,7 @@ response_t *web_put(const char *url, const char *data, int insecure) {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "sist2");
-    curl_easy_setopt(curl, CURLOPT_DNS_USE_GLOBAL_CACHE, 0);
+    curl_easy_setopt(curl, CURLOPT_SHARE, 0);
     curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURLOPT_DNS_LOCAL_IP4);
     if (insecure) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);

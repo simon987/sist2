@@ -627,7 +627,7 @@ int check_auth0(struct mg_http_message *hm) {
     return TRUE;
 }
 
-static void ev_router(struct mg_connection *nc, int ev, void *ev_data, UNUSED(void *fn_data)) {
+static void ev_router(struct mg_connection *nc, int ev, void *ev_data) {
 
     if (ev == MG_EV_HTTP_MSG) {
         struct mg_http_message *hm = (struct mg_http_message *) ev_data;

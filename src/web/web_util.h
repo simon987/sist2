@@ -18,7 +18,9 @@ __always_inline
 static char *web_address_to_string(struct mg_addr *addr) {
     static char address_to_string_buf[INET6_ADDRSTRLEN];
 
-    return mg_ntoa(addr, address_to_string_buf, sizeof(address_to_string_buf));
+    mg_snprintf(address_to_string_buf, sizeof(address_to_string_buf), "%I", addr);
+
+    return address_to_string_buf;
 }
 
 void web_send_headers(struct mg_connection *nc, int status_code, size_t length, char *extra_headers);
