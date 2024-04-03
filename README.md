@@ -53,7 +53,7 @@ services:
       - "PUID=1000"
       - "PGID=1000"
   sist2-admin:
-    image: simon987/sist2:3.4.0-x64-linux
+    image: simon987/sist2:3.4.2-x64-linux
     restart: unless-stopped
     volumes:
       - /data/sist2-admin-data/:/sist2-admin/
