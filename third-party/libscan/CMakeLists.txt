@@ -132,6 +132,7 @@ find_package(Freetype REQUIRED)
 
 find_package(FFMPEG REQUIRED)
 list(REMOVE_ITEM FFMPEG_LIBRARIES /usr/lib/x86_64-linux-gnu/libm.a)
+list(REMOVE_ITEM FFMPEG_LIBRARIES /usr/lib/aarch64-linux-gnu/libm.a)
 
 target_compile_options(
         scan
