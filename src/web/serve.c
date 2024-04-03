@@ -108,7 +108,6 @@ void stats_files(struct mg_connection *nc, struct mg_http_message *hm) {
 
     cJSON *json = database_get_stats(db, stat_type);
     mg_send_json(nc, json);
-
     cJSON_Delete(json);
 }
 
@@ -169,6 +168,7 @@ void serve_thumbnail(struct mg_connection *nc, struct mg_http_message *hm, int i
                 "Cache-Control: max-age=31536000"
         );
         mg_send(nc, data, data_len);
+        nc->is_resp = 0;
         free(data);
     } else {
         HTTP_REPLY_NOT_FOUND
@@ -217,6 +217,7 @@ void search(struct mg_connection *nc, struct mg_http_message *hm) {
     snprintf(url, 4096, "%s/%s/_search", WebCtx.es_url, WebCtx.es_index);
 
     nc->fn_data = web_post_async(url, body, WebCtx.es_insecure_ssl);
+    nc->is_resp = 1;
 }
 
 void serve_file_from_url(cJSON *json, index_t *idx, struct mg_connection *nc) {
@@ -382,11 +383,7 @@ void index_info(struct mg_connection *nc) {
         cJSON_AddStringToObject(json, "searchBackend", "elasticsearch");
     }
 
-    char *json_str = cJSON_PrintUnformatted(json);
-
-    web_send_headers(nc, 200, strlen(json_str), "Content-Type: application/json");
-    mg_send(nc, json_str, strlen(json_str));
-    free(json_str);
+    mg_send_json(nc, json);
     cJSON_Delete(json);
 }
 
@@ -450,6 +447,7 @@ void status(struct mg_connection *nc) {
     }
 
     free(status);
+    nc->is_resp = 0;
 }
 
 typedef struct {
@@ -738,6 +736,7 @@ static void ev_router(struct mg_connection *nc, int ev, void *ev_data) {
                 if (r->status_code == 200) {
                     web_send_headers(nc, 200, r->size, "Content-Type: application/json");
                     mg_send(nc, r->body, r->size);
+                    nc->is_resp = 0;
                 } else if (r->status_code == 0) {
                     sist_log("serve.c", LOG_SIST_ERROR, "Could not connect to elasticsearch!");
 

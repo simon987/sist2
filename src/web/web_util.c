@@ -5,31 +5,37 @@
 void web_serve_asset_index_html(struct mg_connection *nc) {
     web_send_headers(nc, 200, sizeof(index_html), HTTP_CROSS_ORIGIN_HEADERS "Content-Type: text/html");
     mg_send(nc, index_html, sizeof(index_html));
+    nc->is_resp = 0;
 }
 
 void web_serve_asset_index_js(struct mg_connection *nc) {
     web_send_headers(nc, 200, sizeof(index_js), "Content-Type: application/javascript");
     mg_send(nc, index_js, sizeof(index_js));
+    nc->is_resp = 0;
 }
 
 void web_serve_asset_chunk_vendors_js(struct mg_connection *nc) {
     web_send_headers(nc, 200, sizeof(chunk_vendors_js), "Content-Type: application/javascript");
     mg_send(nc, chunk_vendors_js, sizeof(chunk_vendors_js));
+    nc->is_resp = 0;
 }
 
 void web_serve_asset_favicon_ico(struct mg_connection *nc) {
     web_send_headers(nc, 200, sizeof(favicon_ico), "Content-Type: image/x-icon");
     mg_send(nc, favicon_ico, sizeof(favicon_ico));
+    nc->is_resp = 0;
 }
 
 void web_serve_asset_style_css(struct mg_connection *nc) {
     web_send_headers(nc, 200, sizeof(index_css), "Content-Type: text/css");
     mg_send(nc, index_css, sizeof(index_css));
+    nc->is_resp = 0;
 }
 
 void web_serve_asset_chunk_vendors_css(struct mg_connection *nc) {
     web_send_headers(nc, 200, sizeof(chunk_vendors_css), "Content-Type: text/css");
     mg_send(nc, chunk_vendors_css, sizeof(chunk_vendors_css));
+    nc->is_resp = 0;
 }
 
 index_t *web_get_index_by_id(int index_id) {
@@ -92,6 +98,7 @@ void mg_send_json(struct mg_connection *nc, const cJSON *json) {
 
     web_send_headers(nc, 200, strlen(json_str), "Content-Type: application/json");
     mg_send(nc, json_str, strlen(json_str));
+    nc->is_resp = 0;
 
     free(json_str);
 }
