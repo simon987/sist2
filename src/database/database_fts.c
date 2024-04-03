@@ -102,7 +102,9 @@ void database_fts_index(database_t *db) {
             db->db, "DELETE FROM fts.mime_index;", NULL, NULL, NULL));
     CRASH_IF_NOT_SQLITE_OK(sqlite3_exec(
             db->db, "INSERT INTO fts.mime_index (index_id, mime, count) "
-                    "SELECT index_id, mime, count(*) FROM fts.document_index GROUP BY index_id, mime",
+                    "SELECT index_id, mime, count(*) FROM fts.document_index "
+                    "WHERE mime IS NOT NULL "
+                    "GROUP BY index_id, mime",
             NULL, NULL, NULL));
 
     LOG_DEBUG("database_fts.c", "Generating path index");
