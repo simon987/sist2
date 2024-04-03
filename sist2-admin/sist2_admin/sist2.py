@@ -2,10 +2,11 @@ import datetime
 import json
 import logging
 import os.path
+import sys
 from datetime import datetime
 from enum import Enum
 from io import TextIOWrapper
-from logging import FileHandler
+from logging import FileHandler, StreamHandler
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 from threading import Thread
@@ -338,6 +339,7 @@ class Sist2:
 
         web_logger = logging.Logger(name=f"sist2-frontend-{name}")
         web_logger.addHandler(FileHandler(os.path.join(LOG_FOLDER, f"frontend-{name}.log")))
+        web_logger.addHandler(StreamHandler())
 
         def logs_cb(message):
             web_logger.info(json.dumps(message))

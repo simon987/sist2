@@ -204,7 +204,7 @@ class Sist2IndexTask(Sist2Task):
         self.job.previous_index_path = self.job.index_path
         db["jobs"][self.job.name] = self.job
 
-        self._logger.info(json.dumps({"sist2-admin": f"Sist2Scan task finished {return_code=}, {duration=}"}))
+        self._logger.info(json.dumps({"sist2-admin": f"Sist2Scan task finished {return_code=}, {duration=}, {ok=}"}))
 
         logger.info(f"Completed {self.display_name} ({return_code=})")
 
