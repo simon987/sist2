@@ -81,6 +81,7 @@ export default {
             auth0Domain: "Auth0 domain",
             auth0ClientId: "Auth0 client ID",
             auth0PublicKey: "Auth0 public key",
+            verbose: "Verbose logs"
         },
         backendOptions: {
             title: "Search backend options",

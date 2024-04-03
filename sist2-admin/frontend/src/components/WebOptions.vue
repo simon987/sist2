@@ -17,6 +17,10 @@
 
       <label>{{ $t("webOptions.tagAuth") }}</label>
       <b-form-input v-model="options.tag_auth" @change="update()" :disabled="Boolean(options.auth)"></b-form-input>
+
+      <b-form-checkbox v-model="options.verbose" @change="update()">
+        {{$t("webOptions.verbose")}}
+      </b-form-checkbox>
     </b-card>
 
     <br>

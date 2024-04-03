@@ -201,6 +201,7 @@ class WebOptions(BaseModel):
     auth0_client_id: str = None
     auth0_public_key: str = None
     auth0_public_key_file: str = None
+    verbose: bool = False
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -232,6 +233,8 @@ class WebOptions(BaseModel):
             args.append(f"--tag-auth={self.tag_auth}")
         if self.dev:
             args.append(f"--dev")
+        if self.verbose:
+            args.append(f"--very-verbose")
 
         args.extend(self.indices)
 

@@ -144,8 +144,6 @@ class Sist2Api {
     }
 
     _getIndexRoot(indexId) {
-        console.log(indexId)
-        console.log(this.sist2Info.indices.find(idx => idx.id === indexId))
         return this.sist2Info.indices.find(idx => idx.id === indexId).root;
     }
 
