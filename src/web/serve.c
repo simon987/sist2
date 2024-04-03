@@ -430,6 +430,11 @@ void file(struct mg_connection *nc, struct mg_http_message *hm) {
 
     cJSON *source = get_root_document_by_id(sid.index_id, sid.doc_id);
 
+    if (source == NULL) {
+        HTTP_REPLY_NOT_FOUND
+        return;
+    }
+
     if (strlen(idx->desc.rewrite_url) == 0) {
         serve_file_from_disk(source, idx, nc, hm);
     } else {
