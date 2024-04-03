@@ -569,6 +569,9 @@ void parse_media_format_ctx(scan_media_ctx_t *ctx, AVFormatContext *pFormatCtx, 
         AVStream *stream = pFormatCtx->streams[video_stream];
 
         if (stream->codecpar->width <= MIN_SIZE || stream->codecpar->height <= MIN_SIZE) {
+            CTX_LOG_DEBUGF(doc->filepath,
+                           "Will not generate thumbnail because image is too small: %dx%d",
+                           stream->codecpar->width, stream->codecpar->width);
             avformat_close_input(&pFormatCtx);
             avformat_free_context(pFormatCtx);
             return;
