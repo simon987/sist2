@@ -17,7 +17,7 @@
     "dom-to-image": "^2.6.0",
     "fslightbox-vue": "fslightbox-vue.tgz",
     "nouislider": "^15.2.0",
-    "onnxruntime-web": "^1.15.1",
+    "onnxruntime-web": "1.15.1",
     "underscore": "^1.13.1",
     "vue": "^2.6.12",
     "vue-color": "^2.8.1",
