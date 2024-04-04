@@ -78,16 +78,6 @@ export default {
       }
     };
 
-    document.onpointerdown = (e) => {
-      if (e.button === 2) {
-
-        const isLightboxOpen = this.$refs.lightbox === undefined || this.$refs.lightbox.$el.tagName === undefined;
-        if (isLightboxOpen) {
-          e.preventDefault();
-          return false;
-        }
-      }
-    }
   },
   methods: {
     keyDownListener(e) {

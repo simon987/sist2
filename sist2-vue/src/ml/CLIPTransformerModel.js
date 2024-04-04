@@ -22,7 +22,9 @@ export class CLIPTransformerModel {
 
     async loadModel(onProgress) {
         ort.env.wasm.wasmPaths = ORT_WASM_PATHS;
-        ort.env.wasm.numThreads = 2;
+        if (window.crossOriginIsolated) {
+            ort.env.wasm.numThreads = 2;
+        }
 
         let buf = await ModelStore.get(this._modelUrl);
         if (!buf) {
