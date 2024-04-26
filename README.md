@@ -90,8 +90,10 @@ Example usage:
 1. Scan a directory: `sist2 scan ~/Documents --output ./documents.sist2`
 2. Prepare search index:
     * **Elasticsearch**: `sist2 index --es-url http://localhost:9200 ./documents.sist2`
-    * **SQLite**: `sist2 index --search-index ./search.sist2 ./documents.sist2`
-3. Start web interface: `sist2 web ./documents.sist2`
+    * **SQLite**: `sist2 sqlite-index --search-index ./search.sist2 ./documents.sist2`
+3. Start web interface: 
+   * **Elasticsearch**: `sist2 web ./documents.sist2`
+   * **SQLite**: `sist2 web --search-index ./search.sist2 ./documents.sist2`
 
 ## Format support
 
