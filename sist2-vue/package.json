@@ -12,7 +12,7 @@
   "dependencies": {
     "@auth0/auth0-spa-js": "^2.24.1",
     "@egjs/vue-infinitegrid": "3.3.0",
-    "axios": "^1.19.0",
+    "axios": "^1.20.0",
     "bootstrap": "^4.6.2",
     "bootstrap-vue": "^2.23.1",
     "d3": "^7.9.0",
